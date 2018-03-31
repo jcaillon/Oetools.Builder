@@ -1,0 +1,1 @@
+Will contain a packaging tool for openedge written in C# and target multiple plateform with dotnet core
