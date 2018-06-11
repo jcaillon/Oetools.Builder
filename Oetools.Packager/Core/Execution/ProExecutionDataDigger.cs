@@ -2,6 +2,7 @@
 using System.Text;
 using Oetools.Packager.Core.Config;
 using Oetools.Packager.Core.Exceptions;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Packager.Core.Execution {
     internal class ProExecutionDataDigger : ProExecution {

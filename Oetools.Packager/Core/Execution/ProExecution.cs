@@ -31,12 +31,11 @@ using Oetools.Packager.Core.Exceptions;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Packager.Core.Execution {
-
     /// <summary>
     ///     Base class for all the progress execution (i.e. when we need to start a prowin process and do something)
     /// </summary>
     public abstract class ProExecution {
-
+        
         #region Do
 
         /// <summary>
@@ -52,7 +51,7 @@ namespace Oetools.Packager.Core.Execution {
 
             // create a unique temporary folder
             _localTempDir = Path.Combine(Env.FolderTemp, "exec_" + DateTime.Now.ToString("HHmmssfff") + "_" + Path.GetRandomFileName());
-            if (!Directory.Exists(_localTempDir)) 
+            if (!Directory.Exists(_localTempDir))
                 Directory.CreateDirectory(_localTempDir);
 
             // move .ini file into the execution directory
@@ -75,7 +74,7 @@ namespace Oetools.Packager.Core.Execution {
             _logPath = Path.Combine(_localTempDir, "run.log");
             _dbLogPath = Path.Combine(_localTempDir, "db.ko");
             _notifPath = Path.Combine(_localTempDir, "postExecution.notif");
-            _propath = (_localTempDir + "," + string.Join(",", Env.GetProPathDirList)).Trim().Trim(',') + "\r\n";
+            _propath = (_localTempDir + "," + string.Join(",", Env.ProPathList)).Trim().Trim(',') + "\r\n";
             _propathFilePath = Path.Combine(_localTempDir, "progress.propath");
             File.WriteAllText(_propathFilePath, _propath, Encoding.Default);
 
@@ -88,14 +87,15 @@ namespace Oetools.Packager.Core.Execution {
             SetPreprocessedVar("DbLogPath", _dbLogPath.PreProcQuoter());
             SetPreprocessedVar("DbConnectionMandatory", NeedDatabaseConnection.ToString());
             SetPreprocessedVar("NotificationOutputPath", _notifPath.PreProcQuoter());
-            SetPreprocessedVar("PreExecutionProgram", Env.PreExecutionProgram.Trim().PreProcQuoter());
-            SetPreprocessedVar("PostExecutionProgram", Env.PostExecutionProgram.Trim().PreProcQuoter());
+            SetPreprocessedVar("PreExecutionProgram", Env.PreExecutionProgramPath.Trim().PreProcQuoter());
+            SetPreprocessedVar("PostExecutionProgram", Env.PostExecutionProgramPath.Trim().PreProcQuoter());
             SetPreprocessedVar("DatabaseAliasList", Env.DatabaseAliasList.Trim().Trim(';').PreProcQuoter());
 
             // prepare the .p runner
             _runnerPath = Path.Combine(_localTempDir, "run_" + DateTime.Now.ToString("HHmmssfff") + ".p");
             var runnerProgram = new StringBuilder();
-            foreach (var var in _preprocessedVars) runnerProgram.AppendLine("&SCOPED-DEFINE " + var.Key + " " + var.Value);
+            foreach (var var in _preprocessedVars)
+                runnerProgram.AppendLine("&SCOPED-DEFINE " + var.Key + " " + var.Value);
             runnerProgram.Append(Encoding.Default.GetString(Env.ProgramProgressRun));
             File.WriteAllText(_runnerPath, runnerProgram.ToString(), Encoding.Default);
 
@@ -111,9 +111,10 @@ namespace Oetools.Packager.Core.Execution {
                 if (Env.CanProwinUseNoSplash) {
                     _exeParameters.Append(" -nosplash");
                 } else {
-                    MoveSplashScreenNoError(Path.Combine(Path.GetDirectoryName(Env.ProwinPath) ?? "", "splashscreen.bmp"), Path.Combine(Path.GetDirectoryName(Env.ProwinPath) ?? "", "splashscreen-3p-disabled.bmp"));
+                    MoveSplashScreenNoError(Path.Combine(Path.GetDirectoryName(Env.ProExePath) ?? "", "splashscreen.bmp"), Path.Combine(Path.GetDirectoryName(Env.ProExePath) ?? "", "splashscreen-3p-disabled.bmp"));
                 }
             }
+
             _exeParameters.Append(" -p " + _runnerPath.Quoter());
             if (!string.IsNullOrWhiteSpace(Env.CmdLineParameters))
                 _exeParameters.Append(" " + Env.CmdLineParameters.Trim());
@@ -121,6 +122,7 @@ namespace Oetools.Packager.Core.Execution {
 
             // start the process
             StartProcess();
+            
         }
 
         #endregion
@@ -192,7 +194,7 @@ namespace Oetools.Packager.Core.Execution {
         protected string ExecutionTypeName {
             get { return ExecutionType.ToString(); }
         }
-       
+
         public List<ExecutionException> HandledExceptions { get; private set; }
 
         #endregion
@@ -257,23 +259,41 @@ namespace Oetools.Packager.Core.Execution {
         public ProExecution(IEnvExecution env) {
             Env = env;
             _preprocessedVars = new Dictionary<string, string> {
-                {"LogPath", "\"\""},
-                {"DbLogPath", "\"\""},
-                {"PropathFilePath", "\"\""},
-                {"DbConnectString", "\"\""},
-                {"ExecutionType", "\"\""},
-                {"CurrentFilePath", "\"\""},
-                {"OutputPath", "\"\""},
-                {"ToCompileListFile", "\"\""},
-                {"AnalysisMode", "false"},
-                {"CompileProgressionFile", "\"\""},
-                {"DbConnectionMandatory", "false"},
-                {"NotificationOutputPath", "\"\""},
-                {"PreExecutionProgram", "\"\""},
-                {"PostExecutionProgram", "\"\""},
-                {"DatabaseExtractCandoTblType", "\"\""},
-                {"DatabaseExtractCandoTblName", "\"\""},
-                {"DatabaseAliasList", "\"\""},
+                {
+                    "LogPath", "\"\""
+                }, {
+                    "DbLogPath", "\"\""
+                }, {
+                    "PropathFilePath", "\"\""
+                }, {
+                    "DbConnectString", "\"\""
+                }, {
+                    "ExecutionType", "\"\""
+                }, {
+                    "CurrentFilePath", "\"\""
+                }, {
+                    "OutputPath", "\"\""
+                }, {
+                    "ToCompileListFile", "\"\""
+                }, {
+                    "AnalysisMode", "false"
+                }, {
+                    "CompileProgressionFile", "\"\""
+                }, {
+                    "DbConnectionMandatory", "false"
+                }, {
+                    "NotificationOutputPath", "\"\""
+                }, {
+                    "PreExecutionProgram", "\"\""
+                }, {
+                    "PostExecutionProgram", "\"\""
+                }, {
+                    "DatabaseExtractCandoTblType", "\"\""
+                }, {
+                    "DatabaseExtractCandoTblName", "\"\""
+                }, {
+                    "DatabaseAliasList", "\"\""
+                },
             };
         }
 
@@ -292,13 +312,15 @@ namespace Oetools.Packager.Core.Execution {
             } catch (Exception) {
                 // ignored
             }
+
             HasBeenKilled = true;
         }
 
         public void WaitForProcessExit(int maxWait = 3000) {
             if (maxWait > 0)
                 _process.WaitForExit(maxWait);
-            else _process.WaitForExit();
+            else
+                _process.WaitForExit();
         }
 
         public bool DbConnectionFailedOnMaxUser {
@@ -315,8 +337,8 @@ namespace Oetools.Packager.Core.Execution {
         /// <exception cref="ExecutionException"></exception>
         protected virtual void CheckParameters() {
             // check prowin32.exe
-            if (!File.Exists(Env.ProwinPath)) 
-                throw new ExecutionParametersException("Couldn't start an execution, the following file does not exist : " + Env.ProwinPath.Quoter());
+            if (!File.Exists(Env.ProExePath))
+                throw new ExecutionParametersException("Couldn't start an execution, the following file does not exist : " + Env.ProExePath.Quoter());
         }
 
         /// <summary>
@@ -357,8 +379,8 @@ namespace Oetools.Packager.Core.Execution {
                     Directory.Delete(_localTempDir, true);
 
                 // restore splashscreen
-                if (!string.IsNullOrEmpty(Env.ProwinPath))
-                    MoveSplashScreenNoError(Path.Combine(Path.GetDirectoryName(Env.ProwinPath) ?? "", "splashscreen-3p-disabled.bmp"), Path.Combine(Path.GetDirectoryName(Env.ProwinPath) ?? "", "splashscreen.bmp"));
+                if (!string.IsNullOrEmpty(Env.ProExePath))
+                    MoveSplashScreenNoError(Path.Combine(Path.GetDirectoryName(Env.ProExePath) ?? "", "splashscreen-3p-disabled.bmp"), Path.Combine(Path.GetDirectoryName(Env.ProExePath) ?? "", "splashscreen.bmp"));
             } catch (Exception) {
                 // dont care
             }
@@ -379,7 +401,7 @@ namespace Oetools.Packager.Core.Execution {
         /// </summary>
         protected virtual void StartProcess() {
             var pInfo = new ProcessStartInfo {
-                FileName = Env.ProwinPath,
+                FileName = Env.ProExePath,
                 Arguments = _exeParameters.ToString(),
                 WorkingDirectory = _processStartDir
             };
@@ -387,6 +409,7 @@ namespace Oetools.Packager.Core.Execution {
                 pInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 pInfo.CreateNoWindow = true;
             }
+
             _process = new Process {
                 StartInfo = pInfo,
                 EnableRaisingEvents = true
@@ -402,7 +425,7 @@ namespace Oetools.Packager.Core.Execution {
             try {
                 // if log not found then something is messed up!
                 if (string.IsNullOrEmpty(_logPath) || !File.Exists(_logPath)) {
-                    AddHandledExceptions(new ExecutionException("An error has occurred during the execution : " + Env.ProwinPath + " " + _exeParameters + ", in the directory : " + _process.StartInfo.WorkingDirectory));
+                    AddHandledExceptions(new ExecutionException("An error has occurred during the execution : " + Env.ProExePath + " " + _exeParameters + ", in the directory : " + _process.StartInfo.WorkingDirectory));
                     ExecutionFailed = true;
                 } else if (new FileInfo(_logPath).Length > 0) {
                     // else if the log isn't empty, something went wrong
@@ -429,9 +452,11 @@ namespace Oetools.Packager.Core.Execution {
             // end of successful/unsuccessful execution action
             try {
                 if (ExecutionFailed || ConnectionFailed && NeedDatabaseConnection) {
-                    if (OnExecutionFailed != null) OnExecutionFailed(this);
+                    if (OnExecutionFailed != null)
+                        OnExecutionFailed(this);
                 } else {
-                    if (OnExecutionOk != null) OnExecutionOk(this);
+                    if (OnExecutionOk != null)
+                        OnExecutionOk(this);
                 }
             } catch (Exception e) {
                 AddHandledExceptions(e);
@@ -439,7 +464,8 @@ namespace Oetools.Packager.Core.Execution {
 
             // end of execution action
             try {
-                if (OnExecutionEnd != null) OnExecutionEnd(this);
+                if (OnExecutionEnd != null)
+                    OnExecutionEnd(this);
             } catch (Exception e) {
                 AddHandledExceptions(e);
             }
@@ -463,11 +489,10 @@ namespace Oetools.Packager.Core.Execution {
                 HandledExceptions = new List<ExecutionException>();
             if (customMessage != null)
                 HandledExceptions.Add(new ExecutionException(customMessage, exception));
-            else 
+            else
                 HandledExceptions.Add(new ExecutionException("ABL Execution exception", exception));
         }
 
         #endregion
     }
-
 }

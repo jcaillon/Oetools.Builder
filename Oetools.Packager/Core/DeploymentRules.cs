@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Packager.Core {
     public static class DeploymentRules {

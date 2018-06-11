@@ -23,15 +23,15 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
-using Oetools.Utilities;
-using Oetools.Utilities.Compression;
-using Oetools.Utilities.Compression.Cab;
-using Oetools.Utilities.Compression.Prolib;
-using Oetools.Utilities.Compression.Zip;
+using Oetools.Utilities.Archive;
+using Oetools.Utilities.Archive.Cab;
+using Oetools.Utilities.Archive.Prolib;
+using Oetools.Utilities.Archive.Zip;
 using Oetools.Utilities.Ftp;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Packager.Core {
+    
     /// <summary>
     ///     Represents a file that needs to be deployed
     /// </summary>
@@ -579,6 +579,7 @@ namespace Oetools.Packager.Core {
     #region FileToDeployFtp
 
     public class FileToDeployFtp : FileToDeployInPack {
+        
         private string _host;
         private string _passWord;
         private int _port;

@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 using Oetools.Packager.Core.Config;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Packager.Core.Execution {
     public class ProExecutionProVersion : ProExecution {

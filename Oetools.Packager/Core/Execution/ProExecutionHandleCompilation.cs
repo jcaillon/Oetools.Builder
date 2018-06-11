@@ -28,6 +28,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Oetools.Packager.Core.Config;
 using Oetools.Packager.Core.Exceptions;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Packager.Core.Execution {
 
@@ -109,7 +110,7 @@ namespace Oetools.Packager.Core.Execution {
         /// <summary>
         ///     Copy of the pro env to use
         /// </summary>
-        public new EnvExecutionCompilation Env { get; private set; }
+        public new IEnvExecutionCompilation Env { get; private set; }
 
         #endregion
 
@@ -162,7 +163,7 @@ namespace Oetools.Packager.Core.Execution {
         /// </summary>
         public ProExecutionHandleCompilation() : this(null) { }
 
-        public ProExecutionHandleCompilation(EnvExecutionCompilation env) : base(env) {
+        public ProExecutionHandleCompilation(IEnvExecutionCompilation env) : base(env) {
             Env = env;
 
             // set some options

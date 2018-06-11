@@ -1,6 +1,7 @@
 ﻿using Oetools.Packager.Resources;
 
 namespace Oetools.Packager.Core.Config {
+    
     public class ConfigExecutionDatabase {
 
         public ConfigExecutionDatabase() {

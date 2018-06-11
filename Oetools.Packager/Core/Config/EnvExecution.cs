@@ -1,37 +1,69 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using Oetools.Packager.Resources;
 
 namespace Oetools.Packager.Core.Config {
+    
     public class EnvExecution : IEnvExecution {
-
+        
         public string ConnectionString { get; set; }
 
-        /// <summary>
-        /// Format : ALIAS,DATABASE;ALIAS2,DATABASE;...
-        /// </summary>
         public string DatabaseAliasList { get; set; }
 
-        /// <summary>
-        /// Propath (can be null, in that case we automatically add all the folders of the source dir)
-        /// </summary>
         public string IniPath { get; set; }
 
-        public List<string> GetProPathDirList { get; set; }
+        public List<string> ProPathList { get; set; }
 
         /// <summary>
-        /// Path to prowin32.exe
+        /// Returns the path to the progress executable (or null if it was not found)
         /// </summary>
-        public string ProwinPath { get; set; }
+        public string ProExePath {
+            get {
+                string outputPath;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                    outputPath = Path.Combine(DlcPath, "bin", "prowin32.exe");
+                    if (!File.Exists(outputPath)) {
+                        outputPath = Path.Combine(DlcPath, "bin", "prowin.exe");
+                    }
+                    if (!File.Exists(outputPath)) {
+                        outputPath = Path.Combine(DlcPath, "bin", "_progres.exe");
+                    }
+                } else {
+                    outputPath = Path.Combine(DlcPath, "bin", "_progres");
+                }
+                return File.Exists(outputPath) ? outputPath : null;
+            }
+        }
 
-        // other parameters
+        public bool UseCharacterModeOfProgress { get; set; }
+
+        public Version ProVersion {
+            get {
+                var versionFilePath = Path.Combine(DlcPath, "version");
+                if (File.Exists(versionFilePath)) {
+                    var matches = new Regex(@"(\d+)\.(\d+)(?:\.(\d+)|([A-Za-z](\d+)))").Matches(File.ReadAllText(versionFilePath));
+                    if (matches.Count == 1) {
+                        return new Version(int.Parse(matches[0].Groups[1].Value), int.Parse(matches[0].Groups[2].Value), int.Parse(matches[0].Groups[3].Success ? matches[0].Groups[3].Value : matches[0].Groups[5].Value));
+                    }
+                }
+                return new Version();
+            }
+        }
+
+        public string DlcPath { get; set; }
+
         public string CmdLineParameters { get; set; }
         
-        public string PreExecutionProgram { get; set; }
-        public string PostExecutionProgram { get; set; }
+        public string PreExecutionProgramPath { get; set; }
+        
+        public string PostExecutionProgramPath { get; set; }
 
         public bool NeverUseProwinInBatchMode { get; set; }
-        
-        public bool CanProwinUseNoSplash { get; set; }
+
+        public bool CanProwinUseNoSplash => ProVersion.CompareTo(new Version(11, 6, 0)) >= 0;
 
         public string FolderTemp { get; set; }
         

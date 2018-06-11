@@ -27,7 +27,7 @@ using System.Linq;
 using System.Text;
 using Oetools.Packager.Core.Config;
 using Oetools.Packager.Core.Exceptions;
-using Oetools.Utilities.Compression.Prolib;
+using Oetools.Utilities.Archive.Prolib;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Packager.Core {

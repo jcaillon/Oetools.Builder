@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Oetools.Packager.Core.Exceptions;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Packager.Core.Execution {
 

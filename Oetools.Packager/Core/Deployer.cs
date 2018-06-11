@@ -29,10 +29,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Oetools.Packager.Core.Config;
 using Oetools.Packager.Core.Execution;
-using Oetools.Utilities.Compression;
+using Oetools.Utilities.Archive;
+using Oetools.Utilities.Archive.Compression;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Packager.Core {
+    
     /// <summary>
     ///     This class is responsible for deploying FileToDeploy following DeploymentRules
     /// </summary>
@@ -164,7 +166,7 @@ namespace Oetools.Packager.Core {
 
                 // Create the list of each pack / files in pack
                 // path of pack -> (ArchiveInfo, Dictionary<relativePathInPack, FileToDeploy>)
-                var packs = new Dictionary<string, Tuple<IPackager, Dictionary<string, FileToDeployInPack>>>();
+                var packs = new Dictionary<string, Tuple<IPackager, Dictionary<string, IFileToDeployInPackage>>>();
                 deployToDo
                     .Where(deploy => deploy is FileToDeployInPack)
                     .Cast<FileToDeployInPack>()
@@ -175,11 +177,13 @@ namespace Oetools.Packager.Core {
                             if (!packs.ContainsKey(deployPack.PackPath))
                                 packs.Add(
                                     deployPack.PackPath,
-                                    new Tuple<IPackager, Dictionary<string, FileToDeployInPack>>(deployPack.NewArchive(this), new Dictionary<string, FileToDeployInPack>())
+                                    new Tuple<IPackager, Dictionary<string, IFileToDeployInPackage>>(deployPack.NewArchive(this), new Dictionary<string, IFileToDeployInPackage>())
                                 );
 
                             // add new file in archive
-                            if (!packs[deployPack.PackPath].Item2.ContainsKey(deployPack.From)) packs[deployPack.PackPath].Item2.Add(deployPack.RelativePathInPack, deployPack);
+                            if (!packs[deployPack.PackPath].Item2.ContainsKey(deployPack.From)) {
+                                packs[deployPack.PackPath].Item2.Add(deployPack.RelativePathInPack, deployPack);
+                            }
                         }
                     });
 
@@ -195,22 +199,31 @@ namespace Oetools.Packager.Core {
                             if (!args.CannotCancel)
                                 cancelToken.Token.ThrowIfCancellationRequested();
 
-                            if (args.ProgressType == ArchiveProgressType.FinishFile)
+                            if (args.ProgressType == ArchiveProgressType.FinishFile) {
                                 if (currentPack.Value.Item2.ContainsKey(args.CurrentFileName)) {
-                                    if (!currentPack.Value.Item2[args.CurrentFileName].IsOk) {
+                                    var currentFile = currentPack.Value.Item2[args.CurrentFileName] as FileToDeployInPack;
+                                    if (!currentFile.IsOk) {
                                         _nbFilesDeployed++;
-                                        if (updateDeploymentPercentage != null) updateDeploymentPercentage((float) _nbFilesDeployed / _totalNbFilesToDeploy * 100);
+                                        if (updateDeploymentPercentage != null) {
+                                            updateDeploymentPercentage((float) _nbFilesDeployed / _totalNbFilesToDeploy * 100);
+                                        }
                                     }
 
-                                    if (args.TreatmentException != null) currentPack.Value.Item2[args.CurrentFileName].RegisterArchiveException(args.TreatmentException);
-                                    else currentPack.Value.Item2[args.CurrentFileName].IsOk = true;
+                                    if (args.TreatmentException != null) {
+                                        currentFile.RegisterArchiveException(args.TreatmentException);
+                                    } else {
+                                        currentFile.IsOk = true;
+                                    }
                                 }
+                            }
                         });
                     } catch (OperationCanceledException) {
                         throw;
                     } catch (Exception e) {
                         // set the deploy error for each file
-                        foreach (var kpv in pack.Value.Item2) kpv.Value.RegisterArchiveException(e);
+                        foreach (var fileToPack in pack.Value.Item2.Values.Cast<FileToDeployInPack>()) {
+                            fileToPack.RegisterArchiveException(e);
+                        }
                     }
                 }
 
