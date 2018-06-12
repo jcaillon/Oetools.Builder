@@ -22,7 +22,7 @@ namespace Oetools.Packager.Core.Execution {
             // Check if the startprolint procedure exists or create it from resources
             if (!File.Exists(ProlintStartupProcedurePath)) {
                 try {
-                    File.WriteAllBytes(ProlintStartupProcedurePath, Env.ProgramStartProlint);
+                    File.WriteAllText(ProlintStartupProcedurePath, Env.ProgramStartProlint);
                 } catch (Exception e) {
                     throw new ExecutionParametersException("Could not write the prolint entry point procedure, check wirting rights for the file : " + ProlintStartupProcedurePath, e);
                 }

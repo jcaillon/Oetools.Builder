@@ -31,6 +31,7 @@ using Oetools.Packager.Core.Exceptions;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Packager.Core.Execution {
+    
     /// <summary>
     ///     Base class for all the progress execution (i.e. when we need to start a prowin process and do something)
     /// </summary>
@@ -96,7 +97,7 @@ namespace Oetools.Packager.Core.Execution {
             var runnerProgram = new StringBuilder();
             foreach (var var in _preprocessedVars)
                 runnerProgram.AppendLine("&SCOPED-DEFINE " + var.Key + " " + var.Value);
-            runnerProgram.Append(Encoding.Default.GetString(Env.ProgramProgressRun));
+            runnerProgram.Append(Env.ProgramProgressRun);
             File.WriteAllText(_runnerPath, runnerProgram.ToString(), Encoding.Default);
 
             // no batch mode option?

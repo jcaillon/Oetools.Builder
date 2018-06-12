@@ -90,7 +90,7 @@ namespace Oetools.Packager.Core {
         /// </summary>
         public ConfigMultiCompilation Config { get; private set; }
 
-        public EnvExecutionCompilation Env { get; private set; }
+        public IEnvExecutionCompilation Env { get; private set; }
 
         #endregion
 
@@ -107,7 +107,7 @@ namespace Oetools.Packager.Core {
         public bool HasBeenCancelled { get; private set; }
 
         /// <summary>
-        ///     Human readable amount of time needed for this compilation
+        ///     Total amount of time needed for this compilation
         /// </summary>
         public TimeSpan TotalCompilationTime { get; private set; }
 
@@ -167,7 +167,9 @@ namespace Oetools.Packager.Core {
                 if (IsTestMode)
                     return NbFilesToCompile;
                 var nbFilesDone = 0;
-                foreach (var proc in _processes) nbFilesDone += proc.NbFilesTreated;
+                foreach (var proc in _processes) {
+                    nbFilesDone += proc.NbFilesTreated;
+                }
                 return nbFilesDone;
             }
         }
@@ -211,7 +213,7 @@ namespace Oetools.Packager.Core {
 
         #region Life and death
         
-        public MultiCompilation(ConfigMultiCompilation config, EnvExecutionCompilation env) {
+        public MultiCompilation(ConfigMultiCompilation config, IEnvExecutionCompilation env) {
             Config = config;
             Env = env;
             StartingTime = DateTime.Now;

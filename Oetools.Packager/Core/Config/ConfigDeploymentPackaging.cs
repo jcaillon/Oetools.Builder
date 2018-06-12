@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Oetools.Packager.Resources;
+using Oetools.Packager.Resources.Openedge;
 
 namespace Oetools.Packager.Core.Config {
 
@@ -9,7 +10,7 @@ namespace Oetools.Packager.Core.Config {
         /// <summary>
         ///     The initial deployment directory passed to this program
         /// </summary>
-        internal string InitialTargetDirectory { get; set; }
+        public string PackageTargetDirectory { get; set; }
 
         /// <summary>
         ///     The reference directory that will be copied into the TargetDirectory before a packaging
@@ -55,8 +56,6 @@ namespace Oetools.Packager.Core.Config {
         /// </summary>
         public new List<Tuple<ConfigDeploymentPackaging, List<FileDeployed>>>  PreviousDeployments { get; set; }
 
-        internal byte[] FileContentProwcapp {
-            get { return AblResource.prowcapp; }
-        }
+        internal string FileContentProwcapp => OpenedgeResources.GetOpenedgeAsStringFromResources(@"prowcapp.prowcapp");
     }
 }

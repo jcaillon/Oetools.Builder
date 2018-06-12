@@ -43,7 +43,7 @@ namespace Oetools.Packager.Core {
         /// <summary>
         ///     Constructor
         /// </summary>
-        public DeploymentHandlerDifferential(ConfigDeploymentDifferential conf, EnvExecutionCompilation env) : base(conf, env) {
+        public DeploymentHandlerDifferential(ConfigDeploymentDifferential conf) : base(conf) {
             Conf = conf;
 
             // set previously deployed files + previous source files
@@ -185,7 +185,9 @@ namespace Oetools.Packager.Core {
                         list.Add(file.SourcePath, file);
                         file.Action = DeploymentAction.Existing;
                         // update the md5 value?
-                        if (Conf.ComputeMd5 && (file.Md5 == null || file.Md5.Length == 0)) file.Md5 = GetSourceFileBaseInfo(file.SourcePath).Md5;
+                        if (Conf.ComputeMd5 && (file.Md5 == null || file.Md5.Length == 0)) {
+                            file.Md5 = GetSourceFileBaseInfo(file.SourcePath).Md5;
+                        }
                     }
 
                     _deployedFilesOutput = ConvertToRelativePath(list.Values.ToList());
@@ -356,6 +358,8 @@ namespace Oetools.Packager.Core {
                 }
 
                 // compute MD5 for each file (that's the step that takes the most time)
+                // TODO : we compute the MD5 of each but we only need to compute the MD5 of files that do not have the same size/modification at this point.
+                // TODO : we will compute the MD5 when we output the list of deployed files...
                 if (Conf.ComputeMd5) {
                     var step1 = (90 - _listingPercentage) / _sourceFiles.Count;
                     var parallelOptions = new ParallelOptions {CancellationToken = _cancelSource.Token};
@@ -375,6 +379,7 @@ namespace Oetools.Packager.Core {
                 }
 
                 // now list all the files that are new (either they didn't exist in the previous deployment or they changed since)
+                // TODO : parrellize this and compute MD5 only when needed
                 step = (95 - _listingPercentage) / _sourceFiles.Count;
                 foreach (var file in _sourceFiles) {
                     _listingPercentage += step;
@@ -466,8 +471,12 @@ namespace Oetools.Packager.Core {
         /// </summary>
         private FileSourceInfo GetSourceFileBaseInfo(string sourcePath) {
             try {
-                if (_sourceFiles.ContainsKey(sourcePath)) return _sourceFiles[sourcePath];
-                if (!File.Exists(sourcePath)) return null;
+                if (_sourceFiles.ContainsKey(sourcePath)) {
+                    return _sourceFiles[sourcePath];
+                }
+                if (!File.Exists(sourcePath)) {
+                    return null;
+                }
                 var fileInfo = new FileInfo(sourcePath);
                 var newInfo = new FileSourceInfo {
                     SourcePath = sourcePath,

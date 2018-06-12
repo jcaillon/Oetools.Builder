@@ -14,6 +14,11 @@
         public bool IsDatabaseSingleUser { get; set; }
 
         public bool ExploreRecursively { get; set; }
+        
+        /// <summary>
+        /// If true, don't actually do anything, just test it
+        /// </summary>
+        public bool IsTestMode { get; set; }
 
     }
 }

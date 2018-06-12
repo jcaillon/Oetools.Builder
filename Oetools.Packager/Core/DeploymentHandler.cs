@@ -39,9 +39,9 @@ namespace Oetools.Packager.Core {
         /// <summary>
         ///     Constructor
         /// </summary>
-        public DeploymentHandler(ConfigDeployment conf, EnvExecutionCompilation env) {
+        public DeploymentHandler(ConfigDeployment conf) {
             Conf = conf;
-            Env = env;
+            Env = conf.Env;
             StartingTime = DateTime.Now;
         }
 
@@ -69,11 +69,6 @@ namespace Oetools.Packager.Core {
         #region Options
 
         /// <summary>
-        /// If true, don't actually do anything, just test it
-        /// </summary>
-        public bool IsTestMode { get; set; }
-
-        /// <summary>
         ///     When true, we activate the log just before compiling with FileId active + we generate a file that list referenced
         ///     table in the .r
         /// </summary>
@@ -85,7 +80,7 @@ namespace Oetools.Packager.Core {
 
         public ConfigDeployment Conf { get; protected set; }
 
-        public EnvExecutionCompilation Env { get; protected set; }
+        public IEnvExecutionCompilation Env { get; protected set; }
         
         /// <summary>
         ///     max step number composing this deployment
@@ -151,16 +146,12 @@ namespace Oetools.Packager.Core {
         ///     Human readable amount of time needed for this execution
         /// </summary>
         public TimeSpan TotalDeploymentTime { get; protected set; }
+        
+        public ReturnCode ReturnCode { get; set; }
 
-        public bool CompilationHasFailed { get; protected set; }
-
-        public bool HasBeenCancelled { get; protected set; }
+        protected bool HasBeenCancelled => ReturnCode == ReturnCode.Canceled;
 
         public List<DeploymentException> HandledExceptions { get; private set; }
-
-        public bool DeploymentErrorOccured {
-            get { return _deploymentErrorOccured; }
-        }
 
         public MultiCompilation ProCompilation {
             get { return _proCompilation; }
@@ -205,8 +196,6 @@ namespace Oetools.Packager.Core {
         protected ProExecutionDeploymentHook _hookExecution;
         protected int _maxStep;
 
-        protected bool _deploymentErrorOccured = false;
-
         #endregion
 
         #region Public
@@ -226,7 +215,7 @@ namespace Oetools.Packager.Core {
                 MonoProcess = Conf.ForceSingleProcess || Conf.IsDatabaseSingleUser,
                 NumberOfProcessesPerCore = Conf.NumberProcessPerCore,
                 RFilesOnly = Conf.OnlyGenerateRcode,
-                IsTestMode = IsTestMode,
+                IsTestMode = Conf.IsTestMode,
                 IsAnalysisMode = IsAnalysisMode
             };
 
@@ -246,7 +235,7 @@ namespace Oetools.Packager.Core {
         ///     Call this method to cancel the execution of this deployment
         /// </summary>
         public virtual void Cancel() {
-            HasBeenCancelled = true;
+            ReturnCode = ReturnCode.Canceled;
             _cancelSource.Cancel();
             if (_proCompilation != null)
                 _proCompilation.CancelCompilation();
@@ -313,7 +302,7 @@ namespace Oetools.Packager.Core {
         ///     Deploys the list of files
         /// </summary>
         protected virtual List<FileToDeploy> Deployfiles(List<FileToDeploy> filesToDeploy) {
-            if (IsTestMode) {
+            if (Conf.IsTestMode) {
                 filesToDeploy.ForEach(deploy => deploy.IsOk = true);
                 return filesToDeploy;
             }
@@ -357,7 +346,7 @@ namespace Oetools.Packager.Core {
             if (HasBeenCancelled)
                 return;
 
-            CompilationHasFailed = true;
+            ReturnCode = proCompilation.CompilationFailedOnMaxUser ? ReturnCode.CompilationErrorOnMaxUser : ReturnCode.CompilationError;
             EndOfDeployment();
         }
 
@@ -445,12 +434,15 @@ namespace Oetools.Packager.Core {
             if (_proCompilation != null) foreach (var exception in _proCompilation.HandledExceptions) AddHandledExceptions(exception);
 
             try {
-                if (!HasBeenCancelled && !CompilationHasFailed && !_deploymentErrorOccured) {
-                    if (OnExecutionOk != null)
+                if (ReturnCode == ReturnCode.NoSet) {
+                    ReturnCode = ReturnCode.Ok;
+                    if (OnExecutionOk != null) {
                         OnExecutionOk(this);
+                    }
                 } else {
-                    if (OnExecutionFailed != null)
+                    if (OnExecutionFailed != null) {
                         OnExecutionFailed(this);
+                    }
                 }
             } catch (Exception e) {
                 AddHandledExceptions(e);

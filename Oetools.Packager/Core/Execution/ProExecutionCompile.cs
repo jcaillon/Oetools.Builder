@@ -14,7 +14,7 @@ namespace Oetools.Packager.Core.Execution {
         /// </summary>
         public ProExecutionCompile() : this(null) { }
 
-        public ProExecutionCompile(EnvExecutionCompilation env) : base(env) { }
+        public ProExecutionCompile(IEnvExecutionCompilation env) : base(env) { }
 
         #endregion
 

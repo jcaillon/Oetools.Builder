@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Xml.Serialization;
 
 namespace Oetools.Packager.Core {
+    
     /// <summary>
     ///     Errors found for this file, either from compilation or from prolint
     /// </summary>

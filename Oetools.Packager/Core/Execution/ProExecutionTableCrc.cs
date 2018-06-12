@@ -64,7 +64,7 @@ namespace Oetools.Packager.Core.Execution {
             SetPreprocessedVar("OutputPath", OutputPath.PreProcQuoter());
 
             var fileToExecute = "db_" + DateTime.Now.ToString("yyMMdd_HHmmssfff") + ".p";
-            File.WriteAllBytes(Path.Combine(_localTempDir, fileToExecute), Config.ProgramDumpTableCrc);
+            File.WriteAllText(Path.Combine(_localTempDir, fileToExecute), Config.ProgramDumpTableCrc);
             SetPreprocessedVar("CurrentFilePath", fileToExecute.PreProcQuoter());
             SetPreprocessedVar("DatabaseExtractCandoTblType", Config.DatabaseExtractCandoTblType.Trim().PreProcQuoter());
             SetPreprocessedVar("DatabaseExtractCandoTblName", Config.DatabaseExtractCandoTblName.Trim().PreProcQuoter());

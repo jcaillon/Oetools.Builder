@@ -19,7 +19,7 @@ namespace Oetools.Packager.Core.Execution {
 
         public string FileDeploymentHook { get; set; }
 
-        public ProExecutionDeploymentHook(EnvExecution env) : base(env) {}
+        public ProExecutionDeploymentHook(IEnvExecution env) : base(env) {}
 
         protected override void SetExecutionInfo() {
             base.SetExecutionInfo();

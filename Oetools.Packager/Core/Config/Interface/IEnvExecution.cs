@@ -78,6 +78,6 @@ namespace Oetools.Packager.Core.Config {
         /// <summary>
         /// 
         /// </summary>
-        byte[] ProgramProgressRun { get; }
+        string ProgramProgressRun { get; }
     }
 }

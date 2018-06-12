@@ -26,6 +26,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Oetools.Packager.Core.Config;
+using Oetools.Packager.Core.Entities;
 using Oetools.Packager.Core.Exceptions;
 using Oetools.Utilities.Archive.Prolib;
 using Oetools.Utilities.Lib;
@@ -47,12 +48,12 @@ namespace Oetools.Packager.Core {
         /// <summary>
         ///     Constructor
         /// </summary>
-        public DeploymentHandlerPackaging(ConfigDeploymentPackaging conf, EnvExecutionCompilation env) : base(conf, env) {
+        public DeploymentHandlerPackaging(ConfigDeploymentPackaging conf) : base(conf) {
             Conf = conf;
             if (conf.CreatePackageInTempDir) {
                 // overload the target directory, we copy it in the real target at the end
-                conf.InitialTargetDirectory = env.TargetDirectory;
-                env.TargetDirectory = Path.Combine(env.FolderTemp, "Package");
+                conf.PackageTargetDirectory = Env.TargetDirectory;
+                Env.TargetDirectory = Path.Combine(Env.FolderTemp, "Package");
             }
         }
 
@@ -69,20 +70,20 @@ namespace Oetools.Packager.Core {
             try {
                 foreach (var filesToDeploy in _filesToDeployPerStep.Values)
                     foreach (var file in filesToDeploy) {
-                        file.To = file.To.Replace(Env.TargetDirectory.CorrectDirPath(), Conf.InitialTargetDirectory.CorrectDirPath());
-                        file.TargetBasePath = file.TargetBasePath.Replace(Env.TargetDirectory.CorrectDirPath(), Conf.InitialTargetDirectory.CorrectDirPath());
+                        file.To = file.To.Replace(Env.TargetDirectory.CorrectDirPath(), Conf.PackageTargetDirectory.CorrectDirPath());
+                        file.TargetBasePath = file.TargetBasePath.Replace(Env.TargetDirectory.CorrectDirPath(), Conf.PackageTargetDirectory.CorrectDirPath());
                         var fileToPack = file as FileToDeployInPack;
                         if (fileToPack != null)
-                            fileToPack.PackPath = fileToPack.PackPath.Replace(Env.TargetDirectory.CorrectDirPath(), Conf.InitialTargetDirectory.CorrectDirPath());
+                            fileToPack.PackPath = fileToPack.PackPath.Replace(Env.TargetDirectory.CorrectDirPath(), Conf.PackageTargetDirectory.CorrectDirPath());
                     }
 
                 foreach (var diffCab in _diffCabs)
-                    diffCab.CabPath = diffCab.CabPath.Replace(Env.TargetDirectory.CorrectDirPath(), Conf.InitialTargetDirectory.CorrectDirPath());
+                    diffCab.CabPath = diffCab.CabPath.Replace(Env.TargetDirectory.CorrectDirPath(), Conf.PackageTargetDirectory.CorrectDirPath());
             } catch (Exception e) {
                 AddHandledExceptions(e);
             }
 
-            Env.TargetDirectory = Conf.InitialTargetDirectory;
+            Env.TargetDirectory = Conf.PackageTargetDirectory;
         }
 
         #endregion
@@ -188,7 +189,7 @@ namespace Oetools.Packager.Core {
             if (string.IsNullOrEmpty(Conf.ReferenceDirectory)) {
                 // if not defined, it is the target directory of the latest deployment
                 if (Conf.PreviousDeployments != null && Conf.PreviousDeployments.Count > 0)
-                    ReferenceDirectory = Conf.PreviousDeployments.Last().Item1.InitialTargetDirectory;
+                    ReferenceDirectory = Conf.PreviousDeployments.Last().Item1.PackageTargetDirectory;
             } else {
                 ReferenceDirectory = Conf.ReferenceDirectory;
             }
@@ -209,7 +210,7 @@ namespace Oetools.Packager.Core {
                 Conf.WcProwcappVersion = Conf.PreviousDeployments.Last().Item1.WcProwcappVersion + 1;
 
             // copy reference folder to target folder
-            if (!IsTestMode)
+            if (!Conf.IsTestMode)
                 CopyReferenceDirectory();
 
             // creates a list of all the files in the source directory, gather info on each file
@@ -229,12 +230,12 @@ namespace Oetools.Packager.Core {
                     BuildDiffsList();
                 } catch (Exception e) {
                     AddHandledExceptions(e, "An error has occurred while computing the list of webclient diff cab files");
-                    _deploymentErrorOccured = true;
+                    ReturnCode = ReturnCode.DeploymentError;
                 }
                 // at this point we know each diff cab and the files that should compose it
 
                 // do we need to build a new version of the webclient? did at least 1 file changed?
-                if (!IsTestMode && (_diffCabs.Count == 0 || _diffCabs.First().FilesDeployedInNwkSincePreviousVersion.Count > 0)) {
+                if (!Conf.IsTestMode && (_diffCabs.Count == 0 || _diffCabs.First().FilesDeployedInNwkSincePreviousVersion.Count > 0)) {
                     // in this step, we add what's needed to build the .cab that has all the client files (the "from scratch" webclient install)
                     try {
                         _isBuildingAppCab = true;
@@ -242,7 +243,7 @@ namespace Oetools.Packager.Core {
                         _isBuildingAppCab = false;
                     } catch (Exception e) {
                         AddHandledExceptions(e, "An error has occurred while creating the complete webclient cab file");
-                        _deploymentErrorOccured = true;
+                        ReturnCode = ReturnCode.DeploymentError;
                     }
 
                     // at this step, we need to build the /diffs/ for the webclient
@@ -252,7 +253,7 @@ namespace Oetools.Packager.Core {
                         _isBuildingDiffs = false;
                     } catch (Exception e) {
                         AddHandledExceptions(e, "An error has occurred while creating the webclient diff cab files");
-                        _deploymentErrorOccured = true;
+                        ReturnCode = ReturnCode.DeploymentError;
                     }
 
                     // finally, build the prowcapp file for the version
@@ -260,7 +261,7 @@ namespace Oetools.Packager.Core {
                         BuildCompleteProwcappFile();
                     } catch (Exception e) {
                         AddHandledExceptions(e, "An error has occurred while creating the webclient prowcapp file");
-                        _deploymentErrorOccured = true;
+                        ReturnCode = ReturnCode.DeploymentError;
                     }
 
                     WebClientCreated = true;
@@ -268,10 +269,10 @@ namespace Oetools.Packager.Core {
                     // check that every webclient file we should have created actually exist
                     var fullCabPath = Path.Combine(Env.TargetDirectory, Conf.ClientWcpDirectoryName, Conf.WcApplicationName + ".cab");
                     if (!File.Exists(fullCabPath))
-                        _deploymentErrorOccured = true;
+                        ReturnCode = ReturnCode.DeploymentError;
                     foreach (var cab in _diffCabs)
                         if (!File.Exists(cab.CabPath))
-                            _deploymentErrorOccured = true;
+                            ReturnCode = ReturnCode.DeploymentError;
                 } else if (Conf.PreviousDeployments != null && Conf.PreviousDeployments.Count > 0) {
                     // copy the previous webclient folder in this deployment
                     try {
@@ -282,7 +283,7 @@ namespace Oetools.Packager.Core {
                         Conf.WcPackageName = Conf.PreviousDeployments.Last().Item1.WcPackageName;
                     } catch (Exception e) {
                         AddHandledExceptions(e, "Erreur durant la copie du dossier webclient précédent");
-                        _deploymentErrorOccured = true;
+                        ReturnCode = ReturnCode.DeploymentError;
                     }
                 }
             }
@@ -297,21 +298,21 @@ namespace Oetools.Packager.Core {
         /// </summary>
         protected override void BeforeEndOfSuccessfulDeployment() {
             // if we created the package in a temp directory
-            if (Conf.CreatePackageInTempDir)
-                if (IsTestMode) {
+            if (Conf.CreatePackageInTempDir) {
+                if (Conf.IsTestMode) {
                     CorrectTargetDirectory();
                 } else {
                     _isCopyingFinalPackage = true;
 
                     // copy the local package to the remote location (the real target dir)
                     if (Directory.Exists(Env.TargetDirectory)) {
-                        _finalCopy = ProgressCopy.CopyDirectory(Env.TargetDirectory, Conf.InitialTargetDirectory, CpOnCompleted, CpOnProgressChanged);
+                        _finalCopy = ProgressCopy.CopyDirectory(Env.TargetDirectory, Conf.PackageTargetDirectory, CpOnCompleted, CpOnProgressChanged);
                         return;
                     }
 
-                    Utils.CreateDirectory(Conf.InitialTargetDirectory);
+                    Utils.CreateDirectory(Conf.PackageTargetDirectory);
                 }
-
+            }
             EndOfDeployment();
         }
 
@@ -330,8 +331,9 @@ namespace Oetools.Packager.Core {
                 return;
             }
 
-            if (endEventArgs.Type == ProgressCopy.CopyCompletedType.Exception)
-                _deploymentErrorOccured = true;
+            if (endEventArgs.Type == ProgressCopy.CopyCompletedType.Exception) {
+                ReturnCode = ReturnCode.DeploymentError;
+            }
             EndOfDeployment();
         }
 
@@ -360,11 +362,11 @@ namespace Oetools.Packager.Core {
                     throw new DeploymentException("Couldn't clean the target directory : " + Env.TargetDirectory.Quoter(), e);
                 }
 
-            if (Directory.Exists(Conf.InitialTargetDirectory))
+            if (Directory.Exists(Conf.PackageTargetDirectory))
                 try {
-                    Directory.Delete(Conf.InitialTargetDirectory, true);
+                    Directory.Delete(Conf.PackageTargetDirectory, true);
                 } catch (Exception e) {
-                    throw new DeploymentException("Couldn't clean the target directory : " + Conf.InitialTargetDirectory.Quoter(), e);
+                    throw new DeploymentException("Couldn't clean the target directory : " + Conf.PackageTargetDirectory.Quoter(), e);
                 }
 
             // at this step, we need to copy the folder reference n-1 to reference n as well as set the target directory to reference n
@@ -380,7 +382,7 @@ namespace Oetools.Packager.Core {
                 }
 
                 // copy files
-                if (IsTestMode)
+                if (Conf.IsTestMode)
                     filesToCopy.ForEach(deploy => deploy.IsOk = true);
                 else
                     Env.Deployer.DeployFiles(filesToCopy, f => _refCopyPercentage = f, _cancelSource);
@@ -407,7 +409,7 @@ namespace Oetools.Packager.Core {
                 }
 
                 // copy files
-                if (IsTestMode)
+                if (Conf.IsTestMode)
                     filesToCopy.ForEach(deploy => deploy.IsOk = true);
                 else
                     Env.Deployer.DeployFiles(filesToCopy, f => _buildAppCabPercentage = f, _cancelSource);
@@ -426,7 +428,7 @@ namespace Oetools.Packager.Core {
             var filesToCab = ListFilesInDirectoryToDeployInCab(Path.Combine(Env.TargetDirectory, Conf.ClientNwkDirectoryName), Path.Combine(Env.TargetDirectory, Conf.ClientWcpDirectoryName, Conf.WcApplicationName + ".cab"));
 
             // actually deploy them
-            if (IsTestMode)
+            if (Conf.IsTestMode)
                 filesToCab.ForEach(deploy => deploy.IsOk = true);
             else
                 Env.Deployer.DeployFiles(filesToCab, f => _buildAppCabPercentage = 100 + f, _cancelSource);
@@ -596,7 +598,7 @@ namespace Oetools.Packager.Core {
                         }
 
                 // STEP 1 : we move the files into a temporary folder (one for each diff) (or/and copy existing .cab from the reference/diffs/)
-                if (IsTestMode)
+                if (Conf.IsTestMode)
                     _diffCabs.ForEach(cab => cab.FilesToPackStep1.ForEach(deploy => deploy.IsOk = true));
                 else
                     Env.Deployer.DeployFiles(_diffCabs.SelectMany(cab => cab.FilesToPackStep1).ToList(), f => _buildDiffPercentage = f, _cancelSource);
@@ -613,7 +615,7 @@ namespace Oetools.Packager.Core {
                 foreach (var diffCab in diffCabTodo)
                     if (Directory.Exists(diffCab.TempCabFolder))
                         filesToCab.AddRange(ListFilesInDirectoryToDeployInCab(diffCab.TempCabFolder, diffCab.CabPath));
-                if (IsTestMode)
+                if (Conf.IsTestMode)
                     filesToCab.ForEach(deploy => deploy.IsOk = true);
                 else
                     Env.Deployer.DeployFiles(filesToCab, f => _buildDiffPercentage = 100 + f, _cancelSource);
@@ -698,7 +700,7 @@ namespace Oetools.Packager.Core {
             if (!string.IsNullOrEmpty(Conf.WcProwcappModelPath) && File.Exists(Conf.WcProwcappModelPath))
                 content = Utils.ReadAllText(Conf.WcProwcappModelPath, Encoding.Default);
             else
-                content = Encoding.Default.GetString(Conf.FileContentProwcapp);
+                content = Conf.FileContentProwcapp;
 
             // replace static variables
             content = content.Replace("%VENDORNAME%", Conf.WcVendorName);
@@ -757,45 +759,5 @@ namespace Oetools.Packager.Core {
 
         #endregion
         
-        #region DiffCab
-
-        public class DiffCab {
-            /// <summary>
-            ///     1
-            /// </summary>
-            public int VersionToUpdateFrom { get; set; }
-
-            /// <summary>
-            ///     2
-            /// </summary>
-            public int VersionToUpdateTo { get; set; }
-
-            /// <summary>
-            ///     $TARGET/wcp/new-10-02/diffs/new1to2.cab
-            /// </summary>
-            public string CabPath { get; set; }
-
-            /// <summary>
-            ///     $REFERENCE/wcp/new-10-02/diffs/new1to2.cab
-            /// </summary>
-            public string ReferenceCabPath { get; set; }
-
-            /// <summary>
-            ///     $TARGET/wcp/new-10-02/diffs/new1to2
-            /// </summary>
-            public string TempCabFolder { get; set; }
-
-            /// <summary>
-            ///     List of all the files that were deployed in the clientNWK since this VersionToUpdateFrom
-            /// </summary>
-            public List<FileDeployed> FilesDeployedInNwkSincePreviousVersion { get; set; }
-
-            /// <summary>
-            ///     List of all the files to pack (for step 1, which is we move/cab files into a temporary directory for this diff)
-            /// </summary>
-            public List<FileToDeploy> FilesToPackStep1 { get; set; }
-        }
-
-        #endregion
     }
 }

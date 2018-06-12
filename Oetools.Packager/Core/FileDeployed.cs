@@ -43,6 +43,8 @@ namespace Oetools.Packager.Core {
         ///     MD5
         /// </summary>
         public byte[] Md5 { get; set; }
+        
+        public SourceFileState FileState { get; set; }
     }
 
     [Serializable]
@@ -100,5 +102,12 @@ namespace Oetools.Packager.Core {
         Replaced,
         Deleted,
         Existing
+    }
+
+    public enum SourceFileState {
+        UpToDate,
+        Modified,
+        New,
+        Missing
     }
 }

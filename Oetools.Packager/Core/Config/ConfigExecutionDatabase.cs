@@ -1,4 +1,4 @@
-﻿using Oetools.Packager.Resources;
+﻿using Oetools.Packager.Resources.Openedge;
 
 namespace Oetools.Packager.Core.Config {
     
@@ -12,12 +12,8 @@ namespace Oetools.Packager.Core.Config {
         public string DatabaseExtractCandoTblType { get; set; }
         public string DatabaseExtractCandoTblName { get; set; }
 
-        public byte[] ProgramDumpTableCrc {
-            get { return AblResource.DumpTableCrc; }
-        }
+        public string ProgramDumpTableCrc => OpenedgeResources.GetOpenedgeAsStringFromResources(@"DumpTableCrc.p");
 
-        public byte[] ProgramDumpDatabase {
-            get { return AblResource.DumpDatabase; }
-        }
+        public string ProgramDumpDatabase => OpenedgeResources.GetOpenedgeAsStringFromResources(@"DumpDatabase.p");
     }
 }

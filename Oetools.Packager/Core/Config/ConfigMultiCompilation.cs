@@ -2,6 +2,8 @@
     
     public class ConfigMultiCompilation {
         
+        public IEnvExecutionCompilation Env;
+        
         public ConfigMultiCompilation() {
             NumberProcessPerCore = 1;
         }

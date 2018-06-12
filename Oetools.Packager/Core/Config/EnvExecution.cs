@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using Oetools.Packager.Resources;
+using Oetools.Packager.Resources.Openedge;
 
 namespace Oetools.Packager.Core.Config {
     
@@ -67,16 +67,10 @@ namespace Oetools.Packager.Core.Config {
 
         public string FolderTemp { get; set; }
         
-        public byte[] ProgramProgressRun {
-            get { return AblResource.ProgressRun; }
-        }
+        public string ProgramProgressRun => OpenedgeResources.GetOpenedgeAsStringFromResources(@"ProgressRun.p");
         
-        public byte[] ProgramDeploymentHook {
-            get { return AblResource.DeploymentHook; }
-        }
+        public string ProgramDeploymentHook => OpenedgeResources.GetOpenedgeAsStringFromResources(@"DeploymentHook.p");
 
-        public byte[] ProgramStartProlint {
-            get { return AblResource.StartProlint; }
-        }
+        public string ProgramStartProlint => OpenedgeResources.GetOpenedgeAsStringFromResources(@"StartProlint.p");
     }
 }

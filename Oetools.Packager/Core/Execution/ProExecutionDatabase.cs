@@ -42,7 +42,7 @@ namespace Oetools.Packager.Core.Execution {
             SetPreprocessedVar("CurrentFilePath", fileToExecute.PreProcQuoter());
 
             try {
-                File.WriteAllBytes(Path.Combine(_localTempDir, fileToExecute), Config.ProgramDumpDatabase);
+                File.WriteAllText(Path.Combine(_localTempDir, fileToExecute), Config.ProgramDumpDatabase);
             } catch (Exception e) {
                 throw new ExecutionParametersException("Couldn't start an execution, couldn't create the dump database program file : " + e.Message, e);
             }

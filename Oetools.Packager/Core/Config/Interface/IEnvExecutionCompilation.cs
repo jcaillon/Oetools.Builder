@@ -67,9 +67,10 @@ namespace Oetools.Packager.Core.Config {
         bool NeverUseProwinInBatchMode { get; set; }
         bool CanProwinUseNoSplash { get; }
         string FolderTemp { get; set; }
-        byte[] ProgramProgressRun { get; }
-        byte[] ProgramDeploymentHook { get; }
-        byte[] ProgramStartProlint { get; }
+        
+        string ProgramProgressRun { get; }
+        string ProgramDeploymentHook { get; }
+        string ProgramStartProlint { get; }
 
         /// <summary>
         /// Tries to find the specified file in the current propath
