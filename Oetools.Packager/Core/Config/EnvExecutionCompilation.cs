@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using Oetools.Utilities.Archive;
 using Oetools.Utilities.Archive.Compression;
 
 namespace Oetools.Packager.Core.Config {
@@ -9,7 +10,7 @@ namespace Oetools.Packager.Core.Config {
     public class EnvExecutionCompilation : EnvExecution, IEnvExecutionCompilation {
 
         public EnvExecutionCompilation() {
-            ArchivesCompressionLevel = CompressionLevel.Max;
+            ArchivesCompressionLevel = CompressionLvl.Max;
         }
 
         /// <summary>
@@ -45,14 +46,19 @@ namespace Oetools.Packager.Core.Config {
         public bool CompileUseXmlXref { get; set; }
 
         
-        public CompressionLevel ArchivesCompressionLevel { get; set; }
+        public CompressionLvl ArchivesCompressionLevel { get; set; }
 
         /// <summary>
         /// Returns the path to prolib (or null if not found in the dlc folder)
         /// </summary>
         public string ProlibPath {
             get {
-                var outputPath = Path.Combine(DlcPath, "bin", RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "prolib.exe" : "prolib");
+#if WINDOWSONLYBUILD
+                string exeName = "prolib.exe";
+#else
+                string exeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "prolib.exe" : "prolib";
+#endif
+                var outputPath = Path.Combine(DlcPath, "bin", exeName);
                 return File.Exists(outputPath) ? outputPath : null;
             }
         }

@@ -23,7 +23,12 @@ namespace Oetools.Packager.Core.Config {
         public string ProExePath {
             get {
                 string outputPath;
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+#if WINDOWSONLYBUILD
+                bool isWindowPlateform = true;
+#else
+                bool isWindowPlateform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+#endif
+                if (isWindowPlateform) {
                     outputPath = Path.Combine(DlcPath, "bin", "prowin32.exe");
                     if (!File.Exists(outputPath)) {
                         outputPath = Path.Combine(DlcPath, "bin", "prowin.exe");

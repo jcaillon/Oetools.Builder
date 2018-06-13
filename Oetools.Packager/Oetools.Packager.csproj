@@ -3,7 +3,11 @@
     <ProjectReference Include="..\Oetools.Utilities\Oetools.Utilities\Oetools.Utilities.csproj" />
   </ItemGroup>
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks Condition=" '$(TargetFrameworks)' == '' ">net461;netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461' ">
+    <!--<DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>-->
+    <DefineConstants>$(DefineConstants);NET461;WINDOWSONLYBUILD</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Openedge\*" />

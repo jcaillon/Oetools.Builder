@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Oetools.Utilities.Archive;
 using Oetools.Utilities.Archive.Compression;
 
 namespace Oetools.Packager.Core.Config {
+    
     public interface IEnvExecutionCompilation : IEnvExecution {
         
         /// <summary>
@@ -30,7 +33,7 @@ namespace Oetools.Packager.Core.Config {
         bool CompileWithXref { get; set; }
         bool CompileWithListing { get; set; }
         bool CompileUseXmlXref { get; set; }
-        CompressionLevel ArchivesCompressionLevel { get; set; }
+        CompressionLvl ArchivesCompressionLevel { get; set; }
 
         /// <summary>
         /// Returns the path to prolib (or null if not found in the dlc folder)
@@ -48,28 +51,8 @@ namespace Oetools.Packager.Core.Config {
         /// </summary>
         bool CompileForceUseOfTemp { get; set; }
 
-        string ConnectionString { get; set; }
-        string DatabaseAliasList { get; set; }
-        string IniPath { get; set; }
-        List<string> ProPathList { get; set; }
-
-        /// <summary>
-        /// Returns the path to the progress executable (or null if it was not found)
-        /// </summary>
-        string ProExePath { get; }
-
-        bool UseCharacterModeOfProgress { get; set; }
-        Version ProVersion { get; }
-        string DlcPath { get; set; }
-        string CmdLineParameters { get; set; }
-        string PreExecutionProgramPath { get; set; }
-        string PostExecutionProgramPath { get; set; }
-        bool NeverUseProwinInBatchMode { get; set; }
-        bool CanProwinUseNoSplash { get; }
-        string FolderTemp { get; set; }
-        
-        string ProgramProgressRun { get; }
         string ProgramDeploymentHook { get; }
+        
         string ProgramStartProlint { get; }
 
         /// <summary>

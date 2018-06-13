@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using Oetools.Packager.Core.Entities;
 using Oetools.Packager.Core.Exceptions;
 
 namespace Oetools.Packager.Core.Config {
@@ -43,7 +44,7 @@ namespace Oetools.Packager.Core.Config {
         /// </summary>
         public List<FileDeployed> DeployedFiles { get; set; }
         
-        public List<(string filePath, List<(int Line, string ErrorDescription)> rulesErrors)> RulesErrors { get; set; }       
+        public List<RuleError> RulesErrors { get; set; }       
         
         /// <summary>
         /// List of the compilation errors found
