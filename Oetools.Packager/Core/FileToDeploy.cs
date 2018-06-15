@@ -25,6 +25,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Oetools.Utilities.Archive;
 using Oetools.Utilities.Archive.Cab;
+using Oetools.Utilities.Archive.Ftp;
 using Oetools.Utilities.Archive.Prolib;
 using Oetools.Utilities.Archive.Zip;
 using Oetools.Utilities.Ftp;
@@ -325,7 +326,7 @@ namespace Oetools.Packager.Core {
     /// <summary>
     ///     A class for files that need to be deploy in "packs" (i.e. .zip, FTP)
     /// </summary>
-    public abstract class FileToDeployInPack : FileToDeploy, IFileToDeployInPackage {
+    public abstract class FileToDeployInPack : FileToDeploy, IFileToArchive {
         #region Life and death
 
         /// <summary>
@@ -377,7 +378,7 @@ namespace Oetools.Packager.Core {
         /// <summary>
         ///     Returns a new archive info
         /// </summary>
-        internal virtual IPackager NewArchive(Deployer deployer) {
+        internal virtual IArchiver NewArchive(Deployer deployer) {
             return null;
         }
 
@@ -477,8 +478,8 @@ namespace Oetools.Packager.Core {
         /// <summary>
         ///     Returns a new archive info
         /// </summary>
-        internal override IPackager NewArchive(Deployer deployer) {
-            return new ProlibDelete(PackPath, deployer.ProlibPath);
+        internal override IArchiver NewArchive(Deployer deployer) {
+            return new ProlibArchiveDeleter(deployer.ProlibPath);
         }
 
         public override FileToDeploy Set(string from, string to) {
@@ -517,8 +518,8 @@ namespace Oetools.Packager.Core {
         /// <summary>
         ///     Returns a new archive info
         /// </summary>
-        internal override IPackager NewArchive(Deployer deployer) {
-            return new CabPackager(PackPath);
+        internal override IArchiver NewArchive(Deployer deployer) {
+            return new CabArchiver();
         }
     }
 
@@ -543,8 +544,8 @@ namespace Oetools.Packager.Core {
         /// <summary>
         ///     Returns a new archive info
         /// </summary>
-        internal override IPackager NewArchive(Deployer deployer) {
-            return new ProlibPackager(PackPath, deployer.ProlibPath);
+        internal override IArchiver NewArchive(Deployer deployer) {
+            return new ProlibArchiver(deployer.ProlibPath);
         }
     }
 
@@ -569,8 +570,8 @@ namespace Oetools.Packager.Core {
         /// <summary>
         ///     Returns a new archive info
         /// </summary>
-        internal override IPackager NewArchive(Deployer deployer) {
-            return new ZipPackager(PackPath);
+        internal override IArchiver NewArchive(Deployer deployer) {
+            return new ZipArchiver();
         }
     }
 
@@ -580,11 +581,6 @@ namespace Oetools.Packager.Core {
 
     public class FileToDeployFtp : FileToDeployInPack {
         
-        private string _host;
-        private string _passWord;
-        private int _port;
-        private string _userName;
-
         #region Life and death
 
         /// <summary>
@@ -622,32 +618,17 @@ namespace Oetools.Packager.Core {
         #region Methods
 
         public override FileToDeploy Set(string from, string to) {
-            // parse our uri
-            var regex = new Regex(@"^(ftps?:\/\/([^:\/@]*)?(:[^:\/@]*)?(@[^:\/@]*)?(:[^:\/@]*)?)(\/.*)$");
-            var match = regex.Match(to.Replace("\\", "/"));
-            if (match.Success) {
-                PackPath = match.Groups[1].Value;
-                RelativePathInPack = match.Groups[6].Value;
-                if (!string.IsNullOrEmpty(match.Groups[4].Value)) {
-                    _userName = match.Groups[2].Value;
-                    _passWord = match.Groups[3].Value.Trim(':');
-                    _host = match.Groups[4].Value.Trim('@');
-                    if (!int.TryParse(match.Groups[5].Value.Trim(':'), out _port))
-                        _port = -1;
-                } else {
-                    _host = match.Groups[2].Value;
-                    if (!int.TryParse(match.Groups[3].Value.Trim(':'), out _port))
-                        _port = -1;
-                }
-            }
+            to.ParseFtpAddress(out var ftpBaseUri, out _, out _, out _, out _, out var relativePath);
+            PackPath = ftpBaseUri;
+            RelativePathInPack = relativePath;
             return base.Set(from, to);
         }
 
         /// <summary>
         ///     Returns a new archive info
         /// </summary>
-        internal override IPackager NewArchive(Deployer deployer) {
-            return new FtpPackager(_host, _port, _userName, _passWord, PackPath);
+        internal override IArchiver NewArchive(Deployer deployer) {
+            return new FtpArchiver();
         }
 
         /// <summary>

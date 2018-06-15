@@ -2,7 +2,12 @@
 
     public class ConfigDeployment : ConfigMultiCompilation {
         
-        public string FilesPatternCompilable { get; set; }
+        private string _filesPatternCompilable;
+
+        public string FilesPatternCompilable {
+            get => !string.IsNullOrEmpty(_filesPatternCompilable) ? _filesPatternCompilable : (_filesPatternCompilable = "*.p,*.w,*.t,*.cls");
+            set => _filesPatternCompilable = value;
+        }
 
         /// <summary>
         /// True if all the files should be recompiled/deployed

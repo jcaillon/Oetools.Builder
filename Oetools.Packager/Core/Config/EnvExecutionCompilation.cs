@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Oetools.Utilities.Archive;
 using Oetools.Utilities.Archive.Compression;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Packager.Core.Config {
     
@@ -53,11 +54,7 @@ namespace Oetools.Packager.Core.Config {
         /// </summary>
         public string ProlibPath {
             get {
-#if WINDOWSONLYBUILD
-                string exeName = "prolib.exe";
-#else
-                string exeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "prolib.exe" : "prolib";
-#endif
+                string exeName = Utils.IsRuntimeWindowsPlatform ? "prolib.exe" : "prolib";
                 var outputPath = Path.Combine(DlcPath, "bin", exeName);
                 return File.Exists(outputPath) ? outputPath : null;
             }

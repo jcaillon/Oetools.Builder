@@ -4,11 +4,14 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Oetools.Packager.Resources.Openedge;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Packager.Core.Config {
     
     public class EnvExecution : IEnvExecution {
         
+        private string _dlcPath;
+
         public string ConnectionString { get; set; }
 
         public string DatabaseAliasList { get; set; }
@@ -23,18 +26,13 @@ namespace Oetools.Packager.Core.Config {
         public string ProExePath {
             get {
                 string outputPath;
-#if WINDOWSONLYBUILD
-                bool isWindowPlateform = true;
-#else
-                bool isWindowPlateform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-#endif
-                if (isWindowPlateform) {
-                    outputPath = Path.Combine(DlcPath, "bin", "prowin32.exe");
+                if (Utils.IsRuntimeWindowsPlatform) {
+                    outputPath = Path.Combine(DlcPath, "bin", UseCharacterModeOfProgress ? "_progres.exe" : "prowin32.exe");
                     if (!File.Exists(outputPath)) {
                         outputPath = Path.Combine(DlcPath, "bin", "prowin.exe");
-                    }
-                    if (!File.Exists(outputPath)) {
-                        outputPath = Path.Combine(DlcPath, "bin", "_progres.exe");
+                        if (!File.Exists(outputPath)) {
+                            outputPath = Path.Combine(DlcPath, "bin", "_progres.exe");
+                        }
                     }
                 } else {
                     outputPath = Path.Combine(DlcPath, "bin", "_progres");
@@ -58,7 +56,10 @@ namespace Oetools.Packager.Core.Config {
             }
         }
 
-        public string DlcPath { get; set; }
+        public string DlcPath {
+            get => !string.IsNullOrEmpty(_dlcPath) ? _dlcPath : (_dlcPath = Environment.GetEnvironmentVariable("dlc"));
+            set => _dlcPath = value;
+        }
 
         public string CmdLineParameters { get; set; }
         

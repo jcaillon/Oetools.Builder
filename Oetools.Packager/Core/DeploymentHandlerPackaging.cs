@@ -28,6 +28,7 @@ using System.Text;
 using Oetools.Packager.Core.Config;
 using Oetools.Packager.Core.Entities;
 using Oetools.Packager.Core.Exceptions;
+using Oetools.Utilities.Archive;
 using Oetools.Utilities.Archive.Prolib;
 using Oetools.Utilities.Lib;
 
@@ -580,8 +581,11 @@ namespace Oetools.Packager.Core {
                 var extractedFilesFromPl = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
                 foreach (var kpv in plNeedingExtraction) {
                     var plExtractionFolder = Path.Combine(tempFolderPath, kpv.Key.Replace(Conf.ClientNwkDirectoryName.CorrectDirPath(), "") + Path.GetRandomFileName());
-                    var extractor = new ProlibExtractor(Path.Combine(Env.TargetDirectory, kpv.Key), Env.ProlibPath, plExtractionFolder);
-                    extractor.ExtractFiles(kpv.Value.Select(target => target.TargetPathInPack).ToList());
+                    var extractor = new ProlibArchiver(Env.ProlibPath);
+                    extractor.ExtractFiles(kpv.Value.Select(target => new ProlibFileArchived {
+                        PackPath = Path.Combine(Env.TargetDirectory, kpv.Key),
+                        RelativePathInPack = target.TargetPathInPack
+                    } as IFileArchived).ToList(), plExtractionFolder);
                     foreach (var target in kpv.Value)
                         if (!extractedFilesFromPl.ContainsKey(target.TargetPath))
                             extractedFilesFromPl.Add(target.TargetPath, Path.Combine(plExtractionFolder, target.TargetPathInPack));

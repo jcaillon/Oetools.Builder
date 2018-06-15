@@ -518,7 +518,7 @@ namespace Oetools.Packager.Core {
         }
 
         public override bool IsValid(out string error) {
-            if (!string.IsNullOrEmpty(DeployTarget) && !DeployTarget.IsValidFtpAdress()) {
+            if (!string.IsNullOrEmpty(DeployTarget) && !DeployTarget.IsValidFtpAddress()) {
                 error = "The target should have the following format ftp://user:pass@server:port/distantpath/ (with user/pass/port in option)";
                 return false;
             }

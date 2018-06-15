@@ -165,7 +165,7 @@ namespace Oetools.Packager.Core {
 
                 // Create the list of each pack / files in pack
                 // path of pack -> (ArchiveInfo, List<FileToDeploy>)
-                var packs = new Dictionary<string, Tuple<IPackager, List<IFileToDeployInPackage>>>();
+                var packs = new Dictionary<string, Tuple<IArchiver, List<IFileToArchive>>>();
                 deployToDo
                     .Where(deploy => deploy is FileToDeployInPack)
                     .Cast<FileToDeployInPack>()
@@ -174,7 +174,7 @@ namespace Oetools.Packager.Core {
                         if (fileToPack.IfFromFileExists()) {
                             // add new pack
                             if (!packs.ContainsKey(fileToPack.PackPath)) {
-                                packs.Add(fileToPack.PackPath, new Tuple<IPackager, List<IFileToDeployInPackage>>(fileToPack.NewArchive(this), new List<IFileToDeployInPackage>()));
+                                packs.Add(fileToPack.PackPath, new Tuple<IArchiver, List<IFileToArchive>>(fileToPack.NewArchive(this), new List<IFileToArchive>()));
                             }
 
                             // add new file in archive
@@ -193,8 +193,14 @@ namespace Oetools.Packager.Core {
                         var currentPack = pack;
                         pack.Value.Item1.PackFileSet(pack.Value.Item2, _compressionLevel, (sender, args) => {
                             // canceled?
-                            if (!args.CannotCancel)
+                            if (!args.CannotCancel) {
                                 cancelToken.Token.ThrowIfCancellationRequested();
+                            }
+
+                            if (string.IsNullOrEmpty(args.CurrentFileName)) {
+                                // register exception on each file
+                                throw args.TreatmentException;
+                            }
 
                             var currentFile = (FileToDeployInPack) currentPack.Value.Item2.FirstOrDefault(f => f.RelativePathInPack.Equals(args.CurrentFileName));
                             if (currentFile != null) {
