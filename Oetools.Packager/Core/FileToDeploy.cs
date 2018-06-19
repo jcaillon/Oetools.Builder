@@ -30,6 +30,7 @@ using Oetools.Utilities.Archive.Prolib;
 using Oetools.Utilities.Archive.Zip;
 using Oetools.Utilities.Ftp;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Packager.Core {
     
@@ -339,27 +340,35 @@ namespace Oetools.Packager.Core {
         #region Properties
 
         /// <summary>
+        /// The path of this file
+        /// </summary>
+        public string SourcePath {
+            get { return From; }
+            set { From = value; }
+        }
+
+        /// <summary>
         ///     Path to the pack in which we need to include this file
         /// </summary>
-        public string PackPath { get; set; }
+        public string ArchivePath { get; set; }
 
         /// <summary>
         ///     The relative path of the file within the pack
         /// </summary>
-        public string RelativePathInPack { get; set; }
+        public string RelativePathInArchive { get; set; }
 
         /// <summary>
         ///     A directory that must exist or be created for this deployment
         /// </summary>
         public override string DirectoryThatMustExist {
-            get { return Path.GetDirectoryName(PackPath); }
+            get { return Path.GetDirectoryName(ArchivePath); }
         }
 
         /// <summary>
         ///     Path to the pack file
         /// </summary>
         public override string GroupKey {
-            get { return PackPath ?? To; }
+            get { return ArchivePath ?? To; }
         }
 
         /// <summary>
@@ -387,7 +396,7 @@ namespace Oetools.Packager.Core {
         /// </summary>
         public virtual void RegisterArchiveException(Exception e) {
             IsOk = false;
-            DeployError = "Problème avec le pack cible " + PackPath.Quoter() + " : \"" + e.Message + "\"";
+            DeployError = "Problème avec le pack cible " + ArchivePath.Quoter() + " : \"" + e.Message + "\"";
         }
 
         /// <summary>
@@ -409,8 +418,8 @@ namespace Oetools.Packager.Core {
                 pos = to.LastIndexOf(PackExt, StringComparison.CurrentCultureIgnoreCase);
             if (pos >= 0) {
                 pos += PackExt.Length;
-                PackPath = to.Substring(0, pos);
-                RelativePathInPack = pos + 1 < to.Length ? to.Substring(pos + 1) : "\\";
+                ArchivePath = to.Substring(0, pos);
+                RelativePathInArchive = pos + 1 < to.Length ? to.Substring(pos + 1) : "\\";
             }
             return base.Set(from, to);
         }
@@ -485,8 +494,8 @@ namespace Oetools.Packager.Core {
         public override FileToDeploy Set(string from, string to) {
             if (RuleReference != null) {
                 From = from;
-                PackPath = from;
-                RelativePathInPack = RuleReference.DeployTarget;
+                ArchivePath = from;
+                RelativePathInArchive = RuleReference.DeployTarget;
                 To = Path.Combine(from, RuleReference.DeployTarget);
             } else {
                 base.Set(from, to);
@@ -603,7 +612,7 @@ namespace Oetools.Packager.Core {
         ///     Path to the pack file
         /// </summary>
         public override string GroupKey {
-            get { return PackPath ?? To; }
+            get { return ArchivePath ?? To; }
         }
 
         /// <summary>
@@ -619,8 +628,8 @@ namespace Oetools.Packager.Core {
 
         public override FileToDeploy Set(string from, string to) {
             to.ParseFtpAddress(out var ftpBaseUri, out _, out _, out _, out _, out var relativePath);
-            PackPath = ftpBaseUri;
-            RelativePathInPack = relativePath;
+            ArchivePath = ftpBaseUri;
+            RelativePathInArchive = relativePath;
             return base.Set(from, to);
         }
 
@@ -636,7 +645,7 @@ namespace Oetools.Packager.Core {
         /// </summary>
         public override void RegisterArchiveException(Exception e) {
             IsOk = false;
-            DeployError = "Problème avec le serveur FTP " + PackPath.Quoter() + " : \"" + e.Message + "\"";
+            DeployError = "Problème avec le serveur FTP " + ArchivePath.Quoter() + " : \"" + e.Message + "\"";
         }
 
         #endregion

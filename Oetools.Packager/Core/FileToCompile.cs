@@ -26,6 +26,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Packager.Core {
     /// <summary>

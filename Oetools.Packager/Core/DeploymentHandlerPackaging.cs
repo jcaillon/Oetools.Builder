@@ -31,6 +31,7 @@ using Oetools.Packager.Core.Exceptions;
 using Oetools.Utilities.Archive;
 using Oetools.Utilities.Archive.Prolib;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Packager.Core {
 
@@ -75,7 +76,7 @@ namespace Oetools.Packager.Core {
                         file.TargetBasePath = file.TargetBasePath.Replace(Env.TargetDirectory.CorrectDirPath(), Conf.PackageTargetDirectory.CorrectDirPath());
                         var fileToPack = file as FileToDeployInPack;
                         if (fileToPack != null)
-                            fileToPack.PackPath = fileToPack.PackPath.Replace(Env.TargetDirectory.CorrectDirPath(), Conf.PackageTargetDirectory.CorrectDirPath());
+                            fileToPack.ArchivePath = fileToPack.ArchivePath.Replace(Env.TargetDirectory.CorrectDirPath(), Conf.PackageTargetDirectory.CorrectDirPath());
                     }
 
                 foreach (var diffCab in _diffCabs)
@@ -583,8 +584,8 @@ namespace Oetools.Packager.Core {
                     var plExtractionFolder = Path.Combine(tempFolderPath, kpv.Key.Replace(Conf.ClientNwkDirectoryName.CorrectDirPath(), "") + Path.GetRandomFileName());
                     var extractor = new ProlibArchiver(Env.ProlibPath);
                     extractor.ExtractFiles(kpv.Value.Select(target => new ProlibFileArchived {
-                        PackPath = Path.Combine(Env.TargetDirectory, kpv.Key),
-                        RelativePathInPack = target.TargetPathInPack
+                        ArchivePath = Path.Combine(Env.TargetDirectory, kpv.Key),
+                        RelativePathInArchive = target.TargetPathInPack
                     } as IFileArchived).ToList(), plExtractionFolder);
                     foreach (var target in kpv.Value)
                         if (!extractedFilesFromPl.ContainsKey(target.TargetPath))

@@ -30,6 +30,7 @@ using Oetools.Packager.Core.Config;
 using Oetools.Packager.Core.Exceptions;
 using Oetools.Packager.Core.Execution;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Packager.Core {
 
@@ -169,8 +170,8 @@ namespace Oetools.Packager.Core {
                             var fileToDeployInPack = fileDeployed as FileToDeployInPack;
                             listFile.Targets.Add(new DeploymentTarget {
                                 TargetPath = fileDeployed.To,
-                                TargetPackPath = fileToDeployInPack == null ? null : fileToDeployInPack.PackPath,
-                                TargetPathInPack = fileToDeployInPack == null ? null : fileToDeployInPack.RelativePathInPack,
+                                TargetPackPath = fileToDeployInPack == null ? null : fileToDeployInPack.ArchivePath,
+                                TargetPathInPack = fileToDeployInPack == null ? null : fileToDeployInPack.RelativePathInArchive,
                                 DeployType = fileDeployed.DeployType
                             });
                         }

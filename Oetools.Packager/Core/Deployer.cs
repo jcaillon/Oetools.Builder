@@ -31,6 +31,7 @@ using Oetools.Packager.Core.Config;
 using Oetools.Packager.Core.Execution;
 using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Packager.Core {
     
@@ -173,13 +174,13 @@ namespace Oetools.Packager.Core {
                     .ForEach(fileToPack => {
                         if (fileToPack.IfFromFileExists()) {
                             // add new pack
-                            if (!packs.ContainsKey(fileToPack.PackPath)) {
-                                packs.Add(fileToPack.PackPath, new Tuple<IArchiver, List<IFileToArchive>>(fileToPack.NewArchive(this), new List<IFileToArchive>()));
+                            if (!packs.ContainsKey(fileToPack.ArchivePath)) {
+                                packs.Add(fileToPack.ArchivePath, new Tuple<IArchiver, List<IFileToArchive>>(fileToPack.NewArchive(this), new List<IFileToArchive>()));
                             }
 
                             // add new file in archive
-                            if (!packs[fileToPack.PackPath].Item2.Exists(f => f.RelativePathInPack.EqualsCi(fileToPack.RelativePathInPack))) {
-                                packs[fileToPack.PackPath].Item2.Add(fileToPack);
+                            if (!packs[fileToPack.ArchivePath].Item2.Exists(f => f.RelativePathInArchive.EqualsCi(fileToPack.RelativePathInArchive))) {
+                                packs[fileToPack.ArchivePath].Item2.Add(fileToPack);
                             }
                         }
                     });
@@ -193,16 +194,18 @@ namespace Oetools.Packager.Core {
                         var currentPack = pack;
                         pack.Value.Item1.PackFileSet(pack.Value.Item2, _compressionLevel, (sender, args) => {
                             // canceled?
-                            if (!args.CannotCancel) {
-                                cancelToken.Token.ThrowIfCancellationRequested();
-                            }
+                            cancelToken.Token.ThrowIfCancellationRequested();
 
-                            if (string.IsNullOrEmpty(args.CurrentFileName)) {
+                            if (args.ProgressionType == ArchiveProgressionType.FinishArchive && args.TreatmentException != null) {
                                 // register exception on each file
                                 throw args.TreatmentException;
                             }
 
-                            var currentFile = (FileToDeployInPack) currentPack.Value.Item2.FirstOrDefault(f => f.RelativePathInPack.Equals(args.CurrentFileName));
+                            if (string.IsNullOrEmpty(args.CurrentFileName)) {
+                                return;
+                            }
+
+                            var currentFile = (FileToDeployInPack) currentPack.Value.Item2.FirstOrDefault(f => f.RelativePathInArchive.Equals(args.CurrentFileName));
                             if (currentFile != null) {
                                 if (!currentFile.IsOk) {
                                     _nbFilesDeployed++;

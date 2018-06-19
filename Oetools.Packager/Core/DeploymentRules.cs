@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Packager.Core {
     public static class DeploymentRules {

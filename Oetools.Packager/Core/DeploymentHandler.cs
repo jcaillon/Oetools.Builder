@@ -29,6 +29,7 @@ using Oetools.Packager.Core.Config;
 using Oetools.Packager.Core.Exceptions;
 using Oetools.Packager.Core.Execution;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Packager.Core {
 

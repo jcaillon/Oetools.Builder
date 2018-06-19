@@ -1,5 +1,6 @@
 ﻿using Oetools.Packager.Core.Config;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Packager.Core.Execution {
     internal class ProExecutionAppbuilder : ProExecution {
