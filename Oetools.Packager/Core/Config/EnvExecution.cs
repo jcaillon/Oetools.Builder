@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Oetools.Packager.Resources.Openedge;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Openedge;
 
 namespace Oetools.Packager.Core.Config {
     
@@ -25,19 +26,7 @@ namespace Oetools.Packager.Core.Config {
         /// </summary>
         public string ProExePath {
             get {
-                string outputPath;
-                if (Utils.IsRuntimeWindowsPlatform) {
-                    outputPath = Path.Combine(DlcPath, "bin", UseCharacterModeOfProgress ? "_progres.exe" : "prowin32.exe");
-                    if (!File.Exists(outputPath)) {
-                        outputPath = Path.Combine(DlcPath, "bin", "prowin.exe");
-                        if (!File.Exists(outputPath)) {
-                            outputPath = Path.Combine(DlcPath, "bin", "_progres.exe");
-                        }
-                    }
-                } else {
-                    outputPath = Path.Combine(DlcPath, "bin", "_progres");
-                }
-                return File.Exists(outputPath) ? outputPath : null;
+                return ProUtilities.GetProExecutableFromDlc(DlcPath, UseCharacterModeOfProgress);
             }
         }
 
@@ -57,7 +46,7 @@ namespace Oetools.Packager.Core.Config {
         }
 
         public string DlcPath {
-            get => !string.IsNullOrEmpty(_dlcPath) ? _dlcPath : (_dlcPath = Environment.GetEnvironmentVariable("dlc"));
+            get => !string.IsNullOrEmpty(_dlcPath) ? _dlcPath : (_dlcPath = ProUtilities.GetDlcPath());
             set => _dlcPath = value;
         }
 
