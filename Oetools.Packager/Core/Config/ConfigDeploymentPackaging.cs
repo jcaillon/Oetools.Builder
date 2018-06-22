@@ -54,7 +54,7 @@ namespace Oetools.Packager.Core.Config {
         /// <summary>
         /// List of previous deployment, needed to create the necessary webclient files
         /// </summary>
-        public new List<Tuple<ConfigDeploymentPackaging, List<FileDeployed>>>  PreviousDeployments { get; set; }
+        public List<Tuple<ConfigDeploymentPackaging, List<FileDeployed>>>  PreviousDeployments { get; set; }
 
         internal string FileContentProwcapp => OpenedgeResources.GetOpenedgeAsStringFromResources(@"prowcapp.prowcapp");
     }

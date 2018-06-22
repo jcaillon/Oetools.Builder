@@ -75,11 +75,6 @@ namespace Oetools.Packager.Core {
         public bool RFilesOnly { get; set; }
 
         /// <summary>
-        ///     If true, don't actually do anything, just test it
-        /// </summary>
-        public bool IsTestMode { get; set; }
-
-        /// <summary>
         ///     When true, we activate the log just before compiling with FileId active + we generate a file that list referenced
         ///     table in the .r
         /// </summary>
@@ -164,7 +159,7 @@ namespace Oetools.Packager.Core {
         /// </summary>
         public int NumberOfFilesTreated {
             get {
-                if (IsTestMode)
+                if (Config.IsTestMode)
                     return NbFilesToCompile;
                 var nbFilesDone = 0;
                 foreach (var proc in _processes) {
@@ -270,7 +265,7 @@ namespace Oetools.Packager.Core {
                     Files = fileLists[i],
                     NeedDatabaseConnection = true,
                     NoBatch = true,
-                    IsTestMode = IsTestMode,
+                    IsTestMode = Config.IsTestMode,
                     IsAnalysisMode = IsAnalysisMode
                 };
                 exec.OnExecutionOk += OnExecutionOk;

@@ -216,7 +216,6 @@ namespace Oetools.Packager.Core {
                 MonoProcess = Conf.ForceSingleProcess || Conf.IsDatabaseSingleUser,
                 NumberOfProcessesPerCore = Conf.NumberProcessPerCore,
                 RFilesOnly = Conf.OnlyGenerateRcode,
-                IsTestMode = Conf.IsTestMode,
                 IsAnalysisMode = IsAnalysisMode
             };
 

@@ -253,7 +253,9 @@ namespace Oetools.Packager.Core.Execution {
         ///     In test mode, we do as if everything went ok but we don't actually start the process
         /// </summary>
         protected override void StartProcess() {
-            if (IsTestMode) PublishExecutionEndEvents();
+            if (IsTestMode) {
+                PublishExecutionEndEvents();
+            }
             else base.StartProcess();
         }
 

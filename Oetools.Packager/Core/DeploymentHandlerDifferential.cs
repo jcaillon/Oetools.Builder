@@ -48,22 +48,22 @@ namespace Oetools.Packager.Core {
             Conf = conf;
 
             // set previously deployed files + previous source files
-            var lastDeployment = conf.PreviousDeployments != null ? conf.PreviousDeployments.LastOrDefault() : null;
-            if (lastDeployment != null) {
-                var lastDeployedFiles = lastDeployment.Item2; 
-                if (lastDeployedFiles != null) {
-                    _previousDeployedFiles = ConvertToAbsolutePath(lastDeployedFiles.Where(deployed => deployed.Action != DeploymentAction.Deleted).ToNonNullList());
-                    _prevSourceFiles.Clear();
-                    foreach (var file in _previousDeployedFiles
-                        .Where(file => !_prevSourceFiles.ContainsKey(file.SourcePath))) {
-                        _prevSourceFiles.Add(file.SourcePath, file);
-                    }
-                    foreach (var file in _previousDeployedFiles
-                        .Where(file => file is FileDeployedCompiled)
-                        .Cast<FileDeployedCompiled>().SelectMany(file => file.RequiredFiles)
-                        .Where(file => file != null && !_prevSourceFiles.ContainsKey(file.SourcePath))) {
-                        _prevSourceFiles.Add(file.SourcePath, file);
-                    }
+            var lastDeployedFiles = conf.LastDeployedFiles; 
+            if (lastDeployedFiles != null) {
+                _previousDeployedFiles = ConvertToAbsolutePath(lastDeployedFiles.Where(deployed => deployed.Action != DeploymentAction.Deleted).ToNonNullList());
+                _prevSourceFiles.Clear();
+                // add all previously deployed
+                foreach (var file in _previousDeployedFiles
+                    .Where(file => !_prevSourceFiles.ContainsKey(file.SourcePath))) {
+                    _prevSourceFiles.Add(file.SourcePath, file);
+                }
+                // all also all the required files
+                foreach (var file in _previousDeployedFiles
+                    .Where(file => file is FileDeployedCompiled)
+                    .Cast<FileDeployedCompiled>()
+                    .SelectMany(file => file.RequiredFiles)
+                    .Where(file => file != null && !_prevSourceFiles.ContainsKey(file.SourcePath))) {
+                    _prevSourceFiles.Add(file.SourcePath, file);
                 }
             }
         }
