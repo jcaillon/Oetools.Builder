@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using Oetools.Packager.Resources.Openedge;
+using Oetools.Packager.Resources;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Openedge;
 

@@ -22,11 +22,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Oetools.Packager.Resources.Openedge {
+namespace Oetools.Packager.Resources {
     public static class OpenedgeResources {
         
         private static byte[] GetOpenedgeFromResources(string fileName) {
-            return Resources.GetBytesFromResource($"{nameof(Oetools)}.{nameof(Packager)}.{nameof(Resources)}.{nameof(Openedge)}.{fileName}");
+            return Resources.GetBytesFromResource($"{nameof(Oetools)}.{nameof(Packager)}.{nameof(Resources)}.Openedge.{fileName}");
         }
 
         private static Dictionary<string, string> _openedgeAsString = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);

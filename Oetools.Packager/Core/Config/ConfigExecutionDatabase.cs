@@ -1,4 +1,4 @@
-﻿using Oetools.Packager.Resources.Openedge;
+﻿using Oetools.Packager.Resources;
 
 namespace Oetools.Packager.Core.Config {
     

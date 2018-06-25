@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Oetools.Packager.Resources;
-using Oetools.Packager.Resources.Openedge;
 
 namespace Oetools.Packager.Core.Config {
 
