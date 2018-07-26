@@ -31,6 +31,13 @@ namespace Oetools.Packager.Core.Config {
             get { return _deployer ?? (_deployer = new Deployer(DeploymentRules.GetRules(FileDeploymentRules, out _ruleErrors), this)); }
         }
 
+        private List<DeployRule> _compilationRules;
+
+        public List<DeployRule> CompilationRules {
+            get => _compilationRules;
+            set { _compilationRules = RuleSorter.SortRules(value); }
+        }
+
         private Deployer _deployer;
         
         private List<Tuple<int, string>> _ruleErrors;

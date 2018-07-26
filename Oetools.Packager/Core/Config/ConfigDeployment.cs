@@ -1,4 +1,6 @@
-﻿namespace Oetools.Packager.Core.Config {
+﻿using System.Collections.Generic;
+
+namespace Oetools.Packager.Core.Config {
 
     public class ConfigDeployment : ConfigMultiCompilation {
         
@@ -13,6 +15,14 @@
         public string FileDeploymentHook { get; set; }
 
         public bool ExploreRecursively { get; set; }
+        
+        private List<DeployRule> _deployRules;
+
+        public List<DeployRule> DeployRules {
+            get => _deployRules;
+            set => _deployRules = RuleSorter.SortRules(value);
+        }
+
         
     }
 }

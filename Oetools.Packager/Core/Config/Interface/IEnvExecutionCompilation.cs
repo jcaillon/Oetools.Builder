@@ -18,11 +18,14 @@ namespace Oetools.Packager.Core.Config {
         /// </summary>
         string SourceDirectory { get; set; }
 
+        List<DeployRule> CompilationRules { get; set; }
+        
         /// <summary>
         /// The deployer for this environment (can either be a new one, or a copy of this proenv is, itself, a copy)
         /// </summary>
         Deployer Deployer { get; }
-
+        
+        
         /// <summary>
         /// Path to the deployment rules
         /// </summary>

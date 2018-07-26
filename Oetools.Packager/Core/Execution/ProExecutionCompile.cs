@@ -3,11 +3,19 @@ using System.IO;
 using System.Linq;
 using Oetools.Packager.Core.Config;
 using Oetools.Packager.Core.Exceptions;
-using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Packager.Core.Execution {
+    
     public class ProExecutionCompile : ProExecutionHandleCompilation {
+        
+        /// <summary>
+        /// The deployer for this environment (can either be a new one, or a copy of this proenv is, itself, a copy)
+        /// </summary>
+        private Deployer Deployer => _deployer ?? (_deployer = new Deployer(Env.CompilationRules, Env));
+
+        private Deployer _deployer;
+        
         #region Life and death
 
         /// <summary>
@@ -50,7 +58,7 @@ namespace Oetools.Packager.Core.Execution {
             // for *.cls files, as many *.r files are generated, we need to compile in a temp directory
             // we need to know which *.r files were generated for each input file
             // so each file gets his own sub tempDir
-            var lastDeployment = Env.Deployer.GetTransfersNeededForFile(fileToCompile.SourcePath, 0).Last();
+            var lastDeployment = Deployer.GetTransfersNeededForFile(fileToCompile.SourcePath, 0).Last();
             if (lastDeployment.DeployType != DeployType.Move ||
                 Env.CompileForceUseOfTemp ||
                 Path.GetExtension(fileToCompile.SourcePath ?? "").Equals(ExtCls))

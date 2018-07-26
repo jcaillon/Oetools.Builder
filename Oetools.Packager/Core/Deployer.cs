@@ -45,7 +45,7 @@ namespace Oetools.Packager.Core {
         /// <summary>
         ///     Constructor
         /// </summary>
-        public Deployer(List<DeployRule> deployRules, EnvExecutionCompilation proEnv) {
+        public Deployer(List<DeployRule> deployRules, IEnvExecutionCompilation proEnv) {
             _compileLocally = proEnv.CompileLocally;
             _deploymentDirectory = proEnv.TargetDirectory;
             _sourceDirectory = Path.GetFullPath(proEnv.SourceDirectory).TrimEnd('\\');
