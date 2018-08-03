@@ -1,6 +1,4 @@
-﻿#region header
-
-// ========================================================================
+﻿// ========================================================================
 // Copyright (c) 2017 - Julien Caillon (julien.caillon@gmail.com)
 // This file (FileDeployed.cs) is part of csdeployer.
 // 
@@ -18,11 +16,10 @@
 // along with csdeployer. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
+using Oetools.Packager.Core2.Execution;
 
 namespace Oetools.Packager.Core {
 

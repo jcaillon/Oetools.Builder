@@ -1,6 +1,4 @@
-﻿#region header
-
-// ========================================================================
+﻿// ========================================================================
 // Copyright (c) 2017 - Julien Caillon (julien.caillon@gmail.com)
 // This file (Deployer.cs) is part of csdeployer.
 // 
@@ -18,8 +16,6 @@
 // along with csdeployer. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,7 +24,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Oetools.Packager.Core.Config;
-using Oetools.Packager.Core.Execution;
+using Oetools.Packager.Core2.Execution;
 using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
@@ -39,9 +35,6 @@ namespace Oetools.Packager.Core {
     ///     This class is responsible for deploying FileToDeploy following DeploymentRules
     /// </summary>
     public class Deployer {
-
-        #region Life and death
-
         /// <summary>
         ///     Constructor
         /// </summary>
@@ -57,10 +50,6 @@ namespace Oetools.Packager.Core {
             DeployVarList = DeployRules.OfType<DeployVariableRule>().ToNonNullList();
         }
 
-        #endregion
-
-        #region Static GetFilesToDeployAfterCompilation
-
         /// <summary>
         ///     Creates a list of files to deploy after a compilation,
         ///     for each Origin file will correspond one (or more if it's a .cls) .r file,
@@ -69,10 +58,10 @@ namespace Oetools.Packager.Core {
         public static List<FileToDeploy> GetFilesToDeployAfterCompilation(ProExecutionCompile execution) {
             var outputList = new List<FileToDeploy>();
 
-            var filesCompiled = execution.Files.ToList();
+            var filesCompiled = execution.FilesToCompile.ToList();
 
             // Handle the case of .cls files, for which several .r code are compiled
-            foreach (var clsFile in execution.Files.Where(file => file.SourcePath.EndsWith(ProExecutionHandleCompilation.ExtCls, StringComparison.CurrentCultureIgnoreCase))) // if the file we compiled inherits from another class or if another class inherits of our file, 
+            foreach (var clsFile in execution.FilesToCompile.Where(file => file.CompiledPath.EndsWith(ProExecutionHandleCompilation.ExtCls, StringComparison.CurrentCultureIgnoreCase))) // if the file we compiled inherits from another class or if another class inherits of our file, 
                 // there is more than 1 *.r file generated. Moreover, they are generated in their package folders
 
                 // for each *.r file in the compilation output directory
@@ -82,7 +71,7 @@ namespace Oetools.Packager.Core {
 
                 // if this is actually the .cls file we want to compile, the .r file isn't necessary directly in the compilation dir like we expect,
                 // it can be in folders corresponding to the package of the class
-                if (Path.GetFileNameWithoutExtension(clsFile.SourcePath ?? "").Equals(Path.GetFileNameWithoutExtension(relativePath))) {
+                if (Path.GetFileNameWithoutExtension(clsFile.CompiledPath ?? "").Equals(Path.GetFileNameWithoutExtension(relativePath))) {
                     // correct .r path
                     clsFile.CompOutputR = rCodeFilePath;
                     continue;
@@ -92,7 +81,7 @@ namespace Oetools.Packager.Core {
                 var sourcePath = execution.Env.FindFirstFileInPropath(Path.ChangeExtension(relativePath, ProExecutionHandleCompilation.ExtCls));
 
                 // if the source isn't already in the files that needed to be compiled, we add it
-                if (!string.IsNullOrEmpty(sourcePath) && !filesCompiled.Exists(compiledFile => compiledFile.SourcePath.Equals(sourcePath)))
+                if (!string.IsNullOrEmpty(sourcePath) && !filesCompiled.Exists(compiledFile => compiledFile.CompiledPath.Equals(sourcePath)))
                     filesCompiled.Add(new FileToCompile(sourcePath) {
                         CompilationOutputDir = clsFile.CompilationOutputDir,
                         CompiledSourcePath = sourcePath,
@@ -104,7 +93,7 @@ namespace Oetools.Packager.Core {
             foreach (var compiledFile in filesCompiled) {
                 if (string.IsNullOrEmpty(compiledFile.CompOutputR))
                     continue;
-                foreach (var deployNeeded in execution.Env.Deployer.GetTargetsNeeded(compiledFile.SourcePath, 0, DeployTransferRuleTarget.File)) {
+                foreach (var deployNeeded in execution.Env.Deployer.GetTargetsNeeded(compiledFile.CompiledPath, 0, DeployTransferRuleTarget.File)) {
                     string targetRPath;
                     if (execution.Env.CompileLocally)
                         targetRPath = Path.Combine(deployNeeded.TargetBasePath, Path.GetFileName(compiledFile.CompOutputR));
@@ -126,10 +115,6 @@ namespace Oetools.Packager.Core {
             }
             return outputList;
         }
-
-        #endregion
-
-        #region Deploy Files
 
         /// <summary>
         ///     Deploy a given list of files (can reduce the list if there are duplicated items so it returns it)
@@ -161,8 +146,6 @@ namespace Oetools.Packager.Core {
 
                 _nbFilesDeployed = 0;
                 _totalNbFilesToDeploy = deployToDo.Count;
-
-                #region for packs we do everything here
 
                 // Create the list of each pack / files in pack
                 // path of pack -> (ArchiveInfo, List<FileToDeploy>)
@@ -229,8 +212,6 @@ namespace Oetools.Packager.Core {
                     }
                 }
 
-                #endregion
-
                 // do a deployment action for each file
                 var parallelOptions = new ParallelOptions {CancellationToken = cancelToken.Token};
                 Parallel.ForEach(deployToDo.Where(deploy => !(deploy is FileToDeployInPack) && deploy.CanBeParallelized), parallelOptions, file => {
@@ -259,10 +240,6 @@ namespace Oetools.Packager.Core {
             return deployToDo;
         }
 
-        #endregion
-
-        #region Fields
-
         private bool _compileLocally;
         private string _deploymentDirectory;
         private string _sourceDirectory;
@@ -270,10 +247,6 @@ namespace Oetools.Packager.Core {
         private int _nbFilesDeployed;
         private bool _compileUnmatchedProgressFilesToDeployDir;
         private CompressionLvl _compressionLevel;
-
-        #endregion
-
-        #region Properties
 
         public string ProlibPath { get; set; }
 
@@ -300,10 +273,6 @@ namespace Oetools.Packager.Core {
         public List<DeployFilterRule> DeployFilterRules {
             get { return DeployRules.OfType<DeployFilterRule>().ToNonNullList(); }
         }
-
-        #endregion
-
-        #region public methods
 
         /// <summary>
         ///     returns the list of transfers needed for a given file
@@ -413,10 +382,6 @@ namespace Oetools.Packager.Core {
             return outList;
         }
 
-        #endregion
-
-        #region Private / Utils
-
         /// <summary>
         ///     Replace the variables &lt;XXX&gt; in the string
         /// </summary>
@@ -434,10 +399,8 @@ namespace Oetools.Packager.Core {
 
         private string GetRegexAndReplaceVariablesIn(string input) {
             input = ReplaceVariablesIn(input);
-            return input.StartsWith(":") ? input.Remove(0, 1) : input.Replace('/', '\\').WildCardToRegex();
+            return input.StartsWith(":") ? input.Remove(0, 1) : input.Replace('/', '\\').PathWildCardToRegex();
         }
-
-        #endregion
     }
     
 }

@@ -1,6 +1,4 @@
-﻿#region header
-
-// ========================================================================
+﻿// ========================================================================
 // Copyright (c) 2017 - Julien Caillon (julien.caillon@gmail.com)
 // This file (FileToDeploy.cs) is part of csdeployer.
 // 
@@ -17,8 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with csdeployer. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
-
-#endregion
 
 using System;
 using System.IO;
@@ -38,8 +34,6 @@ namespace Oetools.Packager.Core {
     ///     Represents a file that needs to be deployed
     /// </summary>
     public class FileToDeploy {
-        #region Life and death
-
         /// <summary>
         ///     Constructor
         /// </summary>
@@ -49,20 +43,12 @@ namespace Oetools.Packager.Core {
             RuleReference = rule;
         }
 
-        #endregion
-
-        #region Protected methods
-
         /// <summary>
         ///     Deploy this file
         /// </summary>
         protected virtual bool TryDeploy() {
             return true;
         }
-
-        #endregion
-
-        #region Factory
 
         public static FileToDeploy New(DeployType deployType, string sourcePath, string targetBasePath, DeployTransferRule rule) {
             switch (deployType) {
@@ -90,10 +76,6 @@ namespace Oetools.Packager.Core {
                     throw new ArgumentOutOfRangeException("deployType", deployType, null);
             }
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         ///     If this file has been added through a rule, this holds the rule reference (can be null)
@@ -166,10 +148,6 @@ namespace Oetools.Packager.Core {
             get { return false; }
         }
 
-        #endregion
-
-        #region Methods
-
         public virtual FileToDeploy Set(string from, string to) {
             From = from;
             To = to;
@@ -192,23 +170,13 @@ namespace Oetools.Packager.Core {
             IsOk = TryDeploy();
             return IsOk;
         }
-
-        #endregion
     }
-
-    #region FileToDeployDelete
 
     /// <summary>
     ///     Uses only TO
     /// </summary>
     public class FileToDeployDelete : FileToDeploy {
-        #region Life and death
-
         public FileToDeployDelete(string sourcePath, string targetBasePath, DeployTransferRule rule) : base(sourcePath, targetBasePath, rule) { }
-
-        #endregion
-
-        #region Methods
 
         protected override bool TryDeploy() {
             try {
@@ -221,10 +189,6 @@ namespace Oetools.Packager.Core {
             }
             return true;
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         ///     Type of transfer
@@ -250,22 +214,10 @@ namespace Oetools.Packager.Core {
         public override bool IsDeletion {
             get { return true; }
         }
-
-        #endregion
     }
 
-    #endregion
-
-    #region FileToDeployDeleteFolder
-
     public class FileToDeployDeleteFolder : FileToDeploy {
-        #region Life and death
-
         public FileToDeployDeleteFolder(string sourcePath, string targetBasePath, DeployTransferRule rule) : base(sourcePath, targetBasePath, rule) { }
-
-        #endregion
-
-        #region Methods
 
         protected override bool TryDeploy() {
             try {
@@ -278,10 +230,6 @@ namespace Oetools.Packager.Core {
             }
             return true;
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         ///     Type of transfer
@@ -314,30 +262,16 @@ namespace Oetools.Packager.Core {
         public override bool IsDeletion {
             get { return true; }
         }
-
-        #endregion
     }
-
-    #endregion
-
-    #region FileToDeployInPack
-
-    #region FileToDeployInPack
 
     /// <summary>
     ///     A class for files that need to be deploy in "packs" (i.e. .zip, FTP)
     /// </summary>
     public abstract class FileToDeployInPack : FileToDeploy, IFileToArchive {
-        #region Life and death
-
         /// <summary>
         ///     Constructor
         /// </summary>
         protected FileToDeployInPack(string sourcePath, string targetBasePath, DeployTransferRule rule) : base(sourcePath, targetBasePath, rule) { }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// The path of this file
@@ -378,12 +312,6 @@ namespace Oetools.Packager.Core {
             get { return ".arc"; }
         }
 
-        #endregion
-
-        #region Methods
-
-        #region Virtual
-
         /// <summary>
         ///     Returns a new archive info
         /// </summary>
@@ -410,8 +338,6 @@ namespace Oetools.Packager.Core {
             return true;
         }
 
-        #endregion
-
         public override FileToDeploy Set(string from, string to) {
             var pos = to.LastIndexOf(PackExt + @"\", StringComparison.CurrentCultureIgnoreCase);
             if (pos < 0)
@@ -423,26 +349,14 @@ namespace Oetools.Packager.Core {
             }
             return base.Set(from, to);
         }
-
-        #endregion
     }
-
-    #endregion
-
-    #region FileToDeployDeleteInProlib
 
     /// <summary>
     ///     Uses only FROM (to compute the PACKPATH) and the rule deployment target (to compute RELATIVEPATHINPACK)
     ///     or only TO
     /// </summary>
     public class FileToDeployDeleteInProlib : FileToDeployInPack {
-        #region Life and death
-
         public FileToDeployDeleteInProlib(string sourcePath, string targetBasePath, DeployTransferRule rule) : base(sourcePath, targetBasePath, rule) { }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         ///     Type of transfer
@@ -480,10 +394,6 @@ namespace Oetools.Packager.Core {
             return true;
         }
 
-        #endregion
-
-        #region Methods
-
         /// <summary>
         ///     Returns a new archive info
         /// </summary>
@@ -502,13 +412,7 @@ namespace Oetools.Packager.Core {
             }
             return this;
         }
-
-        #endregion
     }
-
-    #endregion
-
-    #region FileToDeployCab
 
     public class FileToDeployCab : FileToDeployInPack {
         /// <summary>
@@ -532,10 +436,6 @@ namespace Oetools.Packager.Core {
         }
     }
 
-    #endregion
-
-    #region FileToDeployProlib
-
     public class FileToDeployProlib : FileToDeployInPack {
         /// <summary>
         ///     Type of transfer
@@ -557,10 +457,6 @@ namespace Oetools.Packager.Core {
             return new ProlibArchiver(deployer.ProlibPath);
         }
     }
-
-    #endregion
-
-    #region FileToDeployZip
 
     public class FileToDeployZip : FileToDeployInPack {
         /// <summary>
@@ -584,22 +480,11 @@ namespace Oetools.Packager.Core {
         }
     }
 
-    #endregion
-
-    #region FileToDeployFtp
-
     public class FileToDeployFtp : FileToDeployInPack {
-        
-        #region Life and death
-
         /// <summary>
         ///     Constructor
         /// </summary>
         public FileToDeployFtp(string sourcePath, string targetBasePath, DeployTransferRule rule) : base(sourcePath, targetBasePath, rule) { }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         ///     Type of transfer
@@ -622,10 +507,6 @@ namespace Oetools.Packager.Core {
             get { return null; }
         }
 
-        #endregion
-
-        #region Methods
-
         public override FileToDeploy Set(string from, string to) {
             to.ParseFtpAddress(out var ftpBaseUri, out _, out _, out _, out _, out var relativePath);
             ArchivePath = ftpBaseUri;
@@ -647,24 +528,10 @@ namespace Oetools.Packager.Core {
             IsOk = false;
             DeployError = "Problème avec le serveur FTP " + ArchivePath.Quoter() + " : \"" + e.Message + "\"";
         }
-
-        #endregion
     }
 
-    #endregion
-
-    #endregion
-
-    #region FileToDeployCopyFolder
-
     public class FileToDeployCopyFolder : FileToDeploy {
-        #region Life and death
-
         public FileToDeployCopyFolder(string sourcePath, string targetBasePath, DeployTransferRule rule) : base(sourcePath, targetBasePath, rule) { }
-
-        #endregion
-
-        #region Methods
 
         protected override bool TryDeploy() {
             try {
@@ -685,10 +552,6 @@ namespace Oetools.Packager.Core {
             }
             return true;
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         ///     Type of transfer
@@ -711,13 +574,7 @@ namespace Oetools.Packager.Core {
         public override string DirectoryThatMustExist {
             get { return null; }
         }
-
-        #endregion
     }
-
-    #endregion
-
-    #region FileToDeployCopy
 
     public class FileToDeployCopy : FileToDeploy {
         /// <summary>
@@ -753,10 +610,6 @@ namespace Oetools.Packager.Core {
         }
     }
 
-    #endregion
-
-    #region FileToDeployMove
-
     public class FileToDeployMove : FileToDeploy {
         /// <summary>
         ///     Type of transfer
@@ -784,6 +637,4 @@ namespace Oetools.Packager.Core {
             return true;
         }
     }
-
-    #endregion
 }

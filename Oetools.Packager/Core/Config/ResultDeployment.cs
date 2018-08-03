@@ -1,5 +1,4 @@
-﻿#region header
-// ========================================================================
+﻿// ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (ResultDeployment.cs) is part of Oetools.Packager.
 // 
@@ -16,12 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Packager. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
-#endregion
 
 using System;
 using System.Collections.Generic;
 using Oetools.Packager.Core.Entities;
 using Oetools.Packager.Core.Exceptions;
+using Oetools.Packager.Core2.Execution;
 
 namespace Oetools.Packager.Core.Config {
     
@@ -49,7 +48,7 @@ namespace Oetools.Packager.Core.Config {
         /// <summary>
         /// List of the compilation errors found
         /// </summary>
-        public List<FileError> CompilationErrors { get; set; }
+        public List<CompilationError> CompilationErrors { get; set; }
 
         
         public Dictionary<int, List<FileToDeploy>> FilesToDeployPerStep { get; set; }

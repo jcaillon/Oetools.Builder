@@ -1,6 +1,4 @@
-﻿#region header
-
-// ========================================================================
+﻿// ========================================================================
 // Copyright (c) 2017 - Julien Caillon (julien.caillon@gmail.com)
 // This file (MultiCompilation.cs) is part of csdeployer.
 // 
@@ -18,15 +16,13 @@
 // along with csdeployer. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Oetools.Packager.Core.Config;
 using Oetools.Packager.Core.Exceptions;
-using Oetools.Packager.Core.Execution;
+using Oetools.Packager.Core2.Execution;
 
 namespace Oetools.Packager.Core {
     /// <summary>
@@ -34,9 +30,6 @@ namespace Oetools.Packager.Core {
     ///     It starts multiple processes
     /// </summary>
     public class MultiCompilation {
-
-        #region Events
-
         /// <summary>
         ///     Event fired when the compilation ends
         /// </summary>
@@ -54,10 +47,6 @@ namespace Oetools.Packager.Core {
         ///     Event fired when the compilation ends
         /// </summary>
         public event Action<MultiCompilation> OnCompilationFailed;
-
-        #endregion
-
-        #region Options
 
         /// <summary>
         /// Is the compilation mono process?
@@ -86,10 +75,6 @@ namespace Oetools.Packager.Core {
         public ConfigMultiCompilation Config { get; private set; }
 
         public IEnvExecutionCompilation Env { get; private set; }
-
-        #endregion
-
-        #region public fields
 
         /// <summary>
         ///     total number of files being compiled
@@ -185,10 +170,6 @@ namespace Oetools.Packager.Core {
 
         public List<MultiCompilationException> HandledExceptions { get; private set; }
 
-        #endregion
-
-        #region private fields
-
         private static object _lock = new object();
         private static object _lockErrors = new object();
 
@@ -204,19 +185,11 @@ namespace Oetools.Packager.Core {
 
         private List<FileToDeploy> _listFilesToDeploy = new List<FileToDeploy>();
 
-        #endregion
-
-        #region Life and death
-        
         public MultiCompilation(ConfigMultiCompilation config, IEnvExecutionCompilation env) {
             Config = config;
             Env = env;
             StartingTime = DateTime.Now;
         }
-
-        #endregion
-
-        #region public methods
 
         /// <summary>
         ///     Compiles the list of files given
@@ -262,7 +235,7 @@ namespace Oetools.Packager.Core {
             _processes.Clear();
             for (var i = 0; i < fileLists.Count; i++) {
                 var exec = new ProExecutionCompile(Env) {
-                    Files = fileLists[i],
+                    FilesToCompile = fileLists[i],
                     NeedDatabaseConnection = true,
                     NoBatch = true,
                     IsTestMode = Config.IsTestMode,
@@ -306,7 +279,7 @@ namespace Oetools.Packager.Core {
         ///     returns the list of all the files that are being compiled
         /// </summary>
         public List<FileToCompile> GetListOfFileToCompile {
-            get { return (_processes ?? new List<ProExecutionCompile>()).SelectMany(proc => proc.Files != null && proc.NbFilesTreated > 0 ? proc.Files.GetRange(0, proc.NbFilesTreated) : new List<FileToCompile>()).ToList(); }
+            get { return (_processes ?? new List<ProExecutionCompile>()).SelectMany(proc => proc.FilesToCompile != null && proc.NbFilesTreated > 0 ? proc.FilesToCompile.GetRange(0, proc.NbFilesTreated) : new List<FileToCompile>()).ToList(); }
         }
 
         /// <summary>
@@ -315,10 +288,6 @@ namespace Oetools.Packager.Core {
         public void Clean() {
             foreach (var process in _processes) process.Clean();
         }
-
-        #endregion
-
-        #region private methods
 
         /// <summary>
         ///     This method is executed when the overall compilation is over and allows to do more treatments
@@ -411,7 +380,5 @@ namespace Oetools.Packager.Core {
                 Monitor.Exit(_lockErrors);
             }
         }
-
-        #endregion
     }
 }

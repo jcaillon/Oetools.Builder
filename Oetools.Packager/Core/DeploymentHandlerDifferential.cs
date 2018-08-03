@@ -1,6 +1,4 @@
-﻿#region header
-
-// ========================================================================
+﻿// ========================================================================
 // Copyright (c) 2017 - Julien Caillon (julien.caillon@gmail.com)
 // This file (DeploymentHandlerDifferential.cs) is part of csdeployer.
 // 
@@ -18,8 +16,6 @@
 // along with csdeployer. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,7 +24,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Oetools.Packager.Core.Config;
 using Oetools.Packager.Core.Exceptions;
-using Oetools.Packager.Core.Execution;
+using Oetools.Packager.Core2.Execution;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
@@ -38,9 +34,6 @@ namespace Oetools.Packager.Core {
     ///     This type of deployment handles the difference between the current source directory state and an older state
     /// </summary>
     public class DeploymentHandlerDifferential : DeploymentHandler {
-
-        #region Life and death
-
         /// <summary>
         ///     Constructor
         /// </summary>
@@ -67,10 +60,6 @@ namespace Oetools.Packager.Core {
                 }
             }
         }
-
-        #endregion
-
-        #region Properties
 
         public new ConfigDeploymentDifferential Conf { get; protected set; }
 
@@ -133,7 +122,7 @@ namespace Oetools.Packager.Core {
 
                             FileDeployed listFile;
                             if (!list.ContainsKey(fileDeployed.Origin)) {
-                                var compiledFile = step > 0 ? null : _proCompilation.ListFilesToCompile.Find(compile => compile.SourcePath.Equals(fileDeployed.Origin));
+                                var compiledFile = step > 0 ? null : _proCompilation.ListFilesToCompile.Find(compile => compile.CompiledPath.Equals(fileDeployed.Origin));
                                 if (compiledFile != null) {
                                     listFile = new FileDeployedCompiled();
                                     var newCompiledFile = (FileDeployedCompiled) listFile;
@@ -214,10 +203,6 @@ namespace Oetools.Packager.Core {
             get { return _sourceFilesMissing; }
         }
 
-        #endregion
-
-        #region Fields
-
         /// <summary>
         ///     List of all the files previously in the source dir
         /// </summary>
@@ -256,10 +241,6 @@ namespace Oetools.Packager.Core {
         private float _listingPercentage;
 
         private bool _isListing;
-
-        #endregion
-
-        #region Override
 
         /// <summary>
         ///     Do stuff before starting the treatment
@@ -337,10 +318,6 @@ namespace Oetools.Packager.Core {
 
             return list;
         }
-
-        #endregion
-
-        #region List files
 
         /// <summary>
         ///     Creates a list of all the files in the source directory, gather info on each file
@@ -431,7 +408,7 @@ namespace Oetools.Packager.Core {
             var currentTables = new List<TableCrc>();
 
             if (!string.IsNullOrEmpty(Env.ConnectionString)) {
-                var exec = new ProExecutionTableCrc(new ConfigExecutionDatabase(), Env) {
+                var exec = new ProExecutionTableCrc(new DatabaseExtractionOptions(), Env) {
                     NeedDatabaseConnection = true
                 };
                 exec.Start();
@@ -462,10 +439,6 @@ namespace Oetools.Packager.Core {
                         if (_sourceFilesNew.Contains(requiredFile.SourcePath)) filesToCompile.Add(prevCompiledFile.SourcePath);
             }
         }
-
-        #endregion
-
-        #region Utils
 
         /// <summary>
         ///     Returns the basic info for a given file path (in the source dir)
@@ -533,7 +506,5 @@ namespace Oetools.Packager.Core {
                 }
             return list;
         }
-
-        #endregion
     }
 }

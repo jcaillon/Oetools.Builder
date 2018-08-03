@@ -1,6 +1,4 @@
-﻿#region header
-
-// ========================================================================
+﻿// ========================================================================
 // Copyright (c) 2017 - Julien Caillon (julien.caillon@gmail.com)
 // This file (DeploymentRules.cs) is part of csdeployer.
 // 
@@ -18,8 +16,6 @@
 // along with csdeployer. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -28,9 +24,6 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Packager.Core {
     public static class DeploymentRules {
-        
-        #region GetRules
-
         public static List<DeployRule> GetRules(string confFilePath, out List<Tuple<int, string>> errors) {
             var rulesList = ReadConfigurationFile(confFilePath, out errors);
 
@@ -65,10 +58,6 @@ namespace Oetools.Packager.Core {
 
             return rulesList;
         }
-
-        #endregion
-
-        #region ReadConfigurationFile
 
         /// <summary>
         ///     Reads the given rule file
@@ -150,7 +139,7 @@ namespace Oetools.Packager.Core {
                             Include = items[1].Trim().EqualsCi("+") || items[1].Trim().EqualsCi("Include"),
                             SourcePattern = items[2].Trim()
                         };
-                        obj.RegexSourcePattern = obj.SourcePattern.StartsWith(":") ? obj.SourcePattern.Remove(0, 1) : obj.SourcePattern.Replace('/', '\\').WildCardToRegex();
+                        obj.RegexSourcePattern = obj.SourcePattern.StartsWith(":") ? obj.SourcePattern.Remove(0, 1) : obj.SourcePattern.Replace('/', '\\').PathWildCardToRegex();
 
                         if (!string.IsNullOrEmpty(obj.SourcePattern))
                             list.Add(obj);
@@ -164,7 +153,5 @@ namespace Oetools.Packager.Core {
 
             return list;
         }
-
-        #endregion
     }
 }

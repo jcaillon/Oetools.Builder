@@ -1,6 +1,6 @@
 ﻿// ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (ResultDeploymentPackaging.cs) is part of Oetools.Packager.
+// This file (TaskExecutor.cs) is part of Oetools.Packager.
 // 
 // Oetools.Packager is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,25 +16,8 @@
 // along with Oetools.Packager. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 
-using System;
-using System.Collections.Generic;
-using Oetools.Packager.Core.Entities;
-
-namespace Oetools.Packager.Core.Config {
-    public class ResultDeploymentPackaging : ResultDeploymentDifferential {
+namespace Oetools.Packager.Core2 {
+    public class TaskExecutor {
         
-        public DateTime? PackagingStartTime { get; set; }
-        
-        public TimeSpan? TotalPackagingTime { get; set; }
-        
-        /// <summary>
-        /// has a webclient .cab been created this time?
-        /// </summary>
-        public bool WebClientCreated { get; set; }
-        
-        public bool HasWebClient { get; set; }
-
-        public List<DiffCab> DifferentialCabinets { get; set; }
-
     }
 }

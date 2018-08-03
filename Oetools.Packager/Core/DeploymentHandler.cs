@@ -1,6 +1,4 @@
-﻿#region header
-
-// ========================================================================
+﻿// ========================================================================
 // Copyright (c) 2017 - Julien Caillon (julien.caillon@gmail.com)
 // This file (DeploymentHandler.cs) is part of csdeployer.
 // 
@@ -18,8 +16,6 @@
 // along with csdeployer. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,16 +23,13 @@ using System.Linq;
 using System.Threading;
 using Oetools.Packager.Core.Config;
 using Oetools.Packager.Core.Exceptions;
-using Oetools.Packager.Core.Execution;
+using Oetools.Packager.Core2.Execution;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Packager.Core {
 
     public abstract class DeploymentHandler {
-
-        #region Life and death
-
         /// <summary>
         ///     Constructor
         /// </summary>
@@ -45,10 +38,6 @@ namespace Oetools.Packager.Core {
             Env = conf.Env;
             StartingTime = DateTime.Now;
         }
-
-        #endregion
-
-        #region Events
 
         /// <summary>
         ///     The action to execute just after the end of a prowin process
@@ -65,19 +54,11 @@ namespace Oetools.Packager.Core {
         /// </summary>
         public Action<DeploymentHandler> OnExecutionFailed { protected get; set; }
 
-        #endregion
-
-        #region Options
-
         /// <summary>
         ///     When true, we activate the log just before compiling with FileId active + we generate a file that list referenced
         ///     table in the .r
         /// </summary>
         public virtual bool IsAnalysisMode { get; set; }
-
-        #endregion
-
-        #region Public properties
 
         public ConfigDeployment Conf { get; protected set; }
 
@@ -165,12 +146,12 @@ namespace Oetools.Packager.Core {
         /// <summary>
         /// List of all the compilation errors, the absolute path are replaced with relative ones
         /// </summary>
-        public List<FileError> CompilationErrorsOutput {
+        public List<CompilationError> CompilationErrorsOutput {
             get {
                 if (_proCompilation == null || _proCompilation.ListFilesToCompile == null)
                     return null;
                 var fileErrors = _proCompilation.ListFilesToCompile.Where(compile => compile.Errors != null).SelectMany(compile => compile.Errors).ToNonNullList();
-                var output = new List<FileError>();
+                var output = new List<CompilationError>();
                 foreach (var fileError in fileErrors) {
                     var newErr = fileError.Copy();
                     newErr.CompiledFilePath = newErr.CompiledFilePath.Replace(Env.SourceDirectory.CorrectDirPath(), "");
@@ -181,10 +162,6 @@ namespace Oetools.Packager.Core {
             }
         }
 
-        #endregion
-
-        #region protected fields
-
         protected Dictionary<int, List<FileToDeploy>> _filesToDeployPerStep = new Dictionary<int, List<FileToDeploy>>();
         
         protected volatile float _currentStepDeployPercentage;
@@ -194,12 +171,7 @@ namespace Oetools.Packager.Core {
 
         protected CancellationTokenSource _cancelSource = new CancellationTokenSource();
 
-        protected ProExecutionDeploymentHook _hookExecution;
         protected int _maxStep;
-
-        #endregion
-
-        #region Public
 
         /// <summary>
         ///     Start the deployment
@@ -226,7 +198,7 @@ namespace Oetools.Packager.Core {
             BeforeStarting();
             _proCompilation.CompileFiles(
                 GetFilesToCompileInStepZero()
-                    .Where(toCompile => Env.Deployer.GetTransfersNeededForFile(toCompile.SourcePath, 0).Count > 0)
+                    .Where(toCompile => Env.Deployer.GetTransfersNeededForFile(toCompile.CompiledPath, 0).Count > 0)
                     .ToNonNullList()
             );
         }
@@ -239,14 +211,8 @@ namespace Oetools.Packager.Core {
             _cancelSource.Cancel();
             if (_proCompilation != null)
                 _proCompilation.CancelCompilation();
-            if (_hookExecution != null)
-                _hookExecution.KillProcess();
             EndOfDeployment();
         }
-
-        #endregion
-
-        #region To override
 
         /// <summary>
         ///     Called just before calling the end of deployment events and once everything is done
@@ -308,10 +274,6 @@ namespace Oetools.Packager.Core {
             }
             return Env.Deployer.DeployFiles(filesToDeploy, f => _currentStepDeployPercentage = f, _cancelSource);
         }
-
-        #endregion
-
-        #region protected
 
         /// <summary>
         ///     Returns a list of folders in the given folder (recursively or not depending on the option),
@@ -406,22 +368,6 @@ namespace Oetools.Packager.Core {
 
             currentStep++;
 
-            // launch the compile process for the current file (if any)
-            if (File.Exists(Conf.FileDeploymentHook))
-                try {
-                    _hookExecution = new ProExecutionDeploymentHook(Env) {
-                        DeploymentStep = currentStep - 1,
-                        DeploymentSourcePath = Env.SourceDirectory,
-                        NoBatch = true,
-                        NeedDatabaseConnection = true
-                    };
-                    _hookExecution.OnExecutionEnd += execution => { DeployStepOneAndMore(currentStep); };
-                    _hookExecution.Start();
-                    return;
-                } catch (Exception e) {
-                    AddHandledExceptions(e);
-                }
-
             DeployStepOneAndMore(currentStep);
         }
 
@@ -463,7 +409,5 @@ namespace Oetools.Packager.Core {
                 HandledExceptions.Add(new DeploymentException(customMessage, exception));
             else HandledExceptions.Add(new DeploymentException("Deployment exception", exception));
         }
-
-        #endregion
     }
 }

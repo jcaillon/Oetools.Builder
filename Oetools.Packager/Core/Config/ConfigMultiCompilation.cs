@@ -1,4 +1,6 @@
-﻿namespace Oetools.Packager.Core.Config {
+﻿using Oetools.Packager.Core2.Execution;
+
+namespace Oetools.Packager.Core.Config {
     
     public class ConfigMultiCompilation {
         

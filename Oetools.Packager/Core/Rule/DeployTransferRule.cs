@@ -7,8 +7,6 @@ namespace Oetools.Packager.Core {
     ///     Base class for transfer rules
     /// </summary>
     public abstract class DeployTransferRule : DeployRule, IDeployTransferRule {
-        #region Factory
-
         public static DeployTransferRule New(DeployType type) {
             switch (type) {
                 case DeployType.Prolib:
@@ -36,10 +34,6 @@ namespace Oetools.Packager.Core {
             }
         }
 
-        #endregion
-
-        #region GetDeletetionType
-
         /// <summary>
         ///     Returns the type of deployment needed to delete a file deployed with the given type
         /// </summary>
@@ -56,10 +50,6 @@ namespace Oetools.Packager.Core {
                     return DeployType.None;
             }
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         ///     The type of transfer that should occur for this compilation path
@@ -96,10 +86,6 @@ namespace Oetools.Packager.Core {
         /// </summary>
         public bool ShouldDeployTargetReplaceDollar { get; set; }
 
-        #endregion
-
-        #region Methods
-
         /// <summary>
         ///     Should return true if the rule is valid
         /// </summary>
@@ -124,11 +110,7 @@ namespace Oetools.Packager.Core {
             theCopy.SourcePattern = SourcePattern;
             return theCopy;
         }
-
-        #endregion
     }
-    
-    #region DeployTransferRuleDelete
 
     /// <summary>
     ///     Delete file(s)
@@ -151,10 +133,6 @@ namespace Oetools.Packager.Core {
             return true;
         }
     }
-
-    #endregion
-
-    #region DeployTransferRuleDeleteFolder
 
     /// <summary>
     ///     Delete folder(s) recursively
@@ -182,12 +160,6 @@ namespace Oetools.Packager.Core {
         }
     }
 
-    #endregion
-
-    #region DeployTransferRulePack
-
-    #region DeployTransferRulePack
-
     /// <summary>
     ///     Abstract class for PACK rules
     /// </summary>
@@ -205,10 +177,6 @@ namespace Oetools.Packager.Core {
         }
     }
 
-    #endregion
-
-    #region DeployTransferRuleProlib
-
     /// <summary>
     ///     Transfer file(s) to a .pl file
     /// </summary>
@@ -221,10 +189,6 @@ namespace Oetools.Packager.Core {
             get { return ".pl"; }
         }
     }
-
-    #endregion
-
-    #region DeployTransferRuleZip
 
     /// <summary>
     ///     Transfer file(s) to a .zip file
@@ -239,10 +203,6 @@ namespace Oetools.Packager.Core {
         }
     }
 
-    #endregion
-
-    #region DeployTransferRuleCab
-
     /// <summary>
     ///     Transfer file(s) to a .cab file
     /// </summary>
@@ -255,10 +215,6 @@ namespace Oetools.Packager.Core {
             get { return ".cab"; }
         }
     }
-
-    #endregion
-
-    #region DeployTransferRuleDeleteInProlib
 
     /// <summary>
     ///     Delete file(s) in a prolib file
@@ -290,10 +246,6 @@ namespace Oetools.Packager.Core {
         }
     }
 
-    #endregion
-
-    #region DeployTransferRuleFtp
-
     /// <summary>
     ///     Send file(s) over FTP
     /// </summary>
@@ -310,12 +262,6 @@ namespace Oetools.Packager.Core {
             return base.IsValid(out error);
         }
     }
-
-    #endregion
-
-    #endregion
-
-    #region DeployTransferRuleCopyFolder
 
     /// <summary>
     ///     Copy folder(s) recursively
@@ -338,10 +284,6 @@ namespace Oetools.Packager.Core {
         }
     }
 
-    #endregion
-
-    #region DeployTransferRuleCopy
-
     /// <summary>
     ///     Copy file(s)
     /// </summary>
@@ -351,10 +293,6 @@ namespace Oetools.Packager.Core {
         }
     }
 
-    #endregion
-
-    #region DeployTransferRuleMove
-
     /// <summary>
     ///     Move file(s)
     /// </summary>
@@ -363,6 +301,4 @@ namespace Oetools.Packager.Core {
             get { return DeployType.Move; }
         }
     }
-
-    #endregion
 }

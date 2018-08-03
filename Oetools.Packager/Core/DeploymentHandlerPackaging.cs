@@ -1,6 +1,4 @@
-﻿#region header
-
-// ========================================================================
+﻿// ========================================================================
 // Copyright (c) 2017 - Julien Caillon (julien.caillon@gmail.com)
 // This file (DeploymentHandlerPackaging.cs) is part of csdeployer.
 //
@@ -17,8 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with csdeployer. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
-
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -44,9 +40,6 @@ namespace Oetools.Packager.Core {
     ///     - build /diffs/
     /// </summary>
     public class DeploymentHandlerPackaging : DeploymentHandlerDifferential {
-
-        #region Life and death
-
         /// <summary>
         ///     Constructor
         /// </summary>
@@ -55,13 +48,9 @@ namespace Oetools.Packager.Core {
             if (conf.CreatePackageInTempDir) {
                 // overload the target directory, we copy it in the real target at the end
                 conf.PackageTargetDirectory = Env.TargetDirectory;
-                Env.TargetDirectory = Path.Combine(Env.FolderTemp, "Package");
+                Env.TargetDirectory = Path.Combine(Env.TempDirectory, "Package");
             }
         }
-
-        #endregion
-
-        #region utils
 
         /// <summary>
         ///     We might have used a temporary folder as a target dir
@@ -87,10 +76,6 @@ namespace Oetools.Packager.Core {
 
             Env.TargetDirectory = Conf.PackageTargetDirectory;
         }
-
-        #endregion
-
-        #region Properties
 
         public new ConfigDeploymentPackaging Conf { get; protected set; }
 
@@ -157,11 +142,6 @@ namespace Oetools.Packager.Core {
 
         public bool WebClientCreated { get; private set; }
 
-        #endregion
-
-        #region Fields
-        
-
         private bool _isCopyingRef;
         private float _refCopyPercentage;
 
@@ -177,10 +157,6 @@ namespace Oetools.Packager.Core {
         private float _buildDiffPercentage;
 
         private List<DiffCab> _diffCabs = new List<DiffCab>();
-
-        #endregion
-
-        #region Override
 
         /// <summary>
         ///     Do stuff before starting the treatment
@@ -293,8 +269,6 @@ namespace Oetools.Packager.Core {
             base.DeployStepOneAndMore(currentStep);
         }
 
-        #region DoExecutionOk
-
         /// <summary>
         ///     Called after the deployment, we might need to copy the package created locally to the remote directory
         /// </summary>
@@ -312,7 +286,7 @@ namespace Oetools.Packager.Core {
                         return;
                     }
 
-                    Utils.CreateDirectory(Conf.PackageTargetDirectory);
+                    Utils.CreateDirectoryIfNeeded(Conf.PackageTargetDirectory);
                 }
             }
             EndOfDeployment();
@@ -344,12 +318,6 @@ namespace Oetools.Packager.Core {
                 _finalCopy.AbortCopyAsync();
             base.Cancel();
         }
-
-        #endregion
-
-        #endregion
-
-        #region Private
 
         /// <summary>
         ///     copy reference folder to target folder
@@ -629,9 +597,9 @@ namespace Oetools.Packager.Core {
 
                 // now we just need to clean the temporary folders for each diff
                 foreach (var diffCab in diffCabTodo)
-                    Utils.DeleteDirectory(diffCab.TempCabFolder, true);
+                    Utils.DeleteDirectoryIfExists(diffCab.TempCabFolder, true);
             } finally {
-                Utils.DeleteDirectory(tempFolderPath, true);
+                Utils.DeleteDirectoryIfExists(tempFolderPath, true);
             }
         }
 
@@ -641,7 +609,7 @@ namespace Oetools.Packager.Core {
         private void BuildDiffWcmFile(DiffCab diffCab) {
             // for the diff, we build the corresponding wcm file
             var wcmPath = Path.Combine(diffCab.TempCabFolder, Path.ChangeExtension(Path.GetFileName(diffCab.CabPath ?? ""), "wcm"));
-            Utils.CreateDirectory(diffCab.TempCabFolder);
+            Utils.CreateDirectoryIfNeeded(diffCab.TempCabFolder);
 
             var mainSb = new StringBuilder();
             mainSb.AppendLine("[Main]");
@@ -761,8 +729,5 @@ namespace Oetools.Packager.Core {
 
             return filesToCab;
         }
-
-        #endregion
-        
     }
 }
