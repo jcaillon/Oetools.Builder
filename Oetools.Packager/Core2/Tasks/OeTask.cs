@@ -20,7 +20,11 @@ using System;
 using System.Collections.Generic;
 
 namespace Oetools.Packager.Core.Tasks {
-    public abstract class OeTask { }
+
+    public abstract class OeTask {
+        public void ValidateTaskParameters() { }
+        
+    }
 
     public class OeTaskVariable {
         public string Name { get; set; }
