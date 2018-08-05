@@ -412,7 +412,7 @@ namespace Oetools.Packager.Core {
                     NeedDatabaseConnection = true
                 };
                 exec.Start();
-                exec.WaitForProcessExit(0);
+                exec.WaitForProcessExit();
                 currentTables = exec.GetTableCrc();
                 if (currentTables == null) return;
             }
