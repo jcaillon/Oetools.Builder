@@ -1,0 +1,406 @@
+﻿// ========================================================================
+// Copyright (c) 2017 - Julien Caillon (julien.caillon@gmail.com)
+// This file (Deployer.cs) is part of csdeployer.
+// 
+// csdeployer is a free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// csdeployer is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with csdeployer. If not, see <http://www.gnu.org/licenses/>.
+// ========================================================================
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Oetools.Builder.Core.Config;
+using Oetools.Builder.Core2.Execution;
+using Oetools.Utilities.Archive;
+using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
+
+namespace Oetools.Builder.Core {
+    
+    /// <summary>
+    ///     This class is responsible for deploying FileToDeploy following DeploymentRules
+    /// </summary>
+    public class Deployer {
+        /// <summary>
+        ///     Constructor
+        /// </summary>
+        public Deployer(List<DeployRule> deployRules, IEnvExecutionCompilation proEnv) {
+            _compileLocally = proEnv.CompileLocally;
+            _deploymentDirectory = proEnv.TargetDirectory;
+            _sourceDirectory = Path.GetFullPath(proEnv.SourceDirectory).TrimEnd('\\');
+            _compressionLevel = proEnv.ArchivesCompressionLevel;
+            _compileUnmatchedProgressFilesToDeployDir = proEnv.CompileUnmatchedProgressFiles;
+            ProlibPath = proEnv.ProlibPath;
+
+            DeployRules = deployRules.ToNonNullList();
+            DeployVarList = DeployRules.OfType<DeployVariableRule>().ToNonNullList();
+        }
+
+        /// <summary>
+        ///     Creates a list of files to deploy after a compilation,
+        ///     for each Origin file will correspond one (or more if it's a .cls) .r file,
+        ///     and one .lst if the option has been checked
+        /// </summary>
+        public static List<FileToDeploy> GetFilesToDeployAfterCompilation(ProExecutionCompile execution) {
+            var outputList = new List<FileToDeploy>();
+
+            var filesCompiled = execution.FilesToCompile.ToList();
+
+            // Handle the case of .cls files, for which several .r code are compiled
+            foreach (var clsFile in execution.FilesToCompile.Where(file => file.CompiledPath.EndsWith(ProExecutionHandleCompilation.ExtCls, StringComparison.CurrentCultureIgnoreCase))) // if the file we compiled inherits from another class or if another class inherits of our file, 
+                // there is more than 1 *.r file generated. Moreover, they are generated in their package folders
+
+                // for each *.r file in the compilation output directory
+            foreach (var rCodeFilePath in Directory.EnumerateFiles(clsFile.CompilationOutputDir, "*" + ProExecutionHandleCompilation.ExtR, SearchOption.AllDirectories)) {
+                // find the path of the source
+                var relativePath = rCodeFilePath.Replace(clsFile.CompilationOutputDir, "").TrimStart('\\');
+
+                // if this is actually the .cls file we want to compile, the .r file isn't necessary directly in the compilation dir like we expect,
+                // it can be in folders corresponding to the package of the class
+                if (Path.GetFileNameWithoutExtension(clsFile.CompiledPath ?? "").Equals(Path.GetFileNameWithoutExtension(relativePath))) {
+                    // correct .r path
+                    clsFile.CompOutputR = rCodeFilePath;
+                    continue;
+                }
+
+                // otherwise, try to get the source .cls for this .r
+                var sourcePath = execution.Env.FindFirstFileInPropath(Path.ChangeExtension(relativePath, ProExecutionHandleCompilation.ExtCls));
+
+                // if the source isn't already in the files that needed to be compiled, we add it
+                if (!string.IsNullOrEmpty(sourcePath) && !filesCompiled.Exists(compiledFile => compiledFile.CompiledPath.Equals(sourcePath)))
+                    filesCompiled.Add(new FileToCompile(sourcePath) {
+                        CompilationOutputDir = clsFile.CompilationOutputDir,
+                        CompiledSourcePath = sourcePath,
+                        CompOutputR = rCodeFilePath
+                    });
+            }
+
+            // for each .r
+            foreach (var compiledFile in filesCompiled) {
+                if (string.IsNullOrEmpty(compiledFile.CompOutputR))
+                    continue;
+                foreach (var deployNeeded in execution.Env.Deployer.GetTargetsNeeded(compiledFile.CompiledPath, 0, DeployTransferRuleTarget.File)) {
+                    string targetRPath;
+                    if (execution.Env.CompileLocally)
+                        targetRPath = Path.Combine(deployNeeded.TargetBasePath, Path.GetFileName(compiledFile.CompOutputR));
+                    else
+                        targetRPath = Path.Combine(deployNeeded.TargetBasePath, compiledFile.CompOutputR.Replace(compiledFile.CompilationOutputDir, "").TrimStart('\\'));
+
+                    // add .r and .lst (if needed) to the list of files to deploy
+                    outputList.Add(deployNeeded.Set(compiledFile.CompOutputR, targetRPath));
+
+                    // listing
+                    if (execution.CompileWithListing && !string.IsNullOrEmpty(compiledFile.CompOutputLis)) outputList.Add(deployNeeded.Copy(compiledFile.CompOutputLis, Path.ChangeExtension(targetRPath, ProExecutionHandleCompilation.ExtLis)));
+
+                    // xref
+                    if (execution.CompileWithXref && !string.IsNullOrEmpty(compiledFile.CompOutputXrf)) outputList.Add(deployNeeded.Copy(compiledFile.CompOutputXrf, Path.ChangeExtension(targetRPath, execution.UseXmlXref ? ProExecutionHandleCompilation.ExtXrfXml : ProExecutionHandleCompilation.ExtXrf)));
+
+                    // debug-list
+                    if (execution.CompileWithDebugList && !string.IsNullOrEmpty(compiledFile.CompOutputDbg)) outputList.Add(deployNeeded.Copy(compiledFile.CompOutputDbg, Path.ChangeExtension(targetRPath, ProExecutionHandleCompilation.ExtDbg)));
+                }
+            }
+            return outputList;
+        }
+
+        /// <summary>
+        ///     Deploy a given list of files (can reduce the list if there are duplicated items so it returns it)
+        /// </summary>
+        public List<FileToDeploy> DeployFiles(List<FileToDeploy> deployToDo, Action<float> updateDeploymentPercentage, CancellationTokenSource cancelToken) {
+            try {
+                if (cancelToken == null) cancelToken = new CancellationTokenSource();
+
+                // make sure to transfer a given file only once at the same place (happens with .cls file since a source
+                // can have several .r files generated if it is used in another classes)
+                deployToDo = deployToDo
+                    .GroupBy(deploy => deploy.To)
+                    .Select(group => group.FirstOrDefault(move => Path.GetFileNameWithoutExtension(move.From ?? "").Equals(Path.GetFileNameWithoutExtension(move.Origin))) ?? group.First())
+                    .ToList();
+
+                // create directories that must exist to be able to deploy
+                deployToDo
+                    .Where(deploy => !string.IsNullOrEmpty(deploy.DirectoryThatMustExist))
+                    .GroupBy(deploy => deploy.DirectoryThatMustExist)
+                    .Select(group => group.First())
+                    .ToNonNullList()
+                    .ForEach(deploy => {
+                        try {
+                            if (!Directory.Exists(deploy.DirectoryThatMustExist)) Directory.CreateDirectory(deploy.DirectoryThatMustExist);
+                        } catch (Exception e) {
+                            deploy.DeployError = "Impossible de créer le répertoire " + deploy.DirectoryThatMustExist.Quoter() + " : \"" + e.Message + "\"";
+                        }
+                    });
+
+                _nbFilesDeployed = 0;
+                _totalNbFilesToDeploy = deployToDo.Count;
+
+                // Create the list of each pack / files in pack
+                // path of pack -> (ArchiveInfo, List<FileToDeploy>)
+                var packs = new Dictionary<string, Tuple<IArchiver, List<IFileToArchive>>>();
+                deployToDo
+                    .Where(deploy => deploy is FileToDeployInPack)
+                    .Cast<FileToDeployInPack>()
+                    .ToNonNullList()
+                    .ForEach(fileToPack => {
+                        if (fileToPack.IfFromFileExists()) {
+                            // add new pack
+                            if (!packs.ContainsKey(fileToPack.ArchivePath)) {
+                                packs.Add(fileToPack.ArchivePath, new Tuple<IArchiver, List<IFileToArchive>>(fileToPack.NewArchive(this), new List<IFileToArchive>()));
+                            }
+
+                            // add new file in archive
+                            if (!packs[fileToPack.ArchivePath].Item2.Exists(f => f.RelativePathInArchive.EqualsCi(fileToPack.RelativePathInArchive))) {
+                                packs[fileToPack.ArchivePath].Item2.Add(fileToPack);
+                            }
+                        }
+                    });
+
+                // package each pack (can't do it in parallel because of .pl packs, for which we MOVE the files to temp folders so they wouldn't be available for other packs
+                foreach (var pack in packs) {
+                    // canceled?
+                    cancelToken.Token.ThrowIfCancellationRequested();
+
+                    try {
+                        var currentPack = pack;
+                        pack.Value.Item1.PackFileSet(pack.Value.Item2, _compressionLevel, (sender, args) => {
+                            // canceled?
+                            cancelToken.Token.ThrowIfCancellationRequested();
+
+                            if (args.ProgressionType == ArchiveProgressionType.FinishArchive && args.TreatmentException != null) {
+                                // register exception on each file
+                                throw args.TreatmentException;
+                            }
+
+                            if (string.IsNullOrEmpty(args.CurrentFileName)) {
+                                return;
+                            }
+
+                            var currentFile = (FileToDeployInPack) currentPack.Value.Item2.FirstOrDefault(f => f.RelativePathInArchive.Equals(args.CurrentFileName));
+                            if (currentFile != null) {
+                                if (!currentFile.IsOk) {
+                                    _nbFilesDeployed++;
+                                    updateDeploymentPercentage?.Invoke((float) _nbFilesDeployed / _totalNbFilesToDeploy * 100);
+                                }
+
+                                if (args.TreatmentException != null) {
+                                    currentFile.RegisterArchiveException(args.TreatmentException);
+                                } else {
+                                    currentFile.IsOk = true;
+                                }
+                            }
+                        });
+                    } catch (OperationCanceledException) {
+                        throw;
+                    } catch (Exception e) {
+                        // set the deploy error for each file
+                        foreach (var fileToPack in pack.Value.Item2.Cast<FileToDeployInPack>()) {
+                            fileToPack.RegisterArchiveException(e);
+                        }
+                    }
+                }
+
+                // do a deployment action for each file
+                var parallelOptions = new ParallelOptions {CancellationToken = cancelToken.Token};
+                Parallel.ForEach(deployToDo.Where(deploy => !(deploy is FileToDeployInPack) && deploy.CanBeParallelized), parallelOptions, file => {
+                    // canceled?
+                    parallelOptions.CancellationToken.ThrowIfCancellationRequested();
+
+                    if (file.DeploySelf())
+                        _nbFilesDeployed++;
+                    if (updateDeploymentPercentage != null) updateDeploymentPercentage((float) _nbFilesDeployed / _totalNbFilesToDeploy * 100);
+                });
+
+                foreach (var file in deployToDo.Where(deploy => !(deploy is FileToDeployInPack) && !deploy.CanBeParallelized)) {
+                    // canceled?
+                    cancelToken.Token.ThrowIfCancellationRequested();
+
+                    if (file.DeploySelf())
+                        _nbFilesDeployed++;
+                    if (updateDeploymentPercentage != null) updateDeploymentPercentage((float) _nbFilesDeployed / _totalNbFilesToDeploy * 100);
+                }
+            } catch (OperationCanceledException) {
+                // we expect this exception if the task has been canceled
+            } catch (Exception e) {
+                throw new Exception("An error has occured when deploying files", e);
+            }
+
+            return deployToDo;
+        }
+
+        private bool _compileLocally;
+        private string _deploymentDirectory;
+        private string _sourceDirectory;
+        private int _totalNbFilesToDeploy;
+        private int _nbFilesDeployed;
+        private bool _compileUnmatchedProgressFilesToDeployDir;
+        private CompressionLvl _compressionLevel;
+
+        public string ProlibPath { get; set; }
+
+        /// <summary>
+        ///     List of deployment rules filtered + sorted for this env
+        /// </summary>
+        public List<DeployRule> DeployRules { get; private set; }
+
+        /// <summary>
+        ///     List of var rules filtered + sorted for this env
+        /// </summary>
+        public List<DeployVariableRule> DeployVarList { get; private set; }
+
+        /// <summary>
+        ///     List of deployment rules filtered + sorted for this env
+        /// </summary>
+        public List<DeployTransferRule> DeployTransferRules {
+            get { return DeployRules.OfType<DeployTransferRule>().ToNonNullList(); }
+        }
+
+        /// <summary>
+        ///     List of deployment rules filtered + sorted for this env
+        /// </summary>
+        public List<DeployFilterRule> DeployFilterRules {
+            get { return DeployRules.OfType<DeployFilterRule>().ToNonNullList(); }
+        }
+
+        /// <summary>
+        ///     returns the list of transfers needed for a given file
+        /// </summary>
+        public List<FileToDeploy> GetTransfersNeededForFile(string sourcePath, int step) {
+            var fileName = Path.GetFileName(sourcePath);
+            if (fileName != null)
+                return GetTargetsNeeded(sourcePath, step, DeployTransferRuleTarget.File).Select(deploy => deploy.Set(sourcePath, Path.Combine(deploy.TargetBasePath, fileName))).ToList();
+            return new List<FileToDeploy>();
+        }
+
+        /// <summary>
+        ///     returns the list of transfers needed for a given folder
+        /// </summary>
+        public List<FileToDeploy> GetTransfersNeededForFolders(string sourcePath, int step) {
+            return GetTargetsNeeded(sourcePath, step, DeployTransferRuleTarget.Folder).Select(deploy => deploy.Set(sourcePath, deploy.TargetBasePath)).ToList();
+        }
+
+        /// <summary>
+        ///     Returns a list of files in the given folders (recursively or not depending on the option),
+        ///     this list is filtered thanks to the filtered rules given
+        /// </summary>
+        public IEnumerable<string> GetFilteredList(IEnumerable<string> list, int step) {
+            // construct the filters list
+            var includeFiltersList = DeployFilterRules.Where(rule => rule.Step == step && rule.Include).ToList();
+            var excludeFiltersList = DeployFilterRules.Where(rule => rule.Step == step && !rule.Include).ToList();
+
+            foreach (var file in list)
+                if (IsFilePassingFilters(file, includeFiltersList, excludeFiltersList))
+                    yield return file;
+        }
+
+        /// <summary>
+        ///     Returns true if the given path passes the include + exclude filters
+        /// </summary>
+        private bool IsFilePassingFilters(string path, List<DeployFilterRule> includeFiltersList, List<DeployFilterRule> excludeFiltersList) {
+            var passing = true;
+
+            // test include filters
+            if (includeFiltersList.Count > 0) {
+                var hasMatch = includeFiltersList.Any(rule => path.RegexMatch(rule.RegexSourcePattern));
+                passing = hasMatch;
+            }
+
+            // test exclude filters
+            if (excludeFiltersList.Count > 0) {
+                var hasNoMatch = excludeFiltersList.All(rule => !path.RegexMatch(rule.RegexSourcePattern));
+                passing = passing && hasNoMatch;
+            }
+
+            return passing;
+        }
+
+        /// <summary>
+        ///     This method returns the target directories (or pl, zip or ftp) for the given source path, for each :
+        ///     If CompileLocally, returns the directory of the source
+        ///     If the deployment dir is empty and we didn't match an absolute compilation path, returns the source directory as
+        ///     well
+        /// </summary>
+        private List<FileToDeploy> GetTargetsNeeded(string sourcePath, int step, DeployTransferRuleTarget targetType) {
+            // local compilation? return only one path, MOVE next to the source
+            if (step == 0 && _compileLocally)
+                return new List<FileToDeploy> {
+                    FileToDeploy.New(DeployType.Move, sourcePath, Path.GetDirectoryName(sourcePath), null)
+                };
+
+            var outList = new List<FileToDeploy>();
+
+            // for each transfer rule that match the source pattern
+            foreach (var rule in DeployTransferRules.Where(rule => sourcePath.RegexMatch(GetRegexAndReplaceVariablesIn(rule.SourcePattern)) && rule.Step == step && rule.TargetType == targetType)) {
+                string targetBasePath;
+
+                var deployTarget = ReplaceVariablesIn(rule.DeployTarget ?? sourcePath);
+
+                if (rule.ShouldDeployTargetReplaceDollar) {
+                    string matchedPath;
+                    try {
+                        matchedPath = sourcePath.RegexFind(GetRegexAndReplaceVariablesIn(rule.SourcePattern))[0].Groups[0].Value;
+                    } catch (Exception) {
+                        matchedPath = sourcePath;
+                    }
+                    targetBasePath = matchedPath.RegexReplace(GetRegexAndReplaceVariablesIn(rule.SourcePattern), deployTarget);
+                } else {
+                    targetBasePath = deployTarget;
+                }
+
+                if (rule.Type != DeployType.Ftp && !Path.IsPathRooted(deployTarget)) targetBasePath = Path.Combine(_deploymentDirectory, targetBasePath);
+                else if (deployTarget.Equals("\\")) targetBasePath = _deploymentDirectory;
+
+                if (!outList.Exists(needed => needed.TargetBasePath.EqualsCi(targetBasePath))) outList.Add(FileToDeploy.New(rule.Type, sourcePath, targetBasePath, rule));
+
+                // stop ?
+                if (!rule.ContinueAfterThisRule || rule.Type == DeployType.Move)
+                    break;
+            }
+
+            // for the compilation step
+            if (step == 0)
+                if (outList.Count == 0 && _compileUnmatchedProgressFilesToDeployDir) {
+                    // move to deployment directory by default
+                    outList.Add(FileToDeploy.New(DeployType.Move, sourcePath, _deploymentDirectory, null));
+                } else {
+                    var lastCopy = outList.LastOrDefault() as FileToDeployCopy;
+                    if (lastCopy != null) lastCopy.FinalDeploy = true;
+                }
+
+            return outList;
+        }
+
+        /// <summary>
+        ///     Replace the variables &lt;XXX&gt; in the string
+        /// </summary>
+        private string ReplaceVariablesIn(string input) {
+            if (input.ContainsFast("<")) {
+                var fr = new FastReplacer("<", ">", false);
+                fr.Append(input);
+                // special replacement
+                fr.Replace(@"<ROOT>", input.StartsWith(":") ? Regex.Escape(_sourceDirectory) : _sourceDirectory);
+                foreach (var variableRule in DeployVarList) fr.Replace(variableRule.VariableName, variableRule.Path);
+                return fr.ToString();
+            }
+            return input;
+        }
+
+        private string GetRegexAndReplaceVariablesIn(string input) {
+            input = ReplaceVariablesIn(input);
+            return input.StartsWith(":") ? input.Remove(0, 1) : input.Replace('/', '\\').PathWildCardToRegex();
+        }
+    }
+    
+}
