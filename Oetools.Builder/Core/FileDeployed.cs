@@ -19,7 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
-using Oetools.Builder.Core2.Execution;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Core {
 

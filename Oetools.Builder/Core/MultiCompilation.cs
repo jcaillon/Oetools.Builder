@@ -22,7 +22,7 @@ using System.Linq;
 using System.Threading;
 using Oetools.Builder.Core.Config;
 using Oetools.Builder.Core.Exceptions;
-using Oetools.Builder.Core2.Execution;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Core {
     /// <summary>
@@ -123,7 +123,12 @@ namespace Oetools.Builder.Core {
         ///     this error is caused by too much connection on the same database (too much processes started!)
         /// </summary>
         public bool CompilationFailedOnMaxUser {
-            get { return _processes.Any(proc => proc.ConnectionFailed && proc.DbConnectionFailedOnMaxUser); }
+            get { return _processes.Any(proc => proc.DbConnectionFailed && proc.HandledExceptions.Exists(e => {
+                if (e is ExecutionOpenedgeException oeEx) {
+                    return oeEx.ErrorNumber == 748;
+                }
+                return false;
+            })); }
         }
 
         /// <summary>
@@ -174,7 +179,7 @@ namespace Oetools.Builder.Core {
         private static object _lockErrors = new object();
 
         // list of all the started processes
-        private List<ProExecutionCompile> _processes = new List<ProExecutionCompile>();
+        private List<OeExecutionCompile> _processes = new List<OeExecutionCompile>();
 
         // total number of processes still running
         private int _processesRunning = -1;
@@ -234,7 +239,7 @@ namespace Oetools.Builder.Core {
             // init the compilation on each process
             _processes.Clear();
             for (var i = 0; i < fileLists.Count; i++) {
-                var exec = new ProExecutionCompile(Env) {
+                var exec = new OeExecutionCompile(Env) {
                     FilesToCompile = fileLists[i],
                     NeedDatabaseConnection = true,
                     NoBatch = true,
@@ -279,7 +284,7 @@ namespace Oetools.Builder.Core {
         ///     returns the list of all the files that are being compiled
         /// </summary>
         public List<FileToCompile> GetListOfFileToCompile {
-            get { return (_processes ?? new List<ProExecutionCompile>()).SelectMany(proc => proc.FilesToCompile != null && proc.NbFilesTreated > 0 ? proc.FilesToCompile.GetRange(0, proc.NbFilesTreated) : new List<FileToCompile>()).ToList(); }
+            get { return (_processes ?? new List<OeExecutionCompile>()).SelectMany(proc => proc.FilesToCompile != null && proc.NbFilesTreated > 0 ? proc.FilesToCompile.GetRange(0, proc.NbFilesTreated) : new List<FileToCompile>()).ToList(); }
         }
 
         /// <summary>
@@ -324,7 +329,7 @@ namespace Oetools.Builder.Core {
         /// <summary>
         ///     Called when a process has finished
         /// </summary>
-        private void OnExecutionOk(ProExecution lastExecution) {
+        private void OnExecutionOk(OeExecution lastExecution) {
             DoInLock(() => {
                 _processesRunning--;
                 EndOfCompilation();
@@ -334,7 +339,7 @@ namespace Oetools.Builder.Core {
         /// <summary>
         ///     When a process has finished compiling correctly
         /// </summary>
-        private void OnExecCompilationOk(ProExecutionHandleCompilation proc, List<FileToCompile> fileToCompiles, List<FileToDeploy> filesToDeploy) {
+        private void OnExecCompilationOk(OeExecutionHandleCompilation proc, List<FileToCompile> fileToCompiles, List<FileToDeploy> filesToDeploy) {
             DoInLock(() => {
                 // aggregate the info on each process
                 if (fileToCompiles != null)
@@ -347,7 +352,7 @@ namespace Oetools.Builder.Core {
         /// <summary>
         ///     Called when a process has finished UNsuccessfully
         /// </summary>
-        private void OnExecutionFailed(ProExecution lastExecution) {
+        private void OnExecutionFailed(OeExecution lastExecution) {
             DoInLock(() => {
                 KillProcesses();
                 EndOfCompilation();

@@ -24,10 +24,10 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Oetools.Builder.Core.Config;
-using Oetools.Builder.Core2.Execution;
 using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Core {
     
@@ -55,17 +55,17 @@ namespace Oetools.Builder.Core {
         ///     for each Origin file will correspond one (or more if it's a .cls) .r file,
         ///     and one .lst if the option has been checked
         /// </summary>
-        public static List<FileToDeploy> GetFilesToDeployAfterCompilation(ProExecutionCompile execution) {
+        public static List<FileToDeploy> GetFilesToDeployAfterCompilation(OeExecutionCompile execution) {
             var outputList = new List<FileToDeploy>();
 
             var filesCompiled = execution.FilesToCompile.ToList();
 
             // Handle the case of .cls files, for which several .r code are compiled
-            foreach (var clsFile in execution.FilesToCompile.Where(file => file.CompiledPath.EndsWith(ProExecutionHandleCompilation.ExtCls, StringComparison.CurrentCultureIgnoreCase))) // if the file we compiled inherits from another class or if another class inherits of our file, 
+            foreach (var clsFile in execution.FilesToCompile.Where(file => file.CompiledPath.EndsWith(OeExecutionHandleCompilation.ExtCls, StringComparison.CurrentCultureIgnoreCase))) // if the file we compiled inherits from another class or if another class inherits of our file, 
                 // there is more than 1 *.r file generated. Moreover, they are generated in their package folders
 
                 // for each *.r file in the compilation output directory
-            foreach (var rCodeFilePath in Directory.EnumerateFiles(clsFile.CompilationOutputDir, "*" + ProExecutionHandleCompilation.ExtR, SearchOption.AllDirectories)) {
+            foreach (var rCodeFilePath in Directory.EnumerateFiles(clsFile.CompilationOutputDir, "*" + OeExecutionHandleCompilation.ExtR, SearchOption.AllDirectories)) {
                 // find the path of the source
                 var relativePath = rCodeFilePath.Replace(clsFile.CompilationOutputDir, "").TrimStart('\\');
 
@@ -78,7 +78,7 @@ namespace Oetools.Builder.Core {
                 }
 
                 // otherwise, try to get the source .cls for this .r
-                var sourcePath = execution.Env.FindFirstFileInPropath(Path.ChangeExtension(relativePath, ProExecutionHandleCompilation.ExtCls));
+                var sourcePath = execution.Env.FindFirstFileInPropath(Path.ChangeExtension(relativePath, OeExecutionHandleCompilation.ExtCls));
 
                 // if the source isn't already in the files that needed to be compiled, we add it
                 if (!string.IsNullOrEmpty(sourcePath) && !filesCompiled.Exists(compiledFile => compiledFile.CompiledPath.Equals(sourcePath)))
@@ -104,13 +104,13 @@ namespace Oetools.Builder.Core {
                     outputList.Add(deployNeeded.Set(compiledFile.CompOutputR, targetRPath));
 
                     // listing
-                    if (execution.CompileWithListing && !string.IsNullOrEmpty(compiledFile.CompOutputLis)) outputList.Add(deployNeeded.Copy(compiledFile.CompOutputLis, Path.ChangeExtension(targetRPath, ProExecutionHandleCompilation.ExtLis)));
+                    if (execution.CompileWithListing && !string.IsNullOrEmpty(compiledFile.CompOutputLis)) outputList.Add(deployNeeded.Copy(compiledFile.CompOutputLis, Path.ChangeExtension(targetRPath, OeExecutionHandleCompilation.ExtLis)));
 
                     // xref
-                    if (execution.CompileWithXref && !string.IsNullOrEmpty(compiledFile.CompOutputXrf)) outputList.Add(deployNeeded.Copy(compiledFile.CompOutputXrf, Path.ChangeExtension(targetRPath, execution.UseXmlXref ? ProExecutionHandleCompilation.ExtXrfXml : ProExecutionHandleCompilation.ExtXrf)));
+                    if (execution.CompileWithXref && !string.IsNullOrEmpty(compiledFile.CompOutputXrf)) outputList.Add(deployNeeded.Copy(compiledFile.CompOutputXrf, Path.ChangeExtension(targetRPath, execution.UseXmlXref ? OeExecutionHandleCompilation.ExtXrfXml : OeExecutionHandleCompilation.ExtXrf)));
 
                     // debug-list
-                    if (execution.CompileWithDebugList && !string.IsNullOrEmpty(compiledFile.CompOutputDbg)) outputList.Add(deployNeeded.Copy(compiledFile.CompOutputDbg, Path.ChangeExtension(targetRPath, ProExecutionHandleCompilation.ExtDbg)));
+                    if (execution.CompileWithDebugList && !string.IsNullOrEmpty(compiledFile.CompOutputDbg)) outputList.Add(deployNeeded.Copy(compiledFile.CompOutputDbg, Path.ChangeExtension(targetRPath, OeExecutionHandleCompilation.ExtDbg)));
                 }
             }
             return outputList;

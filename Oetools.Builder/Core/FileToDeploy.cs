@@ -21,10 +21,10 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Oetools.Utilities.Archive;
 using Oetools.Utilities.Archive.Cab;
-using Oetools.Utilities.Archive.Ftp;
 using Oetools.Utilities.Archive.Prolib;
 using Oetools.Utilities.Archive.Zip;
 using Oetools.Utilities.Ftp;
+using Oetools.Utilities.Ftp.Archiver;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 

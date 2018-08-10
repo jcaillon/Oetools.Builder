@@ -24,9 +24,9 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Oetools.Builder.Core.Config;
 using Oetools.Builder.Core.Exceptions;
-using Oetools.Builder.Core2.Execution;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Core {
 
@@ -407,8 +407,8 @@ namespace Oetools.Builder.Core {
             // we get a list of the current DB.TABLE + the CRC for each
             var currentTables = new List<TableCrc>();
 
-            if (!string.IsNullOrEmpty(Env.ConnectionString)) {
-                var exec = new ProExecutionTableCrc(new DatabaseExtractionOptions(), Env) {
+            if (!string.IsNullOrEmpty(Env.DatabaseConnectionString)) {
+                var exec = new OeExecutionDbExtractTableCrc(new DatabaseExtractionOptions(), Env) {
                     NeedDatabaseConnection = true
                 };
                 exec.Start();

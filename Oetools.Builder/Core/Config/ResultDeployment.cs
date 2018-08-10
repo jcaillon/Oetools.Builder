@@ -20,7 +20,7 @@ using System;
 using System.Collections.Generic;
 using Oetools.Builder.Core.Entities;
 using Oetools.Builder.Core.Exceptions;
-using Oetools.Builder.Core2.Execution;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Core.Config {
     
