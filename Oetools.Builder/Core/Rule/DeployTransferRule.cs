@@ -1,7 +1,7 @@
 ﻿using System;
 using Oetools.Utilities.Lib.Extension;
 
-namespace Oetools.Builder.Core {
+namespace Oetools.Builder.Core.Rule {
     
     /// <summary>
     ///     Base class for transfer rules

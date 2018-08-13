@@ -19,6 +19,7 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using Oetools.Builder.Core.Rule;
 using Oetools.Utilities.Archive;
 using Oetools.Utilities.Archive.Cab;
 using Oetools.Utilities.Archive.Prolib;

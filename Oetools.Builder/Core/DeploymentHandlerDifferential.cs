@@ -24,6 +24,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Oetools.Builder.Core.Config;
 using Oetools.Builder.Core.Exceptions;
+using Oetools.Builder.Core.Rule;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Execution;
@@ -328,7 +329,7 @@ namespace Oetools.Builder.Core {
 
                 // get the list of files in the source dir with their basic info
                 var step = 0.5f;
-                foreach (var file in Utils.EnumerateFiles(Env.SourceDirectory, "*", Conf.ExploreRecursively ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)) {
+                foreach (var file in Utils.EnumerateAllFiles(Env.SourceDirectory, "*", Conf.ExploreRecursively ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)) {
                     _cancelSource.Token.ThrowIfCancellationRequested();
                     GetSourceFileBaseInfo(file);
                     if ((Conf.ComputeMd5 ? 30 : 90) - _listingPercentage < 10 * step) step /= 10;
