@@ -1,12 +1,58 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
+using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
+using Oetools.Utilities.Openedge;
 
 namespace Oetools.Builder.Project {
     
     [Serializable]
     public class OeProjectProperties {
-            
+
+        /// <summary>
+        /// Returns the propath that should be used considering all the options of this class
+        /// </summary>
+        /// <param name="sourceDirectory"></param>
+        /// <param name="simplifyPathWithWorkingDirectory"></param>
+        /// <returns></returns>
+        public HashSet<string> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory) {
+            // read from ini
+            var output = !string.IsNullOrEmpty(IniFilePath) ? ProUtilities.GetProPathFromIniFile(IniFilePath, sourceDirectory) : new HashSet<string>();
+            List<string> propathExcludeRegexStrings = null;
+            if (PropathFilters != null) {
+                propathExcludeRegexStrings = PropathFilters
+                    .SelectMany(f => f.Exclude.Split(';').Select(p => f is OePropathFilterRegex ? p : p.PathWildCardToRegex()))
+                    .ToList();
+            }
+            if (AddAllSourceDirectoriesToPropath) {
+                foreach (var file in Utils.EnumerateAllFiles(sourceDirectory, SearchOption.AllDirectories, propathExcludeRegexStrings)) {
+                    if (!output.Contains(file)) {
+                        output.Add(file);
+                    }
+                }
+            }
+            if (AddDefaultOpenedgePropath) {
+                foreach (var file in ProUtilities.GetProgressSessionDefaultPropath(DlcDirectoryPath, UseCharacterModeExecutable)) {
+                    if (!output.Contains(file)) {
+                        output.Add(file);
+                    }
+                }
+                if (!output.Contains(DlcDirectoryPath)) {
+                    output.Add(DlcDirectoryPath);
+                }
+                if (!output.Contains(Path.Combine(DlcDirectoryPath, "bin"))) {
+                    output.Add(Path.Combine(DlcDirectoryPath, "bin"));
+                }
+            }
+            if (simplifyPathWithWorkingDirectory) {
+                // TODO
+            }
+            return output;
+        }
+
         [XmlArray("ProjectDatabases")]
         [XmlArrayItem("ProjectDatabase", typeof(OeProjectDatabase))]
         public List<OeProjectDatabase> ProjectDatabases { get; set; }
@@ -45,12 +91,20 @@ namespace Oetools.Builder.Project {
         [XmlArray("PropathEntries")]
         public List<string> PropathEntries { get; set; }
             
-        [XmlArray("PropathFilter")]
-        [XmlArrayItem("Regex", typeof(string))]
-        public List<string> PropathFilter { get; set; }
+        [XmlArray("PropathFilters")]
+        [XmlArrayItem("Filter", typeof(OePropathFilter))]
+        [XmlArrayItem("FilterRegex", typeof(OePropathFilterRegex))]
+        public List<OePropathFilter> PropathFilters { get; set; }
+
+        public class OePropathFilter { 
+            [XmlAttribute(AttributeName = "Exclude")]
+            public string Exclude { get; set; }
+        }
+
+        public class OePropathFilterRegex : OePropathFilter { }
 
         [XmlElement(ElementName = "DlcDirectoryPath")]
-        public string DlcDirectoryPath { get; set; }
+        public string DlcDirectoryPath { get; set; } = ProUtilities.GetDlcPathFromEnv();
 
         [XmlElement(ElementName = "UseCharacterModeExecutable")]
         public bool UseCharacterModeExecutable { get; set; }

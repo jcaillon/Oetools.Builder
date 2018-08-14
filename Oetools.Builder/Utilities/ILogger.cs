@@ -20,7 +20,7 @@
 
 using System;
 
-namespace Oetools.Builder {
+namespace Oetools.Builder.Utilities {
     public interface ILogger {
         void Fatal(string message, Exception e = null);
         void Error(string message, Exception e = null);

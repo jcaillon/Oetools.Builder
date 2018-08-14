@@ -11,6 +11,10 @@ namespace Oetools.Builder.Project {
         [XmlAttribute("Label")]
         public string Label { get; set; }
         
+        [XmlArray("Variables")]
+        [XmlArrayItem("Variable", typeof(OeVariable))]
+        public List<OeVariable> Variables { get; set; }
+        
         [XmlElement(ElementName = "ArchivesCompressionLevel")]
         public OeCompressionLevel ArchivesCompressionLevel { get; set; }
         

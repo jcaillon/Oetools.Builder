@@ -90,7 +90,4 @@
     <EmbeddedResource Include="Resources\Xsd\BuildConfiguration.xsd" />
     <EmbeddedResource Include="Resources\Xsd\Project.xsd" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Core2\Tasks" />
-  </ItemGroup>
 </Project>

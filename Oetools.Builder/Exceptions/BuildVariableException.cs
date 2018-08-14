@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (IOeTaskOnFile.cs) is part of Oetools.Builder.
+// This file (BuildVariableException.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,16 +18,19 @@
 // ========================================================================
 #endregion
 
-using System.Collections.Generic;
-using Oetools.Builder.History;
+using System;
+using Oetools.Builder.Project;
 
-namespace Oetools.Builder.Project {
-    public interface ITaskOnFileWithTarget : ITaskExecuteOnFile {
-
-        List<string> GetFileTargets(OeFile file);
+namespace Oetools.Builder.Exceptions {
+    public class BuildVariableException : Exception {
         
-        string Target { get; }
+        public OeVariable Variable { get; }
         
-        bool AppendFileNameToTargetPath { get; }
+        public BuildVariableException(OeVariable variable, string message) : base(message) {
+            Variable = variable;
+        }
+        public BuildVariableException(OeVariable variable, string message, Exception innerException) : base(message, innerException) {
+            Variable = variable;
+        }
     }
 }

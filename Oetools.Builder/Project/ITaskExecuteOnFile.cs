@@ -25,18 +25,30 @@ using Oetools.Builder.History;
 namespace Oetools.Builder.Project {
     public interface ITaskExecuteOnFile {
 
+        /// <summary>
+        /// Returns true if the file is included in this task
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
         bool IsFileIncluded(OeFile file);
+        
+        /// <summary>
+        /// Returns true of the file is excluded in this task
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        bool IsFileExcluded(OeFile file);
         
         void ExecuteForFile(OeFile file);
 
         List<OeFileBuilt> GetFilesBuilt();
 
-        string GetIncludeRegex();
+        List<string> GetIncludeRegexStrings();
 
-        string GetExcludeRegex();
+        List<string> GetExcludeRegexStrings();
         
-        string GetOriginalIncludeString();
+        List<string> GetIncludeOriginalStrings();
         
-        string GetOriginalExcludeString();
+        List<string> GetExcludeOriginalStrings();
     }
 }

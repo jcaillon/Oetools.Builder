@@ -2,14 +2,18 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
+using Oetools.Builder.Exceptions;
 using Oetools.Builder.Resources;
+using Oetools.Builder.Utilities;
+using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project {
     
     [Serializable]
     [XmlRoot("BuildConfiguration")]
     public class OeBuildConfiguration {
-        
+                
         #region static
 
         private const string XsdName = "BuildConfiguration.xsd";
@@ -38,7 +42,13 @@ namespace Oetools.Builder.Project {
         public const string SchemaLocation = XsdName;
             
         [XmlAttribute("Name")]
+        [ReplaceVariables(SkipReplace = true)]
         public string ConfigurationName { get; set; }
+            
+        [XmlArray("BuildVariables")]
+        [XmlArrayItem("Variable", typeof(OeVariable))]
+        [ReplaceVariables(SkipReplace = true)]
+        public List<OeVariable> Variables { get; set; }
             
         [XmlElement(ElementName = "OutputDirectory")]
         public string OutputDirectory { get; set; } = Path.Combine("<SOURCE_DIRECTORY>", "bin");
@@ -64,10 +74,6 @@ namespace Oetools.Builder.Project {
         [XmlArray("SourcePathFilters")]
         [XmlArrayItem("Filter", typeof(OeSourceFilter))]
         public List<OeSourceFilter> SourcePathFilters { get; set; }
-            
-        [XmlArray("TaskVariables")]
-        [XmlArrayItem("Variable", typeof(OeTaskVariable))]
-        public List<OeTaskVariable> TaskVariables { get; set; }
         
         /// <summary>
         /// This list of tasks can include any file
@@ -174,6 +180,7 @@ namespace Oetools.Builder.Project {
         public class OeBuildStep {
                 
             [XmlAttribute("Label")]
+            [ReplaceVariables(SkipReplace = true)]
             public string Label { get; set; }
                 
             [XmlArray("Tasks")]
