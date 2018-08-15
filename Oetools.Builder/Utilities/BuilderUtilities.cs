@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
@@ -89,5 +90,17 @@ namespace Oetools.Builder.Utilities {
 
             return variables?.FirstOrDefault(v => v.Name.EqualsCi(s))?.Value ?? defaultValue;
         }
+
+        public static void ValidateTargetPath(string path) {
+            foreach (char c in Path.GetInvalidPathChars()) {
+                if (c == '<' || c == '>') {
+                    continue;
+                }
+                if (path.IndexOf(c) >= 0) {
+                    throw new Exception($"Illegal character path {c} at column {path.IndexOf(c)}");
+                }
+            }
+            path.ValidatePlaceHolders("<", ">");
+        } 
     }
 }

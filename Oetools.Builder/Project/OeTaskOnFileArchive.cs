@@ -37,10 +37,23 @@ namespace Oetools.Builder.Project {
             if (!string.IsNullOrEmpty(RelativeTargetFilePath) && !string.IsNullOrEmpty(RelativeTargetDirectory)) {
                 throw new TaskValidationException(this, $"{GetType().GetXmlName(nameof(RelativeTargetFilePath))} and {GetType().GetXmlName(nameof(RelativeTargetDirectory))} can't be both defined for a given task, choose only one");
             }
+            ValidateTargets(GetTarget().Split(';'));
+            ValidateTargets(GetTargetArchive().Split(';'));
+        }
+        
+        private void ValidateTargets(List<string> targets) {
+            targets.ForEach(s => {
+                try {
+                    BuilderUtilities.ValidateTargetPath(s);
+                } catch (Exception e) {
+                    throw new TaskValidationException(this, $"Invalid target path, reason : {e.Message}, please check the following string : {s.PrettyQuote()}");
+                }
+            });
         }
 
         public Dictionary<string, List<string>> GetFileTargets(OeFile file, string outputDirectory = null) {
             var output = new Dictionary<string, List<string>>();
+            var sourceFileDirectory = Path.GetDirectoryName(file.SourcePath);
 
             foreach (var regex in GetIncludeRegex()) {
                 var match = regex.Match(file.SourcePath);
@@ -53,6 +66,9 @@ namespace Oetools.Builder.Project {
                     
                     foreach (var singleTarget in GetTarget().Split(';')) {
                         var target = singleTarget.ReplacePlaceHolders(s => {
+                            if (s.Equals("FILE_SOURCE_DIRECTORY")) {
+                                return sourceFileDirectory;
+                            }
                             if (match.Groups[s].Success) {
                                 return match.Groups[s].Value;
                             }

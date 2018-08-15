@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
@@ -29,6 +30,17 @@ namespace Oetools.Builder.Project {
             if (!string.IsNullOrEmpty(TargetFilePath) && !string.IsNullOrEmpty(TargetDirectory)) {
                 throw new TaskValidationException(this, $"{GetType().GetXmlName(nameof(TargetFilePath))} and {GetType().GetXmlName(nameof(TargetDirectory))} can't be both defined for a given task, choose only one");
             }
+            ValidateTargets(GetTarget().Split(';'));
+        }
+        
+        private void ValidateTargets(List<string> targets) {
+            targets.ForEach(s => {
+                try {
+                    BuilderUtilities.ValidateTargetPath(s);
+                } catch (Exception e) {
+                    throw new TaskValidationException(this, $"Invalid target path, reason : {e.Message}, please check the following string : {s.PrettyQuote()}");
+                }
+            });
         }
 
         public virtual List<string> GetFileTargets(OeFile file, string outputDirectory = null) {
