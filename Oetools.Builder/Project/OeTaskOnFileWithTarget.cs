@@ -33,6 +33,7 @@ namespace Oetools.Builder.Project {
 
         public virtual List<string> GetFileTargets(OeFile file, string outputDirectory = null) {
             var output = new List<string>();
+            var sourceFileDirectory = Path.GetDirectoryName(file.SourcePath);
 
             foreach (var regex in GetIncludeRegex()) {
                 var match = regex.Match(file.SourcePath);
@@ -42,6 +43,9 @@ namespace Oetools.Builder.Project {
 
                 foreach (var singleTarget in GetTarget().Split(';')) {
                     var target = singleTarget.ReplacePlaceHolders(s => {
+                        if (s.Equals("FILE_SOURCE_DIRECTORY")) {
+                            return sourceFileDirectory;
+                        }
                         if (match.Groups[s].Success) {
                             return match.Groups[s].Value;
                         }

@@ -80,6 +80,7 @@ namespace Oetools.Builder {
             } catch (Exception e) {
                 Log.Error("Failed to get the current directory (check permissions)", e);
             }
+            // extra variable FILE_SOURCE_DIRECTORY defined only when computing targets
         }
     }
 }
