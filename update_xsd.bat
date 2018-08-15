@@ -11,21 +11,24 @@ REM Are we on a CI build?
 set IS_CI_BUILD=false
 if not "%CI_COMMIT_SHA%"=="" set IS_CI_BUILD=true
 
-echo.=========================
-echo.[%time:~0,8% INFO] BUILDING SERIALIZATION PROJECT
+if not exist "Oetools.Builder\bin\Any Cpu\Release\net461\Oetools.Builder.dll" (
 
-set "PROJECT_PATH=Oetools.Serialization\Oetools.Serialization.csproj"
-set "CHANGE_DEFAULT_TARGETFRAMEWORK=true"
-set TARGETED_FRAMEWORKS=(net461)
-set "MSBUILD_DEFAULT_TARGET=Build"
-set CI_COMMIT_SHA="no_commit_just_for_no_pause"
+	echo.=========================
+	echo.[%time:~0,8% INFO] BUILDING SERIALIZATION PROJECT
 
-call build.bat
+	set "PROJECT_PATH=Oetools.Builder\Oetools.Builder.csproj"
+	set "CHANGE_DEFAULT_TARGETFRAMEWORK=true"
+	set TARGETED_FRAMEWORKS=(net461)
+	set "MSBUILD_DEFAULT_TARGET=Build"
+	set CI_COMMIT_SHA="no_commit_just_for_no_pause"
+
+	call build.bat
+)
 
 echo.=========================
 echo.[%time:~0,8% INFO] GENERATING XSD
 
-"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\xsd.exe" -t:XmlOeProject "Oetools.Serialization\bin\Any Cpu\Release\net461\Oetools.Serialization.dll"
+"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\xsd.exe" -t:OeProject "Oetools.Builder\bin\Any Cpu\Release\net461\Oetools.Builder.dll"
 if not "!ERRORLEVEL!"=="0" (
 	GOTO ENDINERROR
 )
@@ -35,12 +38,12 @@ if not "!ERRORLEVEL!"=="0" (
 	GOTO ENDINERROR
 )
 
-"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\xsd.exe" -t:XmlOeBuildConfiguration "Oetools.Serialization\bin\Any Cpu\Release\net461\Oetools.Serialization.dll"
+"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\xsd.exe" -t:OeBuildConfiguration "Oetools.Builder\bin\Any Cpu\Release\net461\Oetools.Builder.dll"
 if not "!ERRORLEVEL!"=="0" (
 	GOTO ENDINERROR
 )
 
-move /y "schema0.xsd" "Oetools.Serialization\Resources\Xsd\BuildConfiguration.xsd"
+move /y "schema0.xsd" "Oetools.Builder\Resources\Xsd\BuildConfiguration.xsd"
 if not "!ERRORLEVEL!"=="0" (
 	GOTO ENDINERROR
 )
