@@ -7,43 +7,6 @@ namespace Oetools.Builder.Project {
     [Serializable]
     public class OeTaskWebclient : OeTask, ITaskExecute {
         
-        public void Execute() => throw new NotImplementedException();
-        
-        public OeWebclientPackage GetWebclientPackageResult => throw new NotImplementedException();
-            
-        internal class DiffCab {
-            /// <summary>
-            ///     1
-            /// </summary>
-            public int VersionToUpdateFrom { get; set; }
-
-            /// <summary>
-            ///     2
-            /// </summary>
-            public int VersionToUpdateTo { get; set; }
-
-            /// <summary>
-            ///     $TARGET/wcp/new-10-02/diffs/new1to2.cab
-            /// </summary>
-            public string CabPath { get; set; }
-
-            /// <summary>
-            ///     $REFERENCE/wcp/new-10-02/diffs/new1to2.cab
-            /// </summary>
-            public string ReferenceCabPath { get; set; }
-
-            /// <summary>
-            ///     $TARGET/wcp/new-10-02/diffs/new1to2
-            /// </summary>
-            internal string TempCabFolder { get; set; }
-
-            /// <summary>
-            ///     List of all the files that were deployed in the clientNWK since this VersionToUpdateFrom
-            /// </summary>
-            public List<OeFileBuilt> FilesDeployedInNwkSincePreviousVersion { get; set; }
-
-        }
-            
         [XmlElement(ElementName = "VendorName")]
         public string VendorName { get; set; }
 
@@ -113,6 +76,43 @@ namespace Oetools.Builder.Project {
                 [XmlEnum("Lazy")] 
                 Lazy
             }
+        }
+        
+        public void Execute() => throw new NotImplementedException();
+        
+        public OeWebclientPackage GetWebclientPackageResult => throw new NotImplementedException();
+            
+        internal class DiffCab {
+            /// <summary>
+            ///     1
+            /// </summary>
+            public int VersionToUpdateFrom { get; set; }
+
+            /// <summary>
+            ///     2
+            /// </summary>
+            public int VersionToUpdateTo { get; set; }
+
+            /// <summary>
+            ///     $TARGET/wcp/new-10-02/diffs/new1to2.cab
+            /// </summary>
+            public string CabPath { get; set; }
+
+            /// <summary>
+            ///     $REFERENCE/wcp/new-10-02/diffs/new1to2.cab
+            /// </summary>
+            public string ReferenceCabPath { get; set; }
+
+            /// <summary>
+            ///     $TARGET/wcp/new-10-02/diffs/new1to2
+            /// </summary>
+            internal string TempCabFolder { get; set; }
+
+            /// <summary>
+            ///     List of all the files that were deployed in the clientNWK since this VersionToUpdateFrom
+            /// </summary>
+            public List<OeFileBuilt> FilesDeployedInNwkSincePreviousVersion { get; set; }
+
         }
     }
 }

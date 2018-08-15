@@ -37,8 +37,8 @@ namespace Oetools.Builder.Test.Utilities {
                 CompilationOptions = new OeBuildConfiguration.OeCompilationOptions {
                     CompilableFilePattern = "replace stuff <env<env2>>"
                 },
-                BuildSourceTasks = new List<OeBuildConfiguration.OeBuildCompileStep> {
-                    new OeBuildConfiguration.OeBuildCompileStep {
+                BuildSourceTasks = new List<OeBuildStepCompile> {
+                    new OeBuildStepCompile() {
                         Label = "should not <replace> <anything> here",
                         Tasks = new List<OeTask> {
                             new OeTaskCopy {

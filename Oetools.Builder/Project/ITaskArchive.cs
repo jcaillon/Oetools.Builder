@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (IOeTaskOnFile.cs) is part of Oetools.Builder.
+// This file (ITaskArchive.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,9 +22,14 @@ using System.Collections.Generic;
 using Oetools.Builder.History;
 
 namespace Oetools.Builder.Project {
-    public interface ITaskOnFileWithTarget : ITaskExecuteOnFile {
-
-        List<string> GetFileTargets(OeFile file, string outputDirectory = null);
+    public interface ITaskArchive {
         
+        /// <summary>
+        /// Returns a collection of archive path -> list of relative targets inside that archive
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="outputDirectory"></param>
+        /// <returns></returns>
+        Dictionary<string, List<string>> GetFileTargets(OeFile file, string outputDirectory = null);
     }
 }

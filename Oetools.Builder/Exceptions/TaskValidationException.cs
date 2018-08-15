@@ -26,11 +26,22 @@ namespace Oetools.Builder.Exceptions {
         
         public OeTask Task { get; }
         
+        public int TaskNumber { get; set; }
+        
+        public int StepNumber { get; set; }
+        
+        public string StepName { get; set; }
+        
+        public string PropertyName { get; set; }
+
+        public override string Message => $"{(!string.IsNullOrEmpty(PropertyName) ? $"{PropertyName} > " : "")}{(!string.IsNullOrEmpty(StepName) ? $"{StepName} " : "Step ")}{StepNumber} > {(!string.IsNullOrEmpty(Task?.Label) ? $"{Task?.Label} " : "Task ")}{TaskNumber} : {base.Message}";
+
         public TaskValidationException(OeTask task, string message) : base(message) {
             Task = task;
         }
         public TaskValidationException(OeTask task, string message, Exception innerException) : base(message, innerException) {
             Task = task;
         }
+        
     }
 }

@@ -1,14 +1,37 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
+using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities;
+using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project {
+    
+   
     public abstract class OeTaskOnFileWithTarget : OeTaskOnFile, ITaskOnFileWithTarget {
             
-        public List<string> GetFileTargets(OeFile file) {
+        [XmlAttribute("TargetFilePath")]
+        [ReplaceVariables(LeaveUnknownUntouched = true)]
+        public string TargetFilePath { get; set; }
+        
+        [XmlAttribute("TargetDirectory")]
+        [ReplaceVariables(LeaveUnknownUntouched = true)]
+        public string TargetDirectory { get; set; }
+
+        protected string GetTarget() => TargetFilePath ?? TargetDirectory;
+
+        protected bool AppendFileNameToTargetPath => string.IsNullOrEmpty(TargetFilePath);
+        
+        public override void Validate() {
+            base.Validate();
+            if (!string.IsNullOrEmpty(TargetFilePath) && !string.IsNullOrEmpty(TargetDirectory)) {
+                throw new TaskValidationException(this, $"{GetType().GetXmlName(nameof(TargetFilePath))} and {GetType().GetXmlName(nameof(TargetDirectory))} can't be both defined for a given task, choose only one");
+            }
+        }
+
+        public virtual List<string> GetFileTargets(OeFile file, string outputDirectory = null) {
             var output = new List<string>();
 
             foreach (var regex in GetIncludeRegex()) {
@@ -16,28 +39,33 @@ namespace Oetools.Builder.Project {
                 if (!match.Success) {
                     continue;
                 }
-                var target = Target.ReplacePlaceHolders(s => {
-                    if (match.Groups[s].Success) {
-                        return match.Groups[s].Value;
-                    }
-                    return string.Empty;
-                });
 
-                if (AppendFileNameToTargetPath) {
-                    target = Path.Combine(target, Path.GetFileName(file.SourcePath));
-                } else {
-                    target = target.TrimEnd(Path.PathSeparator);
+                foreach (var singleTarget in GetTarget().Split(';')) {
+                    var target = singleTarget.ReplacePlaceHolders(s => {
+                        if (match.Groups[s].Success) {
+                            return match.Groups[s].Value;
+                        }
+                        return string.Empty;
+                    });
+
+                    // if we target a directory, append the filename
+                    if (AppendFileNameToTargetPath) {
+                        target = Path.Combine(target, Path.GetFileName(file.SourcePath));
+                    } else {
+                        target = target.TrimDirectorySeparator();
+                    }
+
+                    // take care of relative target path
+                    if (!string.IsNullOrEmpty(outputDirectory) && Utils.IsPathRooted(target)) {
+                        target = Path.Combine(outputDirectory, target);
+                    }
+                
+                    output.Add(target);
                 }
-                output.Add(target);
             }
 
             return output;
         }
 
-        public bool AppendFileNameToTargetPath => false;
-        
-        [XmlAttribute("Target")]
-        [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public string Target { get; set; }
     }
 }

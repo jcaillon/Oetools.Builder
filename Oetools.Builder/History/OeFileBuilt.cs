@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.History {
     [Serializable]
     public class OeFileBuilt : OeFile {
+
+        public OeFileBuilt(OeFile sourceFile) {
+            Utils.DeepCopyPublicProperties(sourceFile, GetType(), this);
+        }
 
         /// <summary>
         /// A list of the targets for this file

@@ -3,6 +3,7 @@ using System.Xml.Serialization;
 
 namespace Oetools.Builder.Project {
     [Serializable]
+    [XmlRoot("DeleteInProlib")]
     public class OeTaskDeleteInProlib : OeTaskOnFile {
             
         /// <summary>

@@ -3,6 +3,7 @@ using System.Xml.Serialization;
 
 namespace Oetools.Builder.Project {
     [Serializable]
+    [XmlRoot("Exec")]
     public class OeTaskExec : OeTask, ITaskExecute {
             
         public void Execute() => throw new NotImplementedException();

@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project;
 using Oetools.Utilities.Lib;
@@ -56,7 +57,7 @@ namespace Oetools.Builder.Utilities {
             
             // now for each property, we might want to replace the place holders by their values
             // and depending on property attributes, we might want to replace non existing variables by an empty string or leave them as is
-            Utils.ForEachPublicPropertyStringInObject(typeof(OeBuildConfiguration), instance, (propInfo, value) => {
+            Utils.ForEachPublicPropertyStringInObject(typeof(T), instance, (propInfo, value) => {
                 if (string.IsNullOrEmpty(value)) {
                     return value;
                 }
@@ -86,7 +87,7 @@ namespace Oetools.Builder.Utilities {
                 return varValue;
             }
 
-            return variables.FirstOrDefault(v => v.Name.EqualsCi(s))?.Value ?? defaultValue;
+            return variables?.FirstOrDefault(v => v.Name.EqualsCi(s))?.Value ?? defaultValue;
         }
     }
 }

@@ -13,16 +13,43 @@ namespace Oetools.Builder.Project {
     public abstract class OeTaskOnFile : OeTask, ITaskExecuteOnFile {
         
         /// <summary>
+        /// Separate different path with ;
+        /// </summary>
+        /// <remarks>
+        /// if a file matches several include patterns (separated with ;) the task will be applied several times to this file
+        /// </remarks>
+        [XmlAttribute("Include")]
+        public string Include { get; set; }
+            
+        /// <summary>
+        /// Separate different path with ;
+        /// </summary>
+        [XmlAttribute("Exclude")]
+        public string Exclude { get; set; }
+
+        /// <summary>
+        /// Separate different path with ;
+        /// </summary>
+        [XmlAttribute("IncludeRegex")]
+        public string IncludeRegex { get; set; }
+            
+        /// <summary>
+        /// Separate different path with ;
+        /// </summary>
+        [XmlAttribute("ExcludeRegex")]
+        public string ExcludeRegex { get; set; }
+        
+        /// <summary>
         /// Validates that the task is correct (correct parameters and can execute)
         /// </summary>
         /// <exception cref="TaskValidationException"></exception>
-        public override void ValidateTask() {
-            base.ValidateTask();
+        public override void Validate() {
+            base.Validate();
             if (!string.IsNullOrEmpty(IncludeRegex) && !string.IsNullOrEmpty(Include)) {
-                throw new TaskValidationException(this, $"{nameof(Include)} and  {nameof(IncludeRegex)} can't be both defined for a given task, choose only one");
+                throw new TaskValidationException(this, $"{GetType().GetXmlName(nameof(Include))} and {GetType().GetXmlName(nameof(IncludeRegex))} can't be both defined for a given task, choose only one");
             }
             if (!string.IsNullOrEmpty(ExcludeRegex) && !string.IsNullOrEmpty(Exclude)) {
-                throw new TaskValidationException(this, $"{nameof(Exclude)} and  {nameof(ExcludeRegex)} can't be both defined for a given task, choose only one");
+                throw new TaskValidationException(this, $"{GetType().GetXmlName(nameof(Exclude))} and {GetType().GetXmlName(nameof(ExcludeRegex))} can't be both defined for a given task, choose only one");
             }
             InitTask();
         }
@@ -136,31 +163,5 @@ namespace Oetools.Builder.Project {
             return _includeRegexes;
         }
 
-        /// <summary>
-        /// Separate different path with ;
-        /// </summary>
-        /// <remarks>
-        /// if a file matches several include patterns (separated with ;) the task will be applied several times to this file
-        /// </remarks>
-        [XmlAttribute("Include")]
-        public string Include { get; set; }
-            
-        /// <summary>
-        /// Separate different path with ;
-        /// </summary>
-        [XmlAttribute("Exclude")]
-        public string Exclude { get; set; }
-
-        /// <summary>
-        /// Separate different path with ;
-        /// </summary>
-        [XmlAttribute("IncludeRgx")]
-        public string IncludeRegex { get; set; }
-            
-        /// <summary>
-        /// Separate different path with ;
-        /// </summary>
-        [XmlAttribute("ExcludeRgx")]
-        public string ExcludeRegex { get; set; }
     }
 }

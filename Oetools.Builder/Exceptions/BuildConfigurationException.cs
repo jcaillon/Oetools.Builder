@@ -1,6 +1,7 @@
-﻿// ========================================================================
+﻿#region header
+// ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (TaskExecutor.cs) is part of Oetools.Builder.
+// This file (BuildConfigurationException.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,12 +16,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
+#endregion
 
-using System.Collections.Generic;
-using Oetools.Builder.Project;
+using System;
 
-namespace Oetools.Builder {
-    public class ProgressTaskExecutor : TaskExecutor {
-        public ProgressTaskExecutor(List<OeTask> tasks) : base(tasks) { }
+namespace Oetools.Builder.Exceptions {
+    public class BuildConfigurationException : Exception {
+        public BuildConfigurationException(string message) : base(message) { }
+        public BuildConfigurationException(string message, Exception innerException) : base(message, innerException) { }
     }
 }

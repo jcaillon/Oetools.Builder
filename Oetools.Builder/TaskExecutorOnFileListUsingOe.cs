@@ -17,37 +17,19 @@
 // ========================================================================
 
 using System.Collections.Generic;
-using System.Linq;
-using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
-using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder {
-    
-    public abstract class TaskExecutor {
+    public class TaskExecutorOnFileListUsingOe : TaskExecutorOnFileList {
 
-        protected List<OeTask> Tasks { get; }
+        public OeBuildConfiguration.OeCompilationOptions CompilationOptions { get; }
         
-        protected ILogger Log { get; set; }
-
-        protected TaskExecutor(List<OeTask> tasks) {
-            Tasks = tasks;
-        }
-
-        public virtual void Execute() {
-            foreach (var task in Tasks) {
-                Log.Info($"Executing task {task}");
-                ExecuteTask(task);
-            }
-        }
-
-        protected virtual void ExecuteTask(OeTask task) {
-            if (!(task is ITaskExecute taskExecute)) {
-                throw new TaskExecutorException($"Invalid task type : {task}");
-            }
-            taskExecute.Execute();
+        public OeProjectProperties ProjectProperties { get; }
+     
+        public TaskExecutorOnFileListUsingOe(List<OeTask> tasks, List<OeFile> taskFiles, OeProjectProperties projectProperties, OeBuildConfiguration.OeCompilationOptions compilationOptions) : base(tasks, taskFiles) {
+            CompilationOptions = compilationOptions;
+            ProjectProperties = projectProperties;
         }
     }
-
 }

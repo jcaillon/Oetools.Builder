@@ -16,34 +16,70 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Oetools.Builder.Project;
+using Oetools.Builder.Utilities;
+using Oetools.Utilities.Lib;
+
 namespace Oetools.Builder {
+    
     public class Builder {
+        
+        protected ILogger Log { get; set; }
+        
+        public string SourceDirectory { get; set; }
+        
+        public OeBuildConfiguration BuildConfiguration { get; }
+        
+        public bool TestMode { get; set; }
 
-        /*
-        protected string GetCompilationTargetFolder() {
-            // for *.cls files, as many *.r files are generated, we need to compile in a temp directory
-            // we need to know which *.r files were generated for each input file
-            // so each file gets his own sub tempDir
-            var lastDeployment = Deployer.GetTransfersNeededForFile(fileToCompile.SourcePath, 0).Last();
-            if (lastDeployment.DeployType != DeployType.Move ||
-                Env.CompileForceUseOfTemp ||
-                Path.GetExtension(fileToCompile.SourcePath ?? "").Equals(ExtCls))
-                if (lastDeployment.DeployType != DeployType.Ftp &&
-                    !string.IsNullOrEmpty(Env.TargetDirectory) && Env.TargetDirectory.Length > 2 && !Env.TargetDirectory.Substring(0, 2).EqualsCi(_localTempDir.Substring(0, 2))) {
-                    if (!Directory.Exists(DistantTempDir)) {
-                        var dirInfo = Directory.CreateDirectory(DistantTempDir);
-                        dirInfo.Attributes |= FileAttributes.Hidden;
-                    }
-                    fileToCompile.CompilationOutputDir = Path.Combine(DistantTempDir, count.ToString());
-                } else {
-                    fileToCompile.CompilationOutputDir = localSubTempDir;
-                }
-            else fileToCompile.CompilationOutputDir = lastDeployment.TargetBasePath;
-        }
-        */
+        public bool ForceFullRebuild { get; set; }    
 
-        public void Build() {
+        public Builder(OeProjectProperties projectProperties, OeBuildConfiguration buildConfiguration) {
             
+            Log.Debug($"Initializing build with {(string.IsNullOrEmpty(buildConfiguration.ConfigurationName) ? "an unnamed configuration" : $"the configuration {buildConfiguration.ConfigurationName}")}");
+            
+            // make copies of received object since we want to modify them
+            BuildConfiguration = (OeBuildConfiguration) Utils.DeepCopyPublicProperties(buildConfiguration, typeof(OeBuildConfiguration));
+            
+            // we can overload the project properties with the build configuration properties
+            BuildConfiguration.Properties = (OeProjectProperties) Utils.DeepCopyPublicProperties(buildConfiguration.Properties, typeof(OeProjectProperties), projectProperties);
+        }
+        
+        public void Build() {
+            Log.Info($"Start building {(string.IsNullOrEmpty(BuildConfiguration.ConfigurationName) ? "an unnamed configuration" : $"the configuration {BuildConfiguration.ConfigurationName}")}");
+
+            Log.Debug("Checking build configuration");
+            BuildConfiguration.Validate();
+            
+            Log.Debug("Using build variables");
+            AddDefaultVariables();
+            // replace variables
+            BuilderUtilities.ApplyVariablesInVariables(BuildConfiguration.Variables);
+            BuilderUtilities.ApplyVariablesToProperties(BuildConfiguration, BuildConfiguration.Variables);
+            
+            
+        }
+        
+        private void AddDefaultVariables() {
+            if (BuildConfiguration.Variables == null) {
+                BuildConfiguration.Variables = new List<OeVariable>();
+            }
+            if (!string.IsNullOrEmpty(SourceDirectory)) {
+                BuildConfiguration.Variables.Add(new OeVariable { Name = "SOURCE_DIRECTORY", Value = SourceDirectory });    
+                BuildConfiguration.Variables.Add(new OeVariable { Name = "PROJECT_DIRECTORY", Value = Path.Combine(SourceDirectory, ".oe") });                
+                BuildConfiguration.Variables.Add(new OeVariable { Name = "PROJECT_LOCAL_DIRECTORY", Value = Path.Combine(SourceDirectory, ".oe", "local") });                 
+            }             
+            BuildConfiguration.Variables.Add(new OeVariable { Name = "DLC", Value = BuildConfiguration.Properties.DlcDirectoryPath });  
+            BuildConfiguration.Variables.Add(new OeVariable { Name = "OUTPUT_DIRECTORY", Value = BuildConfiguration.OutputDirectory });  
+            BuildConfiguration.Variables.Add(new OeVariable { Name = "CONFIGURATION_NAME", Value = BuildConfiguration.ConfigurationName });
+            try {
+                BuildConfiguration.Variables.Add(new OeVariable { Name = "WORKING_DIRECTORY", Value = Directory.GetCurrentDirectory() });
+            } catch (Exception e) {
+                Log.Error("Failed to get the current directory (check permissions)", e);
+            }
         }
     }
 }

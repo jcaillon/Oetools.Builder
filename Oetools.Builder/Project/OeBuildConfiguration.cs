@@ -10,6 +10,13 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project {
     
+    /// <summary>
+    /// Represents the configuration of a build
+    /// </summary>
+    /// <remarks>
+    /// Every public property string not marked with the <see cref="ReplaceVariables"/> attribute is allowed
+    /// to use &lt;VARIABLE&gt; which will be replace at the beggining of the build by <see cref="Variables"/>
+    /// </remarks>
     [Serializable]
     [XmlRoot("BuildConfiguration")]
     public class OeBuildConfiguration {
@@ -44,7 +51,14 @@ namespace Oetools.Builder.Project {
         [XmlAttribute("Name")]
         [ReplaceVariables(SkipReplace = true)]
         public string ConfigurationName { get; set; }
+        
+        [XmlElement("OverloadProjectProperties")]
+        [DeepCopy(Ignore = true)]
+        public OeProjectProperties Properties { get; set; }
             
+        /// <summary>
+        /// Default variables are added by the builder, see <see cref="Builder.AddDefaultVariables"/>
+        /// </summary>
         [XmlArray("BuildVariables")]
         [XmlArrayItem("Variable", typeof(OeVariable))]
         [ReplaceVariables(SkipReplace = true)]
@@ -54,13 +68,13 @@ namespace Oetools.Builder.Project {
         public string OutputDirectory { get; set; } = Path.Combine("<SOURCE_DIRECTORY>", "bin");
 
         [XmlElement(ElementName = "ReportFilePath")]
-        public string ReportFilePath { get; set; } = Path.Combine("<SOURCE_DIRECTORY>", ".oe", "build", "latest.html");
+        public string ReportFilePath { get; set; } = Path.Combine("<PROJECT_DIRECTORY>", "build", "latest.html");
             
         [XmlElement(ElementName = "BuildHistoryOutputFilePath")]
-        public string BuildHistoryOutputFilePath { get; set; } = Path.Combine("<SOURCE_DIRECTORY>", ".oe", "build", "latest.xml");
+        public string BuildHistoryOutputFilePath { get; set; } = Path.Combine("<PROJECT_DIRECTORY>", "build", "latest.xml");
             
         [XmlElement(ElementName = "BuildHistoryInputFilePath")]
-        public string BuildHistoryInputFilePath { get; set; } = Path.Combine("<SOURCE_DIRECTORY>", ".oe", "build", "latest.xml");
+        public string BuildHistoryInputFilePath { get; set; } = Path.Combine("<PROJECT_DIRECTORY>", "build", "latest.xml");
                                     
         [XmlElement("CompilationOptions")]
         public OeCompilationOptions CompilationOptions { get; set; }
@@ -72,8 +86,9 @@ namespace Oetools.Builder.Project {
         /// Allows to exclude path from being treated by <see cref="BuildSourceTasks"/>
         /// </summary>
         [XmlArray("SourcePathFilters")]
-        [XmlArrayItem("Filter", typeof(OeSourceFilter))]
-        public List<OeSourceFilter> SourcePathFilters { get; set; }
+        [XmlArrayItem("Filter", typeof(OeFilter))]
+        [XmlArrayItem("FilterRegex", typeof(OeFilterRegex))]
+        public List<OeFilter> SourcePathFilters { get; set; }
         
         /// <summary>
         /// This list of tasks can include any file
@@ -86,8 +101,8 @@ namespace Oetools.Builder.Project {
         /// This list of tasks can only include files located in the source directory
         /// </summary>
         [XmlArray("BuildSourceTasks")]
-        [XmlArrayItem("Step", typeof(OeBuildCompileStep))]
-        public List<OeBuildCompileStep> BuildSourceTasks { get; set; }
+        [XmlArrayItem("Step", typeof(OeBuildStepCompile))]
+        public List<OeBuildStepCompile> BuildSourceTasks { get; set; }
             
         /// <summary>
         /// This list of tasks can only include files located in the output directory
@@ -144,23 +159,20 @@ namespace Oetools.Builder.Project {
 
             [XmlElement(ElementName = "CompileMinimumNumberOfFilesPerProcess")]
             public int CompileMinimumNumberOfFilesPerProcess { get; set; }
+            
+            [XmlElement(ElementName = "UseSimplerAnalysisForDatabaseReference")]
+            public bool UseSimplerAnalysisForDatabaseReference { get; set; }
         }
             
         [Serializable]
         public class OeBuildOptions {
                 
-            [XmlElement(ElementName = "ArchivesCompressionLevel")]
-            public OeCompressionLevel ArchivesCompressionLevel { get; set; }
-            
             /// <summary>
             /// If false, there will be no analyze of compiled files (ref tables/files), no storage
             /// of the build history after the build, no computation of MD5 nor comparison of date/size of files
             /// </summary>
             [XmlElement(ElementName = "EnableDifferentialBuild")]
             public bool EnableDifferentialBuild { get; set; }
-            
-            [XmlElement(ElementName = "UseSimplerAnalysisForDatabaseReference")]
-            public bool UseSimplerAnalysisForDatabaseReference { get; set; }
                 
             /// <summary>
             /// True if the tool should use a MD5 sum for each file to figure out if it has changed
@@ -176,45 +188,32 @@ namespace Oetools.Builder.Project {
             public bool MirrorDeletedSourceFileToOutput { get; set; }
         }
 
-        [Serializable]
-        public class OeBuildStep {
-                
-            [XmlAttribute("Label")]
-            [ReplaceVariables(SkipReplace = true)]
-            public string Label { get; set; }
-                
-            [XmlArray("Tasks")]
-            [XmlArrayItem("Execute", typeof(OeTaskExec))]
-            [XmlArrayItem("Copy", typeof(OeTaskCopy))]
-            [XmlArrayItem("Move", typeof(OeTaskMove))]
-            [XmlArrayItem("RemoveDir", typeof(OeTaskRemoveDir))]
-            [XmlArrayItem("Delete", typeof(OeTaskDelete))]
-            [XmlArrayItem("DeleteInProlib", typeof(OeTaskDeleteInProlib))]
-            [XmlArrayItem("Prolib", typeof(OeTaskProlib))]
-            [XmlArrayItem("Zip", typeof(OeTaskZip))]
-            [XmlArrayItem("Cab", typeof(OeTaskCab))]
-            [XmlArrayItem("UploadFtp", typeof(OeTaskFtp))]
-            [XmlArrayItem("Webclient", typeof(OeTaskWebclient))]
-            public virtual List<OeTask> Tasks { get; set; }
+        public void Validate() {
+            ValidateStepsList(PreBuildTasks, nameof(PreBuildTasks));
+            ValidateStepsList(BuildSourceTasks, nameof(BuildSourceTasks));
+            ValidateStepsList(BuildOutputTasks, nameof(BuildOutputTasks));
+            ValidateStepsList(PostBuildTasks, nameof(PostBuildTasks));
         }
 
-        [Serializable]
-        public class OeBuildCompileStep : OeBuildStep{
-                
-            [XmlArray("Tasks")]
-            [XmlArrayItem("Execute", typeof(OeTaskExec))]
-            [XmlArrayItem("Compile", typeof(OeTaskCompile))]
-            [XmlArrayItem("CompileInProlib", typeof(OeTaskCompileProlib))]
-            [XmlArrayItem("CompileInZip", typeof(OeTaskCompileZip))]
-            [XmlArrayItem("CompileInCab", typeof(OeTaskCompileCab))]
-            [XmlArrayItem("CompileUploadFtp", typeof(OeTaskCompileUploadFtp))]
-            [XmlArrayItem("Copy", typeof(OeTaskCopy))]
-            [XmlArrayItem("Prolib", typeof(OeTaskProlib))]
-            [XmlArrayItem("Zip", typeof(OeTaskZip))]
-            [XmlArrayItem("Cab", typeof(OeTaskCab))]
-            [XmlArrayItem("UploadFtp", typeof(OeTaskFtp))]
-            public override List<OeTask> Tasks { get; set; }
+        private void ValidateStepsList(IEnumerable<OeBuildStep> steps, string propertyNameOf) {
+            var i = 0;
+            foreach (var step in steps) {
+                try {
+                    if (string.IsNullOrEmpty(step.Label)) {
+                        step.Label = $"Step {i}";
+                    }
+                    step.Validate();
+                } catch (Exception e) {
+                    var et = e as TaskValidationException;
+                    if (et != null) {
+                        et.StepNumber = i;
+                        et.PropertyName = typeof(OeBuildConfiguration).GetXmlName(propertyNameOf);
+                    }
+                    throw new BuildConfigurationException(et != null ? et.Message : "Unexpected exception when checking tasks", et ?? e);
+                }
+                i++;
+            }
         }
-            
     }
+
 }
