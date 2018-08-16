@@ -18,7 +18,7 @@ set "PROJECT_PATH=Oetools.Builder\Oetools.Builder.csproj"
 set "CHANGE_DEFAULT_TARGETFRAMEWORK=true"
 set TARGETED_FRAMEWORKS=(net461)
 set "MSBUILD_DEFAULT_TARGET=Build"
-set CI_COMMIT_SHA="no_commit_just_for_no_pause"
+set "CI_COMMIT_SHA=no_commit_just_for_no_pause"
 
 call build.bat
 
@@ -47,9 +47,11 @@ if not "!ERRORLEVEL!"=="0" (
 
 :DONE
 echo.=========================
-echo.[%time:~0,8% INFO] DONE
+echo.[%time:~0,8% INFO] BUILD DONE
 
-pause
+if "%IS_CI_BUILD%"=="false" (
+	pause
+)
 
 
 REM @@@@@@@@@@@@@@

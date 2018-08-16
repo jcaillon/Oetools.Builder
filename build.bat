@@ -87,8 +87,6 @@ if "%ERRORLEVEL%"=="0" (
 	set ADD_RESTORE=true
 )
 
-@echo on
-
 if "%CHANGE_DEFAULT_TARGETFRAMEWORK%"=="true" (
 	for %%i in %TARGETED_FRAMEWORKS% do (
 		Call :BUILD_ONE "%%i" "%ADD_RESTORE%"
