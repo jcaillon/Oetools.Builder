@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
@@ -26,7 +28,7 @@ namespace Oetools.Builder.Project {
         [ReplaceVariables(LeaveUnknownUntouched = true)]
         public string RelativeTargetDirectory { get; set; }
         
-        public virtual string GetTargetArchive() => throw new System.NotImplementedException();
+        public virtual string GetTargetArchive() => throw new NotImplementedException();
 
         protected string GetTarget() => RelativeTargetFilePath ?? RelativeTargetDirectory;
 
@@ -37,8 +39,8 @@ namespace Oetools.Builder.Project {
             if (!string.IsNullOrEmpty(RelativeTargetFilePath) && !string.IsNullOrEmpty(RelativeTargetDirectory)) {
                 throw new TaskValidationException(this, $"{GetType().GetXmlName(nameof(RelativeTargetFilePath))} and {GetType().GetXmlName(nameof(RelativeTargetDirectory))} can't be both defined for a given task, choose only one");
             }
-            ValidateTargets(GetTarget().Split(';'));
-            ValidateTargets(GetTargetArchive().Split(';'));
+            ValidateTargets(GetTarget().Split(';').ToList());
+            ValidateTargets(GetTargetArchive().Split(';').ToList());
         }
         
         private void ValidateTargets(List<string> targets) {
@@ -79,7 +81,7 @@ namespace Oetools.Builder.Project {
                         if (AppendFileNameToTargetPath) {
                             target = Path.Combine(target, Path.GetFileName(file.SourcePath));
                         } else {
-                            target = target.TrimDirectorySeparator();
+                            target = target.TrimEndDirectorySeparator();
                         }
 
                         relativePathList.Add(target);

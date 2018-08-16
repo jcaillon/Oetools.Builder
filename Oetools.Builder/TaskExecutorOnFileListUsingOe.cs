@@ -26,6 +26,8 @@ namespace Oetools.Builder {
         public OeBuildConfiguration.OeCompilationOptions CompilationOptions { get; }
         
         public OeProjectProperties ProjectProperties { get; }
+        
+        // var numberOfProcesses = Math.Max(NumberOfProcessesPerCore, 1) * Environment.ProcessorCount;
      
         public TaskExecutorOnFileListUsingOe(List<OeTask> tasks, List<OeFile> taskFiles, OeProjectProperties projectProperties, OeBuildConfiguration.OeCompilationOptions compilationOptions) : base(tasks, taskFiles) {
             CompilationOptions = compilationOptions;

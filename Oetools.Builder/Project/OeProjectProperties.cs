@@ -88,20 +88,28 @@ namespace Oetools.Builder.Project {
         [XmlElement(ElementName = "ProcedurePathToExecuteAfterAnyProgressExecution")]
         public string ProcedurePathToExecuteAfterAnyProgressExecution { get; set; }
 
-        [XmlElement(ElementName = "TemporaryDirectory")]
-        public string TemporaryDirectory { get; set; }
+        [XmlElement(ElementName = "TemporaryDirectoryPath")]
+        public string TemporaryDirectoryPath { get; set; }
+        
+        /// <summary>
+        /// Global variables applicable to all build
+        /// TODO : useful for webclient variables like application name!
+        /// </summary>
+        [XmlArray("GlobalVariables")]
+        [XmlArrayItem("Variable", typeof(OeVariable))]
+        [ReplaceVariables(SkipReplace = true)]
+        public List<OeVariable> GlobalVariables { get; set; }
 
         /// <summary>
         /// Returns the propath that should be used considering all the options of this class
         /// </summary>
         /// <param name="sourceDirectory"></param>
         /// <param name="simplifyPathWithWorkingDirectory"></param>
-        /// <param name="extraSourceDirectoryExclusions"></param>
         /// <returns></returns>
-        public List<string> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory, string extraSourceDirectoryExclusions = ".git;.svn") {
+        public List<string> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory) {
             var output = new HashSet<string>();
             foreach (var propathEntry in PropathEntries) {
-                var entry = propathEntry;
+                var entry = propathEntry.ToCleanPath();
                 try {
                     // need to take into account relative paths
                     if (!Path.IsPathRooted(entry)) {
@@ -126,18 +134,7 @@ namespace Oetools.Builder.Project {
                 }
             }
             if (AddAllSourceDirectoriesToPropath) {
-                List<string> propathExcludeRegexStrings = null;
-                if (PropathFilters != null) {
-                    propathExcludeRegexStrings = PropathFilters
-                        .SelectMany(f => f.Exclude.Split(';').Select(p => f is OeFilterRegex ? p : p.PathWildCardToRegex()))
-                        .ToList();
-                }
-                if (!string.IsNullOrEmpty(extraSourceDirectoryExclusions)) {
-                    if (propathExcludeRegexStrings == null) {
-                        propathExcludeRegexStrings = new List<string>();
-                    } 
-                    propathExcludeRegexStrings.AddRange(extraSourceDirectoryExclusions.Split(';').Select(s => Path.Combine(sourceDirectory, s).PathWildCardToRegex()));
-                }
+                List<string> propathExcludeRegexStrings = OeFilter.GetExclusionRegexStringsFromFilters(PropathFilters, sourceDirectory);
                 foreach (var file in Utils.EnumerateAllFolders(sourceDirectory, SearchOption.AllDirectories, propathExcludeRegexStrings)) {
                     if (!output.Contains(file)) {
                         output.Add(file);

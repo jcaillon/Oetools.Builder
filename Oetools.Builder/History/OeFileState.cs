@@ -6,11 +6,11 @@ namespace Oetools.Builder.History {
     public enum OeFileState : byte {
         [XmlEnum("Added")]
         Added,
-        [XmlEnum("Replaced")]
-        Replaced,
+        [XmlEnum("Modified")]
+        Modified,
         [XmlEnum("Deleted")]
         Deleted,
-        [XmlEnum("Existing")]
-        Existing
+        [XmlEnum("Unchanged")]
+        Unchanged
     }
 }

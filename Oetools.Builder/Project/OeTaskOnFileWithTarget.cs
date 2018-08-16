@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
@@ -30,7 +31,7 @@ namespace Oetools.Builder.Project {
             if (!string.IsNullOrEmpty(TargetFilePath) && !string.IsNullOrEmpty(TargetDirectory)) {
                 throw new TaskValidationException(this, $"{GetType().GetXmlName(nameof(TargetFilePath))} and {GetType().GetXmlName(nameof(TargetDirectory))} can't be both defined for a given task, choose only one");
             }
-            ValidateTargets(GetTarget().Split(';'));
+            ValidateTargets(GetTarget().Split(';').ToList());
         }
         
         private void ValidateTargets(List<string> targets) {
@@ -68,7 +69,7 @@ namespace Oetools.Builder.Project {
                     if (AppendFileNameToTargetPath) {
                         target = Path.Combine(target, Path.GetFileName(file.SourcePath));
                     } else {
-                        target = target.TrimDirectorySeparator();
+                        target = target.TrimEndDirectorySeparator();
                     }
 
                     // take care of relative target path

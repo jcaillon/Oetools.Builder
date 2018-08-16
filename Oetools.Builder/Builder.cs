@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
@@ -27,15 +28,22 @@ namespace Oetools.Builder {
     
     public class Builder {
         
+        private string _sourceDirectory;
+
         protected ILogger Log { get; set; }
-        
-        public string SourceDirectory { get; set; }
-        
+
+        public string SourceDirectory {
+            get => _sourceDirectory;
+            set =>_sourceDirectory = value.ToCleanPath();
+        }
+
         public OeBuildConfiguration BuildConfiguration { get; }
         
         public bool TestMode { get; set; }
 
         public bool ForceFullRebuild { get; set; }    
+        
+        public List<OeFileBuilt> PreviouslyBuiltFiles { get; set; }
 
         public Builder(OeProjectProperties projectProperties, OeBuildConfiguration buildConfiguration) {
             
@@ -46,6 +54,7 @@ namespace Oetools.Builder {
             
             // we can overload the project properties with the build configuration properties
             BuildConfiguration.Properties = (OeProjectProperties) Utils.DeepCopyPublicProperties(buildConfiguration.Properties, typeof(OeProjectProperties), projectProperties);
+            BuildConfiguration.SanitizePathInPublicProperties();
         }
         
         public void Build() {
@@ -58,14 +67,18 @@ namespace Oetools.Builder {
             AddDefaultVariables();
             // replace variables
             BuilderUtilities.ApplyVariablesInVariables(BuildConfiguration.Variables);
-            BuilderUtilities.ApplyVariablesToProperties(BuildConfiguration, BuildConfiguration.Variables);
-            
-            
+            BuilderUtilities.ApplyVariablesToProperties(BuildConfiguration, BuildConfiguration.Variables);           
         }
         
         private void AddDefaultVariables() {
             if (BuildConfiguration.Variables == null) {
                 BuildConfiguration.Variables = new List<OeVariable>();
+            }
+            if (BuildConfiguration.Properties.GlobalVariables != null) {
+                // add global variables
+                foreach (var globalVariable in BuildConfiguration.Properties.GlobalVariables) {
+                    BuildConfiguration.Variables.Add(globalVariable);
+                }
             }
             if (!string.IsNullOrEmpty(SourceDirectory)) {
                 BuildConfiguration.Variables.Add(new OeVariable { Name = "SOURCE_DIRECTORY", Value = SourceDirectory });    
@@ -73,7 +86,7 @@ namespace Oetools.Builder {
                 BuildConfiguration.Variables.Add(new OeVariable { Name = "PROJECT_LOCAL_DIRECTORY", Value = Path.Combine(SourceDirectory, ".oe", "local") });                 
             }             
             BuildConfiguration.Variables.Add(new OeVariable { Name = "DLC", Value = BuildConfiguration.Properties.DlcDirectoryPath });  
-            BuildConfiguration.Variables.Add(new OeVariable { Name = "OUTPUT_DIRECTORY", Value = BuildConfiguration.OutputDirectory });  
+            BuildConfiguration.Variables.Add(new OeVariable { Name = "OUTPUT_DIRECTORY", Value = BuildConfiguration.OutputDirectoryPath });  
             BuildConfiguration.Variables.Add(new OeVariable { Name = "CONFIGURATION_NAME", Value = BuildConfiguration.ConfigurationName });
             try {
                 BuildConfiguration.Variables.Add(new OeVariable { Name = "WORKING_DIRECTORY", Value = Directory.GetCurrentDirectory() });

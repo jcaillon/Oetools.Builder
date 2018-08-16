@@ -64,8 +64,8 @@ namespace Oetools.Builder.Project {
         [ReplaceVariables(SkipReplace = true)]
         public List<OeVariable> Variables { get; set; }
             
-        [XmlElement(ElementName = "OutputDirectory")]
-        public string OutputDirectory { get; set; } = Path.Combine("<SOURCE_DIRECTORY>", "bin");
+        [XmlElement(ElementName = "OutputDirectoryPath")]
+        public string OutputDirectoryPath { get; set; } = Path.Combine("<SOURCE_DIRECTORY>", "bin");
 
         [XmlElement(ElementName = "ReportFilePath")]
         public string ReportFilePath { get; set; } = Path.Combine("<PROJECT_DIRECTORY>", "build", "latest.html");
@@ -89,6 +89,41 @@ namespace Oetools.Builder.Project {
         [XmlArrayItem("Filter", typeof(OeFilter))]
         [XmlArrayItem("FilterRegex", typeof(OeFilterRegex))]
         public List<OeFilter> SourcePathFilters { get; set; }
+        
+        /// <summary>
+        /// Use this to apply GIT filters to your <see cref="BuildSourceTasks"/>
+        /// Obviously, you need GIT installed and present in your OS path
+        /// </summary>
+        [XmlElement("SourcePathGitFilter")]
+        public OeGitFilter SourcePathGitFilter { get; set; }
+
+        [Serializable]
+        public class OeGitFilter {
+            
+            /// <summary>
+            /// If true, only the files that were modified since the last commit will be elligible for the <see cref="BuildSourceTasks"/>
+            /// (this include files in staging area and untracked files in the working directory)
+            /// </summary>
+            [XmlAttribute(AttributeName = "IncludeOnlyModifiedFilesSinceLastCommit")]
+            public bool IncludeOnlyModifiedFilesSinceLastCommit { get; set; }
+            
+            /// <summary>
+            /// If true, only the committed files that were committed between HEAD and LAST_MERGE will be elligible for the <see cref="BuildSourceTasks"/>
+            /// LAST_MERGE is found automatically, it is the first commit that has a reference different than CURRENT_BRANCH_NAME and ANY_REMOTE/CURRENT_BRANCH_NAME
+            /// </summary>
+            [XmlAttribute(AttributeName = "IncludeOnlyFilesCommittedSinceLastMerge")]
+            public bool IncludeOnlyFilesCommittedSinceLastMerge { get; set; }
+            
+            /// <summary>
+            /// In detached mode, the CURRENT_BRANCH_NAME is not defined, you can set this value to the branch name to use for the option <see cref="IncludeOnlyFilesCommittedSinceLastMerge"/>
+            /// This can be useful in CI builds where the CI checks out a repo in detached mode (it checks out a commit)
+            /// </summary>
+            /// <remarks>
+            /// By default, if in detached mode, this tool tries to deduce the current branch by checking the first remote reference of the currently checked out commit
+            /// </remarks>
+            [XmlAttribute(AttributeName = "GitCurrentBranchName")]
+            public string GitCurrentBranchName { get; set; }
+        }
         
         /// <summary>
         /// This list of tasks can include any file
@@ -175,10 +210,10 @@ namespace Oetools.Builder.Project {
             public bool EnableDifferentialBuild { get; set; }
                 
             /// <summary>
-            /// True if the tool should use a MD5 sum for each file to figure out if it has changed
+            /// True if the tool should use a checksum (md5) for each file to figure out if it has changed
             /// </summary>
-            [XmlElement(ElementName = "StoreSourceMd5")]
-            public bool StoreSourceMd5 { get; set; }
+            [XmlElement(ElementName = "StoreSourceHash")]
+            public bool StoreSourceHash { get; set; }
             
             /// <summary>
             /// If a source file has been deleted since the last build, should we try to delete it in the output directory
@@ -213,6 +248,23 @@ namespace Oetools.Builder.Project {
                 }
                 i++;
             }
+        }
+
+        public void SanitizePathInPublicProperties() {
+            //OutputDirectoryPath = OutputDirectoryPath.ToCleanPath();
+            //BuildHistoryInputFilePath = BuildHistoryInputFilePath.ToCleanPath();
+            //BuildHistoryOutputFilePath = BuildHistoryOutputFilePath.ToCleanPath();
+            //ReportFilePath = ReportFilePath.ToCleanPath();
+            //Properties.DlcDirectoryPath = Properties.DlcDirectoryPath.ToCleanPath();
+            Utils.ForEachPublicPropertyStringInObject(typeof(OeBuildConfiguration), this, (propInfo, value) => {
+                if (!propInfo.Name.Contains("Path")) {
+                    return value;
+                }
+                if (string.IsNullOrEmpty(value)) {
+                    return value;
+                }
+                return value.ToCleanPath();
+            });
         }
     }
 

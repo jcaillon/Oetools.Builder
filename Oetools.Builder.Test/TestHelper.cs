@@ -34,9 +34,11 @@ namespace Oetools.Builder.Test {
         public static bool GetDlcPath(out string dlcPath) {
             dlcPath = ProUtilities.GetDlcPathFromEnv();
             if (string.IsNullOrEmpty(dlcPath)) {
+                Console.WriteLine("Cancelling test, DLC environment variable not found!");
                 return false;
             }
             if (!Directory.Exists(dlcPath)) {
+                Console.WriteLine("Cancelling test, DLC environment variable not found!");
                 return false;
             }
             return true;

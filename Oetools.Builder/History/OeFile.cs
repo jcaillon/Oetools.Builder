@@ -1,11 +1,18 @@
 ﻿using System;
 using System.Xml.Serialization;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.History {
     
     [Serializable]
     public class OeFile {
         
+        public OeFile() { }
+
+        public OeFile(string sourcePath) {
+            SourcePath = sourcePath;
+        }
+
         /// <summary>
         /// The relative path of the source file
         /// </summary>
@@ -22,12 +29,16 @@ namespace Oetools.Builder.History {
         ///     MD5
         /// </summary>
         [XmlAttribute(AttributeName = "Md5")]
-        public string Md5 { get; set; }
+        public string Hash { get; set; }
         
         /// <summary>
         /// Represents the state of the file for this build compare to the previous one
         /// </summary>
         [XmlElement(ElementName = "State")]
         public OeFileState State { get; set; }
+
+        public OeFile GetDeepCopy() {
+            return (OeFile) Utils.DeepCopyPublicProperties(this, typeof(OeFile));
+        }
     }
 }

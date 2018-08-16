@@ -39,11 +39,13 @@ namespace Oetools.Builder {
             var directoriesToList = new List<string>();
             for (int i = 0; i < originalIncludeStrings.Count; i++) {
                 if (File.Exists(originalIncludeStrings[i])) {
-                    var newFile = new OeFile { SourcePath = originalIncludeStrings[i] };
+                    // the include directly designate a file
+                    var newFile = new OeFile { SourcePath = Path.GetFullPath(originalIncludeStrings[i]) };
                     if (!task.IsFileExcluded(newFile)) {
                         output.Add(newFile);
                     }
                 } else {
+                    // the include is a wildcard path, we try to get the "root" folder to list to get all the files
                     directoriesToList.Add(Utils.GetLongestValidDirectory(originalIncludeStrings[i]));
                 }
             }
