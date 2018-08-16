@@ -5,13 +5,14 @@
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="1" name="OverloadProjectProperties" type="OeProjectProperties" />
       <xs:element minOccurs="0" maxOccurs="1" name="BuildVariables" type="ArrayOfOeVariable" />
-      <xs:element minOccurs="0" maxOccurs="1" name="OutputDirectory" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="OutputDirectoryPath" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="ReportFilePath" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryOutputFilePath" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryInputFilePath" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="CompilationOptions" type="OeCompilationOptions" />
       <xs:element minOccurs="0" maxOccurs="1" name="BuildOptions" type="OeBuildOptions" />
       <xs:element minOccurs="0" maxOccurs="1" name="SourcePathFilters" type="ArrayOfChoice2" />
+      <xs:element minOccurs="0" maxOccurs="1" name="SourcePathGitFilter" type="OeGitFilter" />
       <xs:element minOccurs="0" maxOccurs="1" name="PreBuildTasks" type="ArrayOfOeBuildStep" />
       <xs:element minOccurs="0" maxOccurs="1" name="BuildSourceTasks" type="ArrayOfOeBuildStepCompile" />
       <xs:element minOccurs="0" maxOccurs="1" name="BuildOutputTasks" type="ArrayOfOeBuildStep" />
@@ -34,7 +35,8 @@
       <xs:element minOccurs="0" maxOccurs="1" name="ProgresCommandLineExtraParameters" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteBeforeAnyProgressExecution" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteAfterAnyProgressExecution" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="TemporaryDirectory" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="TemporaryDirectoryPath" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="GlobalVariables" type="ArrayOfOeVariable" />
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeProjectDatabase">
@@ -105,7 +107,7 @@
   <xs:complexType name="OeBuildOptions">
     <xs:sequence>
       <xs:element minOccurs="1" maxOccurs="1" name="EnableDifferentialBuild" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="StoreSourceMd5" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="StoreSourceHash" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedSourceFileToOutput" type="xs:boolean" />
     </xs:sequence>
   </xs:complexType>
@@ -114,6 +116,11 @@
       <xs:element minOccurs="1" maxOccurs="1" name="Filter" nillable="true" type="OeFilter" />
       <xs:element minOccurs="1" maxOccurs="1" name="FilterRegex" nillable="true" type="OeFilterRegex" />
     </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="OeGitFilter">
+    <xs:attribute name="IncludeOnlyModifiedFilesSinceLastCommit" type="xs:boolean" use="required" />
+    <xs:attribute name="IncludeOnlyFilesCommittedSinceLastMerge" type="xs:boolean" use="required" />
+    <xs:attribute name="GitCurrentBranchName" type="xs:string" />
   </xs:complexType>
   <xs:complexType name="ArrayOfOeBuildStep">
     <xs:sequence>

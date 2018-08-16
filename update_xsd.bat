@@ -11,19 +11,16 @@ REM Are we on a CI build?
 set IS_CI_BUILD=false
 if not "%CI_COMMIT_SHA%"=="" set IS_CI_BUILD=true
 
-if not exist "Oetools.Builder\bin\Any Cpu\Release\net461\Oetools.Builder.dll" (
+echo.=========================
+echo.[%time:~0,8% INFO] BUILDING SERIALIZATION PROJECT
 
-	echo.=========================
-	echo.[%time:~0,8% INFO] BUILDING SERIALIZATION PROJECT
+set "PROJECT_PATH=Oetools.Builder\Oetools.Builder.csproj"
+set "CHANGE_DEFAULT_TARGETFRAMEWORK=true"
+set TARGETED_FRAMEWORKS=(net461)
+set "MSBUILD_DEFAULT_TARGET=Build"
+set CI_COMMIT_SHA="no_commit_just_for_no_pause"
 
-	set "PROJECT_PATH=Oetools.Builder\Oetools.Builder.csproj"
-	set "CHANGE_DEFAULT_TARGETFRAMEWORK=true"
-	set TARGETED_FRAMEWORKS=(net461)
-	set "MSBUILD_DEFAULT_TARGET=Build"
-	set CI_COMMIT_SHA="no_commit_just_for_no_pause"
-
-	call build.bat
-)
+call build.bat
 
 echo.=========================
 echo.[%time:~0,8% INFO] GENERATING XSD
