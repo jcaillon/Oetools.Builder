@@ -2,6 +2,7 @@
 using System.Xml.Serialization;
 
 namespace Oetools.Builder.Project {
+    
     [Serializable]
     [XmlRoot("Exec")]
     public class OeTaskExec : OeTask, ITaskExecute {
@@ -17,14 +18,14 @@ namespace Oetools.Builder.Project {
         [XmlAttribute("Parameters")]
         public string Parameters { get; set; }
             
-        [XmlAttribute("HiddenExecution")]
-        public bool HiddenExecution { get; set; }
+        [XmlElement(ElementName = "HiddenExecution")]
+        public bool? HiddenExecution { get; set; }
             
         /// <summary>
         /// With this option, the task will not fail if the exit code is different of 0
         /// </summary>
-        [XmlAttribute("IgnoreExitCode")]
-        public bool IgnoreExitCode { get; set; }
+        [XmlElement(ElementName = "IgnoreExitCode")]
+        public bool? IgnoreExitCode { get; set; }
             
         /// <summary>
         /// (default to output directory)

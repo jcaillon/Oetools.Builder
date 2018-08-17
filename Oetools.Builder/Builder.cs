@@ -23,6 +23,8 @@ using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder {
     
@@ -41,59 +43,67 @@ namespace Oetools.Builder {
         
         public bool TestMode { get; set; }
 
-        public bool ForceFullRebuild { get; set; }    
+        public bool ForceFullRebuild { get; set; }
+        
+        public EnvExecution Env { get; private set; }
         
         public List<OeFileBuilt> PreviouslyBuiltFiles { get; set; }
+        
+        public List<TaskExecutorOnFile> PreBuildTaskExecutors { get; set; }
+        
+        public List<TaskExecutorOnFileBuildingSource> BuildSourceTaskExecutors { get; set; }
+        
+        public List<TaskExecutorOnFile> BuildOutputTaskExecutors { get; set; }
+        
+        public List<TaskExecutorOnFile> PostBuildTaskExecutors { get; set; }
 
-        public Builder(OeProjectProperties projectProperties, OeBuildConfiguration buildConfiguration) {
+        /// <summary>
+        /// Initiliaze the build
+        /// </summary>
+        /// <param name="project"></param>
+        /// <param name="buildConfigurationName"></param>
+        public Builder(OeProject project, string buildConfigurationName = null) {
+            // make a copy of the build configuration
+            BuildConfiguration = project.GetBuildConfigurationCopy(buildConfigurationName) ?? project.GetDefaultBuildConfigurationCopy();
             
-            Log.Debug($"Initializing build with {(string.IsNullOrEmpty(buildConfiguration.ConfigurationName) ? "an unnamed configuration" : $"the configuration {buildConfiguration.ConfigurationName}")}");
+            Log.Debug($"Initializing build with {BuildConfiguration}");
             
-            // make copies of received object since we want to modify them
-            BuildConfiguration = (OeBuildConfiguration) Utils.DeepCopyPublicProperties(buildConfiguration, typeof(OeBuildConfiguration));
-            
-            // we can overload the project properties with the build configuration properties
-            BuildConfiguration.Properties = (OeProjectProperties) Utils.DeepCopyPublicProperties(buildConfiguration.Properties, typeof(OeProjectProperties), projectProperties);
-            BuildConfiguration.SanitizePathInPublicProperties();
+            Env = new EnvExecution {
+                TempDirectory = string.IsNullOrEmpty(BuildConfiguration.Properties.TemporaryDirectoryPath) ? $".oe_tmp-{Utils.GetRandomName()}" : BuildConfiguration.Properties.TemporaryDirectoryPath,
+                UseProgressCharacterMode = BuildConfiguration.Properties.UseCharacterModeExecutable ?? false,
+                
+            };
         }
         
+        /// <summary>
+        /// Main method, builds
+        /// </summary>
         public void Build() {
             Log.Info($"Start building {(string.IsNullOrEmpty(BuildConfiguration.ConfigurationName) ? "an unnamed configuration" : $"the configuration {BuildConfiguration.ConfigurationName}")}");
 
-            Log.Debug("Checking build configuration");
-            BuildConfiguration.Validate();
+            Log.Debug("Validating tasks");
+            BuildConfiguration.ValidateAllTasks();
             
             Log.Debug("Using build variables");
-            AddDefaultVariables();
-            // replace variables
-            BuilderUtilities.ApplyVariablesInVariables(BuildConfiguration.Variables);
-            BuilderUtilities.ApplyVariablesToProperties(BuildConfiguration, BuildConfiguration.Variables);           
+            BuildConfiguration.ApplyVariables(SourceDirectory);
+            
+            Log.Debug("Sanitizing path properties");
+            BuildConfiguration.Properties.SanitizePathInPublicProperties();
+            
+            ExecuteBuild();
         }
-        
-        private void AddDefaultVariables() {
-            if (BuildConfiguration.Variables == null) {
-                BuildConfiguration.Variables = new List<OeVariable>();
-            }
-            if (BuildConfiguration.Properties.GlobalVariables != null) {
-                // add global variables
-                foreach (var globalVariable in BuildConfiguration.Properties.GlobalVariables) {
-                    BuildConfiguration.Variables.Add(globalVariable);
+
+        private void ExecuteBuild() {           
+            if (BuildConfiguration.PostBuildTasks != null) {
+                var i = 0;
+                foreach (var step in BuildConfiguration.PostBuildTasks) {
+                    Log.Debug($"{typeof(OeBuildConfiguration).GetXmlName(nameof(OeBuildConfiguration.PostBuildTasks))} step {i}{(!string.IsNullOrEmpty(step.Label) ? $" : {step.Label}" : "")}");
+                    var executor = new TaskExecutorOnFile(step.GetTaskList());
+                    (PostBuildTaskExecutors ?? (PostBuildTaskExecutors = new List<TaskExecutorOnFile>())).Add(executor);
                 }
             }
-            if (!string.IsNullOrEmpty(SourceDirectory)) {
-                BuildConfiguration.Variables.Add(new OeVariable { Name = "SOURCE_DIRECTORY", Value = SourceDirectory });    
-                BuildConfiguration.Variables.Add(new OeVariable { Name = "PROJECT_DIRECTORY", Value = Path.Combine(SourceDirectory, ".oe") });                
-                BuildConfiguration.Variables.Add(new OeVariable { Name = "PROJECT_LOCAL_DIRECTORY", Value = Path.Combine(SourceDirectory, ".oe", "local") });                 
-            }             
-            BuildConfiguration.Variables.Add(new OeVariable { Name = "DLC", Value = BuildConfiguration.Properties.DlcDirectoryPath });  
-            BuildConfiguration.Variables.Add(new OeVariable { Name = "OUTPUT_DIRECTORY", Value = BuildConfiguration.OutputDirectoryPath });  
-            BuildConfiguration.Variables.Add(new OeVariable { Name = "CONFIGURATION_NAME", Value = BuildConfiguration.ConfigurationName });
-            try {
-                BuildConfiguration.Variables.Add(new OeVariable { Name = "WORKING_DIRECTORY", Value = Directory.GetCurrentDirectory() });
-            } catch (Exception e) {
-                Log.Error("Failed to get the current directory (check permissions)", e);
-            }
-            // extra variable FILE_SOURCE_DIRECTORY defined only when computing targets
         }
+
+        
     }
 }

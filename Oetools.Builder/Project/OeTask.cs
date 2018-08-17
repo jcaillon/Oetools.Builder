@@ -3,6 +3,7 @@ using Oetools.Builder.Exceptions;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project {
+    
     public abstract class OeTask {
         
         /// <summary>
@@ -15,7 +16,7 @@ namespace Oetools.Builder.Project {
         public string Label { get; set; }
 
         public override string ToString() {
-            return $"{(string.IsNullOrEmpty(Label) ? "Unnamed task" : $"Task {Label}")} of type {GetType().GetXmlName() ?? GetType().Name}";
+            return $"{(string.IsNullOrEmpty(Label) ? "Unnamed task" : $"Task {Label}")} of type {GetType().GetXmlName()}";
         }
     }
 }

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge;
 
 namespace Oetools.Builder.Project {
@@ -18,41 +17,18 @@ namespace Oetools.Builder.Project {
     public class OeProjectProperties {
         
         [XmlElement(ElementName = "DlcDirectoryPath")]
-        public string DlcDirectoryPath { get; set; } = ProUtilities.GetDlcPathFromEnv();
+        public string DlcDirectoryPath { get; set; }
         
         [XmlArray("ProjectDatabases")]
         [XmlArrayItem("ProjectDatabase", typeof(OeProjectDatabase))]
         public List<OeProjectDatabase> ProjectDatabases { get; set; }
-            
-        [Serializable]
-        public class OeProjectDatabase {
-      
-            [XmlAttribute(AttributeName = "LogicalName")]
-            [ReplaceVariables(SkipReplace = true)]
-            public bool LogicalName { get; set; }
-            
-            [XmlAttribute(AttributeName = "DataDefinitionFilePath")]
-            public string DataDefinitionFilePath { get; set; }
-        
-        }
         
         [XmlElement(ElementName = "DatabaseConnectionExtraParameters")]
         public string DatabaseConnectionExtraParameters { get; set; }
 
         [XmlArray("DatabaseAliases")]
         [XmlArrayItem("Alias", typeof(OeDatabaseAlias))]
-        [ReplaceVariables(SkipReplace = true)]
-        public List<OeDatabaseAlias> DatabaseAliases { get; set; }
-
-        public class OeDatabaseAlias {
-                
-            [XmlAttribute(AttributeName = "ProgresCommandLineExtraParameters")]
-            public string AliasLogicalName { get; set; }
-
-            [XmlAttribute(AttributeName = "PreProgresExecutionProgramPath")]
-            public string DatabaseLogicalName { get; set; }
-        }
-            
+        public List<OeDatabaseAlias> DatabaseAliases { get; set; }           
             
         [XmlElement(ElementName = "IniFilePath")]
         public string IniFilePath { get; set; }
@@ -62,7 +38,7 @@ namespace Oetools.Builder.Project {
         public List<string> PropathEntries { get; set; }
         
         [XmlElement(ElementName = "AddAllSourceDirectoriesToPropath")]
-        public bool AddAllSourceDirectoriesToPropath { get; set; }
+        public bool? AddAllSourceDirectoriesToPropath { get; set; }
             
         [XmlArray("PropathFilters")]
         [XmlArrayItem("Filter", typeof(OeFilter))]
@@ -74,10 +50,10 @@ namespace Oetools.Builder.Project {
         /// Also adds dlc and dlc/bin
         /// </summary>
         [XmlElement(ElementName = "AddDefaultOpenedgePropath")]
-        public bool AddDefaultOpenedgePropath { get; set; }
+        public bool? AddDefaultOpenedgePropath { get; set; }
 
         [XmlElement(ElementName = "UseCharacterModeExecutable")]
-        public bool UseCharacterModeExecutable { get; set; }
+        public bool? UseCharacterModeExecutable { get; set; }
 
         [XmlElement(ElementName = "ProgresCommandLineExtraParameters")]
         public string ProgresCommandLineExtraParameters { get; set; }
@@ -89,16 +65,74 @@ namespace Oetools.Builder.Project {
         public string ProcedurePathToExecuteAfterAnyProgressExecution { get; set; }
 
         [XmlElement(ElementName = "TemporaryDirectoryPath")]
-        public string TemporaryDirectoryPath { get; set; }
+        public string TemporaryDirectoryPath { get; set; }      
         
         /// <summary>
-        /// Global variables applicable to all build
-        /// TODO : useful for webclient variables like application name!
+        /// Allows to exclude path from being treated by <see cref="OeBuildConfiguration.BuildSourceTasks"/>
+        /// Specify what should not be considered as a source file in your source directory (for instance, the docs/ folder)
         /// </summary>
-        [XmlArray("GlobalVariables")]
-        [XmlArrayItem("Variable", typeof(OeVariable))]
-        [ReplaceVariables(SkipReplace = true)]
-        public List<OeVariable> GlobalVariables { get; set; }
+        [XmlArray("SourcePathFilters")]
+        [XmlArrayItem("Filter", typeof(OeFilter))]
+        [XmlArrayItem("FilterRegex", typeof(OeFilterRegex))]
+        public List<OeFilter> SourcePathFilters { get; set; }
+                
+        /// <summary>
+        /// Use this to apply GIT filters to your <see cref="OeBuildConfiguration.BuildSourceTasks"/>
+        /// Obviously, you need GIT installed and present in your OS path
+        /// </summary>
+        [XmlElement(ElementName = "SourcePathGitFilter")]
+        public OeGitFilter SourcePathGitFilter { get; set; }       
+                  
+        [XmlElement(ElementName = "CompilationOptions")]
+        public OeCompilationOptions CompilationOptions { get; set; }
+            
+        [XmlElement(ElementName = "IncrementalBuildOptions")]
+        public OeIncrementalBuildOptions IncrementalBuildOptions { get; set; }
+
+        [XmlElement(ElementName = "OutputDirectoryPath")]
+        public string OutputDirectoryPath { get; set; }
+
+        [XmlElement(ElementName = "ReportFilePath")]
+        public string ReportFilePath { get; set; }
+            
+        [XmlElement(ElementName = "BuildHistoryOutputFilePath")]
+        public string BuildHistoryOutputFilePath { get; set; }
+            
+        [XmlElement(ElementName = "BuildHistoryInputFilePath")]
+        public string BuildHistoryInputFilePath { get; set; }
+
+        /// <summary>
+        /// Validate that is object is correct
+        /// </summary>
+        public void Validate() { }
+
+        /// <summary>
+        /// Set default values for certain properties if they are null
+        /// </summary>
+        public void SetDefaultValuesWhenNeeded() {
+            DlcDirectoryPath = DlcDirectoryPath ?? ProUtilities.GetDlcPathFromEnv();
+            OutputDirectoryPath = OutputDirectoryPath ?? Path.Combine("<SOURCE_DIRECTORY>", "bin");
+            ReportFilePath = ReportFilePath ?? Path.Combine("<PROJECT_DIRECTORY>", "build", "latest.html");
+            BuildHistoryInputFilePath = BuildHistoryInputFilePath ?? Path.Combine("<PROJECT_DIRECTORY>", "build", "latest.xml");
+            BuildHistoryOutputFilePath = BuildHistoryOutputFilePath ?? Path.Combine("<PROJECT_DIRECTORY>", "build", "latest.xml");
+            AddAllSourceDirectoriesToPropath = AddAllSourceDirectoriesToPropath ?? true;
+            AddDefaultOpenedgePropath = AddDefaultOpenedgePropath ?? true;
+        }
+
+        /// <summary>
+        /// Clean the path of all path properties
+        /// </summary>
+        public void SanitizePathInPublicProperties() {
+            Utils.ForEachPublicPropertyStringInObject(typeof(OeProjectProperties), this, (propInfo, value) => {
+                if (!propInfo.Name.Contains("Path")) {
+                    return value;
+                }
+                if (string.IsNullOrEmpty(value)) {
+                    return value;
+                }
+                return value.ToCleanPath();
+            });
+        }
 
         /// <summary>
         /// Returns the propath that should be used considering all the options of this class
@@ -133,7 +167,7 @@ namespace Oetools.Builder.Project {
                     }
                 }
             }
-            if (AddAllSourceDirectoriesToPropath) {
+            if (AddAllSourceDirectoriesToPropath ?? false) {
                 List<string> propathExcludeRegexStrings = OeFilter.GetExclusionRegexStringsFromFilters(PropathFilters, sourceDirectory);
                 foreach (var file in Utils.EnumerateAllFolders(sourceDirectory, SearchOption.AllDirectories, propathExcludeRegexStrings)) {
                     if (!output.Contains(file)) {
@@ -141,9 +175,9 @@ namespace Oetools.Builder.Project {
                     }
                 }
             }
-            if (AddDefaultOpenedgePropath) {
+            if (AddDefaultOpenedgePropath ?? false) {
                 // %DLC%/tty or %DLC%/gui + %DLC% + %DLC%/bin
-                foreach (var file in ProUtilities.GetProgressSessionDefaultPropath(DlcDirectoryPath, UseCharacterModeExecutable)) {
+                foreach (var file in ProUtilities.GetProgressSessionDefaultPropath(DlcDirectoryPath, UseCharacterModeExecutable ?? false)) {
                     if (!output.Contains(file)) {
                         output.Add(file);
                     }

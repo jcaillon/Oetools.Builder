@@ -1,4 +1,5 @@
 ﻿using System.Xml.Serialization;
+using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.History {
     public abstract class OeCompilationProblem {
@@ -7,13 +8,15 @@ namespace Oetools.Builder.History {
         /// Path of the file in which we found the error
         /// </summary>
         [XmlAttribute(AttributeName ="SourcePath")]
-        public string SourcePath { get; set; }
+        [BaseDirectory(Type = BaseDirectoryType.SourceDirectory)]
+        public string SourceFilePath { get; set; }
             
         /// <summary>
         /// The path to the file that was compiled to generate this error (you can compile a .p and have the error on a .i)
         /// </summary>
-        [XmlAttribute(AttributeName = "CompiledFilePath")]
-        public string CompiledFilePath { get; set; }
+        [XmlAttribute(AttributeName = "CompiledSourceFilePath")]
+        [BaseDirectory(Type = BaseDirectoryType.SourceDirectory)]
+        public string CompiledSourceFilePath { get; set; }
             
         [XmlAttribute(AttributeName ="Line")]
         public int Line { get; set; }

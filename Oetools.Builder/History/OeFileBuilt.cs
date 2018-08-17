@@ -6,6 +6,8 @@ using Oetools.Utilities.Lib;
 namespace Oetools.Builder.History {
     [Serializable]
     public class OeFileBuilt : OeFile {
+        
+        public OeFileBuilt() { }
 
         public OeFileBuilt(OeFile sourceFile) {
             Utils.DeepCopyPublicProperties(sourceFile, GetType(), this);

@@ -106,7 +106,7 @@
   </xs:complexType>
   <xs:complexType name="OeBuildOptions">
     <xs:sequence>
-      <xs:element minOccurs="1" maxOccurs="1" name="EnableDifferentialBuild" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="DisabledDifferentialBuild" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="StoreSourceHash" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedSourceFileToOutput" type="xs:boolean" />
     </xs:sequence>
@@ -120,7 +120,7 @@
   <xs:complexType name="OeGitFilter">
     <xs:attribute name="IncludeOnlyModifiedFilesSinceLastCommit" type="xs:boolean" use="required" />
     <xs:attribute name="IncludeOnlyFilesCommittedSinceLastMerge" type="xs:boolean" use="required" />
-    <xs:attribute name="GitCurrentBranchName" type="xs:string" />
+    <xs:attribute name="CurrentBranchName" type="xs:string" />
   </xs:complexType>
   <xs:complexType name="ArrayOfOeBuildStep">
     <xs:sequence>

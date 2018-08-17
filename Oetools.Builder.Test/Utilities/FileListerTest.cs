@@ -32,6 +32,7 @@ namespace Oetools.Builder.Test.Utilities {
     
     [TestClass]
     public class FileListerTest {
+        
         private static string _testFolder;
 
         private static string TestFolder => _testFolder ?? (_testFolder = TestHelper.GetTestFolder(Path.Combine(nameof(FileListerTest), Path.GetRandomFileName())));
@@ -61,7 +62,7 @@ namespace Oetools.Builder.Test.Utilities {
             File.WriteAllText(Path.Combine(repoDir, "sub", "file3"), "");
             File.WriteAllText(Path.Combine(repoDir, "file4"), "");
 
-            var lister = new FileLister(repoDir) {
+            var lister = new SourceFilesLister(repoDir) {
                 UseLastWriteDateComparison = true,
                 UseHashComparison = false,
                 PreviousSourceFiles = null
@@ -121,7 +122,7 @@ namespace Oetools.Builder.Test.Utilities {
             File.WriteAllText(Path.Combine(repoDir, "sub", "file3"), "");
             File.WriteAllText(Path.Combine(repoDir, "file4"), "");
 
-            var lister = new FileLister(repoDir) {
+            var lister = new SourceFilesLister(repoDir) {
                 UseLastWriteDateComparison = false,
                 UseHashComparison = false,
                 PreviousSourceFiles = null
@@ -182,7 +183,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.IsTrue(newList.All(f => f.State == OeFileState.Modified), "all modified because the old HASH was null");
             
             // set up the hash for all files
-            newList.ForEach(f => FileLister.SetFileHash(f));
+            newList.ForEach(f => SourceFilesLister.SetFileHash(f));
             lister.PreviousSourceFiles = newList;
                         
             newList = lister.GetFileList();
@@ -209,7 +210,7 @@ namespace Oetools.Builder.Test.Utilities {
             File.WriteAllText(Path.Combine(repoDir, "monfichier.txt"), "");
             File.WriteAllText(Path.Combine(repoDir, "subfolder", "monfichier.pls"), "");
             
-            var lister = new FileLister(repoDir) {
+            var lister = new SourceFilesLister(repoDir) {
                 SourcePathFilters = new List<OeFilter> {
                     new OeFilter {
                         Exclude = "**((*)).pls"
@@ -238,7 +239,7 @@ namespace Oetools.Builder.Test.Utilities {
         [TestMethod]
         public void Listing_Test_Git_Filter() {
             var repoDir = Path.Combine(TestFolder, "local");
-            var lister = new FileLister(repoDir) {
+            var lister = new SourceFilesLister(repoDir) {
                 UseLastWriteDateComparison = true,
                 PreviousSourceFiles = null,
                 SourcePathFilters = null,
@@ -281,14 +282,14 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(1, lister.GetFileList().Count, "now we get one file");
             Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList()[0].SourcePath, "check that we get what we expect");
             
-            lister.SourcePathGitFilter = new OeBuildConfiguration.OeGitFilter {
-                IncludeOnlyFilesCommittedSinceLastMerge = true,
-                IncludeOnlyModifiedFilesSinceLastCommit = true
+            lister.SourcePathGitFilter = new OeGitFilter {
+                OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true,
+                OnlyIncludeSourceFilesModifiedSinceLastCommit = true
             };
             
             Assert.AreEqual(1, lister.GetFileList().Count, "list one file with git commands instead");
 
-            lister.SourcePathGitFilter.IncludeOnlyModifiedFilesSinceLastCommit = false;
+            lister.SourcePathGitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit = false;
             
             Assert.AreEqual(0, lister.GetFileList().Count, "we don't list files not committed");
             
@@ -316,8 +317,8 @@ namespace Oetools.Builder.Test.Utilities {
             
             Assert.AreEqual(0, lister.GetFileList().Count, "we still don't list files not committed");
 
-            lister.SourcePathGitFilter.IncludeOnlyModifiedFilesSinceLastCommit = true;
-            lister.SourcePathGitFilter.IncludeOnlyFilesCommittedSinceLastMerge = false;
+            lister.SourcePathGitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit = true;
+            lister.SourcePathGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = false;
             
             Assert.AreEqual(2, lister.GetFileList().Count, "but now we do");
             Assert.IsTrue(lister.GetFileList().Exists(f => f.SourcePath.Equals(Path.Combine(repoDir, "new file1"))), "check that we still get full path");
@@ -333,7 +334,7 @@ namespace Oetools.Builder.Test.Utilities {
             
             Assert.AreEqual(0, lister.GetFileList().Count, "now we committed so we don't see them anymore...");
             
-            lister.SourcePathGitFilter.IncludeOnlyFilesCommittedSinceLastMerge = true;
+            lister.SourcePathGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true;
 
             Assert.AreEqual(2, lister.GetFileList().Count, "but now they are commmitted so we should see them with the other filter");
             
@@ -416,13 +417,17 @@ namespace Oetools.Builder.Test.Utilities {
                 Assert.IsNotNull(e);
             }
 
-            lister.SourcePathGitFilter.IncludeOnlyModifiedFilesSinceLastCommit = false;
+            lister.SourcePathGitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit = false;
             
             Assert.AreEqual(1, lister.GetFileList().Count, "we are in detached mode, but on a commit that reference origin/v1/ft/issue1, so we presume we are on this branch and return the list of files modified from this branch to the last merge (which is 1 commit ago on v1/dev)");
 
-            lister.SourcePathGitFilter.GitCurrentBranchName = "v1/ft/issue1";
+            lister.SourcePathGitFilter.CurrentBranchName = "v1/ft/issue1";
             
             Assert.AreEqual(1, lister.GetFileList().Count, "Same thing, but this time we pointed the right branch");
+
+            lister.SourcePathGitFilter.CurrentBranchOriginCommit = "HEAD";
+            
+            Assert.AreEqual(0, lister.GetFileList().Count, "Now we explicitly tell which commit is the first of the branch");
 
         }
     }

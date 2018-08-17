@@ -43,15 +43,18 @@ namespace Oetools.Builder.Utilities {
         }
 
         private ProcessIo GitExe { get; }
-        
+
         /// <summary>
-        /// Returns a list of relative path of all the files that were modified since the given commit until now (HEAD)
+        /// Returns a list of relative path of all the files that were modified since the last merge commit until now (HEAD)
         /// does not return uncommitted file changes
+        /// The last merge commit is the first commit found that has a reference different than the current_branch_name (and different than any ANY_REMOTE/current_branch_name)
         /// </summary>
-        /// <exception cref="GitManagerSingleBranchException"></exception>
+        /// <param name="optionalBranchOriginCommit">specify the commit from which the current branch starts</param>
+        /// <param name="optionalCurrentBranchName"></param>
+        /// <exception cref="GitManagerCantFindMergeCommitException">Exception thrown if the commit can't be found</exception>
         /// <returns></returns>
-        public List<string> GetAllCommittedFilesModifiedSinceLastMerge(string optionalCurrentBranchName = null) {
-            var mergeCommit = GetFirstMergedCommitRefOnCurrentBranch(optionalCurrentBranchName);
+        public List<string> GetAllCommittedFilesExclusiveToCurrentBranch(string optionalBranchOriginCommit = null, string optionalCurrentBranchName = null) {
+            var mergeCommit = optionalBranchOriginCommit ?? GetFirstCommitRefNonExclusiveToCurrentBranch(optionalCurrentBranchName);
             if (string.IsNullOrEmpty(mergeCommit)) {
                 return new List<string>();
             }
@@ -62,23 +65,25 @@ namespace Oetools.Builder.Utilities {
         }
 
         /// <summary>
-        /// From the current HEAD, returns the first commit that was not merged in another branch (the remote of this branch don't count)
+        /// Returns the first commit that has a reference different than the current_branch_name (and different than any ANY_REMOTE/current_branch_name)
+        /// To find the current_branch_name, it either uses the HEAD (if a branch is checked out), or it uses the first non tag reference found for the last commit
+        /// (if a commit is checked out in detached mode)
         /// </summary>
-        /// <exception cref="GitManagerSingleBranchException"></exception>
+        /// <exception cref="GitManagerCantFindMergeCommitException">Exception thrown if the commit can't be found</exception>
         /// <returns></returns>
-        public string GetFirstMergedCommitRefOnCurrentBranch(string optionalCurrentBranchName = null) {
+        public string GetFirstCommitRefNonExclusiveToCurrentBranch(string optionalCurrentBranchName = null) {
             List<string> output;
             try {
                 output = ExecuteGitCommand("log --pretty=\"format:%H %D\" HEAD");
             } catch (Exception e) {
                 if (e.InnerException != null && e.InnerException.Message.Contains("'HEAD'")) {
                     // HEAD doesn't contain any commits
-                    throw new GitManagerSingleBranchException();
+                    throw new GitManagerCantFindMergeCommitException();
                 }
                 throw;
             }
             if (output == null || output.Count <= 0) {
-                throw new GitManagerSingleBranchException();
+                throw new GitManagerCantFindMergeCommitException();
             }
             // the first output contains info on the HEAD
             var firstCommitRefs = output[0].Substring(output[0].IndexOf(' ') + 1);
@@ -89,22 +94,19 @@ namespace Oetools.Builder.Utilities {
                 currentBranch = optionalCurrentBranchName ?? firstCommitRef.Substring(firstCommitRef.IndexOf("-> ", StringComparison.CurrentCultureIgnoreCase) + 3).Trim();
             } else {
                 // we are in detached mode commitRef = "HEAD", we are on no branch so obviously we can't find the commit on this non existing branch
-                if (string.IsNullOrEmpty(optionalCurrentBranchName)) {
-                    var split = firstCommitRefs.Split(',').ToList();
-                    for (int j = 1; j < split.Count; j++) {
-                        var idx = split[j].IndexOf('/');
-                        if (idx > 0 && idx + 1 < split[j].Length && !split[j].StartsWith("tag: ")) {
-                            currentBranch = split[j].Substring(idx + 1);
-                            break;
-                        }
+                var split = firstCommitRefs.Split(',').ToList();
+                for (int j = 1; j < split.Count; j++) {
+                    var idx = split[j].IndexOf('/');
+                    if (idx > 0 && idx + 1 < split[j].Length && !split[j].StartsWith("tag: ")) {
+                        currentBranch = split[j].Substring(idx + 1);
+                        break;
                     }
-                    if (string.IsNullOrEmpty(currentBranch)) {
-                        // otherwise we will just list all committed files in the repo
-                        throw new GitManagerSingleBranchException();
-                    }
-                } else {
-                    currentBranch = optionalCurrentBranchName;
                 }
+                currentBranch = optionalCurrentBranchName ?? currentBranch;
+            }
+            if (string.IsNullOrEmpty(currentBranch)) {
+                // if we don't know on which we are, we can never find the first merge commit
+                throw new GitManagerCantFindMergeCommitException();
             }
             // then we browse every commit and try to deduce if it only belongs to this branch or was merged elsewhere
             int i;
@@ -131,7 +133,8 @@ namespace Oetools.Builder.Utilities {
                 }
             }
             if (i >= output.Count) {
-                throw new GitManagerSingleBranchException();
+                // this branch has never been merged, there are not other references in all the branch commits
+                throw new GitManagerCantFindMergeCommitException();
             }
             return output[i].Substring(0, output[i].IndexOf(' '));
         }

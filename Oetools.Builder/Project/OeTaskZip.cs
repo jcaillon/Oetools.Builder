@@ -6,13 +6,13 @@ namespace Oetools.Builder.Project {
     [Serializable]
     public class OeTaskZip : OeTaskOnFileArchive {
         
-        [XmlAttribute("TargetZipPath")]
+        [XmlAttribute("TargetZipFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public string TargetZipPath { get; set; }
+        public string TargetZipFilePath { get; set; }
         
         [XmlElement(ElementName = "ArchivesCompressionLevel")]
-        public OeCompressionLevel ArchivesCompressionLevel { get; set; }
+        public OeCompressionLevel? ArchivesCompressionLevel { get; set; }
         
-        public override string GetTargetArchive() => TargetZipPath;
+        public override string GetTargetArchive() => TargetZipFilePath;
     }
 }

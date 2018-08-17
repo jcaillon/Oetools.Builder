@@ -8,7 +8,7 @@ namespace Oetools.Builder.Project {
         [XmlAttribute("Name")]
         public string Name { get; set; }
             
-        [XmlText]
+        [XmlAttribute("Value")]
         public string Value { get; set; }
     }
 }

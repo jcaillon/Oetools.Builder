@@ -49,88 +49,26 @@ namespace Oetools.Builder.Project {
         public const string SchemaLocation = XsdName;
             
         [XmlAttribute("Name")]
-        [ReplaceVariables(SkipReplace = true)]
         public string ConfigurationName { get; set; }
         
-        [XmlElement("OverloadProjectProperties")]
+        [XmlElement("OverloadProperties")]
         [DeepCopy(Ignore = true)]
         public OeProjectProperties Properties { get; set; }
             
         /// <summary>
-        /// Default variables are added by the builder, see <see cref="Builder.AddDefaultVariables"/>
+        /// Default variables are added by the builder, see <see cref="ApplyVariables"/>
         /// </summary>
         [XmlArray("BuildVariables")]
         [XmlArrayItem("Variable", typeof(OeVariable))]
         [ReplaceVariables(SkipReplace = true)]
         public List<OeVariable> Variables { get; set; }
-            
-        [XmlElement(ElementName = "OutputDirectoryPath")]
-        public string OutputDirectoryPath { get; set; } = Path.Combine("<SOURCE_DIRECTORY>", "bin");
-
-        [XmlElement(ElementName = "ReportFilePath")]
-        public string ReportFilePath { get; set; } = Path.Combine("<PROJECT_DIRECTORY>", "build", "latest.html");
-            
-        [XmlElement(ElementName = "BuildHistoryOutputFilePath")]
-        public string BuildHistoryOutputFilePath { get; set; } = Path.Combine("<PROJECT_DIRECTORY>", "build", "latest.xml");
-            
-        [XmlElement(ElementName = "BuildHistoryInputFilePath")]
-        public string BuildHistoryInputFilePath { get; set; } = Path.Combine("<PROJECT_DIRECTORY>", "build", "latest.xml");
-                                    
-        [XmlElement("CompilationOptions")]
-        public OeCompilationOptions CompilationOptions { get; set; }
-            
-        [XmlElement("BuildOptions")]
-        public OeBuildOptions BuildOptions { get; set; }
-            
-        /// <summary>
-        /// Allows to exclude path from being treated by <see cref="BuildSourceTasks"/>
-        /// </summary>
-        [XmlArray("SourcePathFilters")]
-        [XmlArrayItem("Filter", typeof(OeFilter))]
-        [XmlArrayItem("FilterRegex", typeof(OeFilterRegex))]
-        public List<OeFilter> SourcePathFilters { get; set; }
-        
-        /// <summary>
-        /// Use this to apply GIT filters to your <see cref="BuildSourceTasks"/>
-        /// Obviously, you need GIT installed and present in your OS path
-        /// </summary>
-        [XmlElement("SourcePathGitFilter")]
-        public OeGitFilter SourcePathGitFilter { get; set; }
-
-        [Serializable]
-        public class OeGitFilter {
-            
-            /// <summary>
-            /// If true, only the files that were modified since the last commit will be elligible for the <see cref="BuildSourceTasks"/>
-            /// (this include files in staging area and untracked files in the working directory)
-            /// </summary>
-            [XmlAttribute(AttributeName = "IncludeOnlyModifiedFilesSinceLastCommit")]
-            public bool IncludeOnlyModifiedFilesSinceLastCommit { get; set; }
-            
-            /// <summary>
-            /// If true, only the committed files that were committed between HEAD and LAST_MERGE will be elligible for the <see cref="BuildSourceTasks"/>
-            /// LAST_MERGE is found automatically, it is the first commit that has a reference different than CURRENT_BRANCH_NAME and ANY_REMOTE/CURRENT_BRANCH_NAME
-            /// </summary>
-            [XmlAttribute(AttributeName = "IncludeOnlyFilesCommittedSinceLastMerge")]
-            public bool IncludeOnlyFilesCommittedSinceLastMerge { get; set; }
-            
-            /// <summary>
-            /// In detached mode, the CURRENT_BRANCH_NAME is not defined, you can set this value to the branch name to use for the option <see cref="IncludeOnlyFilesCommittedSinceLastMerge"/>
-            /// This can be useful in CI builds where the CI checks out a repo in detached mode (it checks out a commit)
-            /// </summary>
-            /// <remarks>
-            /// By default, if in detached mode, this tool tries to deduce the current branch by checking the first remote reference of the currently checked out commit
-            /// </remarks>
-            [XmlAttribute(AttributeName = "GitCurrentBranchName")]
-            public string GitCurrentBranchName { get; set; }
-        }
         
         /// <summary>
         /// This list of tasks can include any file
         /// </summary>
         [XmlArray("PreBuildTasks")]
-        [XmlArrayItem("Step", typeof(OeBuildStep))]
-        public List<OeBuildStep> PreBuildTasks { get; set; }
+        [XmlArrayItem("Step", typeof(OeBuildStepClassic))]
+        public List<OeBuildStepClassic> PreBuildTasks { get; set; }
 
         /// <summary>
         /// This list of tasks can only include files located in the source directory
@@ -143,87 +81,76 @@ namespace Oetools.Builder.Project {
         /// This list of tasks can only include files located in the output directory
         /// </summary>
         [XmlArray("BuildOutputTasks")]
-        [XmlArrayItem("Step", typeof(OeBuildStep))]
-        public List<OeBuildStep> BuildOutputTasks { get; set; }
+        [XmlArrayItem("Step", typeof(OeBuildStepClassic))]
+        public List<OeBuildStepClassic> BuildOutputTasks { get; set; }
         
         /// <summary>
         /// This list of tasks can include any file
         /// </summary>
         [XmlArray("PostBuildTasks")]
-        [XmlArrayItem("Step", typeof(OeBuildStep))]
-        public List<OeBuildStep> PostBuildTasks { get; set; }
+        [XmlArrayItem("Step", typeof(OeBuildStepClassic))]
+        public List<OeBuildStepClassic> PostBuildTasks { get; set; }
+        
+        /// <summary>
+        /// Set default values for certain properties if they are null
+        /// </summary>
+        public void SetDefaultValuesWhenNeeded() {
+            Properties = Properties ?? new OeProjectProperties();
+            Properties.SetDefaultValuesWhenNeeded();
             
-        [Serializable]
-        public class OeCompilationOptions {
-
-            [XmlElement(ElementName = "CompileWithDebugList")]
-            public bool CompileWithDebugList { get; set; }
-
-            [XmlElement(ElementName = "CompileWithXref")]
-            public bool CompileWithXref { get; set; }
-
-            [XmlElement(ElementName = "CompileWithListing")]
-            public bool CompileWithListing { get; set; }
-
-            [XmlElement(ElementName = "CompileWithPreprocess")]
-            public bool CompileWithPreprocess { get; set; }
-
-            [XmlElement(ElementName = "UseCompilerMultiCompile")]
-            public bool UseCompilerMultiCompile { get; set; }
-
-            /// <summary>
-            /// only since 11.7 : require-full-names, require-field-qualifiers, require-full-keywords
-            /// </summary>
-            [XmlElement(ElementName = "CompileOptions")]
-            public bool CompileOptions { get; set; }
-
-            /// <summary>
-            /// Force the usage of a temporary Directory to compile the .r code files
-            /// </summary>
-            [XmlElement(ElementName = "CompileForceUsageOfTemporaryDirectory")]
-            public bool CompileForceUsageOfTemporaryDirectory { get; set; }
-
-            [XmlElement(ElementName = "CompilableFilePattern")]
-            public string CompilableFilePattern { get; set; }
-                
-            [XmlElement(ElementName = "CompileForceSingleProcess")]
-            public bool CompileForceSingleProcess { get; set; }
-
-            [XmlElement(ElementName = "CompileNumberProcessPerCore")]
-            public byte CompileNumberProcessPerCore { get; set; }
-
-            [XmlElement(ElementName = "CompileMinimumNumberOfFilesPerProcess")]
-            public int CompileMinimumNumberOfFilesPerProcess { get; set; }
-            
-            [XmlElement(ElementName = "UseSimplerAnalysisForDatabaseReference")]
-            public bool UseSimplerAnalysisForDatabaseReference { get; set; }
+            // add a default configuration that build all files next to their respective source file
+            BuildSourceTasks = BuildSourceTasks ?? new List<OeBuildStepCompile>();
+            if (BuildSourceTasks.Count == 0) {
+                BuildSourceTasks.Add(null);
+            }
+            BuildSourceTasks[0] = BuildSourceTasks[0] ?? new OeBuildStepCompile {
+                Label = "Compile all files next to source",
+                Tasks = new List<OeTask> {
+                    new OeTaskCompile {
+                        Include = "((**))*",
+                        TargetDirectory = "<1>"
+                    }
+                }
+            };
         }
             
-        [Serializable]
-        public class OeBuildOptions {
-                
-            /// <summary>
-            /// If false, there will be no analyze of compiled files (ref tables/files), no storage
-            /// of the build history after the build, no computation of MD5 nor comparison of date/size of files
-            /// </summary>
-            [XmlElement(ElementName = "EnableDifferentialBuild")]
-            public bool EnableDifferentialBuild { get; set; }
-                
-            /// <summary>
-            /// True if the tool should use a checksum (md5) for each file to figure out if it has changed
-            /// </summary>
-            [XmlElement(ElementName = "StoreSourceHash")]
-            public bool StoreSourceHash { get; set; }
+        /// <summary>
+        /// Add the default variables and apply the variables on all public properties of type string
+        /// </summary>
+        /// <param name="sourceDirectory"></param>
+        /// <exception cref="Exception"></exception>
+        /// <exception cref="BuildVariableException"></exception>
+        /// <exception cref="BuildConfigurationException"></exception>
+        public void ApplyVariables(string sourceDirectory) {
+            // add some default variables
+            if (!string.IsNullOrEmpty(sourceDirectory)) {
+                Variables.Add(new OeVariable { Name = "SOURCE_DIRECTORY", Value = sourceDirectory });    
+                Variables.Add(new OeVariable { Name = "PROJECT_DIRECTORY", Value = Path.Combine(sourceDirectory, ".oe") });                
+                Variables.Add(new OeVariable { Name = "PROJECT_LOCAL_DIRECTORY", Value = Path.Combine(sourceDirectory, ".oe", "local") });                 
+            }             
+            Variables.Add(new OeVariable { Name = "DLC", Value = Properties.DlcDirectoryPath });  
+            Variables.Add(new OeVariable { Name = "OUTPUT_DIRECTORY", Value = Properties.OutputDirectoryPath });  
+            Variables.Add(new OeVariable { Name = "CONFIGURATION_NAME", Value = ConfigurationName });
+            try {
+                Variables.Add(new OeVariable { Name = "WORKING_DIRECTORY", Value = Directory.GetCurrentDirectory() });
+            } catch (Exception e) {
+                throw new BuildConfigurationException("Failed to get the current directory (check permissions)", e);
+            }
+            // extra variable FILE_SOURCE_DIRECTORY defined only when computing targets
             
-            /// <summary>
-            /// If a source file has been deleted since the last build, should we try to delete it in the output directory
-            /// if it still exists?
-            /// </summary>
-            [XmlElement(ElementName = "MirrorDeletedSourceFileToOutput")]
-            public bool MirrorDeletedSourceFileToOutput { get; set; }
+            // apply variables on variables
+            BuilderUtilities.ApplyVariablesInVariables(Variables);
+            
+            // apply variables in all public string properties
+            BuilderUtilities.ApplyVariablesToProperties(this, Variables);  
         }
-
-        public void Validate() {
+            
+        /// <summary>
+        /// Recursively validates that the build configuration is correct
+        /// </summary>
+        /// <exception cref="Exception"></exception>
+        /// <exception cref="BuildConfigurationException"></exception>
+        public void ValidateAllTasks() {
             ValidateStepsList(PreBuildTasks, nameof(PreBuildTasks));
             ValidateStepsList(BuildSourceTasks, nameof(BuildSourceTasks));
             ValidateStepsList(BuildOutputTasks, nameof(BuildOutputTasks));
@@ -250,21 +177,8 @@ namespace Oetools.Builder.Project {
             }
         }
 
-        public void SanitizePathInPublicProperties() {
-            //OutputDirectoryPath = OutputDirectoryPath.ToCleanPath();
-            //BuildHistoryInputFilePath = BuildHistoryInputFilePath.ToCleanPath();
-            //BuildHistoryOutputFilePath = BuildHistoryOutputFilePath.ToCleanPath();
-            //ReportFilePath = ReportFilePath.ToCleanPath();
-            //Properties.DlcDirectoryPath = Properties.DlcDirectoryPath.ToCleanPath();
-            Utils.ForEachPublicPropertyStringInObject(typeof(OeBuildConfiguration), this, (propInfo, value) => {
-                if (!propInfo.Name.Contains("Path")) {
-                    return value;
-                }
-                if (string.IsNullOrEmpty(value)) {
-                    return value;
-                }
-                return value.ToCleanPath();
-            });
+        public override string ToString() {
+            return $"{(string.IsNullOrEmpty(ConfigurationName) ? "unnamed configuration" : $"configuration {ConfigurationName.PrettyQuote()}")}";
         }
     }
 

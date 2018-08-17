@@ -3,13 +3,14 @@ using System.Xml.Serialization;
 using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.Project {
+    
     [Serializable]
     public class OeTaskProlib : OeTaskOnFileArchive {
         
-        [XmlAttribute("TargetProlibPath")]
+        [XmlAttribute("TargetProlibFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public string TargetProlibPath { get; set; }
+        public string TargetProlibFilePath { get; set; }
         
-        public override string GetTargetArchive() => TargetProlibPath;
+        public override string GetTargetArchive() => TargetProlibFilePath;
     }
 }

@@ -41,20 +41,24 @@ namespace Oetools.Builder.Utilities {
         /// <exception cref="BuildVariableException"></exception>
         public static void ApplyVariablesInVariables(List<OeVariable> variables) {
             foreach (var variable in variables) {
-                variable.Value = variable.Value.ReplacePlaceHolders(s => {
-                    if (s.EqualsCi(variable.Name)) {
-                        throw new BuildVariableException(variable, $"A variable must not reference itself : {variable.Name.PrettyQuote()}");
-                    }
-                    return GetVariableValue(s, variables, string.Empty);
-                });
+                try {
+                    variable.Value = variable.Value.ReplacePlaceHolders(s => {
+                        if (s.EqualsCi(variable.Name)) {
+                            throw new BuildVariableException(variable, "A variable must not reference itself");
+                        }
+                        return GetVariableValue(s, variables, string.Empty);
+                    });
+                } catch (Exception e) {
+                    throw new BuildVariableException(variable, $"Variable definition error : {e.Message}");
+                }
             }
-        }        
+        }
 
         /// <summary>
         /// Browse all the string properties of this class (and its children) and replace
         /// placeholders like &lt;&gt; by their variable values
         /// </summary>
-        /// <exception cref="BuildVariableException"></exception>
+        /// <exception cref="Exception"></exception>
         public static void ApplyVariablesToProperties<T>(T instance, List<OeVariable> variables) {
             
             // now for each property, we might want to replace the place holders by their values
@@ -64,9 +68,13 @@ namespace Oetools.Builder.Utilities {
                     return value;
                 }
 
-                var attr = Attribute.GetCustomAttribute(propInfo, typeof(ReplaceVariables), true) as ReplaceVariables;
-                if (attr == null || !attr.SkipReplace) {
-                    return value.ReplacePlaceHolders(s => GetVariableValue(s, variables, attr == null || !attr.LeaveUnknownUntouched ? string.Empty : null));
+                try {
+                    var attr = Attribute.GetCustomAttribute(propInfo, typeof(ReplaceVariables), true) as ReplaceVariables;
+                    if (attr == null || !attr.SkipReplace) {
+                        return value.ReplacePlaceHolders(s => GetVariableValue(s, variables, attr == null || !attr.LeaveUnknownUntouched ? string.Empty : null));
+                    }
+                } catch (Exception e) {
+                    throw new Exception($"Error replacing variables for {propInfo.GetXmlName()} : {e.Message}", e);
                 }
                 return value;
             });

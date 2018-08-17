@@ -11,7 +11,6 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project {
     
-   
     public abstract class OeTaskOnFileArchive : OeTaskOnFile, ITaskArchive {
             
         /// <summary>

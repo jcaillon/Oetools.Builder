@@ -8,11 +8,13 @@ namespace Oetools.Builder.Utilities {
     /// and wether or not it should be replaced by an empty string (or left as is) if the variable value is not found
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class ReplaceVariables : ReplaceStringProperty {
-            
-        /// <summary>
-        /// Replace unknown values by an empty string
-        /// </summary>
-        public bool LeaveUnknownUntouched { get; set;  }
+    public class BaseDirectory : ReplaceStringProperty {
+
+        public BaseDirectoryType Type { get; set; }
+    }
+
+    public enum BaseDirectoryType {
+        SourceDirectory,
+        OutputDirectory
     }
 }

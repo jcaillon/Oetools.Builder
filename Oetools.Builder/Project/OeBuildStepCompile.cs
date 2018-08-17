@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace Oetools.Builder.Project {
+    
     [Serializable]
     public class OeBuildStepCompile : OeBuildStep {
                 
@@ -18,6 +19,8 @@ namespace Oetools.Builder.Project {
         [XmlArrayItem("Zip", typeof(OeTaskZip))]
         [XmlArrayItem("Cab", typeof(OeTaskCab))]
         [XmlArrayItem("UploadFtp", typeof(OeTaskFtp))]
-        public override List<OeTask> Tasks { get; set; }
+        public List<OeTask> Tasks { get; set; }
+
+        public override List<OeTask> GetTaskList() => Tasks;
     }
 }

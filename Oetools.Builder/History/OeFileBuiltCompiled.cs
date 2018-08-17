@@ -1,27 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
+using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.History {
     [Serializable]
     public class OeFileBuiltCompiled : OeFileBuilt {
-        
+        public OeFileBuiltCompiled() { }
+
         public OeFileBuiltCompiled(OeFile sourceFile) : base(sourceFile) { }
             
         /// <summary>
-        /// Represents the source file (i.e. includes) used to generate a given .r code file
+        /// Represents all the source files that were used when compiling the original source file
+        /// (for instance includes or interfaces)
         /// </summary>
         [XmlArray("RequiredFiles")]
-        [XmlArrayItem("RequiredFile", typeof(OeFile))]
-        public List<OeFile> RequiredFiles { get; set; }
+        [XmlArrayItem("RequiredFile", typeof(string))]
+        [BaseDirectory(Type = BaseDirectoryType.SourceDirectory)]
+        public List<string> RequiredFiles { get; set; }
 
         /// <summary>
-        ///     represent the tables that were referenced in a given .r code file
+        /// Represents all the database entities referenced in the original source file and used for the compilation
+        /// (can be sequences or tables)
         /// </summary>
         [XmlArray("RequiredDatabaseReferences")]
         [XmlArrayItem("Table", typeof(OeDatabaseReferenceTable))]
         [XmlArrayItem("Sequence", typeof(OeDatabaseReferenceSequence))]
-        public List<OeDatabaseReference> RequiredTables { get; set; }
+        [BaseDirectory(SkipReplace = true)]
+        public List<OeDatabaseReference> RequiredDatabaseReferences { get; set; }
         
     }
 }

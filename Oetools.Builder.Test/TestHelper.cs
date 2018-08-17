@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Oetools.Utilities.Openedge;
 
 namespace Oetools.Builder.Test {
@@ -56,5 +57,15 @@ namespace Oetools.Builder.Test {
             stopwatch.Stop();
             return stopwatch.Elapsed;
         }
+        
+        
+        public static IEnumerable<Type> GetTypesInNamespace(string assembly, string nameSpace) {
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .Where(a => assembly == null || a.FullName.StartsWith(assembly))
+                .SelectMany(t => t.GetTypes())
+                .Where(t => t.Namespace?.StartsWith(nameSpace, StringComparison.OrdinalIgnoreCase) ?? false);
+        }
+        
+        public static bool CanBeNull(Type type) => !type.IsValueType || Nullable.GetUnderlyingType(type) != null || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
     }
 }

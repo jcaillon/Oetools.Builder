@@ -22,6 +22,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
+using Oetools.Builder.Utilities;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.History {
     
@@ -31,25 +33,28 @@ namespace Oetools.Builder.History {
         
         #region static
 
-        public static OeBuildHistory Load(string path) {
+        public static OeBuildHistory Load(string path, string sourceDirectory, string outputDirectory) {
             OeBuildHistory xml;
             var serializer = new XmlSerializer(typeof(OeBuildHistory));
             using (var reader = new StreamReader(path)) {
                 xml = (OeBuildHistory) serializer.Deserialize(reader);
             }
+            xml.ToAbsolutePath(sourceDirectory, outputDirectory);
             return xml;
         }
 
-        public static void Save(OeBuildHistory xml, string path) {
+        public static void Save(OeBuildHistory xml, string path, string sourceDirectory, string outputDirectory) {
+            xml.ToRelativePath(sourceDirectory, outputDirectory);
             var serializer = new XmlSerializer(typeof(OeBuildHistory));
             using (TextWriter writer = new StreamWriter(path, false)) {
                 serializer.Serialize(writer, xml);
             }
         }
-
+        
         #endregion
 
         [XmlElement(ElementName = "PackageInfo")]
+        [BaseDirectory(SkipReplace = true)]
         public List<OeWebclientPackage> WebclientPackageInfo { get; set; }
 
         /// <summary>
@@ -64,5 +69,49 @@ namespace Oetools.Builder.History {
         [XmlArrayItem("Error", typeof(OeOeCompilationError))]
         [XmlArrayItem("Warning", typeof(OeCompilationWarning))]
         public List<OeCompilationProblem> CompilationProblems { get; set; }
+        
+        /// <summary>
+        /// Converts certain public string property (representing path) into relative path
+        /// </summary>
+        /// <param name="sourceDirectory"></param>
+        /// <param name="outputDirectory"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public void ToRelativePath(string sourceDirectory, string outputDirectory) {
+            Utils.ForEachPublicPropertyStringInObject(typeof(OeBuildHistory), this, (propInfo, value) => {
+                if (!(Attribute.GetCustomAttribute(propInfo, typeof(BaseDirectory), true) is BaseDirectory attr)) {
+                    return value;
+                }
+                switch (attr.Type) {
+                    case BaseDirectoryType.SourceDirectory:
+                        return value.FromAbsolutePathToRelativePath(sourceDirectory);
+                    case BaseDirectoryType.OutputDirectory:
+                        return value.FromAbsolutePathToRelativePath(outputDirectory);
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            });
+        }
+        
+        /// <summary>
+        /// Converts certain public string property (representing path) into absolute path
+        /// </summary>
+        /// <param name="sourceDirectory"></param>
+        /// <param name="outputDirectory"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public void ToAbsolutePath(string sourceDirectory, string outputDirectory) {
+            Utils.ForEachPublicPropertyStringInObject(typeof(OeBuildHistory), this, (propInfo, value) => {
+                if (!(Attribute.GetCustomAttribute(propInfo, typeof(BaseDirectory), true) is BaseDirectory attr)) {
+                    return value;
+                }
+                switch (attr.Type) {
+                    case BaseDirectoryType.SourceDirectory:
+                        return Path.Combine(sourceDirectory, value.ToCleanPath());
+                    case BaseDirectoryType.OutputDirectory:
+                        return Path.Combine(outputDirectory, value.ToCleanPath());
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            });
+        }
     }
 }

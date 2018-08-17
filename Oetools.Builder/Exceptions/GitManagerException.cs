@@ -24,5 +24,5 @@ namespace Oetools.Builder.Exceptions {
     public class GitManagerException : Exception {
         
     }
-    public class GitManagerSingleBranchException : GitManagerException {}
+    public class GitManagerCantFindMergeCommitException : GitManagerException {}
 }

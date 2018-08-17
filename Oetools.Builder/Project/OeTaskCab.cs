@@ -8,13 +8,13 @@ namespace Oetools.Builder.Project {
     [XmlRoot("Cab")]
     public class OeTaskCab : OeTaskOnFileArchive {
         
-        [XmlAttribute("TargetCabPath")]
+        [XmlAttribute("TargetCabFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public string TargetCabPath { get; set; }
+        public string TargetCabFilePath { get; set; }
         
         [XmlElement(ElementName = "ArchivesCompressionLevel")]
-        public OeCompressionLevel ArchivesCompressionLevel { get; set; }
+        public OeCompressionLevel? ArchivesCompressionLevel { get; set; }
 
-        public override string GetTargetArchive() => TargetCabPath;
+        public override string GetTargetArchive() => TargetCabFilePath;
     }
 }

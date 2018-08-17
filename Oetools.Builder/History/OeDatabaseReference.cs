@@ -17,20 +17,48 @@
 // along with Oetools.Utilities. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
+using System;
+using System.Xml.Serialization;
+using Oetools.Utilities.Openedge;
+
 namespace Oetools.Builder.History {
     
     /// <summary>
     /// Represent the tables or sequences that were referenced in a given .r code file and thus needed to compile
     /// also, if one reference changes, the file should be recompiled
     /// </summary>
+    [Serializable]
     public class OeDatabaseReference {
-        public virtual string QualifiedName { get; set; }
+
+        public static OeDatabaseReference New(DatabaseReference dbReference) {
+            switch (dbReference) {
+                case DatabaseReferenceSequence sequence:
+                    return new OeDatabaseReferenceSequence {
+                        QualifiedName = sequence.QualifiedName
+                    };
+                case DatabaseReferenceTable table:
+                    return new OeDatabaseReferenceTable {
+                        QualifiedName = table.QualifiedName,
+                        Crc = table.Crc
+                    };
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        [XmlAttribute(AttributeName = "QualifiedName")]
+        public string QualifiedName { get; set; }
     }
     
+    [Serializable]
     public class OeDatabaseReferenceSequence : OeDatabaseReference {
     }
     
+    [Serializable]
     public class OeDatabaseReferenceTable : OeDatabaseReference {
-        public virtual string Crc { get; set; }
+        
+        [XmlAttribute(AttributeName = "Crc")]
+        public string Crc { get; set; }
     }
 }

@@ -10,6 +10,7 @@ using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project {
+
     public abstract class OeTaskOnFile : OeTask, ITaskExecuteOnFile {
         
         /// <summary>

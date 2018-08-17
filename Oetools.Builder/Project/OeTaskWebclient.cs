@@ -56,7 +56,7 @@ namespace Oetools.Builder.Project {
         /// If null, all the files in the root path will be added to a default component named as <see cref="ApplicationVersion"/>
         /// </summary>
         [XmlArray("Components")]
-        [XmlArrayItem("Component", typeof(string))]
+        [XmlArrayItem("Component", typeof(OeWebclientComponent))]
         public List<OeWebclientComponent> Components { get; set; }
 
         [Serializable]
@@ -80,28 +80,28 @@ namespace Oetools.Builder.Project {
         
         public void Execute() => throw new NotImplementedException();
         
-        public OeWebclientPackage GetWebclientPackageResult => throw new NotImplementedException();
+        public OeWebclientPackage GetWebclientPackageResult() => throw new NotImplementedException();
             
         internal class DiffCab {
             /// <summary>
             ///     1
             /// </summary>
-            public int VersionToUpdateFrom { get; set; }
+            internal int VersionToUpdateFrom { get; set; }
 
             /// <summary>
             ///     2
             /// </summary>
-            public int VersionToUpdateTo { get; set; }
+            internal int VersionToUpdateTo { get; set; }
 
             /// <summary>
             ///     $TARGET/wcp/new-10-02/diffs/new1to2.cab
             /// </summary>
-            public string CabPath { get; set; }
+            internal string CabPath { get; set; }
 
             /// <summary>
             ///     $REFERENCE/wcp/new-10-02/diffs/new1to2.cab
             /// </summary>
-            public string ReferenceCabPath { get; set; }
+            internal string ReferenceCabPath { get; set; }
 
             /// <summary>
             ///     $TARGET/wcp/new-10-02/diffs/new1to2
@@ -111,7 +111,7 @@ namespace Oetools.Builder.Project {
             /// <summary>
             ///     List of all the files that were deployed in the clientNWK since this VersionToUpdateFrom
             /// </summary>
-            public List<OeFileBuilt> FilesDeployedInNwkSincePreviousVersion { get; set; }
+            internal List<OeFileBuilt> FilesDeployedInNwkSincePreviousVersion { get; set; }
 
         }
     }

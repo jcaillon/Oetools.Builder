@@ -16,7 +16,7 @@ namespace Oetools.Builder.Project {
         public List<OeVariable> Variables { get; set; }
         
         [XmlElement(ElementName = "ArchivesCompressionLevel")]
-        public OeCompressionLevel ArchivesCompressionLevel { get; set; }
+        public OeCompressionLevel? ArchivesCompressionLevel { get; set; }
         
         [XmlArray("Tasks")]
         [XmlArrayItem("Copy", typeof(OeTaskCopy))]

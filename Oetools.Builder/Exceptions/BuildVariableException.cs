@@ -20,17 +20,21 @@
 
 using System;
 using Oetools.Builder.Project;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Exceptions {
     public class BuildVariableException : Exception {
         
         public OeVariable Variable { get; }
-        
+
+        public override string Message => $"Error in variable {Variable.Name.PrettyQuote()} : {base.Message}";
+
         public BuildVariableException(OeVariable variable, string message) : base(message) {
             Variable = variable;
         }
         public BuildVariableException(OeVariable variable, string message, Exception innerException) : base(message, innerException) {
             Variable = variable;
         }
+        
     }
 }
