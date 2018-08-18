@@ -66,7 +66,7 @@ namespace Oetools.Builder.Test.Project {
 
             var prop = new OeProjectProperties {
                 PropathEntries = !Utils.IsRuntimeWindowsPlatform ? null : new List<string> {
-                    "<DLC>",
+                    "{{DLC}}",
                     "C:\\Windows\\System32",
                     "C:\\Windows\\System32\\drivers",
                     "test1"
@@ -81,7 +81,7 @@ namespace Oetools.Builder.Test.Project {
 
             var list = prop.GetPropath(TestFolder, false);
             Assert.AreEqual(2 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
-            Assert.IsTrue(list.Exists(s => s.Equals(Environment.GetEnvironmentVariable("dlc"))));
+            Assert.IsTrue(list.Exists(s => s.Equals(Environment.GetEnvironmentVariable("dlc").ToCleanPath())));
 
             prop.AddAllSourceDirectoriesToPropath = true;
             

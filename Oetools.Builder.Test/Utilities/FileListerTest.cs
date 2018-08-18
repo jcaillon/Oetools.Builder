@@ -53,6 +53,50 @@ namespace Oetools.Builder.Test.Utilities {
 
 
         [TestMethod]
+        public void FilterSourceFiles_Test() {
+            var lister = new SourceFilesLister("sourcedir");
+
+            var files = new List<OeFile> {
+                new OeFile(@"sourcedir\.git\file1"),
+                new OeFile(@"sourcedir\.git\subfolder\file2"),
+                new OeFile(@"sourcedir\.svn\subfolder\file2"),
+                new OeFile(@"sourcedir\legitfile1"),
+                new OeFile(@"sourcedir\sub\legitfile2")
+            };
+            
+            Assert.AreEqual(2, lister.FilterSourceFiles(files).Count(), "the default filters should catch .git and .svn");
+
+            lister.SourcePathFilters = new List<OeFilter> {
+                new OeFilter {
+                    Exclude = @"**\legit*1"
+                }
+            };
+            
+            Assert.AreEqual(1, lister.FilterSourceFiles(files).Count(), "filter file1");
+
+            lister.SourcePathFilters = new List<OeFilter> {
+                new OeFilterRegex {
+                    Exclude = ".*[fF](ile)?2"
+                }
+            };
+            
+            
+            Assert.AreEqual(1, lister.FilterSourceFiles(files).Count(), "file2");
+
+            lister.SourcePathFilters = new List<OeFilter> {
+                new OeFilter {
+                    Exclude = @"**\legit*1"
+                },
+                new OeFilterRegex {
+                    Exclude = ".*[fF](ile)?2"
+                }
+            };
+            
+            Assert.AreEqual(0, lister.FilterSourceFiles(files).Count(), "all filtered");
+
+        }
+
+        [TestMethod]
         public void ClassicListing_Test_File_State_other() {
             var repoDir = Path.Combine(TestFolder, "test_state");
             

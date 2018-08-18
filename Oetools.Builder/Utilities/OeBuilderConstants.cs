@@ -21,7 +21,22 @@
 namespace Oetools.Builder.Utilities {
     public static class OeBuilderConstants {
 
-        public const string ExtraSourceDirectoryExclusions = ".git;.svn";
-
+        public const string ExtraSourceDirectoryExclusions = ".git**;.svn**";
+        
+        public const string CompilableExtensionsPattern = "*.p;*.w;*.t;*.cls";
+        
+        public const string OeProjectExtension = ".oeproj";
+        
+        public const string OeProjectDirectory = ".oe";
+        public const string OeProjectLocalDirectory = "local";
+        
+        public const string OeVarNameSourceDirectory = "SOURCE_DIRECTORY";
+        public const string OeVarNameProjectDirectory = "PROJECT_DIRECTORY";
+        public const string OeVarNameProjectLocalDirectory = "PROJECT_LOCAL_DIRECTORY";
+        public const string OeVarNameOutputDirectory = "OUTPUT_DIRECTORY";
+        public const string OeVarNameConfigurationName = "CONFIGURATION_NAME";
+        public const string OeVarNameWorkingDirectory = "WORKING_DIRECTORY";
+        public const string OeVarNameFileSourceDirectory = "FILE_SOURCE_DIRECTORY";
+        
     }
 }

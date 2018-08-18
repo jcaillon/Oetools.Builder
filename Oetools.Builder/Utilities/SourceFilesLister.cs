@@ -32,7 +32,6 @@ using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
-using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Utilities {
     
@@ -94,6 +93,16 @@ namespace Oetools.Builder.Utilities {
             // add all previous source files that are now missing
             output.AddRange(GetDeletedFileList(listedFiles));
             return output;
+        }
+
+        /// <summary>
+        /// Returns a list of directories in the <see cref="SourceDirectory"/>, considering all the filter options in this class
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public List<string> GetDirectoryList() {
+            List<string> propathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(SourcePathFilters);
+            return Utils.EnumerateAllFolders(SourceDirectory, SearchOption.AllDirectories, propathExcludeRegexStrings).ToList();
         }
 
         /// <summary>
@@ -210,7 +219,7 @@ namespace Oetools.Builder.Utilities {
         /// </summary>
         /// <returns></returns>
         private HashSet<string> GetBaseFileList() {
-            var sourcePathExcludeRegexStrings = OeFilter.GetExclusionRegexStringsFromFilters(SourcePathFilters, SourceDirectory);
+            var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(SourcePathFilters);
             return Utils.EnumerateAllFiles(SourceDirectory, SearchOption.AllDirectories, sourcePathExcludeRegexStrings)
                 .ToHashSet(new HashSet<string>(StringComparer.CurrentCultureIgnoreCase));
         }
@@ -241,15 +250,13 @@ namespace Oetools.Builder.Utilities {
                 }
             }
             
-            var sourcePathExcludeRegexStrings = OeFilter.GetExclusionRegexStringsFromFilters(SourcePathFilters, null, null)?.Select(r => new Regex(r)).ToList();
-            
             // Git returns relative path, convert them into absolute path, 
             // it can also return deleted files, keep only existing files
             // finally, apply the exclusion filter
             return output
                 .Select(s => Path.Combine(SourceDirectory, s.ToCleanPath()))
                 .Where(File.Exists)
-                .Where(f => sourcePathExcludeRegexStrings == null || sourcePathExcludeRegexStrings.All(r => !r.IsMatch(f)))
+                .Where(IsFilePassingSourcePathFilters)
                 .ToHashSet(new HashSet<string>(StringComparer.CurrentCultureIgnoreCase));
         }
         
@@ -259,9 +266,54 @@ namespace Oetools.Builder.Utilities {
         /// <param name="files"></param>
         /// <returns></returns>
         public IEnumerable<OeFile> FilterSourceFiles(IEnumerable<OeFile> files) {
-            var sourcePathExcludeRegexStrings = OeFilter.GetExclusionRegexStringsFromFilters(SourcePathFilters, SourceDirectory)?.Select(r => new Regex(r)).ToList();
-            return sourcePathExcludeRegexStrings == null ? files : files
-                .Where(f => sourcePathExcludeRegexStrings.All(r => !r.IsMatch(f.SourcePath)));
+            return files.Where(f => IsFilePassingDefaultFilters(f.SourcePath) && IsFilePassingSourcePathFilters(f.SourcePath));
+        }
+        
+        /// <summary>
+        /// Returns true if the given is excluded with the current filter
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        public bool IsFilePassingDefaultFilters(string filePath) {
+            return GetDefaultFilters().All(regex => !regex.IsMatch(filePath));
+        }
+        
+        /// <summary>
+        /// Returns true if the given is excluded with the current filter
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        public bool IsFilePassingSourcePathFilters(string filePath) {
+            return SourcePathFilters == null || SourcePathFilters.All(filter => filter.IsFilePassingFilter(filePath));
+        }
+
+
+        private List<Regex> _defaultFilters;
+        
+        private List<Regex> GetDefaultFilters() {
+            if (_defaultFilters == null) {
+                _defaultFilters = new List<Regex>();
+                _defaultFilters.AddRange(GetDefaultFiltersRegexes().Select(s => new Regex(s)));
+            }
+            return _defaultFilters;
+        }
+
+        private IEnumerable<string> GetDefaultFiltersRegexes() {
+            return OeBuilderConstants.ExtraSourceDirectoryExclusions.Split(';').Select(s => Path.Combine(SourceDirectory, s).PathWildCardToRegex());
+        }
+        
+        /// <summary>
+        /// Get a list of exclusion regex strings from a list of filters, appending extra exclusions if needed
+        /// </summary>
+        /// <param name="filters"></param>
+        /// <returns></returns>
+        private List<string> GetExclusionRegexStringsFromFilters(List<OeFilter> filters) {
+            List<string> exclusionRegexStrings = null;
+            if (filters != null) {
+                exclusionRegexStrings = filters.SelectMany(f => f.GetRegexStrings()).ToList();
+            }
+            (exclusionRegexStrings ?? (exclusionRegexStrings = new List<string>())).AddRange(GetDefaultFiltersRegexes());
+            return exclusionRegexStrings;
         }
     }
 }

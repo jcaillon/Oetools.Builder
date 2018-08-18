@@ -10,8 +10,15 @@ namespace Oetools.Builder.Project {
         [ReplaceVariables(LeaveUnknownUntouched = true)]
         public string TargetZipFilePath { get; set; }
         
-        [XmlElement(ElementName = "ArchivesCompressionLevel")]
-        public OeCompressionLevel? ArchivesCompressionLevel { get; set; }
+        [XmlAttribute(AttributeName = "ArchivesCompressionLevel")]
+        public string ArchivesCompressionLevel { get; set; }
+
+        public OeCompressionLevel GetArchivesCompressionLevel() {
+            if (Enum.TryParse(ArchivesCompressionLevel, true, out OeCompressionLevel level)) {
+                return level;
+            }
+            return OeCompressionLevel.None;
+        }
         
         public override string GetTargetArchive() => TargetZipFilePath;
     }

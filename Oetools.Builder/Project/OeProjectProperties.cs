@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
+using Oetools.Builder.Exceptions;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge;
 
 namespace Oetools.Builder.Project {
@@ -18,6 +20,7 @@ namespace Oetools.Builder.Project {
         
         [XmlElement(ElementName = "DlcDirectoryPath")]
         public string DlcDirectoryPath { get; set; }
+        internal string GetDefaultDlcDirectoryPath() => ProUtilities.GetDlcPathFromEnv().ToCleanPath();
         
         [XmlArray("ProjectDatabases")]
         [XmlArrayItem("ProjectDatabase", typeof(OeProjectDatabase))]
@@ -39,6 +42,7 @@ namespace Oetools.Builder.Project {
         
         [XmlElement(ElementName = "AddAllSourceDirectoriesToPropath")]
         public bool? AddAllSourceDirectoriesToPropath { get; set; }
+        internal bool GetDefaultAddAllSourceDirectoriesToPropath() => true;
             
         [XmlArray("PropathFilters")]
         [XmlArrayItem("Filter", typeof(OeFilter))]
@@ -51,9 +55,11 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlElement(ElementName = "AddDefaultOpenedgePropath")]
         public bool? AddDefaultOpenedgePropath { get; set; }
+        internal bool GetDefaultAddDefaultOpenedgePropath() => true;
 
         [XmlElement(ElementName = "UseCharacterModeExecutable")]
         public bool? UseCharacterModeExecutable { get; set; }
+        internal bool GetDefaultUseCharacterModeExecutable() => false;
 
         [XmlElement(ElementName = "ProgresCommandLineExtraParameters")]
         public string ProgresCommandLineExtraParameters { get; set; }
@@ -91,32 +97,43 @@ namespace Oetools.Builder.Project {
 
         [XmlElement(ElementName = "OutputDirectoryPath")]
         public string OutputDirectoryPath { get; set; }
+        internal string GetDefaultOutputDirectoryPath() => Path.Combine($"{{{{{OeBuilderConstants.OeVarNameSourceDirectory}}}}}", "bin");
 
-        [XmlElement(ElementName = "ReportFilePath")]
-        public string ReportFilePath { get; set; }
+        [XmlElement(ElementName = "ReportHtmlFilePath")]
+        public string ReportHtmlFilePath { get; set; }
+        internal string GetDefaultReportHtmlFilePath() => Path.Combine($"{{{{{OeBuilderConstants.OeProjectDirectory}}}}}", "build", "latest.html");
             
         [XmlElement(ElementName = "BuildHistoryOutputFilePath")]
         public string BuildHistoryOutputFilePath { get; set; }
+        internal string GetDefaultBuildHistoryOutputFilePath() => Path.Combine($"{{{{{OeBuilderConstants.OeProjectDirectory}}}}}", "build", "latest.xml");
             
         [XmlElement(ElementName = "BuildHistoryInputFilePath")]
         public string BuildHistoryInputFilePath { get; set; }
+        internal string GetDefaultBuildHistoryInputFilePath() => Path.Combine($"{{{{{OeBuilderConstants.OeProjectDirectory}}}}}", "build", "latest.xml");
 
         /// <summary>
         /// Validate that is object is correct
         /// </summary>
-        public void Validate() { }
-
-        /// <summary>
-        /// Set default values for certain properties if they are null
-        /// </summary>
-        public void SetDefaultValuesWhenNeeded() {
-            DlcDirectoryPath = DlcDirectoryPath ?? ProUtilities.GetDlcPathFromEnv();
-            OutputDirectoryPath = OutputDirectoryPath ?? Path.Combine("<SOURCE_DIRECTORY>", "bin");
-            ReportFilePath = ReportFilePath ?? Path.Combine("<PROJECT_DIRECTORY>", "build", "latest.html");
-            BuildHistoryInputFilePath = BuildHistoryInputFilePath ?? Path.Combine("<PROJECT_DIRECTORY>", "build", "latest.xml");
-            BuildHistoryOutputFilePath = BuildHistoryOutputFilePath ?? Path.Combine("<PROJECT_DIRECTORY>", "build", "latest.xml");
-            AddAllSourceDirectoriesToPropath = AddAllSourceDirectoriesToPropath ?? true;
-            AddDefaultOpenedgePropath = AddDefaultOpenedgePropath ?? true;
+        public void Validate() {
+            ValidateFilters(PropathFilters, nameof(PropathFilters));
+            ValidateFilters(SourcePathFilters, nameof(SourcePathFilters));
+        }
+        
+        private void ValidateFilters(IEnumerable<OeFilter> filters, string propertyNameOf) {
+            var i = 0;
+            foreach (var filter in filters) {
+                try {
+                    filter.Validate();
+                } catch (Exception e) {
+                    var et = e as FilterValidationException;
+                    if (et != null) {
+                        et.FilterNumber = i;
+                        et.FilterCollectionName = typeof(OeProjectProperties).GetXmlName(propertyNameOf);
+                    }
+                    throw new BuildConfigurationException(et != null ? et.Message : "Unexpected exception when checking filters", et ?? e);
+                }
+                i++;
+            }
         }
 
         /// <summary>
@@ -168,10 +185,12 @@ namespace Oetools.Builder.Project {
                 }
             }
             if (AddAllSourceDirectoriesToPropath ?? false) {
-                List<string> propathExcludeRegexStrings = OeFilter.GetExclusionRegexStringsFromFilters(PropathFilters, sourceDirectory);
-                foreach (var file in Utils.EnumerateAllFolders(sourceDirectory, SearchOption.AllDirectories, propathExcludeRegexStrings)) {
-                    if (!output.Contains(file)) {
-                        output.Add(file);
+                var lister = new SourceFilesLister(sourceDirectory) {
+                    SourcePathFilters = PropathFilters
+                };
+                foreach (var directory in lister.GetDirectoryList()) {
+                    if (!output.Contains(directory)) {
+                        output.Add(directory);
                     }
                 }
             }

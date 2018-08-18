@@ -24,9 +24,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Schema;
 using System.Xml.Serialization;
 using Oetools.Builder.Resources;
-using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project {
@@ -59,8 +59,10 @@ namespace Oetools.Builder.Project {
 
         #endregion
         
-        [XmlAttribute("noNamespaceSchemaLocation", Namespace = "http://www.w3.org/2001/XMLSchema-instance")]
-        public const string SchemaLocation = XsdName;
+
+        [XmlAttribute("noNamespaceSchemaLocation", Namespace = XmlSchema.InstanceNamespace)]
+        public string SchemaLocation = XsdName;
+
 
         [XmlElement("Properties")]
         public OeProjectProperties GlobalProperties { get; set; }
@@ -83,13 +85,25 @@ namespace Oetools.Builder.Project {
         /// <returns></returns>
         public static OeProject GetDefaultProject() {
             var output = new OeProject {
+                GlobalProperties = new OeProjectProperties {
+                    OutputDirectoryPath = Path.Combine("{{SOURCE_DIRECTORY}}", "bin")
+                },
                 BuildConfigurations = new List<OeBuildConfiguration> {
-                    new OeBuildConfiguration()
+                    new OeBuildConfiguration {
+                        BuildSourceTasks = new List<OeBuildStepCompile> {
+                            new OeBuildStepCompile {
+                                Label = "Compile all files next to their source",
+                                Tasks = new List<OeTask> {
+                                    new OeTaskCompile {
+                                        Include = "((**))*",
+                                        TargetDirectory = "{{1}}"
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             };
-            output.BuildConfigurations[0].SetDefaultValuesWhenNeeded();
-            output.GlobalProperties = output.BuildConfigurations[0].Properties;
-            output.BuildConfigurations[0].Properties = null;
             return output;
         }
 
@@ -130,10 +144,6 @@ namespace Oetools.Builder.Project {
                     (output.Variables ?? (output.Variables = new List<OeVariable>())).Add(globalVariable);
                 }
             }
-
-            // set default values
-            output.Properties.SetDefaultValuesWhenNeeded();
-
             return output;
         }
     }

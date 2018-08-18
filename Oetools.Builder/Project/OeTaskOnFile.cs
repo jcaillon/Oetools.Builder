@@ -5,7 +5,6 @@ using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
-using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
@@ -112,6 +111,10 @@ namespace Oetools.Builder.Project {
         private List<Regex> _includeRegexes;
         private List<Regex> _excludeRegexes;
 
+        public bool IsFilePassingFilter(string filePath) {
+            return _includeRegexes.Any(regex => regex.IsMatch(filePath)) && _excludeRegexes.All(regex => !regex.IsMatch(filePath));
+        }
+        
         public bool IsFileIncluded(OeFile file) {
             var source = file.SourcePath;
             return _includeRegexes.Any(regex => regex.IsMatch(source));

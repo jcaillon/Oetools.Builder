@@ -25,6 +25,7 @@ using System.Linq;
 using System.Xml.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Project;
+using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Test.Project {
@@ -61,41 +62,243 @@ namespace Oetools.Builder.Test.Project {
                 }
             }
         }
-        
+
+
+        [TestMethod]
+        public void OeProject_InheritGlobalPropertiesAndVariables_Test() {
+            var project = new OeProject {
+                GlobalVariables = new List<OeVariable> {
+                    new OeVariable {
+                        Name = "globalname1"
+                    }
+                },
+                GlobalProperties = new OeProjectProperties {
+                    DlcDirectoryPath = "globaldlc",
+                    OutputDirectoryPath = "globaloutput"
+                },
+                BuildConfigurations = new List<OeBuildConfiguration> {
+                    new OeBuildConfiguration {
+                        ConfigurationName = "first"
+                    },
+                    new OeBuildConfiguration {
+                        ConfigurationName = "second",
+                        Variables = new List<OeVariable> {
+                            new OeVariable {
+                                Name = "localname1"
+                            }
+                        },
+                        Properties = new OeProjectProperties {
+                            DlcDirectoryPath = "localdlc"
+                        }
+                    }
+                }
+            };
+
+            var conf = project.GetBuildConfigurationCopy("second");
+            
+            Assert.AreEqual(2, conf.Variables.Count);
+            Assert.AreEqual("second", conf.ConfigurationName);
+            Assert.AreEqual("localdlc", conf.Properties.DlcDirectoryPath);
+            Assert.AreEqual("globaloutput", conf.Properties.OutputDirectoryPath);
+            
+
+        }
+
         [TestMethod]
         public void Serialization_Test() {
-
-            var project = OeProject.GetDefaultProject();
-            var xmlPath = Path.Combine(TestFolder, "project.xml");
             Utils.CreateDirectoryIfNeeded(TestFolder);
-           
-            project.BuildConfigurations[0].BuildSourceTasks[0].GetTaskList().AddRange(new List<OeTask> {
-                new OeTaskCopy() {
-                    Label = "copy"
+            
+            var project = OeProject.GetDefaultProject();
+            
+            project.Save(Path.Combine(TestFolder, "project_default.xml"));
+            
+            // should export .xsd
+            Assert.IsTrue(File.Exists(Path.Combine(TestFolder, "Project.xsd")));
+
+            var loadedProject = OeProject.Load(Path.Combine(TestFolder, "project_default.xml"));
+            
+            // should load null values
+            Assert.AreEqual(null, loadedProject.GlobalProperties.UseCharacterModeExecutable);
+            
+            project.GlobalProperties = new OeProjectProperties {
+                AddAllSourceDirectoriesToPropath = true,
+                AddDefaultOpenedgePropath = true,
+                BuildHistoryInputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
+                BuildHistoryOutputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
+                CompilationOptions = new OeCompilationOptions {
+                    CompilableFilePattern = OeBuilderConstants.CompilableExtensionsPattern,
+                    CompileForceSingleProcess = false,
+                    CompileForceUsageOfTemporaryDirectory = false,
+                    CompileMinimumNumberOfFilesPerProcess = 10,
+                    CompileNumberProcessPerCore = 1,
+                    CompileOptions = "require-full-names, require-field-qualifiers, require-full-keywords",
+                    CompileStatementExtraOptions = "MIN-SIZE = TRUE",
+                    CompileWithDebugList = true,
+                    CompileWithListing = true,
+                    CompileWithPreprocess = true,
+                    CompileWithXref = true,
+                    UseCompilerMultiCompile = true,
+                    UseSimplerAnalysisForDatabaseReference = true
                 },
-                new OeTaskZip() {
-                    Label = "Zip"
+                UseCharacterModeExecutable = false,
+                DatabaseAliases = new List<OeDatabaseAlias> {
+                    new OeDatabaseAlias {
+                        AliasLogicalName = "myalias",
+                        DatabaseLogicalName = "db"
+                    },
+                    new OeDatabaseAlias {
+                        AliasLogicalName = "alias2",
+                        DatabaseLogicalName = "db"
+                    }
                 },
-                new OeTaskCompile() {
-                    Label = "zsdze"
+                DatabaseConnectionExtraParameters = "-extra \"quotes\" ",
+                DlcDirectoryPath = "/dlc/",
+                IncrementalBuildOptions = new OeIncrementalBuildOptions {
+                    Disabled = false,
+                    MirrorDeletedSourceFileToOutput = true,
+                    StoreSourceHash = false
                 },
-                new OeTaskProlib() {
-                    Label = "derp"
+                IniFilePath = "C:\\my.ini",
+                OutputDirectoryPath = "D:\\output",
+                ProcedurePathToExecuteAfterAnyProgressExecution = "",
+                ProcedurePathToExecuteBeforeAnyProgressExecution = "",
+                ProgresCommandLineExtraParameters = "my extra param \"in quotes\" ''",
+                ProjectDatabases = new List<OeProjectDatabase> {
+                    new OeProjectDatabase {
+                        DataDefinitionFilePath = "C:\\folder\\file.df",
+                        LogicalName = "db"
+                    }
                 },
-                new OeTaskCompileProlib() {
-                    Label = "derp"
+                PropathEntries = new List<string> {
+                    "entry1",
+                    "fezef/zef/zefzef",
+                    "C:\\zefzefzef\\"
                 },
-                new OeTaskCab() {
-                    Label = "derp"
+                PropathFilters = new List<OeFilter> {
+                    new OeFilter {
+                        Exclude = "**/derp"
+                    },
+                    new OeFilterRegex {
+                        Exclude = "\\\\[D][d]"
+                    }
                 },
-                new OeTaskCompileCab() {
-                    Label = "derp"
+                ReportHtmlFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.html"),
+                SourcePathFilters = new List<OeFilter> {
+                    new OeFilter {
+                        Exclude = "**/derp"
+                    },
+                    new OeFilterRegex {
+                        Exclude = "\\\\[D][d]"
+                    }
+                },
+                SourcePathGitFilter = new OeGitFilter {
+                    CurrentBranchName = null,
+                    CurrentBranchOriginCommit = null,
+                    OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true,
+                    OnlyIncludeSourceFilesModifiedSinceLastCommit = true
+                },
+                TemporaryDirectoryPath = "{{TEMP}}"
+            };
+            
+            project.GlobalVariables = new List<OeVariable> {
+                new OeVariable {
+                    Name = "MyCustomVariable",
+                    Value = "the value"
+                },
+                new OeVariable {
+                    Name = "second case insensitive",
+                    Value = "new {{MyCustomVariable}}"
                 }
-            });
+            };
+
+            project.BuildConfigurations = new List<OeBuildConfiguration> {
+                new OeBuildConfiguration {
+                    ConfigurationName = "first conf",
+                    Variables = new List<OeVariable> {
+                        new OeVariable {
+                            Name = "buildconfvar1",
+                            Value = "val"
+                        }
+                    },
+                    Properties = null,
+                    PreBuildTasks = new List<OeBuildStepClassic>(),
+                    BuildSourceTasks = new List<OeBuildStepCompile> {
+                        new OeBuildStepCompile {
+                            Label = "step1",
+                            Tasks = new List<OeTask> {
+                                new OeTaskExec {
+                                    Label = "exec1",
+                                    ExecuablePath = "exec",
+                                    Parameters = "params \"quotes\"",
+                                    WorkingDirectory = "dir",
+                                    HiddenExecution = false,
+                                    IgnoreExitCode = null
+                                },
+                                new OeTaskCompile {
+                                    Exclude = "**",
+                                    Include = "{{**}}",
+                                    TargetDirectory = "mydir"
+                                },
+                                new OeTaskCompileProlib {
+                                    ExcludeRegex = "regex",
+                                    IncludeRegex = "regex",
+                                    TargetProlibFilePath = "myprolib.pl",
+                                    RelativeTargetDirectory = "insdide/directory"
+                                },
+                                new OeTaskCompileZip {
+                                    ExcludeRegex = "regex",
+                                    IncludeRegex = "regex",
+                                    TargetZipFilePath = "path.zip",
+                                    RelativeTargetDirectory = "insdide/directory",
+                                    ArchivesCompressionLevel = "None"
+                                },
+                                new OeTaskCompileCab() {
+                                    ExcludeRegex = "regex",
+                                    IncludeRegex = "regex",
+                                    TargetCabFilePath = "path.cab",
+                                    RelativeTargetFilePath = "insdide/file.p",
+                                    ArchivesCompressionLevel = "Max"
+                                },
+                                new OeTaskCompileUploadFtp(),
+                                new OeTaskCopy(),
+                                new OeTaskProlib(),
+                                new OeTaskZip(),
+                                new OeTaskCab(),
+                                new OeTaskFtp()
+                            }
+                        },
+                        new OeBuildStepCompile {
+                            Label = "step2",
+                            Tasks = null
+                        }
+                    },
+                    BuildOutputTasks = new List<OeBuildStepClassic> {
+                        new OeBuildStepClassic {
+                            Label = "step output 1",
+                            Tasks = new List<OeTask>()
+                        }
+                    },
+                    PostBuildTasks = null
+                }
+            };
             
-            project.Save(xmlPath);
+            project.Save(Path.Combine(TestFolder, "project.xml"));
+
+            string xmlContent = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<Project xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+  <Properties>
+    <DlcDirectoryPath></DlcDirectoryPath>
+    <ProcedurePathToExecuteBeforeAnyProgressExecution />
+  </Properties>
+</Project>
+";
+            File.WriteAllText(Path.Combine(TestFolder, "input_test.xml"), xmlContent);
+
+            loadedProject = OeProject.Load(Path.Combine(TestFolder, "input_test.xml"));
             
-            
+            Assert.AreEqual(@"", loadedProject.GlobalProperties.DlcDirectoryPath);
+            Assert.AreEqual(null, loadedProject.GlobalProperties.IniFilePath);
+            Assert.AreEqual(@"", loadedProject.GlobalProperties.ProcedurePathToExecuteBeforeAnyProgressExecution);
         }
     }
 }

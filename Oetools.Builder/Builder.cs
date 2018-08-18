@@ -16,9 +16,7 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 
-using System;
 using System.Collections.Generic;
-using System.IO;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Utilities;

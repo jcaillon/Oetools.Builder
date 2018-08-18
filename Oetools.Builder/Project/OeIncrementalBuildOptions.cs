@@ -12,12 +12,14 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlElement(ElementName = "Disabled")]
         public bool? Disabled { get; set; }
+        internal bool GetDefaultDisabled() => false;
                 
         /// <summary>
         /// True if the tool should use a checksum (md5) for each file to figure out if it has changed
         /// </summary>
         [XmlElement(ElementName = "StoreSourceHash")]
         public bool? StoreSourceHash { get; set; }
+        internal bool GetDefaultStoreSourceHash() => false;
             
         /// <summary>
         /// If a source file has been deleted since the last build, should we try to delete it in the output directory
@@ -25,5 +27,6 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlElement(ElementName = "MirrorDeletedSourceFileToOutput")]
         public bool? MirrorDeletedSourceFileToOutput { get; set; }
+        internal bool GetDefaultMirrorDeletedSourceFileToOutput() => false;
     }
 }

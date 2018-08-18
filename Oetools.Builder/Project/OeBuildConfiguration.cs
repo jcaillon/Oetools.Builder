@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Xml.Schema;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Resources;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
+using Oetools.Utilities.Openedge;
 
 namespace Oetools.Builder.Project {
     
@@ -45,18 +47,23 @@ namespace Oetools.Builder.Project {
 
         #endregion
             
-        [XmlAttribute("noNamespaceSchemaLocation", Namespace = "http://www.w3.org/2001/XMLSchema-instance")]
-        public const string SchemaLocation = XsdName;
+        [XmlAttribute("noNamespaceSchemaLocation", Namespace = XmlSchema.InstanceNamespace)]
+        public string SchemaLocation = XsdName;
             
         [XmlAttribute("Name")]
         public string ConfigurationName { get; set; }
         
+        /// <summary>
+        /// Every existing sub node (even if empty) present in this will replace their <see cref="OeProject.GlobalProperties"/>
+        /// counterpart
+        /// </summary>
         [XmlElement("OverloadProperties")]
         [DeepCopy(Ignore = true)]
         public OeProjectProperties Properties { get; set; }
             
         /// <summary>
-        /// Default variables are added by the builder, see <see cref="ApplyVariables"/>
+        /// Default variables are added by the builder, see <see cref="ApplyVariables"/>, also <see cref="OeProject.GlobalProperties"/>
+        /// are always added
         /// </summary>
         [XmlArray("BuildVariables")]
         [XmlArrayItem("Variable", typeof(OeVariable))]
@@ -90,30 +97,7 @@ namespace Oetools.Builder.Project {
         [XmlArray("PostBuildTasks")]
         [XmlArrayItem("Step", typeof(OeBuildStepClassic))]
         public List<OeBuildStepClassic> PostBuildTasks { get; set; }
-        
-        /// <summary>
-        /// Set default values for certain properties if they are null
-        /// </summary>
-        public void SetDefaultValuesWhenNeeded() {
-            Properties = Properties ?? new OeProjectProperties();
-            Properties.SetDefaultValuesWhenNeeded();
-            
-            // add a default configuration that build all files next to their respective source file
-            BuildSourceTasks = BuildSourceTasks ?? new List<OeBuildStepCompile>();
-            if (BuildSourceTasks.Count == 0) {
-                BuildSourceTasks.Add(null);
-            }
-            BuildSourceTasks[0] = BuildSourceTasks[0] ?? new OeBuildStepCompile {
-                Label = "Compile all files next to source",
-                Tasks = new List<OeTask> {
-                    new OeTaskCompile {
-                        Include = "((**))*",
-                        TargetDirectory = "<1>"
-                    }
-                }
-            };
-        }
-            
+                    
         /// <summary>
         /// Add the default variables and apply the variables on all public properties of type string
         /// </summary>
@@ -124,15 +108,15 @@ namespace Oetools.Builder.Project {
         public void ApplyVariables(string sourceDirectory) {
             // add some default variables
             if (!string.IsNullOrEmpty(sourceDirectory)) {
-                Variables.Add(new OeVariable { Name = "SOURCE_DIRECTORY", Value = sourceDirectory });    
-                Variables.Add(new OeVariable { Name = "PROJECT_DIRECTORY", Value = Path.Combine(sourceDirectory, ".oe") });                
-                Variables.Add(new OeVariable { Name = "PROJECT_LOCAL_DIRECTORY", Value = Path.Combine(sourceDirectory, ".oe", "local") });                 
+                Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameSourceDirectory, Value = sourceDirectory });    
+                Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameProjectDirectory, Value = Path.Combine(sourceDirectory, OeBuilderConstants.OeProjectDirectory) });                
+                Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameProjectLocalDirectory, Value = Path.Combine(sourceDirectory, OeBuilderConstants.OeProjectDirectory, OeBuilderConstants.OeVarNameProjectLocalDirectory) });                 
             }             
-            Variables.Add(new OeVariable { Name = "DLC", Value = Properties.DlcDirectoryPath });  
-            Variables.Add(new OeVariable { Name = "OUTPUT_DIRECTORY", Value = Properties.OutputDirectoryPath });  
-            Variables.Add(new OeVariable { Name = "CONFIGURATION_NAME", Value = ConfigurationName });
+            Variables.Add(new OeVariable { Name = OeConstants.OeDlcEnvVar, Value = Properties.DlcDirectoryPath });  
+            Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = Properties.OutputDirectoryPath });  
+            Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameConfigurationName, Value = ConfigurationName });
             try {
-                Variables.Add(new OeVariable { Name = "WORKING_DIRECTORY", Value = Directory.GetCurrentDirectory() });
+                Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameWorkingDirectory, Value = Directory.GetCurrentDirectory() });
             } catch (Exception e) {
                 throw new BuildConfigurationException("Failed to get the current directory (check permissions)", e);
             }
@@ -143,6 +127,11 @@ namespace Oetools.Builder.Project {
             
             // apply variables in all public string properties
             BuilderUtilities.ApplyVariablesToProperties(this, Variables);  
+        }
+
+        public void Validate() {
+            ValidateAllTasks();
+            Properties?.Validate();
         }
             
         /// <summary>

@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Serialization;
+using Oetools.Builder.Exceptions;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
@@ -17,27 +19,55 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlAttribute(AttributeName = "Exclude")]
         public string Exclude { get; set; }
-
+        
+        public virtual IEnumerable<string> GetRegexStrings() => Exclude.Split(';').Select(s => s.PathWildCardToRegex());
+        
         /// <summary>
-        /// Get a list of exclusion regex strings from a list of filters, appending extra exclusions if needed
+        /// Validates that the filter is correct and usable
         /// </summary>
-        /// <param name="filters"></param>
-        /// <param name="baseDirectory"></param>
-        /// <param name="extraSourceDirectoryExclusions"></param>
+        /// <exception cref="FilterValidationException"></exception>
+        public void Validate() {
+            ValidatePathWildCard();
+            InitRegex();
+        }
+        
+        /// <summary>
+        /// Returns true if the given is excluded with the current filter
+        /// </summary>
+        /// <param name="filePath"></param>
         /// <returns></returns>
-        public static List<string> GetExclusionRegexStringsFromFilters(List<OeFilter> filters, string baseDirectory = null, string extraSourceDirectoryExclusions = OeBuilderConstants.ExtraSourceDirectoryExclusions) {
-            List<string> exclusionRegexStrings = null;
-            if (filters != null) {
-                exclusionRegexStrings = filters.SelectMany(f => f.Exclude.Split(';').Select(p => f is OeFilterRegex ? p : p.PathWildCardToRegex())).ToList();
+        public bool IsFilePassingFilter(string filePath) {
+            return GetExcludeRegex().All(regex => !regex.IsMatch(filePath));
+        }
+        
+        private List<Regex> _excludeRegexes;
+        
+        protected List<Regex> GetExcludeRegex() {
+            if (_excludeRegexes == null) {
+                InitRegex();
             }
-
-            if (!string.IsNullOrEmpty(extraSourceDirectoryExclusions) && !string.IsNullOrEmpty(baseDirectory)) {
-                if (exclusionRegexStrings == null) {
-                    exclusionRegexStrings = new List<string>();
+            return _excludeRegexes;
+        }
+        
+        protected virtual void ValidatePathWildCard() {
+            foreach (var pathWildCard in Exclude.Split(';')) {
+                try {
+                    Utils.ValidatePathWildCard(pathWildCard);
+                } catch (Exception e) {
+                    throw new FilterValidationException($"Invalid path filter, reason : {e.Message}, please check the following string : {pathWildCard.PrettyQuote()}");
                 }
-                exclusionRegexStrings.AddRange(extraSourceDirectoryExclusions.Split(';').Select(s => Path.Combine(baseDirectory, s).PathWildCardToRegex()));
             }
-            return exclusionRegexStrings;
+        }
+        
+        private void InitRegex() {
+            _excludeRegexes = new List<Regex>();
+            foreach (var regexString in GetRegexStrings()) {
+                try {
+                    _excludeRegexes.Add(new Regex(regexString));
+                } catch (Exception e) {
+                    throw new FilterValidationException( $"Invalid filter regex expression {regexString.PrettyQuote()}, reason : {e.Message}");
+                }
+            }
         }
     }
 }

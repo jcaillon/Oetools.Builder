@@ -9,13 +9,13 @@ namespace Oetools.Builder.Project {
             
         public void Execute() => throw new NotImplementedException();
         
-        [XmlAttribute("ExecuablePath")]
+        [XmlElement("ExecuablePath")]
         public string ExecuablePath { get; set; }
             
         /// <summary>
         /// (you can use task variables in this string)
         /// </summary>
-        [XmlAttribute("Parameters")]
+        [XmlElement("Parameters")]
         public string Parameters { get; set; }
             
         [XmlElement(ElementName = "HiddenExecution")]
@@ -30,7 +30,7 @@ namespace Oetools.Builder.Project {
         /// <summary>
         /// (default to output directory)
         /// </summary>
-        [XmlAttribute("WorkingDirectory")]
+        [XmlElement("WorkingDirectory")]
         public string WorkingDirectory { get; set; }
 
     }

@@ -33,22 +33,22 @@ namespace Oetools.Builder.Test.Utilities {
         public void ApplyVariablesToProperties_Test() {
             var buildConf = new OeBuildConfiguration {
                 Properties = new OeProjectProperties {
-                    BuildHistoryInputFilePath = "<var1>",
+                    BuildHistoryInputFilePath = "{{var1}}",
                     CompilationOptions = new OeCompilationOptions {
-                        CompilableFilePattern = "replace stuff <env<env2>>"
+                        CompilableFilePattern = "replace stuff {{env{{env2}}}}"
                     }
                 },
                 BuildSourceTasks = new List<OeBuildStepCompile> {
                     new OeBuildStepCompile {
-                        Label = "should not <replace> <anything> here",
+                        Label = "replace {{anything}} here",
                         Tasks = new List<OeTask> {
                             new OeTaskCopy {
-                                Include = "replace missing '<missingvar>' by empty",
-                                TargetDirectory = "keep missing '<missingvar>' variables!"
+                                Include = "replace missing '{{missingvar}}' by empty",
+                                TargetDirectory = "keep missing '{{missingvar}}' variables!"
                             },
                             new OeTaskCopy {
-                                Exclude = "2 replace missing '<missingvar>' by empty",
-                                TargetFilePath = "2 keep missing '<missingvar>' variables!"
+                                Exclude = "2 replace missing '{{missingvar}}' by empty",
+                                TargetFilePath = "2 keep missing '{{missingvar}}' variables!"
                             }
                         }
                     }
@@ -56,11 +56,11 @@ namespace Oetools.Builder.Test.Utilities {
                 Variables = new List<OeVariable> {
                     new OeVariable {
                         Name = "first",
-                        Value = "var_1<missing>"
+                        Value = "var_1{{missing}}"
                     },
                     new OeVariable {
                         Name = "var1",
-                        Value = "value_<first>"
+                        Value = "value_{{first}}"
                     },
                     new OeVariable {
                         Name = "anything",
@@ -79,11 +79,11 @@ namespace Oetools.Builder.Test.Utilities {
             BuilderUtilities.ApplyVariablesToProperties(buildConf, buildConf.Variables);
             Assert.AreEqual("value_var_1", buildConf.Properties.BuildHistoryInputFilePath);
             Assert.AreEqual("replace stuff value_env_1", buildConf.Properties.CompilationOptions.CompilableFilePattern);
-            Assert.AreEqual("should not <replace> <anything> here", buildConf.BuildSourceTasks[0].Label);
+            Assert.AreEqual("replace wtf! here", buildConf.BuildSourceTasks[0].Label);
             Assert.AreEqual("replace missing '' by empty", ((OeTaskCopy)buildConf.BuildSourceTasks[0].GetTaskList()[0]).Include);
-            Assert.AreEqual("keep missing '<missingvar>' variables!", ((OeTaskCopy)buildConf.BuildSourceTasks[0].GetTaskList()[0]).TargetDirectory);
+            Assert.AreEqual("keep missing '{{missingvar}}' variables!", ((OeTaskCopy)buildConf.BuildSourceTasks[0].GetTaskList()[0]).TargetDirectory);
             Assert.AreEqual("2 replace missing '' by empty", ((OeTaskCopy)buildConf.BuildSourceTasks[0].GetTaskList()[1]).Exclude);
-            Assert.AreEqual("2 keep missing '<missingvar>' variables!", ((OeTaskCopy)buildConf.BuildSourceTasks[0].GetTaskList()[1]).TargetFilePath);
+            Assert.AreEqual("2 keep missing '{{missingvar}}' variables!", ((OeTaskCopy)buildConf.BuildSourceTasks[0].GetTaskList()[1]).TargetFilePath);
             
         }
     }

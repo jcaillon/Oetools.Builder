@@ -67,7 +67,7 @@ namespace Oetools.Builder.Project {
                     
                     foreach (var singleTarget in GetTarget().Split(';')) {
                         var target = singleTarget.ReplacePlaceHolders(s => {
-                            if (s.Equals("FILE_SOURCE_DIRECTORY")) {
+                            if (s.Equals(OeBuilderConstants.OeVarNameFileSourceDirectory)) {
                                 return sourceFileDirectory;
                             }
                             if (match.Groups[s].Success) {

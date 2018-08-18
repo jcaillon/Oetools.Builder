@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (ITaskArchive.cs) is part of Oetools.Builder.
+// This file (BuildVariableException.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,18 +18,21 @@
 // ========================================================================
 #endregion
 
-using System.Collections.Generic;
-using Oetools.Builder.History;
+using System;
+using Oetools.Builder.Project;
+using Oetools.Utilities.Lib.Extension;
 
-namespace Oetools.Builder.Project {
-    public interface ITaskArchive {
+namespace Oetools.Builder.Exceptions {
+    
+    public class FilterValidationException : Exception {
+        
+        public string FilterCollectionName { get; set; }
+        
+        public int FilterNumber { get; set; }
 
-        /// <summary>
-        /// Returns a collection of archive path -> list of relative targets inside that archive
-        /// </summary>
-        /// <param name="file"></param>
-        /// <param name="outputDirectory"></param>
-        /// <returns></returns>
-        Dictionary<string, List<string>> GetFileTargets(OeFile file, string outputDirectory = null);
+        public override string Message => $"{(string.IsNullOrEmpty(FilterCollectionName) ? "E" : $"Filters {FilterCollectionName}, e")}rror in filter {FilterNumber.ToString().PrettyQuote()} : {base.Message}";
+
+        public FilterValidationException(string message) : base(message) { }
+        public FilterValidationException(string message, Exception innerException) : base(message, innerException) { }
     }
 }
