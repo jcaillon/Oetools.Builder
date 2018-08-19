@@ -5,7 +5,7 @@ using Oetools.Builder.Utilities;
 namespace Oetools.Builder.Project {
     
     [Serializable]
-    public class OeTaskProlib : OeTaskOnFileWithTargetArchives {
+    public class OeTaskProlib : OeTaskOnFilesWithTargetArchives {
         
         [XmlAttribute("TargetProlibFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]

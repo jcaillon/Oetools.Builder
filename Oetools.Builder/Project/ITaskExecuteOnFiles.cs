@@ -1,6 +1,7 @@
-﻿// ========================================================================
+﻿#region header
+// ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (TaskExecutor.cs) is part of Oetools.Builder.
+// This file (IOeTaskOnFile.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,30 +16,32 @@
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
+#endregion
 
-using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
-using System.Linq;
 using Oetools.Builder.History;
-using Oetools.Builder.Project;
-using Oetools.Builder.Utilities;
-using Oetools.Utilities.Lib.Extension;
-using Oetools.Utilities.Openedge.Execution;
 
-namespace Oetools.Builder {
-       
-    public class TaskExecutorBuildingSource : TaskExecutorWithFileList, IDisposable {
+namespace Oetools.Builder.Project {
+    
+    public interface ITaskExecuteOnFiles : ITask {
+
+        /// <summary>
+        /// Returns true of the file is excluded in this task
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        bool IsFilePassingFilter(string filePath);
         
-        public List<OeFileBuilt> PreviouslyBuiltFiles { get; set; }
+        bool IsFileExcluded(string filePath);
         
-        public bool ForceFullRebuild { get; set; }
-        
-        public TaskExecutorBuildingSource(List<OeTask> tasks) : base(tasks) { }
-        
-        public void Dispose() {
-              
-        }
+        void ExecuteForFiles(List<OeFile> file);
+
+        List<OeFileBuilt> GetFilesBuilt();
+
+        List<string> GetIncludedPathToList();
+
+        List<string> GetIncludeStrings();
+
+        List<string> GetRegexExcludeStrings();
     }
 }

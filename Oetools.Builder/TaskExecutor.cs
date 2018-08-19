@@ -11,17 +11,13 @@ namespace Oetools.Builder {
     
     public class TaskExecutor {
         
-        protected List<OeTask> Tasks { get; }
+        public List<OeTask> Tasks { get; set; }
         
         public ILogger Log { get; set; }
 
         public EnvExecution Env { get; set; }
         
         public OeProjectProperties ProjectProperties { get; set; }
-
-        public TaskExecutor(List<OeTask> tasks) {
-            Tasks = tasks;
-        }
         
         public virtual void Execute() {
             foreach (var task in Tasks) {
@@ -32,7 +28,7 @@ namespace Oetools.Builder {
         
         protected virtual void ExecuteTask(OeTask task) {
             switch (task) {
-                case OeTaskOnFile taskOnFile:
+                case OeTaskOnFiles taskOnFile:
                     ExecuteTaskOnFiles(taskOnFile, GetTaskFiles(taskOnFile));
                     break;
                 case ITaskExecute taskExecute:
@@ -47,7 +43,7 @@ namespace Oetools.Builder {
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        protected virtual List<OeFile> GetTaskFiles(OeTaskOnFile task) {
+        protected virtual List<OeFile> GetTaskFiles(OeTaskOnFiles task) {
             var output = new List<OeFile>();
             foreach (var path in task.GetIncludedPathToList()) {
                 if (File.Exists(path)) {
@@ -62,12 +58,10 @@ namespace Oetools.Builder {
             return output;
         }
         
-        protected virtual void ExecuteTaskOnFiles(OeTaskOnFile task, List<OeFile> files) {
+        protected virtual void ExecuteTaskOnFiles(OeTaskOnFiles task, List<OeFile> files) {
             task.SetLog(Log);
-            foreach (var oeFile in files) {
-                task.ExecuteForFile(oeFile);
-            }
+            task.ExecuteForFiles(files);
         }
-
+        
     }
 }

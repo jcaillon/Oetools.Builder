@@ -8,7 +8,9 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project {
 
-    public abstract class OeTaskOnFile : OeTaskFilter, ITaskExecuteOnFile {
+    public abstract class OeTaskOnFiles : OeTaskFilter, ITaskExecuteOnFiles {
+
+        protected List<OeFileBuilt> _filesBuilt;
         
         public override void Validate() {
             if (string.IsNullOrEmpty(Include) && string.IsNullOrEmpty(IncludeRegex)) {
@@ -38,9 +40,11 @@ namespace Oetools.Builder.Project {
             return output;
         }
 
-        public virtual void ExecuteForFile(OeFile file) { }
+        public virtual void ExecuteForFiles(List<OeFile> file) {
+            throw new NotImplementedException();
+        }
 
-        public List<OeFileBuilt> GetFilesBuilt() => null;
+        public List<OeFileBuilt> GetFilesBuilt() => _filesBuilt;
         
     }
 }

@@ -5,6 +5,6 @@ namespace Oetools.Builder.Project {
     
     [Serializable]
     [XmlRoot("Copy")]
-    public class OeTaskCopy : OeTaskOnFileWithTargetFiles {
+    public class OeTaskCopy : OeTaskOnFilesWithTargetFileses {
     }
 }

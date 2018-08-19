@@ -69,7 +69,7 @@ namespace Oetools.Builder.Test.Project {
             Assert.AreEqual(2, task.GetIncludedPathToList().Count, "we added an existing file");
         }
 
-        private class OeTaskOnFile2 : OeTaskOnFile { }
+        private class OeTaskOnFile2 : OeTaskOnFiles { }
 
     }
 }

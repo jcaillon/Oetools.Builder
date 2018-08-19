@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using Oetools.Builder.History;
 
 namespace Oetools.Builder.Project {
-    public interface ITaskOnFileWithTarget : ITaskExecuteOnFile {
+    public interface ITaskOnFilesWithTarget : ITaskExecuteOnFiles {
 
         List<string> GetFileTargets(string file, string outputDirectory = null);
         

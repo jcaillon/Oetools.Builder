@@ -6,7 +6,7 @@ namespace Oetools.Builder.Project {
     
     [Serializable]
     [XmlRoot("Cab")]
-    public class OeTaskCab : OeTaskOnFileWithTargetArchives {
+    public class OeTaskCab : OeTaskOnFilesWithTargetArchives {
         
         [XmlAttribute("TargetCabFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]

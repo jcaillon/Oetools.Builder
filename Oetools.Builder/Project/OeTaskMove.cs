@@ -4,6 +4,6 @@ using System.Xml.Serialization;
 namespace Oetools.Builder.Project {
     [Serializable]
     [XmlRoot("Move")]
-    public class OeTaskMove : OeTaskOnFileWithTargetFiles {
+    public class OeTaskMove : OeTaskOnFilesWithTargetFileses {
     }
 }

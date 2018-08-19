@@ -4,6 +4,6 @@ using System.Xml.Serialization;
 namespace Oetools.Builder.Project {
     [Serializable]
     [XmlRoot("Delete")]
-    public class OeTaskDelete : OeTaskOnFile {
+    public class OeTaskDelete : OeTaskOnFiles {
     }
 }

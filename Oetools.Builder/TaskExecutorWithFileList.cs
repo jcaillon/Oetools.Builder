@@ -11,11 +11,13 @@ namespace Oetools.Builder {
         /// <summary>
         /// List of unique existing files that will be treated by the current list of <see cref="TaskExecutor.Tasks"/>
         /// </summary>
-        protected List<OeFile> TaskFiles { get; set; }
+        public List<OeFile> TaskFiles { get; set; }
         
-        public TaskExecutorWithFileList(List<OeTask> tasks) : base(tasks) { }
+        public string SourceDirectory { get; set; }
 
-        protected override List<OeFile> GetTaskFiles(OeTaskOnFile task) {
+        public string OutputDirectory { get; set; }
+        
+        protected override List<OeFile> GetTaskFiles(OeTaskOnFiles task) {
             return TaskFiles.Where(f => task.IsFilePassingFilter(f.SourcePath)).ToList();
         }
         

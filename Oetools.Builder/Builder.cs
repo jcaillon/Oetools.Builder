@@ -32,7 +32,7 @@ using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder {
     
-    public class Builder {
+    public class Builder : IDisposable {
         
         private string _sourceDirectory;
         private bool _forceFullRebuild;
@@ -61,9 +61,9 @@ namespace Oetools.Builder {
         
         public List<TaskExecutor> PreBuildTaskExecutors { get; set; }
         
-        public List<TaskExecutorBuildingSource> BuildSourceTaskExecutors { get; set; }
+        public List<TaskExecutorWithFileListAndCompilation> BuildSourceTaskExecutors { get; set; }
         
-        public List<TaskExecutor> BuildOutputTaskExecutors { get; set; }
+        public List<TaskExecutorWithFileList> BuildOutputTaskExecutors { get; set; }
         
         public List<TaskExecutor> PostBuildTaskExecutors { get; set; }
 
@@ -76,6 +76,13 @@ namespace Oetools.Builder {
             // make a copy of the build configuration
             BuildConfiguration = project.GetBuildConfigurationCopy(buildConfigurationName) ?? project.GetDefaultBuildConfigurationCopy();
             
+        }
+        
+        public void Dispose() {
+            Utils.DeleteDirectoryIfExists(Env?.TempDirectory, true);
+            foreach (var taskExecutor in BuildSourceTaskExecutors.ToNonNullList()) {
+                taskExecutor?.Dispose();
+            }
         }
         
         /// <summary>
@@ -97,8 +104,11 @@ namespace Oetools.Builder {
             BuildConfiguration.Properties.SanitizePathInPublicProperties();
             
             ExecuteBuild();
-        }
 
+            OutputReport();
+            OutputHistory();
+        }
+        
         private void Init() {
             
             Env = new EnvExecution {
@@ -117,19 +127,66 @@ namespace Oetools.Builder {
             };
         }
 
-        private void ExecuteBuild() {           
-            if (BuildConfiguration.PostBuildTasks != null) {
+        private void ExecuteBuild() {
+            PreBuildTaskExecutors = ExecuteBuildStep<TaskExecutor>(BuildConfiguration.PreBuildTasks, nameof(OeBuildConfiguration.PreBuildTasks), null);
+            BuildSourceTaskExecutors = ExecuteBuildStep<TaskExecutorWithFileListAndCompilation>(BuildConfiguration.BuildSourceTasks, nameof(OeBuildConfiguration.BuildSourceTasks), TaskExecutorConfiguratorBuildSource);
+            BuildOutputTaskExecutors = ExecuteBuildStep<TaskExecutorWithFileList>(BuildConfiguration.BuildOutputTasks, nameof(OeBuildConfiguration.BuildOutputTasks), TaskExecutorConfiguratorBuildOutput);
+            PostBuildTaskExecutors = ExecuteBuildStep<TaskExecutor>(BuildConfiguration.PostBuildTasks, nameof(OeBuildConfiguration.PostBuildTasks), null);
+        }
+
+        private void TaskExecutorConfiguratorBuildOutput(TaskExecutorWithFileList executor) {
+            TaskExecutorConfigurator(executor);
+            var sourceLister = new SourceFilesLister(executor.OutputDirectory);
+            executor.TaskFiles = sourceLister.GetFileList();
+        }
+
+        private void TaskExecutorConfiguratorBuildSource(TaskExecutorWithFileListAndCompilation executor) {
+            TaskExecutorConfigurator(executor);
+            executor.TaskFiles = GetSourceFilesToRebuild();
+        }
+        
+        private void TaskExecutorConfigurator(TaskExecutorWithFileList executor) {
+            executor.SourceDirectory = SourceDirectory;
+            executor.OutputDirectory = BuildConfiguration?.Properties?.OutputDirectoryPath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultOutputDirectoryPath(SourceDirectory));
+        }
+
+        private List<T> ExecuteBuildStep<T>(IEnumerable<OeBuildStep> steps, string oeBuildConfigurationPropertyName, Action<T> taskExecutorConfigurator) where T : TaskExecutor, new() {
+            var output = new List<T>();
+            if (steps != null) {
                 var i = 0;
-                foreach (var step in BuildConfiguration.PostBuildTasks) {
-                    Log.Debug($"{typeof(OeBuildConfiguration).GetXmlName(nameof(OeBuildConfiguration.PostBuildTasks))} step {i}{(!string.IsNullOrEmpty(step.Label) ? $" : {step.Label}" : "")}");
-                    var executor = new TaskExecutor(step.GetTaskList());
-                    (PostBuildTaskExecutors ?? (PostBuildTaskExecutors = new List<TaskExecutor>())).Add(executor);
-                    executor.ProjectProperties = BuildConfiguration.Properties;
-                    executor.Env = Env;
+                foreach (var step in steps) {
+                    Log.Debug($"{typeof(OeBuildConfiguration).GetXmlName(oeBuildConfigurationPropertyName)} step {i}{(!string.IsNullOrEmpty(step.Label) ? $" : {step.Label}" : "")}");
+                    var executor = new T {
+                        Tasks = step.GetTaskList(),
+                        ProjectProperties = BuildConfiguration.Properties,
+                        Env = Env,
+                        Log = Log
+                    };
+                    taskExecutorConfigurator?.Invoke(executor);
+                    output.Add(executor);
                     executor.Execute();
                 }
             }
+            return output;
         }
+
+        private void OutputHistory() {
+            var outputHistoryPath = BuildConfiguration?.Properties?.BuildHistoryOutputFilePath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultBuildHistoryOutputFilePath(SourceDirectory));
+            var history = new OeBuildHistory();
+            history.BuiltFiles = BuildSourceTaskExecutors?
+                .SelectMany(exec => exec?.Tasks)
+                .Where(t => t is ITaskExecuteOnFiles)
+                .Cast<ITaskExecuteOnFiles>()
+                .SelectMany(t => t.GetFilesBuilt())
+                .ToList();
+            // TODO : remove targets out of the output directory
+        }
+
+        private void OutputReport() {
+            var outputReportPath = BuildConfiguration?.Properties?.ReportHtmlFilePath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultReportHtmlFilePath(SourceDirectory));
+            throw new NotImplementedException();
+        }
+
         
         /// <summary>
         /// Sets <see cref="TaskExecutorWithFileList.TaskFiles"/> to the list of source files that need to be rebuilt
@@ -139,7 +196,7 @@ namespace Oetools.Builder {
                 SourcePathFilter = BuildConfiguration?.Properties?.SourcePathFilter,
                 SourcePathGitFilter = BuildConfiguration?.Properties?.SourcePathGitFilter
             };
-            if (!NoIncrementalBuild) {
+            if (!ForceFullRebuild) {
                 sourceLister.PreviousSourceFiles = PreviouslyBuiltFiles;
                 sourceLister.UseHashComparison = BuildConfiguration?.Properties?.IncrementalBuildOptions?.StoreSourceHash ?? OeIncrementalBuildOptions.GetDefaultStoreSourceHash();
                 sourceLister.UseLastWriteDateComparison = true;
@@ -194,6 +251,6 @@ namespace Oetools.Builder {
                 }
             }
         }
-        
+
     }
 }

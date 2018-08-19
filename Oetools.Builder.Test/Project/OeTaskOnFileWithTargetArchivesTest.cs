@@ -31,7 +31,7 @@ namespace Oetools.Builder.Test.Project {
 
         [TestMethod]
         public void OeTaskOnFileWithTargetArchives_Test_Validate() {
-            var task = new OeTaskOnFileWithTargetArchives2 {
+            var task = new OeTaskOnFilesWithTargetArchives2 {
                 Include = "**"
             };
 
@@ -44,7 +44,7 @@ namespace Oetools.Builder.Test.Project {
         
         [TestMethod]
         public void OeTaskOnFileWithTargetArchives_Test_GetTargets() {
-            var task = new OeTaskOnFileWithTargetArchives2 {
+            var task = new OeTaskOnFilesWithTargetArchives2 {
                 Include = "**"
             };
             
@@ -78,7 +78,7 @@ namespace Oetools.Builder.Test.Project {
             Assert.IsTrue(list.Exists(s => s.Equals(@"C:\arc.pack\file.")));
         }
 
-        private class OeTaskOnFileWithTargetArchives2 : OeTaskOnFileWithTargetArchives {
+        private class OeTaskOnFilesWithTargetArchives2 : OeTaskOnFilesWithTargetArchives {
             public override string GetTargetArchive() => ArchivePath;
             public string ArchivePath { get; set; }
         }

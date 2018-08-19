@@ -20,6 +20,13 @@ namespace Oetools.Builder.History {
         [XmlAttribute(AttributeName = "SourcePath")]
         [BaseDirectory(Type = BaseDirectoryType.SourceDirectory)]
         public string SourcePath { get; set; }
+        
+        /// <summary>
+        /// Can be different from <see cref="SourcePath"/> for instance in the case of a .p, <see cref="SourcePathForTaskExecution"/>
+        /// will be set to the path of the .r code to copy instead of the actual source path
+        /// </summary>
+        [XmlIgnore]
+        internal string SourcePathForTaskExecution { get; set; }
 
         [XmlAttribute(AttributeName = "LastWriteTime")]
         public DateTime LastWriteTime { get; set; }

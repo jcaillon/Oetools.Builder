@@ -93,19 +93,19 @@ namespace Oetools.Builder.Project {
 
         [XmlElement(ElementName = "OutputDirectoryPath")]
         public string OutputDirectoryPath { get; set; }
-        internal static string GetDefaultOutputDirectoryPath() => Path.Combine($"{{{{{OeBuilderConstants.OeVarNameSourceDirectory}}}}}", "bin");
+        internal static string GetDefaultOutputDirectoryPath(string sourceDirectory) => Path.Combine(sourceDirectory, "bin");
 
         [XmlElement(ElementName = "ReportHtmlFilePath")]
         public string ReportHtmlFilePath { get; set; }
-        internal static string GetDefaultReportHtmlFilePath() => Path.Combine($"{{{{{OeBuilderConstants.OeProjectDirectory}}}}}", "build", "latest.html");
+        internal static string GetDefaultReportHtmlFilePath(string sourceDirectory) => Path.Combine(sourceDirectory, OeBuilderConstants.OeProjectDirectory, "build", "latest.html");
             
         [XmlElement(ElementName = "BuildHistoryOutputFilePath")]
         public string BuildHistoryOutputFilePath { get; set; }
-        internal static string GetDefaultBuildHistoryOutputFilePath() => Path.Combine($"{{{{{OeBuilderConstants.OeProjectDirectory}}}}}", "build", "latest.xml");
+        internal static string GetDefaultBuildHistoryOutputFilePath(string sourceDirectory) => Path.Combine(sourceDirectory, OeBuilderConstants.OeProjectDirectory, "build", "latest.xml");
             
         [XmlElement(ElementName = "BuildHistoryInputFilePath")]
         public string BuildHistoryInputFilePath { get; set; }
-        internal static string GetDefaultBuildHistoryInputFilePath() => Path.Combine($"{{{{{OeBuilderConstants.OeProjectDirectory}}}}}", "build", "latest.xml");
+        internal static string GetDefaultBuildHistoryInputFilePath(string sourceDirectory) => Path.Combine(sourceDirectory, OeBuilderConstants.OeProjectDirectory, "build", "latest.xml");
 
         /// <summary>
         /// Validate that is object is correct

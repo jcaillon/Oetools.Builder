@@ -29,7 +29,7 @@ namespace Oetools.Builder.Test.Project {
 
         [TestMethod]
         public void OeTaskOnFileWithTarget_Test_Validate() {
-            var targetTask = new OeTaskOnFileWithTarget2();
+            var targetTask = new OeTaskOnFilesWithTarget2();
 
             Assert.ThrowsException<TaskValidationException>(() => targetTask.Validate());
 
@@ -50,7 +50,7 @@ namespace Oetools.Builder.Test.Project {
 
         [TestMethod]
         public void OeTaskOnFileWithTarget_Test_GetFileTargets() {
-            var targetTask = new OeTaskOnFileWithTarget2 {
+            var targetTask = new OeTaskOnFilesWithTarget2 {
                 Include = "**"
             };
 
@@ -78,7 +78,7 @@ namespace Oetools.Builder.Test.Project {
 
         }
 
-        private class OeTaskOnFileWithTarget2 : OeTaskOnFileWithTargetFiles {
+        private class OeTaskOnFilesWithTarget2 : OeTaskOnFilesWithTargetFileses {
             
         }
     }

@@ -12,7 +12,7 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project {
     
-    public abstract class OeTaskOnFileWithTargetArchives : OeTaskOnFileWithTarget, ITaskArchive {
+    public abstract class OeTaskOnFilesWithTargetArchives : OeTaskOnFilesWithTarget, ITaskArchive {
             
         /// <summary>
         /// Relative path inside the archive

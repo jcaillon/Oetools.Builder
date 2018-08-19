@@ -9,6 +9,10 @@ namespace Oetools.Builder.Project {
         public bool? CompileWithDebugList { get; set; }
         internal static bool GetDefaultCompileWithDebugList() => false;
 
+        [XmlElement(ElementName = "CompileWithXmlXref")]
+        public bool? CompileWithXmlXref { get; set; }
+        internal static bool GetDefaultCompileWithXmlXref() => false;
+
         [XmlElement(ElementName = "CompileWithXref")]
         public bool? CompileWithXref { get; set; }
         internal static bool GetDefaultCompileWithXref() => false;

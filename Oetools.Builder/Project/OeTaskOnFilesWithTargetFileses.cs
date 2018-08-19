@@ -5,7 +5,7 @@ using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project {
-    public abstract class OeTaskOnFileWithTargetFiles : OeTaskOnFileWithTarget, ITaskOnFileWithTarget {
+    public abstract class OeTaskOnFilesWithTargetFileses : OeTaskOnFilesWithTarget, ITaskOnFilesWithTarget {
             
         [XmlAttribute("TargetFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]

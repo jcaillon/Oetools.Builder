@@ -2,6 +2,6 @@
 
 namespace Oetools.Builder.Project {
     [Serializable]
-    public class OeTaskRemoveDir : OeTaskOnFile {
+    public class OeTaskRemoveDir : OeTaskOnFiles {
     }
 }

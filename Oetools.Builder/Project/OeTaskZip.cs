@@ -4,7 +4,7 @@ using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.Project {
     [Serializable]
-    public class OeTaskZip : OeTaskOnFileWithTargetArchives {
+    public class OeTaskZip : OeTaskOnFilesWithTargetArchives {
         
         [XmlAttribute("TargetZipFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
