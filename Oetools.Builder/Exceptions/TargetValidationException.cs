@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (ITaskCompile.cs) is part of Oetools.Builder.
+// This file (BuildVariableException.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,10 +18,21 @@
 // ========================================================================
 #endregion
 
-using Oetools.Utilities.Openedge.Execution;
+using System;
+using Oetools.Builder.Project;
+using Oetools.Utilities.Lib.Extension;
 
-namespace Oetools.Builder.Project {
-    public interface ITaskCompile : ITask {
+namespace Oetools.Builder.Exceptions {
+    
+    public class TargetValidationException : TaskValidationException {
+        
+        public int TargetNumber { get; set; }
 
+        private string TargetTaskPath =>  $"{TaskPath} > Error in target part {TargetNumber.ToString().PrettyQuote()} (the order is by filepath then by directory) : {base.Message}";
+        
+        public override string Message => $"{TargetTaskPath} : {ErrorMessage}";
+
+        public TargetValidationException(OeTask task, string message) : base(task, message) { }
+        public TargetValidationException(OeTask task, string message, Exception innerException) : base(task, message, innerException) { }
     }
 }

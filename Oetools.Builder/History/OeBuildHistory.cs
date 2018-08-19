@@ -43,18 +43,17 @@ namespace Oetools.Builder.History {
             return xml;
         }
 
-        public static void Save(OeBuildHistory xml, string path, string sourceDirectory, string outputDirectory) {
-            xml.ToRelativePath(sourceDirectory, outputDirectory);
+        public void Save(string path, string sourceDirectory, string outputDirectory) {
+            ToRelativePath(sourceDirectory, outputDirectory);
             var serializer = new XmlSerializer(typeof(OeBuildHistory));
             using (TextWriter writer = new StreamWriter(path, false)) {
-                serializer.Serialize(writer, xml);
+                serializer.Serialize(writer, this);
             }
         }
         
         #endregion
 
         [XmlElement(ElementName = "PackageInfo")]
-        [BaseDirectory(SkipReplace = true)]
         public List<OeWebclientPackage> WebclientPackageInfo { get; set; }
 
         /// <summary>

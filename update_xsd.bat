@@ -19,6 +19,7 @@ set "CHANGE_DEFAULT_TARGETFRAMEWORK=true"
 set TARGETED_FRAMEWORKS=(net461)
 set "MSBUILD_DEFAULT_TARGET=Build"
 set "CI_COMMIT_SHA=no_commit_just_for_no_pause"
+set "CUSTOM_BUILD_PARAMS=/p:WithoutXsdAttribute=true"
 
 call build.bat
 
@@ -30,7 +31,7 @@ if not "!ERRORLEVEL!"=="0" (
 	GOTO ENDINERROR
 )
 
-move /y "schema0.xsd" "Oetools.Serialization\Resources\Xsd\Project.xsd"
+move /y "schema0.xsd" "Oetools.Builder\Resources\Xsd\Project.xsd"
 if not "!ERRORLEVEL!"=="0" (
 	GOTO ENDINERROR
 )

@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using Oetools.Builder.History;
 
 namespace Oetools.Builder.Project {
-    public interface ITaskArchive {
+    public interface ITaskArchive : ITask {
 
         /// <summary>
         /// Returns a collection of archive path -> list of relative targets inside that archive
@@ -30,6 +30,6 @@ namespace Oetools.Builder.Project {
         /// <param name="file"></param>
         /// <param name="outputDirectory"></param>
         /// <returns></returns>
-        Dictionary<string, List<string>> GetFileTargets(OeFile file, string outputDirectory = null);
+        Dictionary<string, List<string>> GetFileTargets(string file, string outputDirectory = null);
     }
 }

@@ -37,18 +37,26 @@ namespace Oetools.Builder.Project {
             return interfaceXml;
         }
 
-        public static void Save(OeBuildConfiguration xml, string path) {
+        public void Save(string path) {
+#if USESCHEMALOCATION
+            SchemaLocation = XsdName;
+#endif
             var serializer = new XmlSerializer(typeof(OeBuildConfiguration));
             using (TextWriter writer = new StreamWriter(path, false)) {
-                serializer.Serialize(writer, xml);
+                serializer.Serialize(writer, this);
             }
             File.WriteAllBytes(Path.Combine(Path.GetDirectoryName(path) ?? "", XsdName), XsdResources.GetXsdFromResources(XsdName));
         }
 
         #endregion
-            
+
+#if USESCHEMALOCATION
+        /// <summary>
+        /// Only when not generating the build for xsd.exe which has a problem with this attribute
+        /// </summary>
         [XmlAttribute("noNamespaceSchemaLocation", Namespace = XmlSchema.InstanceNamespace)]
-        public string SchemaLocation = XsdName;
+        public string SchemaLocation { get; set; }
+#endif
             
         [XmlAttribute("Name")]
         public string ConfigurationName { get; set; }

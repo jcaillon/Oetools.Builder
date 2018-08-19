@@ -26,7 +26,6 @@ namespace Oetools.Builder.History {
         [XmlArray("RequiredDatabaseReferences")]
         [XmlArrayItem("Table", typeof(OeDatabaseReferenceTable))]
         [XmlArrayItem("Sequence", typeof(OeDatabaseReferenceSequence))]
-        [BaseDirectory(SkipReplace = true)]
         public List<OeDatabaseReference> RequiredDatabaseReferences { get; set; }
         
     }

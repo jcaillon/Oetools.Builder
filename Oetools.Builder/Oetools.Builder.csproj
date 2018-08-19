@@ -52,6 +52,7 @@
   </PropertyGroup>
   <PropertyGroup Label="Extra stuff">
     <DefineConstants Condition=" '$(TargetFramework)'=='net461' ">$(DefineConstants);NET461;WINDOWSONLYBUILD</DefineConstants>
+    <DefineConstants Condition=" '$(WithoutXsdAttribute)'=='' ">$(DefineConstants);USESCHEMALOCATION</DefineConstants>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <!-- throw an exception on overflow instead of failing quietly -->
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>

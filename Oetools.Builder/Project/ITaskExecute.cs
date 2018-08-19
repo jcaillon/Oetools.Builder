@@ -19,7 +19,7 @@
 #endregion
 
 namespace Oetools.Builder.Project {
-    public interface ITaskExecute {
+    public interface ITaskExecute : ITask {
         void Execute();
     }
 }

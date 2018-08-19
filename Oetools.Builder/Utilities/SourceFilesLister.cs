@@ -41,7 +41,7 @@ namespace Oetools.Builder.Utilities {
         
         public string SourceDirectory { get; }
 
-        public List<OeFilter> SourcePathFilters { get; set; }
+        public OeTaskFilter SourcePathFilter { get; set; }
 
         /// <summary>
         /// If true, we consider that 2 files are different if they have different hash results
@@ -61,7 +61,9 @@ namespace Oetools.Builder.Utilities {
 
         public OeGitFilter SourcePathGitFilter { get; set; }
 
-        public List<OeFile> PreviousSourceFiles { get; set; }
+        public IEnumerable<OeFile> PreviousSourceFiles { get; set; }
+        
+        private List<Regex> _defaultFilters;
 
         public SourceFilesLister(string sourceDirectory) {
             SourceDirectory = sourceDirectory.ToCleanPath();
@@ -101,8 +103,21 @@ namespace Oetools.Builder.Utilities {
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public List<string> GetDirectoryList() {
-            List<string> propathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(SourcePathFilters);
-            return Utils.EnumerateAllFolders(SourceDirectory, SearchOption.AllDirectories, propathExcludeRegexStrings).ToList();
+            var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(SourcePathFilter);
+            return Utils.EnumerateAllFolders(SourceDirectory, SearchOption.AllDirectories, sourcePathExcludeRegexStrings)
+                .Where(IsFileIncludedBySourcePathFilters)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Returns a list of all the files in the source directory, filtered with <see cref="SourcePathFilter"/>
+        /// </summary>
+        /// <returns></returns>
+        private HashSet<string> GetBaseFileList() {
+            var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(SourcePathFilter);
+            return Utils.EnumerateAllFiles(SourceDirectory, SearchOption.AllDirectories, sourcePathExcludeRegexStrings)
+                .Where(IsFileIncludedBySourcePathFilters)
+                .ToHashSet(new HashSet<string>(StringComparer.CurrentCultureIgnoreCase));
         }
 
         /// <summary>
@@ -215,17 +230,7 @@ namespace Oetools.Builder.Utilities {
         }
 
         /// <summary>
-        /// Returns a list of all the files in the source directory, filtered with <see cref="SourcePathFilters"/>
-        /// </summary>
-        /// <returns></returns>
-        private HashSet<string> GetBaseFileList() {
-            var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(SourcePathFilters);
-            return Utils.EnumerateAllFiles(SourceDirectory, SearchOption.AllDirectories, sourcePathExcludeRegexStrings)
-                .ToHashSet(new HashSet<string>(StringComparer.CurrentCultureIgnoreCase));
-        }
-
-        /// <summary>
-        /// Returns a list of files in the source directory based on a git filter and also filtered with <see cref="SourcePathFilters"/>
+        /// Returns a list of files in the source directory based on a git filter and also filtered with <see cref="SourcePathFilter"/>
         /// </summary>
         /// <returns></returns>
         private HashSet<string> GetBaseFileListFromGit() {
@@ -261,7 +266,7 @@ namespace Oetools.Builder.Utilities {
         }
         
         /// <summary>
-        /// Filter the list of files with the <see cref="SourcePathFilters"/>
+        /// Filter the list of files with the <see cref="SourcePathFilter"/>
         /// </summary>
         /// <param name="files"></param>
         /// <returns></returns>
@@ -284,35 +289,38 @@ namespace Oetools.Builder.Utilities {
         /// <param name="filePath"></param>
         /// <returns></returns>
         public bool IsFilePassingSourcePathFilters(string filePath) {
-            return SourcePathFilters == null || SourcePathFilters.All(filter => filter.IsFilePassingFilter(filePath));
+            return SourcePathFilter == null || SourcePathFilter.IsFilePassingFilter(filePath);
         }
-
-
-        private List<Regex> _defaultFilters;
+        
+        private bool IsFileIncludedBySourcePathFilters(string filePath) {
+            return SourcePathFilter == null || SourcePathFilter.IsFileIncluded(filePath);
+        }
         
         private List<Regex> GetDefaultFilters() {
             if (_defaultFilters == null) {
-                _defaultFilters = new List<Regex>();
-                _defaultFilters.AddRange(GetDefaultFiltersRegexes().Select(s => new Regex(s)));
+                _defaultFilters = GetDefaultFiltersRegexes().Select(s => new Regex(s)).ToList();
             }
             return _defaultFilters;
         }
 
+        /// <summary>
+        /// Get a list of regexes corresponding to default filters (.git/.svn folders)
+        /// </summary>
+        /// <returns></returns>
         private IEnumerable<string> GetDefaultFiltersRegexes() {
             return OeBuilderConstants.ExtraSourceDirectoryExclusions.Split(';').Select(s => Path.Combine(SourceDirectory, s).PathWildCardToRegex());
         }
         
         /// <summary>
-        /// Get a list of exclusion regex strings from a list of filters, appending extra exclusions if needed
+        /// Get a list of exclusion regex strings from a list of filters, appending extra exclusions
         /// </summary>
-        /// <param name="filters"></param>
+        /// <param name="filter"></param>
         /// <returns></returns>
-        private List<string> GetExclusionRegexStringsFromFilters(List<OeFilter> filters) {
-            List<string> exclusionRegexStrings = null;
-            if (filters != null) {
-                exclusionRegexStrings = filters.SelectMany(f => f.GetRegexStrings()).ToList();
+        private List<string> GetExclusionRegexStringsFromFilters(OeTaskFilter filter) {
+            var exclusionRegexStrings = GetDefaultFiltersRegexes().ToList();
+            if (filter != null) {
+                exclusionRegexStrings.AddRange(filter.GetRegexExcludeStrings());
             }
-            (exclusionRegexStrings ?? (exclusionRegexStrings = new List<string>())).AddRange(GetDefaultFiltersRegexes());
             return exclusionRegexStrings;
         }
     }

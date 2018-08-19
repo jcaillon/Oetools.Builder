@@ -49,6 +49,35 @@ namespace Oetools.Builder.Test.Project {
             Utils.DeleteDirectoryIfExists(TestFolder, true);
         }
         
+        /// <summary>
+        /// We need every single public property in the <see cref="Oetools.Builder.Project"/> namespace to be nullable
+        /// </summary>
+        [TestMethod]
+        public void CheckForNullablePublicPropertiesOnly() {
+            foreach (var type in TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}")) {
+                foreach (var propertyInfo in type.GetProperties().ToList().Where(p => p.PropertyType.IsPublic)) {
+                    Assert.IsTrue(TestHelper.CanBeNull(propertyInfo.PropertyType), $"{type.Name}.{propertyInfo.Name} is not nullable!");
+                }
+            }
+        }
+        
+        /// <summary>
+        /// We need every single public property in the <see cref="Oetools.Builder.Project"/> namespace to be nullable
+        /// </summary>
+        [TestMethod]
+        public void CheckForXmlPropertiesOnEachPublicProperties() {
+            foreach (var type in TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}")) {
+                foreach (var propertyInfo in type.GetProperties().ToList().Where(p => p.PropertyType.IsPublic)) {
+                    Assert.IsTrue(
+                        Attribute.GetCustomAttribute(propertyInfo, typeof(XmlAnyAttributeAttribute), true) != null ||
+                        Attribute.GetCustomAttribute(propertyInfo, typeof(XmlArrayAttribute), true) != null ||
+                        Attribute.GetCustomAttribute(propertyInfo, typeof(XmlElementAttribute), true) != null ||
+                        Attribute.GetCustomAttribute(propertyInfo, typeof(XmlAttributeAttribute), true) != null, 
+                        $"{type.Name}.{propertyInfo.Name} does not have an xml attribute!");
+                }
+            }
+        }
+        
         [TestMethod]
         public void AllSerializableClassInProjectShouldSerialize() {
             foreach (var type in TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}")) {
@@ -174,22 +203,14 @@ namespace Oetools.Builder.Test.Project {
                     "fezef/zef/zefzef",
                     "C:\\zefzefzef\\"
                 },
-                PropathFilters = new List<OeFilter> {
-                    new OeFilter {
-                        Exclude = "**/derp"
-                    },
-                    new OeFilterRegex {
-                        Exclude = "\\\\[D][d]"
-                    }
+                PropathFilter = new OeTaskFilter {
+                    Exclude = "**/derp",
+                    ExcludeRegex = "\\\\[D][d]"
                 },
                 ReportHtmlFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.html"),
-                SourcePathFilters = new List<OeFilter> {
-                    new OeFilter {
-                        Exclude = "**/derp"
-                    },
-                    new OeFilterRegex {
-                        Exclude = "\\\\[D][d]"
-                    }
+                SourcePathFilter =new OeTaskFilter {
+                    Exclude = "**/derp",
+                    ExcludeRegex = "\\\\[D][d]"
                 },
                 SourcePathGitFilter = new OeGitFilter {
                     CurrentBranchName = null,

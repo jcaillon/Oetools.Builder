@@ -4,7 +4,7 @@ using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.Project {
     [Serializable]
-    public class OeTaskZip : OeTaskOnFileArchive {
+    public class OeTaskZip : OeTaskOnFileWithTargetArchives {
         
         [XmlAttribute("TargetZipFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
@@ -13,7 +13,7 @@ namespace Oetools.Builder.Project {
         [XmlAttribute(AttributeName = "ArchivesCompressionLevel")]
         public string ArchivesCompressionLevel { get; set; }
 
-        public OeCompressionLevel GetArchivesCompressionLevel() {
+        public override OeCompressionLevel GetArchivesCompressionLevel() {
             if (Enum.TryParse(ArchivesCompressionLevel, true, out OeCompressionLevel level)) {
                 return level;
             }

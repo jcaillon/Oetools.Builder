@@ -24,7 +24,7 @@ using Oetools.Builder.History;
 namespace Oetools.Builder.Project {
     public interface ITaskOnFileWithTarget : ITaskExecuteOnFile {
 
-        List<string> GetFileTargets(OeFile file, string outputDirectory = null);
+        List<string> GetFileTargets(string file, string outputDirectory = null);
         
     }
 }

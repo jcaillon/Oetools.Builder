@@ -20,7 +20,7 @@ namespace Oetools.Builder.Project {
         
         [XmlElement(ElementName = "DlcDirectoryPath")]
         public string DlcDirectoryPath { get; set; }
-        internal string GetDefaultDlcDirectoryPath() => ProUtilities.GetDlcPathFromEnv().ToCleanPath();
+        internal static string GetDefaultDlcDirectoryPath() => ProUtilities.GetDlcPathFromEnv().ToCleanPath();
         
         [XmlArray("ProjectDatabases")]
         [XmlArrayItem("ProjectDatabase", typeof(OeProjectDatabase))]
@@ -42,12 +42,10 @@ namespace Oetools.Builder.Project {
         
         [XmlElement(ElementName = "AddAllSourceDirectoriesToPropath")]
         public bool? AddAllSourceDirectoriesToPropath { get; set; }
-        internal bool GetDefaultAddAllSourceDirectoriesToPropath() => true;
+        internal static bool GetDefaultAddAllSourceDirectoriesToPropath() => true;
             
-        [XmlArray("PropathFilters")]
-        [XmlArrayItem("Filter", typeof(OeFilter))]
-        [XmlArrayItem("FilterRegex", typeof(OeFilterRegex))]
-        public List<OeFilter> PropathFilters { get; set; }
+        [XmlElement(ElementName = "PropathFilter")]
+        public OeTaskFilter PropathFilter { get; set; }
 
         /// <summary>
         /// Adds the gui or tty (depending on <see cref="UseCharacterModeExecutable"/>) folder as well as the contained .pl to the propath
@@ -55,11 +53,11 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlElement(ElementName = "AddDefaultOpenedgePropath")]
         public bool? AddDefaultOpenedgePropath { get; set; }
-        internal bool GetDefaultAddDefaultOpenedgePropath() => true;
+        internal static bool GetDefaultAddDefaultOpenedgePropath() => true;
 
         [XmlElement(ElementName = "UseCharacterModeExecutable")]
         public bool? UseCharacterModeExecutable { get; set; }
-        internal bool GetDefaultUseCharacterModeExecutable() => false;
+        internal static bool GetDefaultUseCharacterModeExecutable() => false;
 
         [XmlElement(ElementName = "ProgresCommandLineExtraParameters")]
         public string ProgresCommandLineExtraParameters { get; set; }
@@ -77,10 +75,8 @@ namespace Oetools.Builder.Project {
         /// Allows to exclude path from being treated by <see cref="OeBuildConfiguration.BuildSourceTasks"/>
         /// Specify what should not be considered as a source file in your source directory (for instance, the docs/ folder)
         /// </summary>
-        [XmlArray("SourcePathFilters")]
-        [XmlArrayItem("Filter", typeof(OeFilter))]
-        [XmlArrayItem("FilterRegex", typeof(OeFilterRegex))]
-        public List<OeFilter> SourcePathFilters { get; set; }
+        [XmlElement(ElementName = "SourcePathFilter")]
+        public OeTaskFilter SourcePathFilter { get; set; }
                 
         /// <summary>
         /// Use this to apply GIT filters to your <see cref="OeBuildConfiguration.BuildSourceTasks"/>
@@ -97,42 +93,38 @@ namespace Oetools.Builder.Project {
 
         [XmlElement(ElementName = "OutputDirectoryPath")]
         public string OutputDirectoryPath { get; set; }
-        internal string GetDefaultOutputDirectoryPath() => Path.Combine($"{{{{{OeBuilderConstants.OeVarNameSourceDirectory}}}}}", "bin");
+        internal static string GetDefaultOutputDirectoryPath() => Path.Combine($"{{{{{OeBuilderConstants.OeVarNameSourceDirectory}}}}}", "bin");
 
         [XmlElement(ElementName = "ReportHtmlFilePath")]
         public string ReportHtmlFilePath { get; set; }
-        internal string GetDefaultReportHtmlFilePath() => Path.Combine($"{{{{{OeBuilderConstants.OeProjectDirectory}}}}}", "build", "latest.html");
+        internal static string GetDefaultReportHtmlFilePath() => Path.Combine($"{{{{{OeBuilderConstants.OeProjectDirectory}}}}}", "build", "latest.html");
             
         [XmlElement(ElementName = "BuildHistoryOutputFilePath")]
         public string BuildHistoryOutputFilePath { get; set; }
-        internal string GetDefaultBuildHistoryOutputFilePath() => Path.Combine($"{{{{{OeBuilderConstants.OeProjectDirectory}}}}}", "build", "latest.xml");
+        internal static string GetDefaultBuildHistoryOutputFilePath() => Path.Combine($"{{{{{OeBuilderConstants.OeProjectDirectory}}}}}", "build", "latest.xml");
             
         [XmlElement(ElementName = "BuildHistoryInputFilePath")]
         public string BuildHistoryInputFilePath { get; set; }
-        internal string GetDefaultBuildHistoryInputFilePath() => Path.Combine($"{{{{{OeBuilderConstants.OeProjectDirectory}}}}}", "build", "latest.xml");
+        internal static string GetDefaultBuildHistoryInputFilePath() => Path.Combine($"{{{{{OeBuilderConstants.OeProjectDirectory}}}}}", "build", "latest.xml");
 
         /// <summary>
         /// Validate that is object is correct
         /// </summary>
+        /// <exception cref="FilterValidationException"></exception>
         public void Validate() {
-            ValidateFilters(PropathFilters, nameof(PropathFilters));
-            ValidateFilters(SourcePathFilters, nameof(SourcePathFilters));
+            ValidateFilters(PropathFilter, nameof(PropathFilter));
+            ValidateFilters(SourcePathFilter, nameof(SourcePathFilter));
         }
         
-        private void ValidateFilters(IEnumerable<OeFilter> filters, string propertyNameOf) {
-            var i = 0;
-            foreach (var filter in filters) {
-                try {
-                    filter.Validate();
-                } catch (Exception e) {
-                    var et = e as FilterValidationException;
-                    if (et != null) {
-                        et.FilterNumber = i;
-                        et.FilterCollectionName = typeof(OeProjectProperties).GetXmlName(propertyNameOf);
-                    }
-                    throw new BuildConfigurationException(et != null ? et.Message : "Unexpected exception when checking filters", et ?? e);
+        private void ValidateFilters(OeTaskFilter filter, string propertyNameOf) {
+            try {
+                filter.Validate();
+            } catch (Exception e) {
+                var et = e as FilterValidationException;
+                if (et != null) {
+                    et.FilterCollectionName = typeof(OeProjectProperties).GetXmlName(propertyNameOf);
                 }
-                i++;
+                throw new BuildConfigurationException(et != null ? et.Message : "Unexpected exception when checking filters", et ?? e);
             }
         }
 
@@ -186,7 +178,7 @@ namespace Oetools.Builder.Project {
             }
             if (AddAllSourceDirectoriesToPropath ?? false) {
                 var lister = new SourceFilesLister(sourceDirectory) {
-                    SourcePathFilters = PropathFilters
+                    SourcePathFilter = PropathFilter
                 };
                 foreach (var directory in lister.GetDirectoryList()) {
                     if (!output.Contains(directory)) {

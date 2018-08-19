@@ -73,7 +73,7 @@ namespace Oetools.Builder.Test.Project {
                 },
                 IniFilePath = iniPath,
                 AddAllSourceDirectoriesToPropath = false,
-                PropathFilters = null,
+                PropathFilter = null,
                 AddDefaultOpenedgePropath = false
             };
 
@@ -89,13 +89,9 @@ namespace Oetools.Builder.Test.Project {
             Assert.AreEqual(6 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
             Assert.IsTrue(list.Exists(s => s.Equals(Path.Combine(TestFolder, "test3", "subtest3"))));
             
-            prop.PropathFilters = new List<OeFilter> {
-                new OeFilter {
-                    Exclude = "**sub**"
-                },
-                new OeFilterRegex {
-                    Exclude = "[hH][Ii][Dd]"
-                }
+            prop.PropathFilter = new OeTaskFilter {
+                Exclude = "**sub**",
+                ExcludeRegex = "[hH][Ii][Dd]"
             };
             
             list = prop.GetPropath(TestFolder, false);

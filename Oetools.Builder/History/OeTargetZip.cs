@@ -11,7 +11,6 @@ namespace Oetools.Builder.History {
         /// Relative path inside the archive
         /// </summary>
         [XmlAttribute("RelativeTargetFilePath")]
-        [BaseDirectory(SkipReplace = true)]
         public string RelativeTargetFilePath { get; set; }
         
         /// <summary>

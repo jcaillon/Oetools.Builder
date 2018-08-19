@@ -23,32 +23,25 @@ using System.Collections.Generic;
 using Oetools.Builder.History;
 
 namespace Oetools.Builder.Project {
-    public interface ITaskExecuteOnFile {
+    public interface ITaskExecuteOnFile : ITask {
 
-        /// <summary>
-        /// Returns true if the file is included in this task
-        /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
-        bool IsFileIncluded(OeFile file);
-        
         /// <summary>
         /// Returns true of the file is excluded in this task
         /// </summary>
-        /// <param name="file"></param>
+        /// <param name="filePath"></param>
         /// <returns></returns>
-        bool IsFileExcluded(OeFile file);
+        bool IsFilePassingFilter(string filePath);
+        
+        bool IsFileExcluded(string filePath);
         
         void ExecuteForFile(OeFile file);
 
         List<OeFileBuilt> GetFilesBuilt();
 
-        List<string> GetIncludeRegexStrings();
+        List<string> GetIncludedPathToList();
 
-        List<string> GetExcludeRegexStrings();
-        
-        List<string> GetIncludeOriginalStrings();
-        
-        List<string> GetExcludeOriginalStrings();
+        List<string> GetIncludeStrings();
+
+        List<string> GetRegexExcludeStrings();
     }
 }

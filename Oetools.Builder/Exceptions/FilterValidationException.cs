@@ -24,15 +24,16 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Exceptions {
     
-    public class FilterValidationException : Exception {
+    public class FilterValidationException : TaskValidationException {
         
         public string FilterCollectionName { get; set; }
-        
         public int FilterNumber { get; set; }
 
-        public override string Message => $"{(string.IsNullOrEmpty(FilterCollectionName) ? "E" : $"Filters {FilterCollectionName}, e")}rror in filter {FilterNumber.ToString().PrettyQuote()} : {base.Message}";
+        private string FilterTaskPath =>  $"{TaskPath} > {(string.IsNullOrEmpty(FilterCollectionName) ? "E" : $"Filters {FilterCollectionName}, e")}rror in filter part {FilterNumber.ToString().PrettyQuote()} (the order is wildcards then regexes) : {base.Message}";
+        
+        public override string Message => $"{FilterTaskPath} : {ErrorMessage}";
 
-        public FilterValidationException(string message) : base(message) { }
-        public FilterValidationException(string message, Exception innerException) : base(message, innerException) { }
+        public FilterValidationException(OeTask task, string message) : base(task, message) { }
+        public FilterValidationException(OeTask task, string message, Exception innerException) : base(task, message, innerException) { }
     }
 }

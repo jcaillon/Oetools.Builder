@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (ITaskCompile.cs) is part of Oetools.Builder.
+// This file (ITask.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,10 +18,12 @@
 // ========================================================================
 #endregion
 
-using Oetools.Utilities.Openedge.Execution;
+using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.Project {
-    public interface ITaskCompile : ITask {
+    public interface ITask {
 
+        void SetLog(ILogger log);
+        
     }
 }

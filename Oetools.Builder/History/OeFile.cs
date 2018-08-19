@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Xml.Serialization;
+using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.History {
@@ -17,6 +18,7 @@ namespace Oetools.Builder.History {
         /// The relative path of the source file
         /// </summary>
         [XmlAttribute(AttributeName = "SourcePath")]
+        [BaseDirectory(Type = BaseDirectoryType.SourceDirectory)]
         public string SourcePath { get; set; }
 
         [XmlAttribute(AttributeName = "LastWriteTime")]

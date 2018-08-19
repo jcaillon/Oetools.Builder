@@ -6,7 +6,7 @@ namespace Oetools.Builder.Project {
     
     [Serializable]
     [XmlRoot("Cab")]
-    public class OeTaskCab : OeTaskOnFileArchive {
+    public class OeTaskCab : OeTaskOnFileWithTargetArchives {
         
         [XmlAttribute("TargetCabFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
@@ -15,7 +15,7 @@ namespace Oetools.Builder.Project {
         [XmlAttribute(AttributeName = "ArchivesCompressionLevel")]
         public string ArchivesCompressionLevel { get; set; }
 
-        public OeCompressionLevel GetArchivesCompressionLevel() {
+        public override OeCompressionLevel GetArchivesCompressionLevel() {
             if (Enum.TryParse(ArchivesCompressionLevel, true, out OeCompressionLevel level)) {
                 return level;
             }

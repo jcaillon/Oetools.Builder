@@ -7,7 +7,7 @@ using Oetools.Utilities.Openedge.Execution;
 namespace Oetools.Builder.Test {
     
     [TestClass]
-    public class TaskExecutorTest {
+    public class BuilderTest {
         
         [TestMethod]
         public void GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification_Test() {
@@ -15,7 +15,7 @@ namespace Oetools.Builder.Test {
             var modifiedFiles = new List<OeFile>();
             var previouslyBuiltFiles = new List<OeFileBuiltCompiled>();
 
-            var output = TaskExecutorOnFileBuildingSource.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
+            var output = Builder.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(0, output.Count, "empty for now");
 
@@ -26,7 +26,7 @@ namespace Oetools.Builder.Test {
                 new OeFile("file4")
             };
             
-            output = TaskExecutorOnFileBuildingSource.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
+            output = Builder.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(0, output.Count, "still empty");
             
@@ -47,7 +47,7 @@ namespace Oetools.Builder.Test {
                 }
             };
             
-            output = TaskExecutorOnFileBuildingSource.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
+            output = Builder.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(1, output.Count, "source2 should be included");
             Assert.AreEqual("source2", output[0].SourcePath, "source2 should be included since it requires file1 which has been modified");
@@ -64,7 +64,7 @@ namespace Oetools.Builder.Test {
                 }
             };
             
-            output = TaskExecutorOnFileBuildingSource.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
+            output = Builder.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(3, output.Count, "all three source should be included");
             Assert.IsTrue(output.Exists(f => f.SourcePath.Equals("source1")));
@@ -81,7 +81,7 @@ namespace Oetools.Builder.Test {
             };
             modifiedFiles.RemoveAt(0);
 
-            output = TaskExecutorOnFileBuildingSource.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
+            output = Builder.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(0, output.Count, "we should have nothing, file1 isn't modified and all table/sequences are the same as before");
             
@@ -90,7 +90,7 @@ namespace Oetools.Builder.Test {
                     "table2", "crcdifferent"
                 }
             };
-            output = TaskExecutorOnFileBuildingSource.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
+            output = Builder.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(1, output.Count, "we should have source 3 now because the table CRC has changed");
             Assert.IsTrue(output.Exists(f => f.SourcePath.Equals("source3")));

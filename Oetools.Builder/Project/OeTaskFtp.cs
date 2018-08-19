@@ -4,6 +4,6 @@ using System.Xml.Serialization;
 namespace Oetools.Builder.Project {
     [Serializable]
     [XmlRoot("Ftp")]
-    public class OeTaskFtp : OeTaskOnFileWithTarget {
+    public class OeTaskFtp : OeTaskOnFileWithTargetFiles {
     }
 }
