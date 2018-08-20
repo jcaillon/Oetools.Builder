@@ -1,23 +1,22 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (PathUtilsTest.cs) is part of Oetools.Utilities.Test.
+// This file (OeProjectPropertiesTest.cs) is part of Oetools.Builder.Test.
 // 
-// Oetools.Utilities.Test is a free software: you can redistribute it and/or modify
+// Oetools.Builder.Test is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 // 
-// Oetools.Utilities.Test is distributed in the hope that it will be useful,
+// Oetools.Builder.Test is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 // 
 // You should have received a copy of the GNU General Public License
-// along with Oetools.Utilities.Test. If not, see <http://www.gnu.org/licenses/>.
+// along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -73,7 +72,7 @@ namespace Oetools.Builder.Test.Project {
                 },
                 IniFilePath = iniPath,
                 AddAllSourceDirectoriesToPropath = false,
-                PropathFilter = null,
+                PropathSourceDirectoriesFilter = null,
                 AddDefaultOpenedgePropath = false
             };
 
@@ -89,7 +88,7 @@ namespace Oetools.Builder.Test.Project {
             Assert.AreEqual(6 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
             Assert.IsTrue(list.Exists(s => s.Equals(Path.Combine(TestFolder, "test3", "subtest3"))));
             
-            prop.PropathFilter = new OeTaskFilter {
+            prop.PropathSourceDirectoriesFilter = new OeTaskFilter {
                 Exclude = "**sub**",
                 ExcludeRegex = "[hH][Ii][Dd]"
             };

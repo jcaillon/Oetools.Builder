@@ -1,6 +1,7 @@
-﻿// ========================================================================
+﻿#region header
+// ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (TaskExecutor.cs) is part of Oetools.Builder.
+// This file (TaskExecutorWithFileListAndCompilation.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
-
+#endregion
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -29,9 +30,11 @@ using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder {
        
-    public class TaskExecutorWithFileListAndCompilation : TaskExecutorWithFileList, IDisposable {
+    public class TaskExecutorWithFileListAndCompilation : TaskExecutorWithFileList {
 
-        private OeExecutionParallelCompile _compiler;
+        public List<UoeCompiledFile> CompiledFiles { get; set; }
+        
+        private UoeExecutionParallelCompile _compiler;
 
         public override void Execute() {
             Log?.Info("Compiling files from all tasks");
@@ -42,45 +45,35 @@ namespace Oetools.Builder {
         }
 
         private void CompileFiles() {
-            _compiler = new OeExecutionParallelCompile(Env) {
-                AnalysisModeSimplifiedDatabaseReferences = ProjectProperties?.CompilationOptions?.UseSimplerAnalysisForDatabaseReference ?? OeCompilationOptions.GetDefaultUseSimplerAnalysisForDatabaseReference(),
-                FilesToCompile = GetFilesToCompile(),
-                CompileInAnalysisMode = ProjectProperties?.IncrementalBuildOptions?.Disabled ?? OeIncrementalBuildOptions.GetDefaultDisabled(),
-                CompileOptions = ProjectProperties?.CompilationOptions?.CompileOptions,
-                CompilerMultiCompile = ProjectProperties?.CompilationOptions?.UseCompilerMultiCompile ?? OeCompilationOptions.GetDefaultUseCompilerMultiCompile(),
-                CompileStatementExtraOptions = ProjectProperties?.CompilationOptions?.CompileStatementExtraOptions,
-                CompileUseXmlXref = ProjectProperties?.CompilationOptions?.CompileWithXmlXref ?? OeCompilationOptions.GetDefaultCompileWithXmlXref(),
-                CompileWithDebugList = ProjectProperties?.CompilationOptions?.CompileWithDebugList ?? OeCompilationOptions.GetDefaultCompileWithDebugList(),
-                CompileWithListing = ProjectProperties?.CompilationOptions?.CompileWithListing ?? OeCompilationOptions.GetDefaultCompileWithListing(),
-                CompileWithPreprocess = ProjectProperties?.CompilationOptions?.CompileWithPreprocess ?? OeCompilationOptions.GetDefaultCompileWithPreprocess(),
-                CompileWithXref = ProjectProperties?.CompilationOptions?.CompileWithXref ?? OeCompilationOptions.GetDefaultCompileWithXref(),
-                MaxNumberOfProcesses = Math.Max(1, Environment.ProcessorCount * ProjectProperties?.CompilationOptions?.CompileNumberProcessPerCore ?? OeCompilationOptions.GetDefaultCompileNumberProcessPerCore()),
-                MinimumNumberOfFilesPerProcess = ProjectProperties?.CompilationOptions?.CompileMinimumNumberOfFilesPerProcess ?? OeCompilationOptions.GetDefaultCompileMinimumNumberOfFilesPerProcess(),
-                WorkingDirectory = SourceDirectory,
-                NeedDatabaseConnection = true
-            };
+            _compiler = ProjectProperties.GetPar(Env, SourceDirectory);
+            _compiler.FilesToCompile = GetFilesToCompile();
+            
+            // TODO : get all the files that pass the filter of any IOeTaskCompile tasks and compile them
             
             
-            // TODO : get all the files that pass the filter of any ITaskCompile tasks and compile them
             throw new NotImplementedException();
         }
 
-        private List<FileToCompile> GetFilesToCompile() {
+        private List<UoeFileToCompile> GetFilesToCompile() {
             throw new NotImplementedException();
         }
 
-        protected override void ExecuteTaskOnFiles(OeTaskOnFiles task, List<OeFile> files) {
-            if (task is ITaskCompile taskCompile) {
-                // TODO : instead of executing on sourcepath, execute on the rcode (SourcePathForTaskExecution)
-                
-                return;
+        protected override IEnumerable<IOeFileToBuildTargetFile> GetFilesReadyForTaskExecution(IOeTaskFile task, List<OeFile> initialFiles) {
+            if (task is IOeTaskCompile) {
+                var i = 0;
+                while (i <= initialFiles.Count) {
+                    var file = initialFiles[i];
+                    var compiledFile = CompiledFiles.FirstOrDefault(cf => cf.SourceFilePath.Equals(file.SourceFilePath));
+                    if (compiledFile != null && compiledFile.CompiledCorrectly) {
+                        file.SourcePathForTaskExecution = compiledFile.CompilationRcodeFilePath;
+                    } else {
+                        initialFiles.RemoveAt(i);
+                        continue;
+                    }
+                    i++;
+                }
             }
-            base.ExecuteTaskOnFiles(task, files);
+            return base.GetFilesReadyForTaskExecution(task, initialFiles);
         }
-        
-        public void Dispose() {
-              
-        }
-        
     }
 }

@@ -1,3 +1,22 @@
+#region header
+// ========================================================================
+// Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
+// This file (BuilderTest.cs) is part of Oetools.Builder.Test.
+// 
+// Oetools.Builder.Test is a free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// Oetools.Builder.Test is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
+// ========================================================================
+#endregion
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -50,7 +69,7 @@ namespace Oetools.Builder.Test {
             output = Builder.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(1, output.Count, "source2 should be included");
-            Assert.AreEqual("source2", output[0].SourcePath, "source2 should be included since it requires file1 which has been modified");
+            Assert.AreEqual("source2", output[0].SourceFilePath, "source2 should be included since it requires file1 which has been modified");
 
             previouslyBuiltFiles[0].RequiredDatabaseReferences = new List<OeDatabaseReference> {
                 new OeDatabaseReferenceSequence {
@@ -67,9 +86,9 @@ namespace Oetools.Builder.Test {
             output = Builder.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(3, output.Count, "all three source should be included");
-            Assert.IsTrue(output.Exists(f => f.SourcePath.Equals("source1")));
-            Assert.IsTrue(output.Exists(f => f.SourcePath.Equals("source2")));
-            Assert.IsTrue(output.Exists(f => f.SourcePath.Equals("source3")));
+            Assert.IsTrue(output.Exists(f => f.SourceFilePath.Equals("source1")));
+            Assert.IsTrue(output.Exists(f => f.SourceFilePath.Equals("source2")));
+            Assert.IsTrue(output.Exists(f => f.SourceFilePath.Equals("source3")));
 
             env.SequencesSet = new HashSet<string> {
                 "sequence1"
@@ -93,11 +112,11 @@ namespace Oetools.Builder.Test {
             output = Builder.GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(env, modifiedFiles, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(1, output.Count, "we should have source 3 now because the table CRC has changed");
-            Assert.IsTrue(output.Exists(f => f.SourcePath.Equals("source3")));
+            Assert.IsTrue(output.Exists(f => f.SourceFilePath.Equals("source3")));
 
         }
 
-        private class EnvExecution2 : EnvExecution {
+        private class EnvExecution2 : UoeExecutionEnv {
             
             public override Dictionary<string, string> TablesCrc => TablesCrcSet;
             public override HashSet<string> Sequences => SequencesSet;

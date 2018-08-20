@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (FileListerTest.cs) is part of Oetools.Builder.Test.
+// This file (SourceFileListerTest.cs) is part of Oetools.Builder.Test.
 // 
 // Oetools.Builder.Test is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -192,7 +191,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(3, list.Count, "count all");
             Assert.AreEqual(1, list.Count(f => f.State == OeFileState.Added), "1 added");
             Assert.AreEqual(2, list.Count(f => f.State == OeFileState.Unchanged), "2 unchanged");
-            Assert.IsTrue(!list.Exists(f => f.SourcePath.Contains("file3")));   
+            Assert.IsTrue(!list.Exists(f => f.SourceFilePath.Contains("file3")));   
         }
 
         [TestMethod]
@@ -299,7 +298,7 @@ namespace Oetools.Builder.Test.Utilities {
             };
             
             Assert.AreEqual(1, lister.GetFileList().Count, "no .pls file");
-            Assert.AreEqual(Path.Combine(repoDir, "monfichier.txt"), lister.GetFileList()[0].SourcePath, "check file path");
+            Assert.AreEqual(Path.Combine(repoDir, "monfichier.txt"), lister.GetFileList()[0].SourceFilePath, "check file path");
 
             lister.SourcePathFilter = null;
             
@@ -310,7 +309,7 @@ namespace Oetools.Builder.Test.Utilities {
             };
             
             Assert.AreEqual(1, lister.GetFileList().Count, "no .txt file");
-            Assert.AreEqual(Path.Combine(repoDir, "subfolder", "monfichier.pls"), lister.GetFileList()[0].SourcePath, "check my pls file");
+            Assert.AreEqual(Path.Combine(repoDir, "subfolder", "monfichier.pls"), lister.GetFileList()[0].SourceFilePath, "check my pls file");
             
             lister.SourcePathFilter = new OeTaskFilter {
                 Include = "**"
@@ -370,7 +369,7 @@ namespace Oetools.Builder.Test.Utilities {
             File.WriteAllText(Path.Combine(repoDir, "init file"), "");
             
             Assert.AreEqual(1, lister.GetFileList().Count, "now we get one file");
-            Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList()[0].SourcePath, "check that we get what we expect");
+            Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList()[0].SourceFilePath, "check that we get what we expect");
             
             lister.SourcePathGitFilter = new OeGitFilter {
                 OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true,
@@ -389,7 +388,7 @@ namespace Oetools.Builder.Test.Utilities {
            
             
             Assert.AreEqual(1, lister.GetFileList().Count, "now it's committed so we can list it again");
-            Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList()[0].SourcePath, "check that we get full path");
+            Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList()[0].SourceFilePath, "check that we get full path");
             
             // new branch v1/dev/issue1
             try {
@@ -411,7 +410,7 @@ namespace Oetools.Builder.Test.Utilities {
             lister.SourcePathGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = false;
             
             Assert.AreEqual(2, lister.GetFileList().Count, "but now we do");
-            Assert.IsTrue(lister.GetFileList().Exists(f => f.SourcePath.Equals(Path.Combine(repoDir, "new file1"))), "check that we still get full path");
+            Assert.IsTrue(lister.GetFileList().Exists(f => f.SourceFilePath.Equals(Path.Combine(repoDir, "new file1"))), "check that we still get full path");
             
             // add files to index
             _git.ExecuteGitCommand("add --all");

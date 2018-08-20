@@ -42,11 +42,11 @@ namespace Oetools.Builder.Test.Utilities {
                     new OeBuildStepCompile {
                         Label = "replace {{anything}} here",
                         Tasks = new List<OeTask> {
-                            new OeTaskCopy {
+                            new OeTaskFileTargetFileCopy {
                                 Include = "replace missing '{{missingvar}}' by empty",
                                 TargetDirectory = "keep missing '{{missingvar}}' variables!"
                             },
-                            new OeTaskCopy {
+                            new OeTaskFileTargetFileCopy {
                                 Exclude = "2 replace missing '{{missingvar}}' by empty",
                                 TargetFilePath = "2 keep missing '{{missingvar}}' variables!"
                             }
@@ -80,10 +80,10 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual("value_var_1", buildConf.Properties.BuildHistoryInputFilePath);
             Assert.AreEqual("replace stuff value_env_1", buildConf.Properties.CompilationOptions.CompilableFilePattern);
             Assert.AreEqual("replace wtf! here", buildConf.BuildSourceTasks[0].Label);
-            Assert.AreEqual("replace missing '' by empty", ((OeTaskCopy)buildConf.BuildSourceTasks[0].GetTaskList()[0]).Include);
-            Assert.AreEqual("keep missing '{{missingvar}}' variables!", ((OeTaskCopy)buildConf.BuildSourceTasks[0].GetTaskList()[0]).TargetDirectory);
-            Assert.AreEqual("2 replace missing '' by empty", ((OeTaskCopy)buildConf.BuildSourceTasks[0].GetTaskList()[1]).Exclude);
-            Assert.AreEqual("2 keep missing '{{missingvar}}' variables!", ((OeTaskCopy)buildConf.BuildSourceTasks[0].GetTaskList()[1]).TargetFilePath);
+            Assert.AreEqual("replace missing '' by empty", ((OeTaskFileTargetFileCopy)buildConf.BuildSourceTasks[0].GetTaskList()[0]).Include);
+            Assert.AreEqual("keep missing '{{missingvar}}' variables!", ((OeTaskFileTargetFileCopy)buildConf.BuildSourceTasks[0].GetTaskList()[0]).TargetDirectory);
+            Assert.AreEqual("2 replace missing '' by empty", ((OeTaskFileTargetFileCopy)buildConf.BuildSourceTasks[0].GetTaskList()[1]).Exclude);
+            Assert.AreEqual("2 keep missing '{{missingvar}}' variables!", ((OeTaskFileTargetFileCopy)buildConf.BuildSourceTasks[0].GetTaskList()[1]).TargetFilePath);
             
         }
     }

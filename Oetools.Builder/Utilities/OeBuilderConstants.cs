@@ -17,7 +17,6 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-
 namespace Oetools.Builder.Utilities {
     public static class OeBuilderConstants {
 

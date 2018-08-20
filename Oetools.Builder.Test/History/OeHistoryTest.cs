@@ -17,7 +17,6 @@
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -66,7 +65,7 @@ namespace Oetools.Builder.Test.History {
         public void OeBuildHistory_Serialization_Test() {
             var history = new OeBuildHistory {
                 CompilationProblems = new List<OeCompilationProblem> {
-                    new OeOeCompilationError {
+                    new OeCompilationError {
                         CompiledSourceFilePath = @"C:\initialsource\compiled1",
                         SourceFilePath = @"C:\initialsource\include1"
                     },
@@ -77,24 +76,21 @@ namespace Oetools.Builder.Test.History {
                 },
                 BuiltFiles = new List<OeFileBuilt> {
                     new OeFileBuilt {
-                        SourcePath = @"C:\initialsource\source1",
+                        SourceFilePath = @"C:\initialsource\source1",
                         Targets = new List<OeTarget> {
-                            new OeTargetCopy {
+                            new OeTargetFileCopy {
                                 TargetFilePath = @"D:\initialtarget\target1"
                             },
-                            new OeTargetCab {
-                                TargetCabFilePath = @"D:\initialtarget\targetcab1",
+                            new OeTargetArchiveCab {
+                                TargetPackFilePath = @"D:\initialtarget\targetcab1",
                                 RelativeTargetFilePath = ""
-                            },
-                            new OeTargetCompile {
-                                TargetFilePath = @"D:\initialtarget\target2"
                             },
                             new OeTargetProlib {
-                                TargetProlibFilePath = @"D:\initialtarget\targetprolib1",
+                                TargetPackFilePath = @"D:\initialtarget\targetprolib1",
                                 RelativeTargetFilePath = ""
                             },
-                            new OeTargetZip {
-                                TargetZipFilePath = @"D:\initialtarget\targetzip1",
+                            new OeTargetArchiveZip {
+                                TargetPackFilePath = @"D:\initialtarget\targetzip1",
                                 RelativeTargetFilePath = ""
                             }
                         }
@@ -116,14 +112,13 @@ namespace Oetools.Builder.Test.History {
             Assert.AreEqual(@"E:\newsource\include1", loadedHistory.CompilationProblems[0].SourceFilePath);
             Assert.AreEqual(@"E:\newsource\compiled2", loadedHistory.CompilationProblems[1].CompiledSourceFilePath);
             Assert.AreEqual(@"E:\newsource\include2", loadedHistory.CompilationProblems[1].SourceFilePath);
-            Assert.AreEqual(@"E:\newsource\source1", loadedHistory.BuiltFiles[0].SourcePath);
+            Assert.AreEqual(@"E:\newsource\source1", loadedHistory.BuiltFiles[0].SourceFilePath);
             Assert.AreEqual(@"E:\newsource\include3", ((OeFileBuiltCompiled)loadedHistory.BuiltFiles[1]).RequiredFiles[0]);
             Assert.AreEqual(@"E:\newsource\include4", ((OeFileBuiltCompiled)loadedHistory.BuiltFiles[1]).RequiredFiles[1]);
             Assert.AreEqual(@"F:\newtarget\target1", loadedHistory.BuiltFiles[0].Targets[0].GetTargetFilePath());
             Assert.AreEqual(@"F:\newtarget\targetcab1", loadedHistory.BuiltFiles[0].Targets[1].GetTargetFilePath());
-            Assert.AreEqual(@"F:\newtarget\target2", loadedHistory.BuiltFiles[0].Targets[2].GetTargetFilePath());
-            Assert.AreEqual(@"F:\newtarget\targetprolib1", loadedHistory.BuiltFiles[0].Targets[3].GetTargetFilePath());
-            Assert.AreEqual(@"F:\newtarget\targetzip1", loadedHistory.BuiltFiles[0].Targets[4].GetTargetFilePath());
+            Assert.AreEqual(@"F:\newtarget\targetprolib1", loadedHistory.BuiltFiles[0].Targets[2].GetTargetFilePath());
+            Assert.AreEqual(@"F:\newtarget\targetzip1", loadedHistory.BuiltFiles[0].Targets[3].GetTargetFilePath());
         }
         
     }

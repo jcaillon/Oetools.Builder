@@ -17,7 +17,6 @@
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Project;
@@ -34,7 +33,7 @@ namespace Oetools.Builder.Test.Project {
             bc.PostBuildTasks = new List<OeBuildStepClassic> {
                 new OeBuildStepClassic {
                     Tasks = new List<OeTask> {
-                        new OeTaskProlib() {
+                        new OeTaskFileTargetArchiveProlib() {
                             
                         }
                     }

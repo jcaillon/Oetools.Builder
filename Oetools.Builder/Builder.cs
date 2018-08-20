@@ -1,4 +1,5 @@
-﻿// ========================================================================
+﻿#region header
+// ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (Builder.cs) is part of Oetools.Builder.
 // 
@@ -15,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
-
+#endregion
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -53,9 +54,9 @@ namespace Oetools.Builder {
             set => _forceFullRebuild = value;
         }
 
-        public bool NoIncrementalBuild => BuildConfiguration?.Properties?.IncrementalBuildOptions?.Disabled ?? OeIncrementalBuildOptions.GetDefaultDisabled();
+        public bool NoIncrementalBuild => BuildConfiguration.Properties.IncrementalBuildOptions?.Disabled ?? OeIncrementalBuildOptions.GetDefaultDisabled();
 
-        public EnvExecution Env { get; private set; }
+        public UoeExecutionEnv Env { get; private set; }
         
         public List<OeFileBuilt> PreviouslyBuiltFiles { get; set; }
         
@@ -80,9 +81,6 @@ namespace Oetools.Builder {
         
         public void Dispose() {
             Utils.DeleteDirectoryIfExists(Env?.TempDirectory, true);
-            foreach (var taskExecutor in BuildSourceTaskExecutors.ToNonNullList()) {
-                taskExecutor?.Dispose();
-            }
         }
         
         /// <summary>
@@ -90,7 +88,9 @@ namespace Oetools.Builder {
         /// </summary>
         public void Build() {
             Log.Debug($"Initializing build with {BuildConfiguration}");
-            Init();
+            Env = BuildConfiguration.Properties.GetOeExecutionEnvironment(SourceDirectory);
+            // TODO : create + start a database!
+            Env.DatabaseConnectionString = $"{Env.DatabaseConnectionString ?? ""} ";
             
             Log.Info($"Start building {(string.IsNullOrEmpty(BuildConfiguration.ConfigurationName) ? "an unnamed configuration" : $"the configuration {BuildConfiguration.ConfigurationName}")}");
 
@@ -109,27 +109,13 @@ namespace Oetools.Builder {
             OutputHistory();
         }
         
-        private void Init() {
-            
-            Env = new EnvExecution {
-                TempDirectory = BuildConfiguration?.Properties?.TemporaryDirectoryPath?.TakeDefaultIfNeeded($".oe_tmp-{Utils.GetRandomName()}"),
-                UseProgressCharacterMode = BuildConfiguration?.Properties?.UseCharacterModeExecutable ?? OeProjectProperties.GetDefaultUseCharacterModeExecutable(),
-                DatabaseAliases = BuildConfiguration?.Properties?.DatabaseAliases,
-                // TODO : create + start a database!
-                DatabaseConnectionString = BuildConfiguration?.Properties?.DatabaseConnectionExtraParameters,
-                DatabaseConnectionStringAppendMaxTryOne = true,
-                DlcDirectoryPath = BuildConfiguration?.Properties?.DlcDirectoryPath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultDlcDirectoryPath()),
-                IniFilePath = BuildConfiguration?.Properties?.IniFilePath,
-                PostExecutionProgramPath = BuildConfiguration?.Properties?.ProcedurePathToExecuteAfterAnyProgressExecution,
-                PreExecutionProgramPath = BuildConfiguration?.Properties?.ProcedurePathToExecuteBeforeAnyProgressExecution,
-                ProExeCommandLineParameters = BuildConfiguration?.Properties?.ProgresCommandLineExtraParameters,
-                ProPathList = BuildConfiguration?.Properties?.GetPropath(SourceDirectory, true)
-            };
-        }
-
         private void ExecuteBuild() {
             PreBuildTaskExecutors = ExecuteBuildStep<TaskExecutor>(BuildConfiguration.PreBuildTasks, nameof(OeBuildConfiguration.PreBuildTasks), null);
             BuildSourceTaskExecutors = ExecuteBuildStep<TaskExecutorWithFileListAndCompilation>(BuildConfiguration.BuildSourceTasks, nameof(OeBuildConfiguration.BuildSourceTasks), TaskExecutorConfiguratorBuildSource);
+            if (BuildConfiguration.Properties.IncrementalBuildOptions?.MirrorDeletedSourceFileToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput()) {
+                // TODO : all the source files that existed previously and that are now deleted can be deleted from the output now
+                
+            }
             BuildOutputTaskExecutors = ExecuteBuildStep<TaskExecutorWithFileList>(BuildConfiguration.BuildOutputTasks, nameof(OeBuildConfiguration.BuildOutputTasks), TaskExecutorConfiguratorBuildOutput);
             PostBuildTaskExecutors = ExecuteBuildStep<TaskExecutor>(BuildConfiguration.PostBuildTasks, nameof(OeBuildConfiguration.PostBuildTasks), null);
         }
@@ -147,7 +133,7 @@ namespace Oetools.Builder {
         
         private void TaskExecutorConfigurator(TaskExecutorWithFileList executor) {
             executor.SourceDirectory = SourceDirectory;
-            executor.OutputDirectory = BuildConfiguration?.Properties?.OutputDirectoryPath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultOutputDirectoryPath(SourceDirectory));
+            executor.OutputDirectory = BuildConfiguration.Properties.OutputDirectoryPath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultOutputDirectoryPath(SourceDirectory));
         }
 
         private List<T> ExecuteBuildStep<T>(IEnumerable<OeBuildStep> steps, string oeBuildConfigurationPropertyName, Action<T> taskExecutorConfigurator) where T : TaskExecutor, new() {
@@ -171,19 +157,20 @@ namespace Oetools.Builder {
         }
 
         private void OutputHistory() {
-            var outputHistoryPath = BuildConfiguration?.Properties?.BuildHistoryOutputFilePath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultBuildHistoryOutputFilePath(SourceDirectory));
+            var outputHistoryPath = BuildConfiguration.Properties.BuildHistoryOutputFilePath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultBuildHistoryOutputFilePath(SourceDirectory));
             var history = new OeBuildHistory();
             history.BuiltFiles = BuildSourceTaskExecutors?
                 .SelectMany(exec => exec?.Tasks)
-                .Where(t => t is ITaskExecuteOnFiles)
-                .Cast<ITaskExecuteOnFiles>()
+                .Where(t => t is IOeTaskFile)
+                .Cast<IOeTaskFile>()
                 .SelectMany(t => t.GetFilesBuilt())
                 .ToList();
             // TODO : remove targets out of the output directory
+            // also add all the files that were not rebuild from the previous build history
         }
 
         private void OutputReport() {
-            var outputReportPath = BuildConfiguration?.Properties?.ReportHtmlFilePath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultReportHtmlFilePath(SourceDirectory));
+            var outputReportPath = BuildConfiguration.Properties.ReportHtmlFilePath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultReportHtmlFilePath(SourceDirectory));
             throw new NotImplementedException();
         }
 
@@ -191,21 +178,21 @@ namespace Oetools.Builder {
         /// <summary>
         /// Sets <see cref="TaskExecutorWithFileList.TaskFiles"/> to the list of source files that need to be rebuilt
         /// </summary>
-        internal List<OeFile> GetSourceFilesToRebuild() {
+        private List<OeFile> GetSourceFilesToRebuild() {
             var sourceLister = new SourceFilesLister(SourceDirectory) {
-                SourcePathFilter = BuildConfiguration?.Properties?.SourcePathFilter,
-                SourcePathGitFilter = BuildConfiguration?.Properties?.SourcePathGitFilter
+                SourcePathFilter = BuildConfiguration.Properties.SourceToBuildPathFilter,
+                SourcePathGitFilter = BuildConfiguration.Properties.SourceToBuildGitFilter
             };
             if (!ForceFullRebuild) {
                 sourceLister.PreviousSourceFiles = PreviouslyBuiltFiles;
-                sourceLister.UseHashComparison = BuildConfiguration?.Properties?.IncrementalBuildOptions?.StoreSourceHash ?? OeIncrementalBuildOptions.GetDefaultStoreSourceHash();
+                sourceLister.UseHashComparison = BuildConfiguration.Properties.IncrementalBuildOptions?.StoreSourceHash ?? OeIncrementalBuildOptions.GetDefaultStoreSourceHash();
                 sourceLister.UseLastWriteDateComparison = true;
             }
             var output = sourceLister.GetFileList();
             var extraFilesToRebuild = GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(Env, output, PreviouslyBuiltFiles.Where(f => f is OeFileBuiltCompiled).Cast<OeFileBuiltCompiled>().ToList());
             foreach (var oeFile in sourceLister.FilterSourceFiles(extraFilesToRebuild)) {
-                if (!output.Exists(f => f.SourcePath.Equals(oeFile.SourcePath, StringComparison.CurrentCultureIgnoreCase)) && 
-                    File.Exists(oeFile.SourcePath)) {
+                if (!output.Exists(f => f.SourceFilePath.Equals(oeFile.SourceFilePath, StringComparison.CurrentCultureIgnoreCase)) && 
+                    File.Exists(oeFile.SourceFilePath)) {
                     output.Add(oeFile);
                 }
             }
@@ -222,11 +209,11 @@ namespace Oetools.Builder {
         /// <param name="filesModified"></param>
         /// <param name="previousFilesBuilt"></param>
         /// <returns></returns>
-        internal static IEnumerable<OeFile> GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(EnvExecution env, IEnumerable<OeFile> filesModified, List<OeFileBuiltCompiled> previousFilesBuilt) {
+        internal static IEnumerable<OeFile> GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(UoeExecutionEnv env, IEnumerable<OeFile> filesModified, List<OeFileBuiltCompiled> previousFilesBuilt) {
 
             // add all previous source files that required now modified files
             foreach (var oeFile in filesModified) {
-                foreach (var result in previousFilesBuilt.Where(prevf => prevf.RequiredFiles != null && prevf.RequiredFiles.Contains(oeFile.SourcePath, StringComparer.CurrentCultureIgnoreCase))) {
+                foreach (var result in previousFilesBuilt.Where(prevf => prevf.RequiredFiles != null && prevf.RequiredFiles.Contains(oeFile.SourceFilePath, StringComparer.CurrentCultureIgnoreCase))) {
                     yield return result.GetDeepCopy();
                 }
             }

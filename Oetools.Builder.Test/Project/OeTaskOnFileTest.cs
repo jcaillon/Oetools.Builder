@@ -17,7 +17,6 @@
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Project;
@@ -69,7 +68,7 @@ namespace Oetools.Builder.Test.Project {
             Assert.AreEqual(2, task.GetIncludedPathToList().Count, "we added an existing file");
         }
 
-        private class OeTaskOnFile2 : OeTaskOnFiles { }
+        private class OeTaskOnFile2 : OeTaskFile { }
 
     }
 }

@@ -17,7 +17,6 @@
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project;
@@ -35,7 +34,7 @@ namespace Oetools.Builder.Test.Project {
 
             targetTask.Include = "**";
             
-            targetTask.Validate();
+            Assert.ThrowsException<TaskValidationException>(() => targetTask.Validate());
 
             targetTask.TargetFilePath = "{{wrong var usage";
             
@@ -46,6 +45,9 @@ namespace Oetools.Builder.Test.Project {
             
             Assert.ThrowsException<TargetValidationException>(() => targetTask.Validate());
 
+            targetTask.TargetDirectory = "ok";
+            
+            targetTask.Validate();
         }
 
         [TestMethod]
@@ -73,12 +75,12 @@ namespace Oetools.Builder.Test.Project {
             targetTask.TargetFilePath = "{{1}}file.{{3}}";
 
             Assert.AreEqual(2, targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Count);
-            Assert.IsTrue(targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Exists(s => s.Equals(@"C:\folder\file.txt")));
-            Assert.IsTrue(targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Exists(s => s.Equals(@"D:\file.")));
+            Assert.IsTrue(targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Exists(s => s.GetTargetFilePath().Equals(@"C:\folder\file.txt")));
+            Assert.IsTrue(targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Exists(s => s.GetTargetFilePath().Equals(@"D:\file.")));
 
         }
 
-        private class OeTaskOnFilesWithTarget2 : OeTaskOnFilesWithTargetFileses {
+        private class OeTaskOnFilesWithTarget2 : OeTaskFileTargetFile {
             
         }
     }

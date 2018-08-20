@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (Static.cs) is part of Oetools.Builder.
+// This file (BuilderUtilities.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -26,6 +25,7 @@ using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
@@ -98,23 +98,6 @@ namespace Oetools.Builder.Utilities {
             }
 
             return variables?.FirstOrDefault(v => v.Name.EqualsCi(s))?.Value ?? defaultValue;
-        }
-
-        /// <summary>
-        /// Validates that a target is valid, checking for invalidate characters and checking that placeholder &lt; &gt; are correct
-        /// </summary>
-        /// <param name="path"></param>
-        /// <exception cref="Exception"></exception>
-        public static void ValidateTargetPath(string path) {
-            foreach (char c in Path.GetInvalidPathChars()) {
-                if (c == '<' || c == '>') {
-                    continue;
-                }
-                if (path.IndexOf(c) >= 0) {
-                    throw new Exception($"Illegal character path {c} at column {path.IndexOf(c)}");
-                }
-            }
-            path.ValidatePlaceHolders();
         }
 
     }

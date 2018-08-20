@@ -1,8 +1,7 @@
 ﻿#region header
-
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (FileLister.cs) is part of Oetools.Builder.
+// This file (SourceFilesLister.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,9 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
-
 #endregion
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,7 +38,7 @@ namespace Oetools.Builder.Utilities {
         
         public string SourceDirectory { get; }
 
-        public OeTaskFilter SourcePathFilter { get; set; }
+        public IOeTaskFilter SourcePathFilter { get; set; }
 
         /// <summary>
         /// If true, we consider that 2 files are different if they have different hash results
@@ -76,7 +73,7 @@ namespace Oetools.Builder.Utilities {
         /// <exception cref="Exception"></exception>
         public List<OeFile> GetFileList() {
             HashSet<string> listedFiles;
-            if (SourcePathGitFilter != null && ((SourcePathGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch ?? false) || (SourcePathGitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit ?? false))) {
+            if (SourcePathGitFilter != null && ((SourcePathGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch ?? OeGitFilter.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch()) || (SourcePathGitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit ?? OeGitFilter.GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit()))) {
                 listedFiles = GetBaseFileListFromGit();
             } else {
                 listedFiles = GetBaseFileList();
@@ -132,7 +129,7 @@ namespace Oetools.Builder.Utilities {
                 return output;
             }
             foreach (var previousSourceFile in PreviousSourceFiles.Where(f => f.State != OeFileState.Deleted)) {
-                if (!currentFileList.Contains(previousSourceFile.SourcePath)) {
+                if (!currentFileList.Contains(previousSourceFile.SourceFilePath)) {
                     var deletedFile = previousSourceFile.GetDeepCopy();
                     deletedFile.State = OeFileState.Deleted;
                     output.Add(deletedFile);
@@ -152,7 +149,7 @@ namespace Oetools.Builder.Utilities {
                 return;
             }
             // TODO : might be worth it to turn PreviousSourceFiles into a dictionnary?
-            var previousFile = PreviousSourceFiles.FirstOrDefault(f => f.SourcePath.EqualsCi(oeFile.SourcePath));
+            var previousFile = PreviousSourceFiles.FirstOrDefault(f => f.SourceFilePath.EqualsCi(oeFile.SourceFilePath));
             if (previousFile == null || previousFile.State == OeFileState.Deleted) {
                 oeFile.State = OeFileState.Added;
             } else {
@@ -196,7 +193,7 @@ namespace Oetools.Builder.Utilities {
             }
             try {
                 using (var md5 = MD5.Create()) {
-                    using (var stream = File.OpenRead(oeFile.SourcePath)) {
+                    using (var stream = File.OpenRead(oeFile.SourceFilePath)) {
                         StringBuilder sBuilder = new StringBuilder();
                         foreach (var b in md5.ComputeHash(stream)) {
                             sBuilder.Append(b.ToString("x2"));
@@ -206,7 +203,7 @@ namespace Oetools.Builder.Utilities {
                     }
                 }
             } catch (Exception e) {
-                throw new Exception($"Error getting information on file {oeFile.SourcePath}, check permissions", e);
+                throw new Exception($"Error getting information on file {oeFile.SourceFilePath}, check permissions", e);
             }
             return oeFile;
         }
@@ -221,11 +218,11 @@ namespace Oetools.Builder.Utilities {
                 return;
             }
             try {
-                var fileInfo = new FileInfo(oeFile.SourcePath);
+                var fileInfo = new FileInfo(oeFile.SourceFilePath);
                 oeFile.Size = fileInfo.Length;
                 oeFile.LastWriteTime = fileInfo.LastWriteTime;
             } catch (Exception e) {
-                throw new Exception($"Error getting information on file {oeFile.SourcePath}, check permissions", e);
+                throw new Exception($"Error getting information on file {oeFile.SourceFilePath}, check permissions", e);
             }
         }
 
@@ -239,11 +236,11 @@ namespace Oetools.Builder.Utilities {
             var gitManager = new GitManager();
             gitManager.SetCurrentDirectory(SourceDirectory);
             
-            if (SourcePathGitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit ?? false) {
+            if (SourcePathGitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit ?? OeGitFilter.GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit()) {
                 output.AddRange(gitManager.GetAllModifiedFilesSinceLastCommit());
             }
             
-            if (SourcePathGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch ?? false) {
+            if (SourcePathGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch ?? OeGitFilter.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch()) {
                 try {
                     output.AddRange(gitManager.GetAllCommittedFilesExclusiveToCurrentBranch(SourcePathGitFilter.CurrentBranchOriginCommit, SourcePathGitFilter.CurrentBranchName));
                 } catch (GitManagerCantFindMergeCommitException) {
@@ -271,7 +268,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="files"></param>
         /// <returns></returns>
         public IEnumerable<OeFile> FilterSourceFiles(IEnumerable<OeFile> files) {
-            return files.Where(f => IsFilePassingDefaultFilters(f.SourcePath) && IsFilePassingSourcePathFilters(f.SourcePath));
+            return files.Where(f => IsFilePassingDefaultFilters(f.SourceFilePath) && IsFilePassingSourcePathFilters(f.SourceFilePath));
         }
         
         /// <summary>
@@ -316,7 +313,7 @@ namespace Oetools.Builder.Utilities {
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
-        private List<string> GetExclusionRegexStringsFromFilters(OeTaskFilter filter) {
+        private List<string> GetExclusionRegexStringsFromFilters(IOeTaskFilter filter) {
             var exclusionRegexStrings = GetDefaultFiltersRegexes().ToList();
             if (filter != null) {
                 exclusionRegexStrings.AddRange(filter.GetRegexExcludeStrings());

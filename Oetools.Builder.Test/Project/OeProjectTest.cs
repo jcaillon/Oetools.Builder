@@ -17,7 +17,6 @@
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -203,16 +202,16 @@ namespace Oetools.Builder.Test.Project {
                     "fezef/zef/zefzef",
                     "C:\\zefzefzef\\"
                 },
-                PropathFilter = new OeTaskFilter {
+                PropathSourceDirectoriesFilter = new OeTaskFilter {
                     Exclude = "**/derp",
                     ExcludeRegex = "\\\\[D][d]"
                 },
                 ReportHtmlFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.html"),
-                SourcePathFilter =new OeTaskFilter {
+                SourceToBuildPathFilter =new OeTaskFilter {
                     Exclude = "**/derp",
                     ExcludeRegex = "\\\\[D][d]"
                 },
-                SourcePathGitFilter = new OeGitFilter {
+                SourceToBuildGitFilter = new OeGitFilter {
                     CurrentBranchName = null,
                     CurrentBranchOriginCommit = null,
                     OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true,
@@ -255,37 +254,37 @@ namespace Oetools.Builder.Test.Project {
                                     HiddenExecution = false,
                                     IgnoreExitCode = null
                                 },
-                                new OeTaskCompile {
+                                new OeTaskFileTargetFileCompile {
                                     Exclude = "**",
                                     Include = "{{**}}",
                                     TargetDirectory = "mydir"
                                 },
-                                new OeTaskCompileProlib {
+                                new OeTaskFileTargetArchiveCompileProlib {
                                     ExcludeRegex = "regex",
                                     IncludeRegex = "regex",
                                     TargetProlibFilePath = "myprolib.pl",
                                     RelativeTargetDirectory = "insdide/directory"
                                 },
-                                new OeTaskCompileZip {
+                                new OeTaskFileTargetArchiveCompileZip {
                                     ExcludeRegex = "regex",
                                     IncludeRegex = "regex",
                                     TargetZipFilePath = "path.zip",
                                     RelativeTargetDirectory = "insdide/directory",
                                     ArchivesCompressionLevel = "None"
                                 },
-                                new OeTaskCompileCab() {
+                                new OeTaskFileTargetArchiveCompileCab() {
                                     ExcludeRegex = "regex",
                                     IncludeRegex = "regex",
                                     TargetCabFilePath = "path.cab",
                                     RelativeTargetFilePath = "insdide/file.p",
                                     ArchivesCompressionLevel = "Max"
                                 },
-                                new OeTaskCompileUploadFtp(),
-                                new OeTaskCopy(),
-                                new OeTaskProlib(),
-                                new OeTaskZip(),
-                                new OeTaskCab(),
-                                new OeTaskFtp()
+                                new OeTaskFileTargetArchiveCompileUploadFtp(),
+                                new OeTaskFileTargetFileCopy(),
+                                new OeTaskFileTargetArchiveProlib(),
+                                new OeTaskFileTargetArchiveZip(),
+                                new OeTaskFileTargetArchiveCab(),
+                                new OeTaskFileTargetArchiveFtp()
                             }
                         },
                         new OeBuildStepCompile {

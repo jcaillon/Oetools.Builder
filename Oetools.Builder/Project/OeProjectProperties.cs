@@ -1,13 +1,34 @@
-﻿using System;
+﻿#region header
+// ========================================================================
+// Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
+// This file (OeProjectProperties.cs) is part of Oetools.Builder.
+// 
+// Oetools.Builder is a free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// Oetools.Builder is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
+// ========================================================================
+#endregion
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Utilities;
+using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project {
     
@@ -20,7 +41,7 @@ namespace Oetools.Builder.Project {
         
         [XmlElement(ElementName = "DlcDirectoryPath")]
         public string DlcDirectoryPath { get; set; }
-        internal static string GetDefaultDlcDirectoryPath() => ProUtilities.GetDlcPathFromEnv().ToCleanPath();
+        internal static string GetDefaultDlcDirectoryPath() => UoeUtilities.GetDlcPathFromEnv().ToCleanPath();
         
         [XmlArray("ProjectDatabases")]
         [XmlArrayItem("ProjectDatabase", typeof(OeProjectDatabase))]
@@ -44,8 +65,8 @@ namespace Oetools.Builder.Project {
         public bool? AddAllSourceDirectoriesToPropath { get; set; }
         internal static bool GetDefaultAddAllSourceDirectoriesToPropath() => true;
             
-        [XmlElement(ElementName = "PropathFilter")]
-        public OeTaskFilter PropathFilter { get; set; }
+        [XmlElement(ElementName = "PropathSourceDirectoriesFilter")]
+        public OeTaskFilter PropathSourceDirectoriesFilter { get; set; }
 
         /// <summary>
         /// Adds the gui or tty (depending on <see cref="UseCharacterModeExecutable"/>) folder as well as the contained .pl to the propath
@@ -75,15 +96,15 @@ namespace Oetools.Builder.Project {
         /// Allows to exclude path from being treated by <see cref="OeBuildConfiguration.BuildSourceTasks"/>
         /// Specify what should not be considered as a source file in your source directory (for instance, the docs/ folder)
         /// </summary>
-        [XmlElement(ElementName = "SourcePathFilter")]
-        public OeTaskFilter SourcePathFilter { get; set; }
+        [XmlElement(ElementName = "SourceToBuildPathFilter")]
+        public OeTaskFilter SourceToBuildPathFilter { get; set; }
                 
         /// <summary>
         /// Use this to apply GIT filters to your <see cref="OeBuildConfiguration.BuildSourceTasks"/>
         /// Obviously, you need GIT installed and present in your OS path
         /// </summary>
-        [XmlElement(ElementName = "SourcePathGitFilter")]
-        public OeGitFilter SourcePathGitFilter { get; set; }       
+        [XmlElement(ElementName = "SourceToBuildGitFilter")]
+        public OeGitFilter SourceToBuildGitFilter { get; set; }       
                   
         [XmlElement(ElementName = "CompilationOptions")]
         public OeCompilationOptions CompilationOptions { get; set; }
@@ -112,8 +133,8 @@ namespace Oetools.Builder.Project {
         /// </summary>
         /// <exception cref="FilterValidationException"></exception>
         public void Validate() {
-            ValidateFilters(PropathFilter, nameof(PropathFilter));
-            ValidateFilters(SourcePathFilter, nameof(SourcePathFilter));
+            ValidateFilters(PropathSourceDirectoriesFilter, nameof(PropathSourceDirectoriesFilter));
+            ValidateFilters(SourceToBuildPathFilter, nameof(SourceToBuildPathFilter));
         }
         
         private void ValidateFilters(OeTaskFilter filter, string propertyNameOf) {
@@ -170,15 +191,15 @@ namespace Oetools.Builder.Project {
             }
             // read from ini
             if (!string.IsNullOrEmpty(IniFilePath)) {
-                foreach (var entry in ProUtilities.GetProPathFromIniFile(IniFilePath, sourceDirectory)) {
+                foreach (var entry in UoeUtilities.GetProPathFromIniFile(IniFilePath, sourceDirectory)) {
                     if (!output.Contains(entry)) {
                         output.Add(entry);
                     }
                 }
             }
-            if (AddAllSourceDirectoriesToPropath ?? false) {
+            if (AddAllSourceDirectoriesToPropath ?? GetDefaultAddAllSourceDirectoriesToPropath()) {
                 var lister = new SourceFilesLister(sourceDirectory) {
-                    SourcePathFilter = PropathFilter
+                    SourcePathFilter = PropathSourceDirectoriesFilter
                 };
                 foreach (var directory in lister.GetDirectoryList()) {
                     if (!output.Contains(directory)) {
@@ -186,9 +207,9 @@ namespace Oetools.Builder.Project {
                     }
                 }
             }
-            if (AddDefaultOpenedgePropath ?? false) {
+            if (AddDefaultOpenedgePropath ?? GetDefaultAddDefaultOpenedgePropath()) {
                 // %DLC%/tty or %DLC%/gui + %DLC% + %DLC%/bin
-                foreach (var file in ProUtilities.GetProgressSessionDefaultPropath(DlcDirectoryPath, UseCharacterModeExecutable ?? false)) {
+                foreach (var file in UoeUtilities.GetProgressSessionDefaultPropath(DlcDirectoryPath, UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable())) {
                     if (!output.Contains(file)) {
                         output.Add(file);
                     }
@@ -199,5 +220,38 @@ namespace Oetools.Builder.Project {
             }
             return output.ToList();
         }
+
+        public UoeExecutionEnv GetOeExecutionEnvironment(string sourceDirectory) => 
+            new UoeExecutionEnv {
+                TempDirectory = TemporaryDirectoryPath?.TakeDefaultIfNeeded($".oe_tmp-{Utils.GetRandomName()}"),
+                UseProgressCharacterMode = UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable(),
+                DatabaseAliases = DatabaseAliases,
+                DatabaseConnectionString = DatabaseConnectionExtraParameters,
+                DatabaseConnectionStringAppendMaxTryOne = true,
+                DlcDirectoryPath = DlcDirectoryPath.TakeDefaultIfNeeded(GetDefaultDlcDirectoryPath()),
+                IniFilePath = IniFilePath,
+                PostExecutionProgramPath = ProcedurePathToExecuteAfterAnyProgressExecution,
+                PreExecutionProgramPath = ProcedurePathToExecuteBeforeAnyProgressExecution,
+                ProExeCommandLineParameters = ProgresCommandLineExtraParameters,
+                ProPathList = GetPropath(sourceDirectory, true)
+            };
+
+        public UoeExecutionParallelCompile GetPar(IUoeExecutionEnv env, string workingDirectory) =>
+            new UoeExecutionParallelCompile(env) {
+                AnalysisModeSimplifiedDatabaseReferences = CompilationOptions?.UseSimplerAnalysisForDatabaseReference ?? OeCompilationOptions.GetDefaultUseSimplerAnalysisForDatabaseReference(),
+                CompileInAnalysisMode = IncrementalBuildOptions?.Disabled ?? OeIncrementalBuildOptions.GetDefaultDisabled(),
+                CompileOptions = CompilationOptions?.CompileOptions,
+                CompilerMultiCompile = CompilationOptions?.UseCompilerMultiCompile ?? OeCompilationOptions.GetDefaultUseCompilerMultiCompile(),
+                CompileStatementExtraOptions = CompilationOptions?.CompileStatementExtraOptions,
+                CompileUseXmlXref = CompilationOptions?.CompileWithXmlXref ?? OeCompilationOptions.GetDefaultCompileWithXmlXref(),
+                CompileWithDebugList = CompilationOptions?.CompileWithDebugList ?? OeCompilationOptions.GetDefaultCompileWithDebugList(),
+                CompileWithListing = CompilationOptions?.CompileWithListing ?? OeCompilationOptions.GetDefaultCompileWithListing(),
+                CompileWithPreprocess = CompilationOptions?.CompileWithPreprocess ?? OeCompilationOptions.GetDefaultCompileWithPreprocess(),
+                CompileWithXref = CompilationOptions?.CompileWithXref ?? OeCompilationOptions.GetDefaultCompileWithXref(),
+                MaxNumberOfProcesses = Math.Max(1, Environment.ProcessorCount * CompilationOptions?.CompileNumberProcessPerCore ?? OeCompilationOptions.GetDefaultCompileNumberProcessPerCore()),
+                MinimumNumberOfFilesPerProcess = CompilationOptions?.CompileMinimumNumberOfFilesPerProcess ?? OeCompilationOptions.GetDefaultCompileMinimumNumberOfFilesPerProcess(),
+                WorkingDirectory = workingDirectory,
+                NeedDatabaseConnection = true
+            };
     }
 }

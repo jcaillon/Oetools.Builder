@@ -17,20 +17,11 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-
 using System;
 
 namespace Oetools.Builder.Utilities {
     
     public static class BuilderExtensions {
-        
-        public static bool GetValueOrThrow(this bool? boolean) {
-            if (!boolean.HasValue) {
-                throw new Exception("The value was null");
-            }
-            return boolean.Value;
-        }
-        
         
     }
 }

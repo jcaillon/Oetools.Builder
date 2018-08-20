@@ -1,4 +1,23 @@
-﻿using System;
+﻿#region header
+// ========================================================================
+// Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
+// This file (OeBuildConfiguration.cs) is part of Oetools.Builder.
+// 
+// Oetools.Builder is a free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// Oetools.Builder is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
+// ========================================================================
+#endregion
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Schema;
@@ -6,9 +25,12 @@ using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Resources;
 using Oetools.Builder.Utilities;
+using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Attributes;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project {
     
@@ -118,9 +140,9 @@ namespace Oetools.Builder.Project {
             if (!string.IsNullOrEmpty(sourceDirectory)) {
                 Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameSourceDirectory, Value = sourceDirectory });    
                 Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameProjectDirectory, Value = Path.Combine(sourceDirectory, OeBuilderConstants.OeProjectDirectory) });                
-                Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameProjectLocalDirectory, Value = Path.Combine(sourceDirectory, OeBuilderConstants.OeProjectDirectory, OeBuilderConstants.OeVarNameProjectLocalDirectory) });                 
+                Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameProjectLocalDirectory, Value = Path.Combine(sourceDirectory, OeBuilderConstants.OeProjectDirectory, OeBuilderConstants.OeProjectLocalDirectory) });                 
             }             
-            Variables.Add(new OeVariable { Name = OeConstants.OeDlcEnvVar, Value = Properties.DlcDirectoryPath });  
+            Variables.Add(new OeVariable { Name = UoeConstants.OeDlcEnvVar, Value = Properties.DlcDirectoryPath });  
             Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = Properties.OutputDirectoryPath });  
             Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameConfigurationName, Value = ConfigurationName });
             try {
@@ -153,7 +175,7 @@ namespace Oetools.Builder.Project {
             ValidateStepsList(BuildOutputTasks, nameof(BuildOutputTasks));
             ValidateStepsList(PostBuildTasks, nameof(PostBuildTasks));
         }
-
+        
         private void ValidateStepsList(IEnumerable<OeBuildStep> steps, string propertyNameOf) {
             var i = 0;
             foreach (var step in steps) {

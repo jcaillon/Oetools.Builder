@@ -17,7 +17,6 @@
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -31,7 +30,7 @@ namespace Oetools.Builder.Test.Project {
 
         [TestMethod]
         public void OeTaskOnFileWithTargetArchives_Test_Validate() {
-            var task = new OeTaskOnFilesWithTargetArchives2 {
+            var task = new OeTaskOnFilesTargetsArchives2 {
                 Include = "**"
             };
 
@@ -44,41 +43,41 @@ namespace Oetools.Builder.Test.Project {
         
         [TestMethod]
         public void OeTaskOnFileWithTargetArchives_Test_GetTargets() {
-            var task = new OeTaskOnFilesWithTargetArchives2 {
+            var task = new OeTaskOnFilesTargetsArchives2 {
                 Include = "**"
             };
             
-            Assert.AreEqual(0, task.GetFileTargets(@"C:\folder\source.txt", @"D:\").SelectMany(d => d.Value).ToList().Count);
+            Assert.AreEqual(0, task.GetFileTargets(@"C:\folder\source.txt", @"D:\").ToList().Count);
 
             task.ArchivePath = "archive.pack";
             task.RelativeTargetDirectory = "dir";
             
-            Assert.AreEqual(1, task.GetFileTargets(@"C:\folder\source.txt", @"D:\").SelectMany(d => d.Value).ToList().Count);
-            var list = task.GetFileTargets(@"C:\folder\source.txt", @"D:\").SelectMany(d => d.Value.Select(s => Path.Combine(d.Key, s))).ToList();
+            Assert.AreEqual(1, task.GetFileTargets(@"C:\folder\source.txt", @"D:\").ToList().Count);
+            var list = task.GetFileTargets(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetFilePath()).ToList();
             Assert.IsTrue(list.Exists(s => s.Equals(@"D:\archive.pack\dir\source.txt")));
             
             task.RelativeTargetFilePath = @"dir\newfilename";
             
-            Assert.AreEqual(2, task.GetFileTargets(@"C:\folder\source.txt", @"D:\").SelectMany(d => d.Value).ToList().Count);
+            Assert.AreEqual(2, task.GetFileTargets(@"C:\folder\source.txt", @"D:\").ToList().Count);
             
             task.ArchivePath = "archive.pack;archive2.pack";
             
-            Assert.AreEqual(4, task.GetFileTargets(@"C:\folder\source.txt", @"D:\").SelectMany(d => d.Value).ToList().Count);
+            Assert.AreEqual(4, task.GetFileTargets(@"C:\folder\source.txt", @"D:\").ToList().Count);
             
             task.Include = @"C:\((**))((*)).((*));**";
-            task.ArchivePath = @"archive.pack;C:\arc.pack";
+            task.ArchivePath = @"archive.pack;C:\arc.{{3}}";
             task.RelativeTargetFilePath = "{{1}}file.{{3}}";
             task.RelativeTargetDirectory = null;
 
-            list = task.GetFileTargets(@"C:\folder\source.txt", @"D:\").SelectMany(d => d.Value.Select(s => Path.Combine(d.Key, s))).ToList();
+            list = task.GetFileTargets(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetFilePath()).ToList();
             Assert.AreEqual(4, list.Count);
             Assert.IsTrue(list.Exists(s => s.Equals(@"D:\archive.pack\folder\file.txt")));
             Assert.IsTrue(list.Exists(s => s.Equals(@"D:\archive.pack\file.")));
-            Assert.IsTrue(list.Exists(s => s.Equals(@"C:\arc.pack\folder\file.txt")));
-            Assert.IsTrue(list.Exists(s => s.Equals(@"C:\arc.pack\file.")));
+            Assert.IsTrue(list.Exists(s => s.Equals(@"C:\arc.txt\folder\file.txt")));
+            Assert.IsTrue(list.Exists(s => s.Equals(@"C:\arc.\file.")));
         }
 
-        private class OeTaskOnFilesWithTargetArchives2 : OeTaskOnFilesWithTargetArchives {
+        private class OeTaskOnFilesTargetsArchives2 : OeTaskFileTargetArchive {
             public override string GetTargetArchive() => ArchivePath;
             public string ArchivePath { get; set; }
         }
