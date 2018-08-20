@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Utilities;
@@ -34,6 +35,8 @@ using Oetools.Utilities.Openedge.Execution;
 namespace Oetools.Builder {
     
     public class Builder : IDisposable {
+        
+        public CancellationTokenSource CancelSource { get; } = new CancellationTokenSource();
         
         private string _sourceDirectory;
         private bool _forceFullRebuild;
@@ -49,12 +52,12 @@ namespace Oetools.Builder {
         
         public bool TestMode { get; set; }
 
-        public bool ForceFullRebuild {
-            get => _forceFullRebuild || NoIncrementalBuild;
+        public bool FullRebuild {
+            get => _forceFullRebuild || !UseIncrementalBuild;
             set => _forceFullRebuild = value;
         }
 
-        public bool NoIncrementalBuild => BuildConfiguration.Properties.IncrementalBuildOptions?.Disabled ?? OeIncrementalBuildOptions.GetDefaultDisabled();
+        public bool UseIncrementalBuild => BuildConfiguration.Properties.IncrementalBuildOptions?.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled();
 
         public UoeExecutionEnv Env { get; private set; }
         
@@ -76,7 +79,9 @@ namespace Oetools.Builder {
         public Builder(OeProject project, string buildConfigurationName = null) {
             // make a copy of the build configuration
             BuildConfiguration = project.GetBuildConfigurationCopy(buildConfigurationName) ?? project.GetDefaultBuildConfigurationCopy();
-            
+            CancelSource.Token.Register(() => {
+                Log?.Debug("Build cancel requested");
+            });
         }
         
         public void Dispose() {
@@ -87,66 +92,83 @@ namespace Oetools.Builder {
         /// Main method, builds
         /// </summary>
         public void Build() {
-            Log.Debug($"Initializing build with {BuildConfiguration}");
-            Env = BuildConfiguration.Properties.GetOeExecutionEnvironment(SourceDirectory);
+            Log?.Debug($"Initializing build with {BuildConfiguration}");
+            Env = BuildConfiguration.Properties.GetOeExecutionEnvironment(SourceDirectory, CancelSource);
             // TODO : create + start a database!
             Env.DatabaseConnectionString = $"{Env.DatabaseConnectionString ?? ""} ";
             
-            Log.Info($"Start building {(string.IsNullOrEmpty(BuildConfiguration.ConfigurationName) ? "an unnamed configuration" : $"the configuration {BuildConfiguration.ConfigurationName}")}");
+            Log?.Info($"Start building {(string.IsNullOrEmpty(BuildConfiguration.ConfigurationName) ? "an unnamed configuration" : $"the configuration {BuildConfiguration.ConfigurationName}")}");
 
-            Log.Debug("Validating tasks");
+            Log?.Debug("Validating tasks");
             BuildConfiguration.ValidateAllTasks();
             
-            Log.Debug("Using build variables");
+            Log?.Debug("Using build variables");
             BuildConfiguration.ApplyVariables(SourceDirectory);
             
-            Log.Debug("Sanitizing path properties");
+            Log?.Debug("Sanitizing path properties");
             BuildConfiguration.Properties.SanitizePathInPublicProperties();
-            
-            ExecuteBuild();
+
+            try {
+                ExecuteBuild();
+            } catch (OperationCanceledException) {
+                Log?.Debug("Build canceled");
+                // TODO : handle this
+                throw;
+            }
 
             OutputReport();
             OutputHistory();
         }
         
+        public void Cancel() {
+            CancelSource.Cancel();
+        }
+        
         private void ExecuteBuild() {
             PreBuildTaskExecutors = ExecuteBuildStep<TaskExecutor>(BuildConfiguration.PreBuildTasks, nameof(OeBuildConfiguration.PreBuildTasks), null);
+            
             BuildSourceTaskExecutors = ExecuteBuildStep<TaskExecutorWithFileListAndCompilation>(BuildConfiguration.BuildSourceTasks, nameof(OeBuildConfiguration.BuildSourceTasks), TaskExecutorConfiguratorBuildSource);
             if (BuildConfiguration.Properties.IncrementalBuildOptions?.MirrorDeletedSourceFileToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput()) {
+                Log?.Info("Mirroring deleted files in source to the output directory");
                 // TODO : all the source files that existed previously and that are now deleted can be deleted from the output now
                 
             }
+            
             BuildOutputTaskExecutors = ExecuteBuildStep<TaskExecutorWithFileList>(BuildConfiguration.BuildOutputTasks, nameof(OeBuildConfiguration.BuildOutputTasks), TaskExecutorConfiguratorBuildOutput);
+            
             PostBuildTaskExecutors = ExecuteBuildStep<TaskExecutor>(BuildConfiguration.PostBuildTasks, nameof(OeBuildConfiguration.PostBuildTasks), null);
         }
 
         private void TaskExecutorConfiguratorBuildOutput(TaskExecutorWithFileList executor) {
             TaskExecutorConfigurator(executor);
-            var sourceLister = new SourceFilesLister(executor.OutputDirectory);
+            var sourceLister = new SourceFilesLister(executor.OutputDirectory, CancelSource);
             executor.TaskFiles = sourceLister.GetFileList();
         }
 
         private void TaskExecutorConfiguratorBuildSource(TaskExecutorWithFileListAndCompilation executor) {
             TaskExecutorConfigurator(executor);
+            executor.SourceDirectory = SourceDirectory;
             executor.TaskFiles = GetSourceFilesToRebuild();
         }
         
         private void TaskExecutorConfigurator(TaskExecutorWithFileList executor) {
-            executor.SourceDirectory = SourceDirectory;
             executor.OutputDirectory = BuildConfiguration.Properties.OutputDirectoryPath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultOutputDirectoryPath(SourceDirectory));
         }
 
         private List<T> ExecuteBuildStep<T>(IEnumerable<OeBuildStep> steps, string oeBuildConfigurationPropertyName, Action<T> taskExecutorConfigurator) where T : TaskExecutor, new() {
+            var executionName = typeof(OeBuildConfiguration).GetXmlName(oeBuildConfigurationPropertyName);
+            Log?.Debug($"{executionName} execution");
             var output = new List<T>();
             if (steps != null) {
                 var i = 0;
                 foreach (var step in steps) {
-                    Log.Debug($"{typeof(OeBuildConfiguration).GetXmlName(oeBuildConfigurationPropertyName)} step {i}{(!string.IsNullOrEmpty(step.Label) ? $" : {step.Label}" : "")}");
+                    Log?.Debug($"{executionName} step {i}{(!string.IsNullOrEmpty(step.Label) ? $" : {step.Label}" : "")}");
                     var executor = new T {
                         Tasks = step.GetTaskList(),
                         ProjectProperties = BuildConfiguration.Properties,
                         Env = Env,
-                        Log = Log
+                        Log = Log,
+                        CancelSource = CancelSource
                     };
                     taskExecutorConfigurator?.Invoke(executor);
                     output.Add(executor);
@@ -179,11 +201,12 @@ namespace Oetools.Builder {
         /// Sets <see cref="TaskExecutorWithFileList.TaskFiles"/> to the list of source files that need to be rebuilt
         /// </summary>
         private List<OeFile> GetSourceFilesToRebuild() {
-            var sourceLister = new SourceFilesLister(SourceDirectory) {
+            var sourceLister = new SourceFilesLister(SourceDirectory, CancelSource) {
                 SourcePathFilter = BuildConfiguration.Properties.SourceToBuildPathFilter,
-                SourcePathGitFilter = BuildConfiguration.Properties.SourceToBuildGitFilter
+                SourcePathGitFilter = BuildConfiguration.Properties.SourceToBuildGitFilter,
+                SetFileInfoAndState = UseIncrementalBuild
             };
-            if (!ForceFullRebuild) {
+            if (!FullRebuild) {
                 sourceLister.PreviousSourceFiles = PreviouslyBuiltFiles;
                 sourceLister.UseHashComparison = BuildConfiguration.Properties.IncrementalBuildOptions?.StoreSourceHash ?? OeIncrementalBuildOptions.GetDefaultStoreSourceHash();
                 sourceLister.UseLastWriteDateComparison = true;

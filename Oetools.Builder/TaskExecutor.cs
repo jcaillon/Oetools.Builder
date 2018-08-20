@@ -17,8 +17,11 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
+using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
+using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
@@ -39,20 +42,35 @@ namespace Oetools.Builder {
         public OeProjectProperties ProjectProperties { get; set; }
 
         protected virtual string BaseTargetDirectory => null;
+
+        public CancellationTokenSource CancelSource { get; set; }
+        
+        public bool ThrowIfWarning => ProjectProperties?.TreatWarningsAsErrors ?? OeProjectProperties.GetDefaultTreatWarningsAsErrors();
         
         /// <summary>
         /// Executes all the tasks
         /// </summary>
+        /// <exception cref="TaskExecutorException"></exception>
         public virtual void Execute() {
             if (Tasks == null) {
                 return;
             }
             foreach (var task in Tasks) {
                 Log?.Info($"Executing task {task}");
-                ExecuteTask(task);
+                CancelSource?.Token.ThrowIfCancellationRequested();
+                try {
+                    task.PublishException += TaskOnPublishException;
+                    ExecuteTask(task);
+                } catch (OperationCanceledException) {
+                    throw;
+                } catch (Exception e) {
+                    throw new TaskExecutorException($"Unexpected exception when executing {task.ToString().PrettyQuote()} : {e.Message}", e);
+                } finally {
+                    task.PublishException -= TaskOnPublishException;
+                }
             }
         }
-        
+
         /// <summary>
         /// Executes a single task
         /// </summary>
@@ -64,11 +82,10 @@ namespace Oetools.Builder {
                 case IOeTaskFile taskOnFiles:
                     taskOnFiles.ExecuteForFiles(GetFilesReadyForTaskExecution(taskOnFiles, GetTaskFiles(taskOnFiles)));
                     break;
-                case IOeTaskExecute taskExecute:
-                    taskExecute.Execute();
+                default:
+                    task.Execute();
                     break;
             }
-            throw new TaskExecutorException($"Invalid task type : {task}");
         }
 
         /// <summary>
@@ -77,6 +94,7 @@ namespace Oetools.Builder {
         /// <param name="task"></param>
         protected virtual void InjectPropertiesInTask(IOeTask task) {
             task.SetLog(Log);
+            task.SetCancelSource(CancelSource);
         }
 
         /// <summary>
@@ -87,36 +105,33 @@ namespace Oetools.Builder {
         /// <returns></returns>
         protected virtual IEnumerable<IOeFileToBuildTargetFile> GetFilesReadyForTaskExecution(IOeTaskFile task, List<OeFile> initialFiles) {
             if (task is IOeTaskFileTargetFile taskWithTargetFiles) {
-                foreach (var file in initialFiles) {
+                foreach (var file in initialFiles.Where(f => f.TargetsFiles == null)) {
                     file.TargetsFiles = taskWithTargetFiles.GetFileTargets(file.SourceFilePath, BaseTargetDirectory);
                 }
             }
             if (task is IOeTaskFileTargetArchive taskWithTargetArchives) {
-                foreach (var file in initialFiles) {
+                foreach (var file in initialFiles.Where(f => f.TargetsArchives == null)) {
                     file.TargetsArchives = taskWithTargetArchives.GetFileTargets(file.SourceFilePath, BaseTargetDirectory);
                 }
             }
             return initialFiles;
         }
-        
+
         /// <summary>
         /// Given inclusion and exclusion, returns a list of initialFiles on which to apply the given task
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
         protected virtual List<OeFile> GetTaskFiles(IOeTaskFile task) {
-            var output = new List<OeFile>();
-            foreach (var path in task.GetIncludedPathToList()) {
-                if (File.Exists(path)) {
-                    if (!task.IsFileExcluded(path)) {
-                        output.Add(new OeFile { SourceFilePath = Path.GetFullPath(path) });
-                    }
-                } else {
-                    Log?.Info($"Listing directory : {path.PrettyQuote()}");
-                    output.AddRange(new SourceFilesLister(path) { SourcePathFilter = task }.GetFileList());
-                }
-            }
-            return output;
+            return task.GetIncludedFiles();
         }
+        
+        private void TaskOnPublishException(object sender, TaskExceptionEventArgs e) {
+            // if error, cancel the whole execution
+            if (!e.IsWarning || ThrowIfWarning) {
+                CancelSource.Cancel();
+            }
+        }
+
     }
 }

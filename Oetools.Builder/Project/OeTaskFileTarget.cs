@@ -27,11 +27,12 @@ using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project {
+    
     public abstract class OeTaskFileTarget : OeTaskFile {
         
-        protected string GetSingleTargetPath(string targetPath, bool isDirectoryPath, Match match, string sourceFilePath, string outputDirectory) {
+        protected string GetSingleTargetPath(string targetPathWithPlaceholders, bool isDirectoryPath, Match match, string sourceFilePath, string baseTargetDirectory, bool mustBeRelativePath) {
             var sourceFileDirectory = Path.GetDirectoryName(sourceFilePath);
-            var target = targetPath.ReplacePlaceHolders(s => {
+            var target = targetPathWithPlaceholders.ReplacePlaceHolders(s => {
                 if (s.Equals(OeBuilderConstants.OeVarNameFileSourceDirectory)) {
                     return sourceFileDirectory;
                 }
@@ -48,9 +49,29 @@ namespace Oetools.Builder.Project {
                 target = target.TrimEndDirectorySeparator();
             }
 
+            target = target.ToCleanPath();
+
+            bool isPathRooted = Utils.IsPathRooted(target);
+            
             // take care of relative target path
-            if (!string.IsNullOrEmpty(outputDirectory) && !Utils.IsPathRooted(target)) {
-                target = Path.Combine(outputDirectory, target);
+            if (!isPathRooted) {
+                if (!string.IsNullOrEmpty(baseTargetDirectory)) {
+                    target = Path.Combine(baseTargetDirectory, target);
+                    isPathRooted = true;
+                } else if (!mustBeRelativePath) {
+                    throw new TaskExecutionException($"This task is not allowed to target relative path because no base target directory is defined at this moment, the error occured for : {targetPathWithPlaceholders.PrettyQuote()}");
+                }
+            } else if (mustBeRelativePath) {
+                throw new TaskExecutionException($"The following path should resolve to a relative path : {targetPathWithPlaceholders.PrettyQuote()}");
+            }
+            
+            // get the real full path name of the target
+            if (isPathRooted) {
+                try {
+                    target = Path.GetFullPath(target);
+                } catch (Exception e) {
+                    throw new TaskExecutionException($"Could not convert the target path to an absolute path, the original path pattern was {targetPathWithPlaceholders.PrettyQuote()}, it was resolved into the target {target.PrettyQuote()} but failed with the exception : {e.Message}", e);
+                }
             }
 
             return target;

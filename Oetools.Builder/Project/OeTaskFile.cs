@@ -20,8 +20,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
+using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
@@ -37,32 +39,63 @@ namespace Oetools.Builder.Project {
             }
             base.Validate();
         }
+
+        public void ValidateCanIncludeFiles() {
+            if (string.IsNullOrEmpty(Include)) {
+                throw new TaskValidationException(this, $"This task needs to have the property {GetType().GetXmlName(nameof(Include))} defined or it can not be applied on any file");
+            }
+            if (!string.IsNullOrEmpty(IncludeRegex)) {
+                throw new TaskValidationException(this, $"The property {GetType().GetXmlName(nameof(IncludeRegex))} is not allowed for this task because it would not allow to find files to include (it would require to list the entire content of all the discs on this computer to match this regular expression), use the property {GetType().GetXmlName(nameof(Include))} instead");
+            }
+        }
         
         /// <summary>
-        /// Given the inclusion wildcard paths, returns a list of files/folders on which to apply the given task
+        /// Given the inclusion wildcard paths and exclusion patterns, returns a list of files on which to apply this task
         /// </summary>
         /// <returns></returns>
-        public List<string> GetIncludedPathToList() {
-            var output = new List<string>();
-            foreach (var includeString in GetIncludeStrings()) {
-                if (File.Exists(includeString)) {
+        public List<OeFile> GetIncludedFiles() {
+            var output = new List<OeFile>();
+            var i = 0;
+            foreach (var path in GetIncludeStrings()) {
+                if (File.Exists(path)) {
                     // the include directly designate a file
-                    output.Add(includeString);
+                    if (!IsFileExcluded(path)) {
+                        output.Add(new OeFile { SourceFilePath = Path.GetFullPath(path) });
+                    }
                 } else {
                     // the include is a wildcard path, we try to get the "root" folder to list to get all the files
-                    var validDir = Utils.GetLongestValidDirectory(includeString);
+                    var validDir = Utils.GetLongestValidDirectory(path);
                     if (!string.IsNullOrEmpty(validDir)) {
-                        output.Add(validDir);
+                        Log?.Info($"Listing directory : {validDir.PrettyQuote()}");
+                        output.AddRange(new SourceFilesLister(validDir, CancelSource) { SourcePathFilter = this }
+                            .GetFileList()
+                            .Where(f => GetIncludeRegex()[i].IsMatch(f.SourceFilePath))
+                        );
+                    } else {
+                        AddExecutionWarning(new TaskExecutionException($"The property {GetType().GetXmlName(nameof(Include))} part {i} does not designate a file (e.g. /dir/file.ext) nor does it allow to find a base directory to list (e.g. /dir/**), the path in error is : {path}"));
                     }
                 }
+                i++;
             }
-            return output;
+
+            // make sure to return unique files
+            return output.DistinctBy(file => file.SourceFilePath, StringComparer.CurrentCultureIgnoreCase).ToList();
+        }
+        
+        public void ExecuteForFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
+            try {
+                ExecuteForFilesInternal(files);
+            } catch (OperationCanceledException) {
+                throw;
+            } catch (Exception e) {
+                AddExecutionError(new TaskExecutionException($"Unexpected error in task {ToString().PrettyQuote()} : {e.Message}", e));
+            }
         }
 
-        public virtual void ExecuteForFiles(IEnumerable<IOeFileToBuildTargetFile> file) {
+        protected virtual void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
             throw new NotImplementedException();
         }
-
+        
         public List<OeFileBuilt> GetFilesBuilt() => _filesBuilt;
         
     }

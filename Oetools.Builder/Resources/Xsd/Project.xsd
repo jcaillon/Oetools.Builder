@@ -17,14 +17,14 @@
       <xs:element minOccurs="0" maxOccurs="1" name="IniFilePath" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="PropathEntries" type="ArrayOfString" />
       <xs:element minOccurs="1" maxOccurs="1" name="AddAllSourceDirectoriesToPropath" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="PropathSourceDirectoriesFilters" type="ArrayOfChoice1" />
+      <xs:element minOccurs="0" maxOccurs="1" name="PropathSourceDirectoriesFilter" type="OeTaskFilter" />
       <xs:element minOccurs="1" maxOccurs="1" name="AddDefaultOpenedgePropath" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="UseCharacterModeExecutable" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="0" maxOccurs="1" name="ProgresCommandLineExtraParameters" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteBeforeAnyProgressExecution" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteAfterAnyProgressExecution" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="TemporaryDirectoryPath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildPathFilters" type="ArrayOfChoice2" />
+      <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildPathFilter" type="OeTaskFilter" />
       <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildGitFilter" type="OeGitFilter" />
       <xs:element minOccurs="0" maxOccurs="1" name="CompilationOptions" type="OeCompilationOptions" />
       <xs:element minOccurs="0" maxOccurs="1" name="IncrementalBuildOptions" type="OeIncrementalBuildOptions" />
@@ -32,6 +32,7 @@
       <xs:element minOccurs="0" maxOccurs="1" name="ReportHtmlFilePath" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryOutputFilePath" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryInputFilePath" type="xs:string" />
+      <xs:element minOccurs="1" maxOccurs="1" name="TreatWarningsAsErrors" nillable="true" type="xs:boolean" />
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeProjectDatabase">
@@ -57,142 +58,11 @@
       <xs:element minOccurs="0" maxOccurs="unbounded" name="Path" nillable="true" type="xs:string" />
     </xs:sequence>
   </xs:complexType>
-  <xs:complexType name="ArrayOfChoice1">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element minOccurs="1" maxOccurs="1" name="Filter" nillable="true" type="OeFilter" />
-      <xs:element minOccurs="1" maxOccurs="1" name="FilterRegex" nillable="true" type="OeFilterRegex" />
-    </xs:choice>
-  </xs:complexType>
-  <xs:complexType name="OeFilter">
-    <xs:attribute name="Exclude" type="xs:string" />
-  </xs:complexType>
-  <xs:complexType name="OeFilterRegex">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeFilter" />
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="ArrayOfChoice2">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element minOccurs="1" maxOccurs="1" name="Filter" nillable="true" type="OeFilter" />
-      <xs:element minOccurs="1" maxOccurs="1" name="FilterRegex" nillable="true" type="OeFilterRegex" />
-    </xs:choice>
-  </xs:complexType>
-  <xs:complexType name="OeGitFilter">
-    <xs:sequence>
-      <xs:element minOccurs="1" maxOccurs="1" name="OnlyIncludeSourceFilesModifiedSinceLastCommit" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchName" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchOriginCommit" type="xs:string" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:complexType name="OeCompilationOptions">
-    <xs:sequence>
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithDebugList" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithXref" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithListing" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithPreprocess" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="UseCompilerMultiCompile" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CompileOptions" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CompileStatementExtraOptions" type="xs:string" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileForceUsageOfTemporaryDirectory" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CompilableFilePattern" type="xs:string" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileForceSingleProcess" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileNumberProcessPerCore" nillable="true" type="xs:unsignedByte" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileMinimumNumberOfFilesPerProcess" nillable="true" type="xs:int" />
-      <xs:element minOccurs="1" maxOccurs="1" name="UseSimplerAnalysisForUoeDatabaseReference" nillable="true" type="xs:boolean" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:complexType name="OeIncrementalBuildOptions">
-    <xs:sequence>
-      <xs:element minOccurs="1" maxOccurs="1" name="Disabled" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="StoreSourceHash" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedSourceFileToOutput" nillable="true" type="xs:boolean" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:complexType name="ArrayOfOeVariable">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Variable" nillable="true" type="OeVariable" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:complexType name="OeVariable">
-    <xs:attribute name="Name" type="xs:string" />
-    <xs:attribute name="Value" type="xs:string" />
-  </xs:complexType>
-  <xs:complexType name="ArrayOfOeBuildConfiguration">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Build" nillable="true" type="OeBuildConfiguration" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:complexType name="OeBuildConfiguration">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="OverloadProperties" type="OeProjectProperties" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildVariables" type="ArrayOfOeVariable" />
-      <xs:element minOccurs="0" maxOccurs="1" name="PreBuildTasks" type="ArrayOfOeBuildStepClassic" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildSourceTasks" type="ArrayOfOeBuildStepCompile" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildOutputTasks" type="ArrayOfOeBuildStepClassic" />
-      <xs:element minOccurs="0" maxOccurs="1" name="PostBuildTasks" type="ArrayOfOeBuildStepClassic" />
-    </xs:sequence>
-    <xs:attribute name="Name" type="xs:string" />
-  </xs:complexType>
-  <xs:complexType name="ArrayOfOeBuildStepClassic">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Step" nillable="true" type="OeBuildStepClassic" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:complexType name="OeBuildStepClassic">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeBuildStep">
-        <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice3" />
-        </xs:sequence>
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeBuildStep" abstract="true">
-    <xs:attribute name="Label" type="xs:string" />
-  </xs:complexType>
-  <xs:complexType name="OeBuildStepCompile">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeBuildStep">
-        <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice4" />
-        </xs:sequence>
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="ArrayOfChoice4">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element minOccurs="1" maxOccurs="1" name="Copy" nillable="true" type="OeTaskFileTargetFileCopy" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Prolib" nillable="true" type="OeTaskFileTargetArchiveProlib" />
-      <xs:element minOccurs="1" maxOccurs="1" name="UploadFtp" nillable="true" type="OeTaskFileTargetArchiveFtp" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Execute" nillable="true" type="OeTaskExec" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Zip" nillable="true" type="OeTaskFileTargetArchiveZip" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileInCab" nillable="true" type="OeTaskFileTargetFileCompileCab" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileInZip" nillable="true" type="OeTaskFileTargetFileCompileZip" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileUploadFtp" nillable="true" type="OeTaskFileTargetFileCompileUploadFtp" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Compile" nillable="true" type="OeTaskFileTargetFileCompile" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Cab" nillable="true" type="OeTaskFileTargetArchiveCab" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileInProlib" nillable="true" type="OeTaskFileTargetFileCompileProlib" />
-    </xs:choice>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetFileCopy">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskOnFileWithTarget" />
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskOnFileWithTarget" abstract="true">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskOnFile">
-        <xs:attribute name="TargetFilePath" type="xs:string" />
-        <xs:attribute name="TargetDirectory" type="xs:string" />
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskOnFile" abstract="true">
+  <xs:complexType name="OeTaskFilter">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTask">
-        <xs:attribute name="Include" type="xs:string" />
         <xs:attribute name="Exclude" type="xs:string" />
+        <xs:attribute name="Include" type="xs:string" />
         <xs:attribute name="IncludeRegex" type="xs:string" />
         <xs:attribute name="ExcludeRegex" type="xs:string" />
       </xs:extension>
@@ -241,6 +111,11 @@
       <xs:enumeration value="Lazy" />
     </xs:restriction>
   </xs:simpleType>
+  <xs:complexType name="OeTaskRemoveDir">
+    <xs:complexContent mixed="false">
+      <xs:extension base="OeTask" />
+    </xs:complexContent>
+  </xs:complexType>
   <xs:complexType name="OeTaskExec">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTask">
@@ -254,82 +129,102 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTaskOnFileArchive" abstract="true">
+  <xs:complexType name="OeTaskFile" abstract="true">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskOnFile">
+      <xs:extension base="OeTaskFilter" />
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="OeTaskFileDelete">
+    <xs:complexContent mixed="false">
+      <xs:extension base="OeTaskFile" />
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="OeTaskFileTarget" abstract="true">
+    <xs:complexContent mixed="false">
+      <xs:extension base="OeTaskFile" />
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="OeTaskFileTargetArchive" abstract="true">
+    <xs:complexContent mixed="false">
+      <xs:extension base="OeTaskFileTarget">
         <xs:attribute name="RelativeTargetFilePath" type="xs:string" />
         <xs:attribute name="RelativeTargetDirectory" type="xs:string" />
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+  <xs:complexType name="OeTaskFileTargetArchiveFtp">
+    <xs:complexContent mixed="false">
+      <xs:extension base="OeTaskFileTargetArchive">
+        <xs:attribute name="TargetFtpUri" type="xs:string" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="OeTaskFileTargetArchiveCompileUploadFtp">
+    <xs:complexContent mixed="false">
+      <xs:extension base="OeTaskFileTargetArchiveFtp" />
+    </xs:complexContent>
+  </xs:complexType>
   <xs:complexType name="OeTaskFileTargetArchiveCab">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskOnFileArchive">
+      <xs:extension base="OeTaskFileTargetArchive">
         <xs:attribute name="TargetCabFilePath" type="xs:string" />
         <xs:attribute name="ArchivesCompressionLevel" type="xs:string" />
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetFileCompileCab">
+  <xs:complexType name="OeTaskFileTargetArchiveCompileCab">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTaskFileTargetArchiveCab" />
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="OeTaskFileTargetArchiveZip">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskOnFileArchive">
+      <xs:extension base="OeTaskFileTargetArchive">
         <xs:attribute name="TargetZipFilePath" type="xs:string" />
         <xs:attribute name="ArchivesCompressionLevel" type="xs:string" />
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetFileCompileZip">
+  <xs:complexType name="OeTaskFileTargetArchiveCompileZip">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTaskFileTargetArchiveZip" />
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="OeTaskFileTargetArchiveProlib">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskOnFileArchive">
+      <xs:extension base="OeTaskFileTargetArchive">
         <xs:attribute name="TargetProlibFilePath" type="xs:string" />
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetFileCompileProlib">
+  <xs:complexType name="OeTaskFileTargetArchiveCompileProlib">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTaskFileTargetArchiveProlib" />
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTaskFileDeleteInProlib">
+  <xs:complexType name="OeTaskFileTargetArchiveDeleteInProlib">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskOnFile">
+      <xs:extension base="OeTaskFileTargetArchive">
         <xs:attribute name="RelativeFilePatternToDelete" type="xs:string" />
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTaskFileDelete">
+  <xs:complexType name="OeTaskFileTargetFile" abstract="true">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskOnFile" />
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskRemoveDir">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskOnFile" />
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetArchiveFtp">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskOnFileWithTarget" />
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetFileCompileUploadFtp">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTargetArchiveFtp" />
+      <xs:extension base="OeTaskFileTarget">
+        <xs:attribute name="TargetFilePath" type="xs:string" />
+        <xs:attribute name="TargetDirectory" type="xs:string" />
+      </xs:extension>
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="OeTaskFileTargetFileMove">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskOnFileWithTarget" />
+      <xs:extension base="OeTaskFileTargetFile" />
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="OeTaskFileTargetFileCopy">
+    <xs:complexContent mixed="false">
+      <xs:extension base="OeTaskFileTargetFile" />
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="OeTaskFileTargetFileCompile">
@@ -337,14 +232,113 @@
       <xs:extension base="OeTaskFileTargetFileCopy" />
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="ArrayOfChoice3">
+  <xs:complexType name="OeGitFilter">
+    <xs:sequence>
+      <xs:element minOccurs="1" maxOccurs="1" name="OnlyIncludeSourceFilesModifiedSinceLastCommit" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchName" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchOriginCommit" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="OeCompilationOptions">
+    <xs:sequence>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithDebugList" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithXmlXref" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithXref" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithListing" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithPreprocess" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="UseCompilerMultiCompile" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CompileOptions" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CompileStatementExtraOptions" type="xs:string" />
+      <xs:element minOccurs="1" maxOccurs="1" name="TryToOptimizeCompilationDirectory" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CompilableFilePattern" type="xs:string" />
+      <xs:element minOccurs="1" maxOccurs="1" name="ForceSingleProcess" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="NumberProcessPerCore" nillable="true" type="xs:unsignedByte" />
+      <xs:element minOccurs="1" maxOccurs="1" name="MinimumNumberOfFilesPerProcess" nillable="true" type="xs:int" />
+      <xs:element minOccurs="1" maxOccurs="1" name="UseSimplerAnalysisForDatabaseReference" nillable="true" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="OeIncrementalBuildOptions">
+    <xs:sequence>
+      <xs:element minOccurs="1" maxOccurs="1" name="Enabled" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="StoreSourceHash" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedSourceFileToOutput" nillable="true" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfOeVariable">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Variable" nillable="true" type="OeVariable" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="OeVariable">
+    <xs:attribute name="Name" type="xs:string" />
+    <xs:attribute name="Value" type="xs:string" />
+  </xs:complexType>
+  <xs:complexType name="ArrayOfOeBuildConfiguration">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Build" nillable="true" type="OeBuildConfiguration" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="OeBuildConfiguration">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="OverloadProperties" type="OeProjectProperties" />
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildVariables" type="ArrayOfOeVariable" />
+      <xs:element minOccurs="0" maxOccurs="1" name="PreBuildTasks" type="ArrayOfOeBuildStepClassic" />
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildSourceTasks" type="ArrayOfOeBuildStepCompile" />
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildOutputTasks" type="ArrayOfOeBuildStepClassic" />
+      <xs:element minOccurs="0" maxOccurs="1" name="PostBuildTasks" type="ArrayOfOeBuildStepClassic" />
+    </xs:sequence>
+    <xs:attribute name="Name" type="xs:string" />
+  </xs:complexType>
+  <xs:complexType name="ArrayOfOeBuildStepClassic">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Step" nillable="true" type="OeBuildStepClassic" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="OeBuildStepClassic">
+    <xs:complexContent mixed="false">
+      <xs:extension base="OeBuildStep">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice1" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="OeBuildStep" abstract="true">
+    <xs:attribute name="Label" type="xs:string" />
+  </xs:complexType>
+  <xs:complexType name="OeBuildStepCompile">
+    <xs:complexContent mixed="false">
+      <xs:extension base="OeBuildStep">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice2" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfChoice2">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element minOccurs="1" maxOccurs="1" name="Copy" nillable="true" type="OeTaskFileTargetFileCopy" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Prolib" nillable="true" type="OeTaskFileTargetArchiveProlib" />
+      <xs:element minOccurs="1" maxOccurs="1" name="UploadFtp" nillable="true" type="OeTaskFileTargetArchiveFtp" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Execute" nillable="true" type="OeTaskExec" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Zip" nillable="true" type="OeTaskFileTargetArchiveZip" />
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileInCab" nillable="true" type="OeTaskFileTargetArchiveCompileCab" />
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileInZip" nillable="true" type="OeTaskFileTargetArchiveCompileZip" />
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileUploadFtp" nillable="true" type="OeTaskFileTargetArchiveCompileUploadFtp" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Compile" nillable="true" type="OeTaskFileTargetFileCompile" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Cab" nillable="true" type="OeTaskFileTargetArchiveCab" />
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileInProlib" nillable="true" type="OeTaskFileTargetArchiveCompileProlib" />
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfChoice1">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element minOccurs="1" maxOccurs="1" name="Copy" nillable="true" type="OeTaskFileTargetFileCopy" />
       <xs:element minOccurs="1" maxOccurs="1" name="Prolib" nillable="true" type="OeTaskFileTargetArchiveProlib" />
       <xs:element minOccurs="1" maxOccurs="1" name="Move" nillable="true" type="OeTaskFileTargetFileMove" />
       <xs:element minOccurs="1" maxOccurs="1" name="Webclient" nillable="true" type="OeTaskWebclient" />
       <xs:element minOccurs="1" maxOccurs="1" name="Execute" nillable="true" type="OeTaskExec" />
-      <xs:element minOccurs="1" maxOccurs="1" name="DeleteInProlib" nillable="true" type="OeTaskFileDeleteInProlib" />
+      <xs:element minOccurs="1" maxOccurs="1" name="DeleteInProlib" nillable="true" type="OeTaskFileTargetArchiveDeleteInProlib" />
       <xs:element minOccurs="1" maxOccurs="1" name="UploadFtp" nillable="true" type="OeTaskFileTargetArchiveFtp" />
       <xs:element minOccurs="1" maxOccurs="1" name="Zip" nillable="true" type="OeTaskFileTargetArchiveZip" />
       <xs:element minOccurs="1" maxOccurs="1" name="RemoveDir" nillable="true" type="OeTaskRemoveDir" />

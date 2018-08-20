@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (OeTaskOnFileTest.cs) is part of Oetools.Builder.Test.
+// This file (OeTaskFileTest.cs) is part of Oetools.Builder.Test.
 // 
 // Oetools.Builder.Test is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -25,11 +25,11 @@ using Oetools.Utilities.Lib;
 namespace Oetools.Builder.Test.Project {
     
     [TestClass]
-    public class OeTaskOnFileTest {
+    public class OeTaskFileTest {
         
         private static string _testFolder;
 
-        private static string TestFolder => _testFolder ?? (_testFolder = TestHelper.GetTestFolder(nameof(OeTaskOnFileTest)));
+        private static string TestFolder => _testFolder ?? (_testFolder = TestHelper.GetTestFolder(nameof(OeTaskFileTest)));
                      
         [ClassInitialize]
         public static void Init(TestContext context) {
@@ -45,27 +45,31 @@ namespace Oetools.Builder.Test.Project {
 
         [TestMethod]
         public void OeTaskOnFile_Test_() {
-            var task = new OeTaskOnFile2() {
+            var task = new OeTaskOnFile2 {
                 IncludeRegex = ".*"
             };
             
-            Assert.AreEqual(0, task.GetIncludedPathToList().Count);
+            Assert.AreEqual(0, task.GetIncludedFiles().Count);
 
             Utils.CreateDirectoryIfNeeded(Path.Combine(TestFolder, "folder", "sub"));
             File.WriteAllText(Path.Combine(TestFolder, "folder", "sub", "file"), "");
 
             task.Include = "**";
             
-            Assert.AreEqual(0, task.GetIncludedPathToList().Count, "we can't match any existing file or folder with this");
+            Assert.AreEqual(0, task.GetIncludedFiles().Count, "we can't match any existing file or folder with this");
 
             task.Include = Path.Combine(TestFolder, "folder", "**");
             
-            Assert.AreEqual(1, task.GetIncludedPathToList().Count, "we match a folder");
-            Assert.IsTrue(task.GetIncludedPathToList().Exists(s => s.ToCleanPath().Equals(Path.Combine(TestFolder, "folder").ToCleanPath())));
+            Assert.AreEqual(1, task.GetIncludedFiles().Count, "we match the only file there is");
+            Assert.IsTrue(task.GetIncludedFiles().Exists(s => s.SourceFilePath.ToCleanPath().Equals(Path.Combine(TestFolder, "folder", "sub", "file").ToCleanPath())));
 
             task.Include = $"{task.Include};{Path.Combine(TestFolder, "folder", "sub", "file")}";
             
-            Assert.AreEqual(2, task.GetIncludedPathToList().Count, "we added an existing file");
+            Assert.AreEqual(1, task.GetIncludedFiles().Count, "we added a direct file path. However, this method only returns unique files");
+
+            task.Include = Path.Combine(TestFolder, "folder", "sub", "file");
+            
+            Assert.AreEqual(1, task.GetIncludedFiles().Count, "should be good alone");
         }
 
         private class OeTaskOnFile2 : OeTaskFile { }

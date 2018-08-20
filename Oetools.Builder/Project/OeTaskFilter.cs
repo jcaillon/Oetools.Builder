@@ -44,7 +44,7 @@ namespace Oetools.Builder.Project {
         }
 
         /// <summary>
-        /// Separate different path with ;
+        /// Separate different path with ; if a file is matched with several include path, only the first one is used
         /// </summary>
         [XmlAttribute(AttributeName = "Include")]
         public string Include {
@@ -86,8 +86,8 @@ namespace Oetools.Builder.Project {
         private string _includeRegex;
         private string _excludeRegex;
         
-        public List<string> GetRegexIncludeStrings() => (Include?.Split(';').Select(s => s.PathWildCardToRegex())).Union2(IncludeRegex?.Split(';'));
-        public List<string> GetRegexExcludeStrings() => (Exclude?.Split(';').Select(s => s.PathWildCardToRegex())).Union2(ExcludeRegex?.Split(';'));
+        public List<string> GetRegexIncludeStrings() => (Include?.Split(';').Select(s => s.PathWildCardToRegex())).UnionHandleNull(IncludeRegex?.Split(';'));
+        public List<string> GetRegexExcludeStrings() => (Exclude?.Split(';').Select(s => s.PathWildCardToRegex())).UnionHandleNull(ExcludeRegex?.Split(';'));
 
         public List<string> GetIncludeStrings() => (Include?.Split(';')).ToNonNullList();
         public List<string> GetExcludeStrings() => (Exclude?.Split(';')).ToNonNullList();

@@ -29,9 +29,9 @@ namespace Oetools.Builder.Project {
         /// If false, there will be no analyze of compiled files (ref tables/files), no storage
         /// of the build history after the build, no computation of MD5 nor comparison of date/size of files
         /// </summary>
-        [XmlElement(ElementName = "Disabled")]
-        public bool? Disabled { get; set; }
-        internal static bool GetDefaultDisabled() => false;
+        [XmlElement(ElementName = "Enabled")]
+        public bool? Enabled { get; set; }
+        internal static bool GetDefaultEnabled() => false;
                 
         /// <summary>
         /// True if the tool should use a checksum (md5) for each file to figure out if it has changed

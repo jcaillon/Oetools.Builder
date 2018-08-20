@@ -17,6 +17,10 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
+using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Utilities;
@@ -26,7 +30,13 @@ namespace Oetools.Builder.Project {
     
     public abstract class OeTask : IOeTask {
         
-        protected ILogger _log { get; set; }
+        public event EventHandler<TaskExceptionEventArgs> PublishException;
+        
+        protected CancellationTokenSource CancelSource { get; set; }
+        
+        protected ILogger Log { get; set; }
+
+        private List<TaskExecutionException> _exceptions;
         
         /// <summary>
         /// Validates that the task is correct (correct parameters and can execute)
@@ -40,8 +50,41 @@ namespace Oetools.Builder.Project {
         public override string ToString() {
             return $"{(string.IsNullOrEmpty(Label) ? "Unnamed task" : $"Task {Label}")} of type {GetType().GetXmlName()}";
         }
+
+        public void Execute() {
+            try {
+                ExecuteInternal();
+            } catch (OperationCanceledException) {
+                throw;
+            } catch (Exception e) {
+                AddExecutionError(new TaskExecutionException($"Unexpected error in task {ToString().PrettyQuote()} : {e.Message}", e));
+            }
+        }
+
+        protected virtual void ExecuteInternal() {
+            throw new NotImplementedException();
+        }
+
         public void SetLog(ILogger log) {
-            _log = log;
+            Log = log;
+        }
+
+        public void SetCancelSource(CancellationTokenSource cancelSource) {
+            CancelSource = cancelSource;
+        }
+
+        public List<TaskExecutionException> GetExceptionList() {
+            return _exceptions;
+        }
+
+        protected void AddExecutionError(TaskExecutionException exception) {
+            (_exceptions ?? (_exceptions = new List<TaskExecutionException>())).Add(exception);
+            PublishException?.Invoke(this, new TaskExceptionEventArgs(false, exception));
+        }
+
+        protected void AddExecutionWarning(TaskExecutionException exception) {
+            (_exceptions ?? (_exceptions = new List<TaskExecutionException>())).Add(exception);
+            PublishException?.Invoke(this, new TaskExceptionEventArgs(true, exception));
         }
     }
 }

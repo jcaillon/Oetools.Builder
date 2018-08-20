@@ -41,7 +41,7 @@ namespace Oetools.Builder.Project {
             if (string.IsNullOrEmpty(TargetFilePath) && string.IsNullOrEmpty(TargetDirectory)) {
                 throw new TaskValidationException(this, $"This task needs the following properties to be defined : {GetType().GetXmlName(nameof(TargetFilePath))} and/or {GetType().GetXmlName(nameof(TargetDirectory))}");
             }
-            CheckTargetPath((TargetFilePath?.Split(';')).Union2(TargetDirectory?.Split(';')));
+            CheckTargetPath((TargetFilePath?.Split(';')).UnionHandleNull(TargetDirectory?.Split(';')));
         }
         
         /// <summary>
@@ -51,7 +51,7 @@ namespace Oetools.Builder.Project {
         /// <param name="filePath"></param>
         /// <param name="baseTargetDirectory"></param>
         /// <returns></returns>
-        public List<OeTargetFile> GetFileTargets(string filePath, string baseTargetDirectory = null) {
+        public List<OeTargetFile> GetFileTargets(string filePath, string baseTargetDirectory) {
             var output = new List<OeTargetFile>();
             foreach (var regex in GetIncludeRegex()) {
                 
@@ -63,16 +63,19 @@ namespace Oetools.Builder.Project {
                 
                 foreach (var fileTarget in (TargetFilePath?.Split(';')).ToNonNullList()) {
                     output.Add(new OeTargetFile {
-                        TargetFilePath = GetSingleTargetPath(fileTarget, false, match, filePath, baseTargetDirectory)
+                        TargetFilePath = GetSingleTargetPath(fileTarget, false, match, filePath, baseTargetDirectory, false)
                     });
                 }
                 
                 foreach (var directoryTarget in (TargetDirectory?.Split(';')).ToNonNullList()) {
                     output.Add(new OeTargetFile {
-                        TargetFilePath = GetSingleTargetPath(directoryTarget, true, match, filePath, baseTargetDirectory)
+                        TargetFilePath = GetSingleTargetPath(directoryTarget, true, match, filePath, baseTargetDirectory, false)
                     });
                 }
-                
+
+                // stop after the first include match, if a file was included with several path pattern, we only take the first one
+                break;
+
             }
             return output;
         }

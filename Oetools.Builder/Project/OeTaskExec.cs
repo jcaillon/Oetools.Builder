@@ -24,9 +24,9 @@ namespace Oetools.Builder.Project {
     
     [Serializable]
     [XmlRoot("Exec")]
-    public class OeTaskExec : OeTask, IOeTaskExecute {
+    public class OeTaskExec : OeTask {
             
-        public void Execute() => throw new NotImplementedException();
+        protected override void ExecuteInternal() => throw new NotImplementedException();
         
         [XmlElement("ExecuablePath")]
         public string ExecuablePath { get; set; }

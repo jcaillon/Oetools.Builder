@@ -32,6 +32,5 @@ namespace Oetools.Builder.Project {
         /// <param name="baseTargetDirectory"></param>
         /// <returns></returns>
         List<OeTargetArchive> GetFileTargets(string filePath, string baseTargetDirectory = null);
-        
     }
 }

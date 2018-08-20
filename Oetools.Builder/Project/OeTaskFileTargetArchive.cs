@@ -59,12 +59,20 @@ namespace Oetools.Builder.Project {
         /// </summary>
         /// <returns></returns>
         public virtual string GetTargetArchive() => throw new NotImplementedException();
+
+        protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
+            ExecuteForFilesInternal(files.ToList().Cast<IOeFileToBuildTargetArchive>());
+        }
+
+        protected virtual void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetArchive> files) {
+            throw new NotImplementedException();
+        }
         
         public override void Validate() {
             if (string.IsNullOrEmpty(RelativeTargetFilePath) && string.IsNullOrEmpty(RelativeTargetDirectory)) {
                 throw new TaskValidationException(this, $"This task needs the following properties to be defined : {GetType().GetXmlName(nameof(RelativeTargetFilePath))} and/or {GetType().GetXmlName(nameof(RelativeTargetDirectory))}");
             }
-            CheckTargetPath((RelativeTargetFilePath?.Split(';')).Union2(RelativeTargetDirectory?.Split(';')));
+            CheckTargetPath((RelativeTargetFilePath?.Split(';')).UnionHandleNull(RelativeTargetDirectory?.Split(';')));
             CheckTargetPath(GetTargetArchive()?.Split(';'));
             base.Validate();
         }
@@ -76,7 +84,7 @@ namespace Oetools.Builder.Project {
         /// <param name="filePath"></param>
         /// <param name="baseTargetDirectory"></param>
         /// <returns></returns>
-        public List<OeTargetArchive> GetFileTargets(string filePath, string baseTargetDirectory = null) {
+        public List<OeTargetArchive> GetFileTargets(string filePath, string baseTargetDirectory) {
             var output = new List<OeTargetArchive>();
             foreach (var regex in GetIncludeRegex()) {
                 
@@ -90,23 +98,26 @@ namespace Oetools.Builder.Project {
                     
                     foreach (var fileTarget in (RelativeTargetFilePath?.Split(';')).ToNonNullList()) {
                         output.Add(new OeTargetArchive {
-                            TargetPackFilePath = GetSingleTargetPath(archivePath, false, match, filePath, baseTargetDirectory),
-                            RelativeTargetFilePath = GetSingleTargetPath(fileTarget, false, match, filePath, null)
+                            TargetPackFilePath = GetSingleTargetPath(archivePath, false, match, filePath, baseTargetDirectory, false),
+                            RelativeTargetFilePath = GetSingleTargetPath(fileTarget, false, match, filePath, null, true)
                         });
                     }
                     
                     foreach (var directoryTarget in (RelativeTargetDirectory?.Split(';')).ToNonNullList()) {
                         output.Add(new OeTargetArchive {
-                            TargetPackFilePath = GetSingleTargetPath(archivePath, false, match, filePath, baseTargetDirectory),
-                            RelativeTargetFilePath = GetSingleTargetPath(directoryTarget, true, match, filePath, null)
+                            TargetPackFilePath = GetSingleTargetPath(archivePath, false, match, filePath, baseTargetDirectory, false),
+                            RelativeTargetFilePath = GetSingleTargetPath(directoryTarget, true, match, filePath, null, true)
                         });
                     }
                     
                 }
+                
+                // stop after the first include match, if a file was included with several path pattern, we only take the first one
+                break;
             }
 
             return output;
         }
-        
+
     }
 }

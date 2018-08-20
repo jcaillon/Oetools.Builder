@@ -155,10 +155,10 @@ namespace Oetools.Builder.Test.Project {
                 BuildHistoryOutputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
                 CompilationOptions = new OeCompilationOptions {
                     CompilableFilePattern = OeBuilderConstants.CompilableExtensionsPattern,
-                    CompileForceSingleProcess = false,
-                    CompileForceUsageOfTemporaryDirectory = false,
-                    CompileMinimumNumberOfFilesPerProcess = 10,
-                    CompileNumberProcessPerCore = 1,
+                    ForceSingleProcess = false,
+                    TryToOptimizeCompilationDirectory = false,
+                    MinimumNumberOfFilesPerProcess = 10,
+                    NumberProcessPerCore = 1,
                     CompileOptions = "require-full-names, require-field-qualifiers, require-full-keywords",
                     CompileStatementExtraOptions = "MIN-SIZE = TRUE",
                     CompileWithDebugList = true,
@@ -182,7 +182,7 @@ namespace Oetools.Builder.Test.Project {
                 DatabaseConnectionExtraParameters = "-extra \"quotes\" ",
                 DlcDirectoryPath = "/dlc/",
                 IncrementalBuildOptions = new OeIncrementalBuildOptions {
-                    Disabled = false,
+                    Enabled = false,
                     MirrorDeletedSourceFileToOutput = true,
                     StoreSourceHash = false
                 },

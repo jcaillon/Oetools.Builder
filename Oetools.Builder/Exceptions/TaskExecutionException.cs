@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (IOeTaskExecute.cs) is part of Oetools.Builder.
+// This file (TaskExecutionException.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,8 +17,12 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-namespace Oetools.Builder.Project {
-    public interface IOeTaskExecute : IOeTask {
-        void Execute();
+
+using System;
+
+namespace Oetools.Builder.Exceptions {
+    public class TaskExecutionException : Exception {
+        public TaskExecutionException(string message) : base(message) { }
+        public TaskExecutionException(string message, Exception innerException) : base(message, innerException) { }
     }
 }

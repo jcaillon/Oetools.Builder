@@ -21,11 +21,9 @@ using System;
 
 namespace Oetools.Builder.Project {
     [Serializable]
-    public class OeTaskRemoveDir : OeTask, IOeTaskExecute {
+    public class OeTaskRemoveDir : OeTask {
         
-        public void Execute() {
-            throw new NotImplementedException();
-        }
+        protected override void ExecuteInternal() => throw new NotImplementedException();
         
     }
 }

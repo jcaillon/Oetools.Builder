@@ -170,20 +170,20 @@ namespace Oetools.Builder.Project {
         /// <exception cref="Exception"></exception>
         /// <exception cref="BuildConfigurationException"></exception>
         public void ValidateAllTasks() {
-            ValidateStepsList(PreBuildTasks, nameof(PreBuildTasks));
-            ValidateStepsList(BuildSourceTasks, nameof(BuildSourceTasks));
-            ValidateStepsList(BuildOutputTasks, nameof(BuildOutputTasks));
-            ValidateStepsList(PostBuildTasks, nameof(PostBuildTasks));
+            ValidateStepsList(PreBuildTasks, nameof(PreBuildTasks), false);
+            ValidateStepsList(BuildSourceTasks, nameof(BuildSourceTasks), true);
+            ValidateStepsList(BuildOutputTasks, nameof(BuildOutputTasks), true);
+            ValidateStepsList(PostBuildTasks, nameof(PostBuildTasks), false);
         }
         
-        private void ValidateStepsList(IEnumerable<OeBuildStep> steps, string propertyNameOf) {
+        private void ValidateStepsList(IEnumerable<OeBuildStep> steps, string propertyNameOf, bool buildFromList) {
             var i = 0;
             foreach (var step in steps) {
                 try {
                     if (string.IsNullOrEmpty(step.Label)) {
                         step.Label = $"Step {i}";
                     }
-                    step.Validate();
+                    step.Validate(buildFromList);
                 } catch (Exception e) {
                     var et = e as TaskValidationException;
                     if (et != null) {

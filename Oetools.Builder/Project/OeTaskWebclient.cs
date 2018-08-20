@@ -25,7 +25,7 @@ using Oetools.Builder.History;
 namespace Oetools.Builder.Project {
     
     [Serializable]
-    public class OeTaskWebclient : OeTask, IOeTaskExecute {
+    public class OeTaskWebclient : OeTask {
         
         [XmlElement(ElementName = "VendorName")]
         public string VendorName { get; set; }
@@ -98,7 +98,7 @@ namespace Oetools.Builder.Project {
             }
         }
         
-        public void Execute() => throw new NotImplementedException();
+        protected override void ExecuteInternal() => throw new NotImplementedException();
         
         public OeWebclientPackage GetWebclientPackageResult() => throw new NotImplementedException();
             

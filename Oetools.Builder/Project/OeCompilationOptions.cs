@@ -60,25 +60,25 @@ namespace Oetools.Builder.Project {
         /// <summary>
         /// Force the usage of a temporary Directory to compile the .r code files
         /// </summary>
-        [XmlElement(ElementName = "CompileForceUsageOfTemporaryDirectory")]
-        public bool? CompileForceUsageOfTemporaryDirectory { get; set; }
-        internal static bool GetDefaultCompileForceUsageOfTemporaryDirectory() => false;
+        [XmlElement(ElementName = "TryToOptimizeCompilationDirectory")]
+        public bool? TryToOptimizeCompilationDirectory { get; set; }
+        internal static bool GetDefaultTryToOptimizeCompilationDirectory() => false;
 
         [XmlElement(ElementName = "CompilableFilePattern")]
         public string CompilableFilePattern { get; set; }
         internal static string GetDefaultCompilableFilePattern() => "*.p;*.cls;*.w;*.t";
                 
-        [XmlElement(ElementName = "CompileForceSingleProcess")]
-        public bool? CompileForceSingleProcess { get; set; }
-        internal static bool GetDefaultCompileForceSingleProcess() => false;
+        [XmlElement(ElementName = "ForceSingleProcess")]
+        public bool? ForceSingleProcess { get; set; }
+        internal static bool GetDefaultForceSingleProcess() => false;
 
-        [XmlElement(ElementName = "CompileNumberProcessPerCore")]
-        public byte? CompileNumberProcessPerCore { get; set; }
-        internal static byte GetDefaultCompileNumberProcessPerCore() => 1;
+        [XmlElement(ElementName = "NumberProcessPerCore")]
+        public byte? NumberProcessPerCore { get; set; }
+        internal static byte GetDefaultNumberProcessPerCore() => 1;
 
-        [XmlElement(ElementName = "CompileMinimumNumberOfFilesPerProcess")]
-        public int? CompileMinimumNumberOfFilesPerProcess { get; set; }
-        internal static int GetDefaultCompileMinimumNumberOfFilesPerProcess() => 10;
+        [XmlElement(ElementName = "MinimumNumberOfFilesPerProcess")]
+        public int? MinimumNumberOfFilesPerProcess { get; set; }
+        internal static int GetDefaultMinimumNumberOfFilesPerProcess() => 10;
             
         [XmlElement(ElementName = "UseSimplerAnalysisForDatabaseReference")]
         public bool? UseSimplerAnalysisForDatabaseReference { get; set; }

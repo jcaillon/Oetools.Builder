@@ -85,5 +85,7 @@ namespace Oetools.Builder.History {
         public OeFile GetDeepCopy() {
             return (OeFile) Utils.DeepCopyPublicProperties(this, typeof(OeFile));
         }
+
+        public override string ToString() => SourceFilePath;
     }
 }

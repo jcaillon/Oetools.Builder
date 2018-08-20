@@ -24,6 +24,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
@@ -60,10 +61,17 @@ namespace Oetools.Builder.Utilities {
 
         public IEnumerable<OeFile> PreviousSourceFiles { get; set; }
         
+        public CancellationTokenSource CancelSource { get; set; }
+        
         private List<Regex> _defaultFilters;
 
-        public SourceFilesLister(string sourceDirectory) {
+        private static bool ExcludeHiddenFolders => false;
+        
+        public bool SetFileInfoAndState { get; set; }
+
+        public SourceFilesLister(string sourceDirectory, CancellationTokenSource cancelSource = null) {
             SourceDirectory = sourceDirectory.ToCleanPath();
+            CancelSource = cancelSource;
         }
 
         /// <summary>
@@ -71,6 +79,7 @@ namespace Oetools.Builder.Utilities {
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
+        /// <exception cref="OperationCanceledException"></exception>
         public List<OeFile> GetFileList() {
             HashSet<string> listedFiles;
             if (SourcePathGitFilter != null && ((SourcePathGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch ?? OeGitFilter.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch()) || (SourcePathGitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit ?? OeGitFilter.GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit()))) {
@@ -81,12 +90,16 @@ namespace Oetools.Builder.Utilities {
 
             var output = new List<OeFile>();
             foreach (var file in listedFiles) {
+                CancelSource?.Token.ThrowIfCancellationRequested();
                 var oeFile = new OeFile(file); // all the files here exist
-                // get info on each files
-                SetFileBaseInfo(oeFile);
-                // get the state of each file (added/unchanged/modified)
-                SetFileState(oeFile);
                 output.Add(oeFile);
+                
+                if (SetFileInfoAndState) {
+                    // get info on each files
+                    SetFileBaseInfo(oeFile);
+                    // get the state of each file (added/unchanged/modified)
+                    SetFileState(oeFile);
+                }
             }
             
             // add all previous source files that are now missing
@@ -101,7 +114,7 @@ namespace Oetools.Builder.Utilities {
         /// <exception cref="Exception"></exception>
         public List<string> GetDirectoryList() {
             var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(SourcePathFilter);
-            return Utils.EnumerateAllFolders(SourceDirectory, SearchOption.AllDirectories, sourcePathExcludeRegexStrings)
+            return Utils.EnumerateAllFolders(SourceDirectory, SearchOption.AllDirectories, sourcePathExcludeRegexStrings, ExcludeHiddenFolders, CancelSource)
                 .Where(IsFileIncludedBySourcePathFilters)
                 .ToList();
         }
@@ -112,7 +125,7 @@ namespace Oetools.Builder.Utilities {
         /// <returns></returns>
         private HashSet<string> GetBaseFileList() {
             var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(SourcePathFilter);
-            return Utils.EnumerateAllFiles(SourceDirectory, SearchOption.AllDirectories, sourcePathExcludeRegexStrings)
+            return Utils.EnumerateAllFiles(SourceDirectory, SearchOption.AllDirectories, sourcePathExcludeRegexStrings, ExcludeHiddenFolders, CancelSource)
                 .Where(IsFileIncludedBySourcePathFilters)
                 .ToHashSet(new HashSet<string>(StringComparer.CurrentCultureIgnoreCase));
         }

@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (OeTaskOnFileWithTargetArchivesTest.cs) is part of Oetools.Builder.Test.
+// This file (OeTaskFileTargetArchiveTest.cs) is part of Oetools.Builder.Test.
 // 
 // Oetools.Builder.Test is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ using Oetools.Builder.Project;
 namespace Oetools.Builder.Test.Project {
     
     [TestClass]
-    public class OeTaskOnFileWithTargetArchivesTest {
+    public class OeTaskFileTargetArchiveTest {
 
         [TestMethod]
         public void OeTaskOnFileWithTargetArchives_Test_Validate() {
@@ -65,16 +65,14 @@ namespace Oetools.Builder.Test.Project {
             Assert.AreEqual(4, task.GetFileTargets(@"C:\folder\source.txt", @"D:\").ToList().Count);
             
             task.Include = @"C:\((**))((*)).((*));**";
-            task.ArchivePath = @"archive.pack;C:\arc.{{3}}";
+            task.ArchivePath = @"archive.pack;/arc.{{3}}";
             task.RelativeTargetFilePath = "{{1}}file.{{3}}";
             task.RelativeTargetDirectory = null;
 
             list = task.GetFileTargets(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetFilePath()).ToList();
-            Assert.AreEqual(4, list.Count);
+            Assert.AreEqual(2, list.Count);
             Assert.IsTrue(list.Exists(s => s.Equals(@"D:\archive.pack\folder\file.txt")));
-            Assert.IsTrue(list.Exists(s => s.Equals(@"D:\archive.pack\file.")));
-            Assert.IsTrue(list.Exists(s => s.Equals(@"C:\arc.txt\folder\file.txt")));
-            Assert.IsTrue(list.Exists(s => s.Equals(@"C:\arc.\file.")));
+            Assert.IsTrue(list.Exists(s => s.Equals(@"C:\arc.txt\folder\file.txt")), "we expect to have /arc converted into C:\\");
         }
 
         private class OeTaskOnFilesTargetsArchives2 : OeTaskFileTargetArchive {

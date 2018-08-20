@@ -27,7 +27,7 @@ namespace Oetools.Builder.Test.Project {
     public class OeTaskOnFileWithTargetTest {
 
         [TestMethod]
-        public void OeTaskOnFileWithTarget_Test_Validate() {
+        public void OeTaskFileTargetFileTest() {
             var targetTask = new OeTaskOnFilesWithTarget2();
 
             Assert.ThrowsException<TaskValidationException>(() => targetTask.Validate());
@@ -56,11 +56,11 @@ namespace Oetools.Builder.Test.Project {
                 Include = "**"
             };
 
-            Assert.AreEqual(0, targetTask.GetFileTargets(@"C:\folder\source.txt").Count);
+            Assert.AreEqual(0, targetTask.GetFileTargets(@"C:\folder\source.txt", null).Count);
 
             targetTask.TargetDirectory = @"targetfolder";
-            
-            Assert.AreEqual(1, targetTask.GetFileTargets(@"C:\folder\source.txt").Count);
+
+            Assert.ThrowsException<TaskExecutionException>(() => targetTask.GetFileTargets(@"C:\folder\source.txt", null), "This task is not allowed to target relative path because no base target directory is defined at this moment, the error occured for : <<targetfolder>>");
             
             targetTask.TargetFilePath = @"targetfolder\newfilename.txt";
             
@@ -74,9 +74,8 @@ namespace Oetools.Builder.Test.Project {
             targetTask.TargetDirectory = null;
             targetTask.TargetFilePath = "{{1}}file.{{3}}";
 
-            Assert.AreEqual(2, targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Count);
+            Assert.AreEqual(1, targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Count);
             Assert.IsTrue(targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Exists(s => s.GetTargetFilePath().Equals(@"C:\folder\file.txt")));
-            Assert.IsTrue(targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Exists(s => s.GetTargetFilePath().Equals(@"D:\file.")));
 
         }
 

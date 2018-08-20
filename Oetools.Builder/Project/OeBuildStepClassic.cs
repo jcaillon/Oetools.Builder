@@ -35,8 +35,9 @@ namespace Oetools.Builder.Project {
         /// <summary>
         /// Validate tasks in this step
         /// </summary>
+        /// <param name="buildFromList">should the task also be validated with <see cref="IOeTaskFile.ValidateCanIncludeFiles"/></param>
         /// <exception cref="TaskValidationException"></exception>
-        public void Validate() {
+        public void Validate(bool buildFromList) {
             var i = 0;
             foreach (var task in GetTaskList()) {
                 try {
@@ -44,6 +45,9 @@ namespace Oetools.Builder.Project {
                         task.Label = $"Task {i}";
                     }
                     task.Validate();
+                    if (buildFromList && task is IOeTaskFile taskFile) {
+                        taskFile.ValidateCanIncludeFiles();
+                    }
                 } catch (Exception e) {
                     var et = e as TaskValidationException ?? new TaskValidationException(task, "Unexpected exception validating a task", e);
                     et.TaskNumber = i;

@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (IOeTask.cs) is part of Oetools.Builder.
+// This file (TaskExceptionEventArgs.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,23 +19,21 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using Oetools.Builder.Exceptions;
-using Oetools.Builder.Utilities;
 
-namespace Oetools.Builder.Project {
-    public interface IOeTask {
-
-        void Execute();
-
-        List<TaskExecutionException> GetExceptionList();
-
-        event EventHandler<TaskExceptionEventArgs> PublishException;
+namespace Oetools.Builder.Utilities {
+    public class TaskExceptionEventArgs : EventArgs {
         
-        void SetLog(ILogger log);
+        /// <summary>
+        /// True if the exception should be considered as a warning only
+        /// </summary>
+        public bool IsWarning { get; set; }
+        
+        public TaskExecutionException Exception { get; set; }
 
-        void SetCancelSource(CancellationTokenSource cancelSource);
-
+        public TaskExceptionEventArgs(bool isWarning, TaskExecutionException exception) {
+            IsWarning = isWarning;
+            Exception = exception;
+        }
     }
 }

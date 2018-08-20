@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Utilities;
@@ -127,7 +128,11 @@ namespace Oetools.Builder.Project {
         [XmlElement(ElementName = "BuildHistoryInputFilePath")]
         public string BuildHistoryInputFilePath { get; set; }
         internal static string GetDefaultBuildHistoryInputFilePath(string sourceDirectory) => Path.Combine(sourceDirectory, OeBuilderConstants.OeProjectDirectory, "build", "latest.xml");
-
+        
+        [XmlElement(ElementName = "TreatWarningsAsErrors")]
+        public bool? TreatWarningsAsErrors { get; set; }
+        internal static bool GetDefaultTreatWarningsAsErrors() => false;
+        
         /// <summary>
         /// Validate that is object is correct
         /// </summary>
@@ -169,8 +174,9 @@ namespace Oetools.Builder.Project {
         /// </summary>
         /// <param name="sourceDirectory"></param>
         /// <param name="simplifyPathWithWorkingDirectory"></param>
+        /// <param name="cancelSource"></param>
         /// <returns></returns>
-        public List<string> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory) {
+        public List<string> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory, CancellationTokenSource cancelSource = null) {
             var output = new HashSet<string>();
             foreach (var propathEntry in PropathEntries) {
                 var entry = propathEntry.ToCleanPath();
@@ -198,7 +204,7 @@ namespace Oetools.Builder.Project {
                 }
             }
             if (AddAllSourceDirectoriesToPropath ?? GetDefaultAddAllSourceDirectoriesToPropath()) {
-                var lister = new SourceFilesLister(sourceDirectory) {
+                var lister = new SourceFilesLister(sourceDirectory, cancelSource) {
                     SourcePathFilter = PropathSourceDirectoriesFilter
                 };
                 foreach (var directory in lister.GetDirectoryList()) {
@@ -221,7 +227,13 @@ namespace Oetools.Builder.Project {
             return output.ToList();
         }
 
-        public UoeExecutionEnv GetOeExecutionEnvironment(string sourceDirectory) => 
+        /// <summary>
+        /// Get the execution environment from these properties
+        /// </summary>
+        /// <param name="sourceDirectory"></param>
+        /// <param name="cancelSource"></param>
+        /// <returns></returns>
+        public UoeExecutionEnv GetOeExecutionEnvironment(string sourceDirectory, CancellationTokenSource cancelSource) => 
             new UoeExecutionEnv {
                 TempDirectory = TemporaryDirectoryPath?.TakeDefaultIfNeeded($".oe_tmp-{Utils.GetRandomName()}"),
                 UseProgressCharacterMode = UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable(),
@@ -233,13 +245,19 @@ namespace Oetools.Builder.Project {
                 PostExecutionProgramPath = ProcedurePathToExecuteAfterAnyProgressExecution,
                 PreExecutionProgramPath = ProcedurePathToExecuteBeforeAnyProgressExecution,
                 ProExeCommandLineParameters = ProgresCommandLineExtraParameters,
-                ProPathList = GetPropath(sourceDirectory, true)
+                ProPathList = GetPropath(sourceDirectory, true, cancelSource)
             };
 
-        public UoeExecutionParallelCompile GetPar(IUoeExecutionEnv env, string workingDirectory) =>
+        /// <summary>
+        /// Get the parallel compiler from these properties
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="workingDirectory"></param>
+        /// <returns></returns>
+        public UoeExecutionParallelCompile GetParallelCompiler(IUoeExecutionEnv env, string workingDirectory) =>
             new UoeExecutionParallelCompile(env) {
                 AnalysisModeSimplifiedDatabaseReferences = CompilationOptions?.UseSimplerAnalysisForDatabaseReference ?? OeCompilationOptions.GetDefaultUseSimplerAnalysisForDatabaseReference(),
-                CompileInAnalysisMode = IncrementalBuildOptions?.Disabled ?? OeIncrementalBuildOptions.GetDefaultDisabled(),
+                CompileInAnalysisMode = IncrementalBuildOptions?.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled(),
                 CompileOptions = CompilationOptions?.CompileOptions,
                 CompilerMultiCompile = CompilationOptions?.UseCompilerMultiCompile ?? OeCompilationOptions.GetDefaultUseCompilerMultiCompile(),
                 CompileStatementExtraOptions = CompilationOptions?.CompileStatementExtraOptions,
@@ -248,8 +266,8 @@ namespace Oetools.Builder.Project {
                 CompileWithListing = CompilationOptions?.CompileWithListing ?? OeCompilationOptions.GetDefaultCompileWithListing(),
                 CompileWithPreprocess = CompilationOptions?.CompileWithPreprocess ?? OeCompilationOptions.GetDefaultCompileWithPreprocess(),
                 CompileWithXref = CompilationOptions?.CompileWithXref ?? OeCompilationOptions.GetDefaultCompileWithXref(),
-                MaxNumberOfProcesses = Math.Max(1, Environment.ProcessorCount * CompilationOptions?.CompileNumberProcessPerCore ?? OeCompilationOptions.GetDefaultCompileNumberProcessPerCore()),
-                MinimumNumberOfFilesPerProcess = CompilationOptions?.CompileMinimumNumberOfFilesPerProcess ?? OeCompilationOptions.GetDefaultCompileMinimumNumberOfFilesPerProcess(),
+                MaxNumberOfProcesses = CompilationOptions?.ForceSingleProcess ?? OeCompilationOptions.GetDefaultForceSingleProcess() ? 1 : Math.Max(1, Environment.ProcessorCount * CompilationOptions?.NumberProcessPerCore ?? OeCompilationOptions.GetDefaultNumberProcessPerCore()),
+                MinimumNumberOfFilesPerProcess = CompilationOptions?.MinimumNumberOfFilesPerProcess ?? OeCompilationOptions.GetDefaultMinimumNumberOfFilesPerProcess(),
                 WorkingDirectory = workingDirectory,
                 NeedDatabaseConnection = true
             };

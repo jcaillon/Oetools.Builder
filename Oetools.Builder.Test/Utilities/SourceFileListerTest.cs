@@ -146,7 +146,8 @@ namespace Oetools.Builder.Test.Utilities {
             var lister = new SourceFilesLister(repoDir) {
                 UseLastWriteDateComparison = true,
                 UseHashComparison = false,
-                PreviousSourceFiles = null
+                PreviousSourceFiles = null,
+                SetFileInfoAndState = true
             };
             
             var list = lister.GetFileList();
@@ -206,7 +207,8 @@ namespace Oetools.Builder.Test.Utilities {
             var lister = new SourceFilesLister(repoDir) {
                 UseLastWriteDateComparison = false,
                 UseHashComparison = false,
-                PreviousSourceFiles = null
+                PreviousSourceFiles = null,
+                SetFileInfoAndState = true
             };
 
             var list = lister.GetFileList();
