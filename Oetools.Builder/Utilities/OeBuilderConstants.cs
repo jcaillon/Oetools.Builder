@@ -17,6 +17,9 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
+using System.IO;
+
 namespace Oetools.Builder.Utilities {
     public static class OeBuilderConstants {
 
@@ -25,17 +28,22 @@ namespace Oetools.Builder.Utilities {
         public const string CompilableExtensionsPattern = "*.p;*.w;*.t;*.cls";
         
         public const string OeProjectExtension = ".oeproj";
-        
-        public const string OeProjectDirectory = ".oe";
-        public const string OeProjectLocalDirectory = "local";
+
+        private const string OeProjectDirectory = ".oe";
+        private const string OeProjectLocalDirectory = "local";
         
         public const string OeVarNameSourceDirectory = "SOURCE_DIRECTORY";
         public const string OeVarNameProjectDirectory = "PROJECT_DIRECTORY";
         public const string OeVarNameProjectLocalDirectory = "PROJECT_LOCAL_DIRECTORY";
         public const string OeVarNameOutputDirectory = "OUTPUT_DIRECTORY";
         public const string OeVarNameConfigurationName = "CONFIGURATION_NAME";
-        public const string OeVarNameWorkingDirectory = "WORKING_DIRECTORY";
+        public const string OeVarNameCurrentDirectory = "CURRENT_DIRECTORY";
         public const string OeVarNameFileSourceDirectory = "FILE_SOURCE_DIRECTORY";
-        
+
+        public static string GetProjectDirectory(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory);
+        public static string GetProjectDirectoryBuild(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory, "build");
+        public static string GetProjectDirectoryLocal(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory, OeProjectLocalDirectory);
+        public static string GetProjectDirectoryLocalDb(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory, OeProjectLocalDirectory, "db");
+
     }
 }

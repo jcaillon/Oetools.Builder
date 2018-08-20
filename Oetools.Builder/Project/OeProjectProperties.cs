@@ -119,15 +119,15 @@ namespace Oetools.Builder.Project {
 
         [XmlElement(ElementName = "ReportHtmlFilePath")]
         public string ReportHtmlFilePath { get; set; }
-        internal static string GetDefaultReportHtmlFilePath(string sourceDirectory) => Path.Combine(sourceDirectory, OeBuilderConstants.OeProjectDirectory, "build", "latest.html");
+        internal static string GetDefaultReportHtmlFilePath(string sourceDirectory) => Path.Combine(OeBuilderConstants.GetProjectDirectoryBuild(sourceDirectory), "latest.html");
             
         [XmlElement(ElementName = "BuildHistoryOutputFilePath")]
         public string BuildHistoryOutputFilePath { get; set; }
-        internal static string GetDefaultBuildHistoryOutputFilePath(string sourceDirectory) => Path.Combine(sourceDirectory, OeBuilderConstants.OeProjectDirectory, "build", "latest.xml");
+        internal static string GetDefaultBuildHistoryOutputFilePath(string sourceDirectory) => Path.Combine(OeBuilderConstants.GetProjectDirectoryBuild(sourceDirectory), "latest.xml");
             
         [XmlElement(ElementName = "BuildHistoryInputFilePath")]
         public string BuildHistoryInputFilePath { get; set; }
-        internal static string GetDefaultBuildHistoryInputFilePath(string sourceDirectory) => Path.Combine(sourceDirectory, OeBuilderConstants.OeProjectDirectory, "build", "latest.xml");
+        internal static string GetDefaultBuildHistoryInputFilePath(string sourceDirectory) => Path.Combine(OeBuilderConstants.GetProjectDirectoryBuild(sourceDirectory), "latest.xml");
         
         [XmlElement(ElementName = "TreatWarningsAsErrors")]
         public bool? TreatWarningsAsErrors { get; set; }
