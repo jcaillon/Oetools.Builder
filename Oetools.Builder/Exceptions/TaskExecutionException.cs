@@ -19,10 +19,20 @@
 #endregion
 
 using System;
+using Oetools.Builder.Project;
 
 namespace Oetools.Builder.Exceptions {
-    public class TaskExecutionException : Exception {
-        public TaskExecutionException(string message) : base(message) { }
-        public TaskExecutionException(string message, Exception innerException) : base(message, innerException) { }
+    public class TaskExecutionException : BuilderException {
+        
+        public OeTask Task { get; }
+        
+        public TaskExecutionException(OeTask task, string message) : base(message) {
+            Task = task;
+        }
+        public TaskExecutionException(OeTask task, string message, Exception innerException) : base(message, innerException) {
+            Task = task;
+        }
+        
+        public override string Message => $"{Task?.ToString() ?? ""} : {base.Message ?? ""}";
     }
 }

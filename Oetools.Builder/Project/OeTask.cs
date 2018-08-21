@@ -46,10 +46,9 @@ namespace Oetools.Builder.Project {
         
         [XmlAttribute("Label")]
         public string Label { get; set; }
-
-        public override string ToString() {
-            return $"{(string.IsNullOrEmpty(Label) ? "Unnamed task" : $"Task {Label}")} of type {GetType().GetXmlName()}";
-        }
+        
+        [XmlIgnore]
+        internal int Id { get; set; }
 
         public void Execute() {
             try {
@@ -57,7 +56,7 @@ namespace Oetools.Builder.Project {
             } catch (OperationCanceledException) {
                 throw;
             } catch (Exception e) {
-                AddExecutionError(new TaskExecutionException($"Unexpected error in task {ToString().PrettyQuote()} : {e.Message}", e));
+                AddExecutionError(new TaskExecutionException(this, $"Unexpected error in task {ToString().PrettyQuote()} : {e.Message}", e));
             }
         }
 
@@ -86,5 +85,7 @@ namespace Oetools.Builder.Project {
             (_exceptions ?? (_exceptions = new List<TaskExecutionException>())).Add(exception);
             PublishException?.Invoke(this, new TaskExceptionEventArgs(true, exception));
         }
+        
+        public override string ToString() => $"Task [{Id}]{(string.IsNullOrEmpty(Label) ? "" : $" {Label}")} of type {GetType().GetXmlName()}";
     }
 }

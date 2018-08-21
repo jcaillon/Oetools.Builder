@@ -25,6 +25,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Report.Html;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
@@ -99,8 +100,8 @@ namespace Oetools.Builder {
             
             Log?.Info($"Start building {(string.IsNullOrEmpty(BuildConfiguration.ConfigurationName) ? "an unnamed configuration" : $"the configuration {BuildConfiguration.ConfigurationName}")}");
 
-            Log?.Debug("Validating tasks");
-            BuildConfiguration.ValidateAllTasks();
+            Log?.Debug("Validating build configuration");
+            BuildConfiguration.Validate();
             
             Log?.Debug("Using build variables");
             BuildConfiguration.ApplyVariables(SourceDirectory);
@@ -187,13 +188,15 @@ namespace Oetools.Builder {
                 .Cast<IOeTaskFile>()
                 .SelectMany(t => t.GetFilesBuilt())
                 .ToList();
-            // TODO : remove targets out of the output directory
+            // TODO : remove targets that are out of the output directory, we won't be able to "undo" them so it is useless to keep that info
             // also add all the files that were not rebuild from the previous build history
+            // also ensures that all files have HASH info
         }
 
         private void OutputReport() {
             var outputReportPath = BuildConfiguration.Properties.ReportHtmlFilePath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultReportHtmlFilePath(SourceDirectory));
-            throw new NotImplementedException();
+            var reportExporter = new BuildReportExport(outputReportPath, this);
+            reportExporter.Create();
         }
 
         

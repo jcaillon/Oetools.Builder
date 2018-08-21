@@ -303,6 +303,10 @@ namespace Oetools.Builder.Test.Project {
             };
             
             project.Save(Path.Combine(TestFolder, "project.xml"));
+            
+            loadedProject = OeProject.Load(Path.Combine(TestFolder, "project.xml"));
+            
+            Assert.AreEqual(1, loadedProject.BuildConfigurations[0].BuildSourceTasks[0].Tasks[1].Id);
 
             string xmlContent = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">

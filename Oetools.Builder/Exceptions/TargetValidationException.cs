@@ -23,15 +23,13 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Exceptions {
     
-    public class TargetValidationException : TaskValidationException {
+    public class TargetValidationException : BuilderException {
         
         public int TargetNumber { get; set; }
 
-        private string TargetTaskPath =>  $"{TaskPath} > Error in target part {TargetNumber.ToString().PrettyQuote()} (the order is by filepath then by directory) : {base.Message}";
+        public TargetValidationException(string message) : base(message) { }
+        public TargetValidationException(string message, Exception innerException) : base(message, innerException) { }
         
-        public override string Message => $"{TargetTaskPath} : {ErrorMessage}";
-
-        public TargetValidationException(OeTask task, string message) : base(task, message) { }
-        public TargetValidationException(OeTask task, string message, Exception innerException) : base(task, message, innerException) { }
+        public override string Message => $"Target {TargetNumber.ToString()} : {base.Message ?? ""}";
     }
 }

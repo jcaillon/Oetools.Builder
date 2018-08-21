@@ -72,6 +72,8 @@ namespace Oetools.Builder.Project {
         public bool? ForceSingleProcess { get; set; }
         internal static bool GetDefaultForceSingleProcess() => false;
 
+        public static int GetNumberOfProcessesToUse(OeCompilationOptions compilationOptions) => compilationOptions?.ForceSingleProcess ?? GetDefaultForceSingleProcess() ? 1 : Math.Max(1, Environment.ProcessorCount * (compilationOptions?.NumberProcessPerCore ?? GetDefaultNumberProcessPerCore()));
+
         [XmlElement(ElementName = "NumberProcessPerCore")]
         public byte? NumberProcessPerCore { get; set; }
         internal static byte GetDefaultNumberProcessPerCore() => 1;

@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (IOeTaskCompile.cs) is part of Oetools.Builder.
+// This file (BuildReportExport.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,13 +17,21 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-namespace Oetools.Builder.Project {
-    public interface IOeTaskCompile : IOeTask {
 
-        /// <summary>
-        /// Allows to set the extensions that represent compilable files
-        /// </summary>
-        /// <param name="filter"></param>
-        void SetFileExtensionFilter(string filter);
+namespace Oetools.Builder.Report.Html {
+    public class BuildReportExport {
+        
+        public string ReportOutputPath { get; }
+        
+        public Builder Builder { get; }
+
+        public BuildReportExport(string reportOutputPath, Builder builder) {
+            ReportOutputPath = reportOutputPath;
+            Builder = builder;
+        }
+
+        public void Create() {
+            throw new System.NotImplementedException();
+        }
     }
 }

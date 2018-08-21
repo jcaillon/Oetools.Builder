@@ -27,10 +27,15 @@ namespace Oetools.Builder {
     
     public class TaskExecutorWithFileList : TaskExecutor {
         
+        private List<OeFile> _taskFiles;
+
         /// <summary>
         /// List of unique existing files that will be treated by the current list of <see cref="TaskExecutor.Tasks"/>
         /// </summary>
-        public List<OeFile> TaskFiles { get; set; }
+        public List<OeFile> TaskFiles {
+            get => _taskFiles;
+            set => _taskFiles = value.ToList(); // copy the list
+        }
 
         public string OutputDirectory { get; set; }
 

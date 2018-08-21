@@ -107,16 +107,18 @@ namespace Oetools.Builder.Test {
 
         [TestMethod]
         public void TaskExecutor_Test_injection() {
-            var taskExecutor = new TaskExecutor();
             var task = new TaskInjectionTest();
+            Assert.IsFalse(task.IsCancelSourceSet);
+            Assert.IsFalse(task.IsLogSet);
+            Assert.IsFalse(task.IsFileFilter);
+            var taskExecutor = new TaskExecutor();
             taskExecutor.Tasks = new List<IOeTask> {
                 task
             };
-            Assert.IsFalse(task.IsCancelSourceSet);
-            Assert.IsFalse(task.IsLogSet);
             taskExecutor.Execute();
             Assert.IsTrue(task.IsCancelSourceSet);
             Assert.IsTrue(task.IsLogSet);
+            Assert.IsTrue(task.IsFileFilter);
         }
         
 
@@ -168,9 +170,10 @@ namespace Oetools.Builder.Test {
             public string Archive { get; set; }
         }
         
-        private class TaskInjectionTest : IOeTask {
+        private class TaskInjectionTest : IOeTask, IOeTaskCompile {
             public bool IsLogSet { get; private set; }
             public bool IsCancelSourceSet { get; private set; }
+            public bool IsFileFilter { get; private set; }
             public void Execute() { }
             public void SetLog(ILogger log) {
                 IsLogSet = true; 
@@ -179,13 +182,16 @@ namespace Oetools.Builder.Test {
             public void SetCancelSource(CancellationTokenSource cancelSource) {
                 IsCancelSourceSet = true;
             }
+            public void SetFileExtensionFilter(string filter) {
+                IsFileFilter = true;
+            }
             public List<TaskExecutionException> GetExceptionList() => null;
         }
         
         private class TaskExceptionAndWaitForCancel : IOeTask {
             private CancellationTokenSource _cancelSource;
             public void Execute() {
-                PublishException?.Invoke(this, new TaskExceptionEventArgs(false, new TaskExecutionException("oups!")));
+                PublishException?.Invoke(this, new TaskExceptionEventArgs(false, new TaskExecutionException(null, "oups!")));
                 _cancelSource.Token.WaitHandle.WaitOne();
                 _cancelSource.Token.ThrowIfCancellationRequested();
             }

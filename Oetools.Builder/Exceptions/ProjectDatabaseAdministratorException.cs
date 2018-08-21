@@ -21,7 +21,7 @@
 using System;
 
 namespace Oetools.Builder.Exceptions {
-    public class ProjectDatabaseAdministratorException : Exception {
+    public class ProjectDatabaseAdministratorException : BuilderException {
         public ProjectDatabaseAdministratorException(string message) : base(message) { }
         public ProjectDatabaseAdministratorException(string message, Exception innerException) : base(message, innerException) { }
     }

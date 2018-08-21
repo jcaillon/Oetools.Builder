@@ -20,17 +20,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Resources;
 using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
-using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Attributes;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge;
-using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project {
     
@@ -55,7 +54,8 @@ namespace Oetools.Builder.Project {
             using (var reader = new StreamReader(path)) {
                 interfaceXml = (OeBuildConfiguration) serializer.Deserialize(reader);
             }
-
+            interfaceXml.ConfigurationName = Path.GetFileNameWithoutExtension(path);
+            interfaceXml.InitIds();
             return interfaceXml;
         }
 
@@ -82,6 +82,9 @@ namespace Oetools.Builder.Project {
             
         [XmlAttribute("Name")]
         public string ConfigurationName { get; set; }
+        
+        [XmlIgnore]
+        internal int Id { get; set; }
         
         /// <summary>
         /// Every existing sub node (even if empty) present in this will replace their <see cref="OeProject.GlobalProperties"/>
@@ -148,7 +151,7 @@ namespace Oetools.Builder.Project {
             try {
                 Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameCurrentDirectory, Value = Directory.GetCurrentDirectory() });
             } catch (Exception e) {
-                throw new BuildConfigurationException("Failed to get the current directory (check permissions)", e);
+                throw new BuildConfigurationException(this, "Failed to get the current directory (check permissions)", e);
             }
             // extra variable FILE_SOURCE_DIRECTORY defined only when computing targets
             
@@ -159,16 +162,24 @@ namespace Oetools.Builder.Project {
             BuilderUtilities.ApplyVariablesToProperties(this, Variables);  
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="BuildConfigurationException"></exception>
         public void Validate() {
-            ValidateAllTasks();
-            Properties?.Validate();
+            try {
+                ValidateAllTasks();
+                Properties?.Validate();
+            } catch (Exception e) {
+                throw new BuildConfigurationException(this, e.Message, e);
+            }
         }
             
         /// <summary>
         /// Recursively validates that the build configuration is correct
         /// </summary>
         /// <exception cref="Exception"></exception>
-        /// <exception cref="BuildConfigurationException"></exception>
+        /// <exception cref="BuildStepException"></exception>
         public void ValidateAllTasks() {
             ValidateStepsList(PreBuildTasks, nameof(PreBuildTasks), false);
             ValidateStepsList(BuildSourceTasks, nameof(BuildSourceTasks), true);
@@ -177,28 +188,47 @@ namespace Oetools.Builder.Project {
         }
         
         private void ValidateStepsList(IEnumerable<OeBuildStep> steps, string propertyNameOf, bool buildFromList) {
-            var i = 0;
             foreach (var step in steps) {
                 try {
-                    if (string.IsNullOrEmpty(step.Label)) {
-                        step.Label = $"Step {i}";
-                    }
                     step.Validate(buildFromList);
-                } catch (Exception e) {
-                    var et = e as TaskValidationException;
-                    if (et != null) {
-                        et.StepNumber = i;
-                        et.PropertyName = typeof(OeBuildConfiguration).GetXmlName(propertyNameOf);
-                    }
-                    throw new BuildConfigurationException(et != null ? et.Message : "Unexpected exception when checking tasks", et ?? e);
+                } catch (BuildStepException e) {
+                    e.PropertyName = typeof(OeBuildConfiguration).GetXmlName(propertyNameOf);
+                    throw;
                 }
-                i++;
             }
         }
 
-        public override string ToString() {
-            return $"{(string.IsNullOrEmpty(ConfigurationName) ? "unnamed configuration" : $"configuration {ConfigurationName.PrettyQuote()}")}";
+        /// <summary>
+        /// Give each build step/variables a unique number to identify it
+        /// </summary>
+        internal void InitIds() {
+            InitIds(PreBuildTasks);
+            InitIds(BuildSourceTasks);
+            InitIds(BuildOutputTasks);
+            InitIds(PostBuildTasks);
+            if (Variables != null) {
+                var i = 0;
+                foreach (var variable in Variables.Where(v => v != null)) {
+                    variable.Id = i;
+                    i++;
+                }
+            }
         }
+        
+        private void InitIds(IEnumerable<OeBuildStep> buildSteps) {
+            if (buildSteps == null) {
+                return;
+            }
+            var i = 0;
+            foreach (var buildStep in buildSteps.Where(s => s != null)) {
+                buildStep.Id = i;
+                buildStep.InitIds();
+                i++;
+            }
+        }
+        
+        public override string ToString() => $"Configuration [{Id}]{(string.IsNullOrEmpty(ConfigurationName) ? "" : $" {ConfigurationName}")}";
+
     }
 
 }

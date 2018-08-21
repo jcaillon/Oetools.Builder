@@ -33,6 +33,10 @@ namespace Oetools.Builder.Project {
 
         protected List<OeFileBuilt> _filesBuilt;
         
+        /// <summary>
+        /// Validates that the task is correct (correct parameters and can execute)
+        /// </summary>
+        /// <exception cref="TaskValidationException"></exception>
         public override void Validate() {
             if (string.IsNullOrEmpty(Include) && string.IsNullOrEmpty(IncludeRegex)) {
                 throw new TaskValidationException(this, $"This task needs the following properties to be defined or it will not do anything : {GetType().GetXmlName(nameof(Include))} and/or {GetType().GetXmlName(nameof(IncludeRegex))}");
@@ -40,6 +44,11 @@ namespace Oetools.Builder.Project {
             base.Validate();
         }
 
+        /// <summary>
+        /// Validates that this task as at least one <see cref="OeTaskFilter.Include"/> defined and
+        /// no <see cref="OeTaskFilter.IncludeRegex"/>
+        /// </summary>
+        /// <exception cref="TaskValidationException"></exception>
         public void ValidateCanIncludeFiles() {
             if (string.IsNullOrEmpty(Include)) {
                 throw new TaskValidationException(this, $"This task needs to have the property {GetType().GetXmlName(nameof(Include))} defined or it can not be applied on any file");
@@ -72,7 +81,7 @@ namespace Oetools.Builder.Project {
                             .Where(f => GetIncludeRegex()[i].IsMatch(f.SourceFilePath))
                         );
                     } else {
-                        AddExecutionWarning(new TaskExecutionException($"The property {GetType().GetXmlName(nameof(Include))} part {i} does not designate a file (e.g. /dir/file.ext) nor does it allow to find a base directory to list (e.g. /dir/**), the path in error is : {path}"));
+                        AddExecutionWarning(new TaskExecutionException(this, $"The property {GetType().GetXmlName(nameof(Include))} part {i} does not designate a file (e.g. /dir/file.ext) nor does it allow to find a base directory to list (e.g. /dir/**), the path in error is : {path}"));
                     }
                 }
                 i++;
@@ -88,7 +97,7 @@ namespace Oetools.Builder.Project {
             } catch (OperationCanceledException) {
                 throw;
             } catch (Exception e) {
-                AddExecutionError(new TaskExecutionException($"Unexpected error in task {ToString().PrettyQuote()} : {e.Message}", e));
+                AddExecutionError(new TaskExecutionException(this, $"Unexpected error in task {ToString().PrettyQuote()} : {e.Message}", e));
             }
         }
 

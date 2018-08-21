@@ -18,10 +18,20 @@
 // ========================================================================
 #endregion
 using System;
+using Oetools.Builder.Project;
 
 namespace Oetools.Builder.Exceptions {
-    public class BuildConfigurationException : Exception {
-        public BuildConfigurationException(string message) : base(message) { }
-        public BuildConfigurationException(string message, Exception innerException) : base(message, innerException) { }
+    public class BuildConfigurationException : BuilderException {
+        
+        public OeBuildConfiguration BuildConfiguration { get; }
+        
+        public BuildConfigurationException(OeBuildConfiguration buildConfiguration, string message) : base(message) {
+            BuildConfiguration = buildConfiguration;
+        }
+        public BuildConfigurationException(OeBuildConfiguration buildConfiguration, string message, Exception innerException) : base(message, innerException) {
+            BuildConfiguration = buildConfiguration;
+        }
+
+        public override string Message => $"{BuildConfiguration?.ToString() ?? ""} : {base.Message ?? ""}";
     }
 }

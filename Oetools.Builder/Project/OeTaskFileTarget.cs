@@ -59,10 +59,10 @@ namespace Oetools.Builder.Project {
                     target = Path.Combine(baseTargetDirectory, target);
                     isPathRooted = true;
                 } else if (!mustBeRelativePath) {
-                    throw new TaskExecutionException($"This task is not allowed to target relative path because no base target directory is defined at this moment, the error occured for : {targetPathWithPlaceholders.PrettyQuote()}");
+                    throw new TaskExecutionException(this, $"This task is not allowed to target relative path because no base target directory is defined at this moment, the error occured for : {targetPathWithPlaceholders.PrettyQuote()}");
                 }
             } else if (mustBeRelativePath) {
-                throw new TaskExecutionException($"The following path should resolve to a relative path : {targetPathWithPlaceholders.PrettyQuote()}");
+                throw new TaskExecutionException(this, $"The following path should resolve to a relative path : {targetPathWithPlaceholders.PrettyQuote()}");
             }
             
             // get the real full path name of the target
@@ -70,7 +70,7 @@ namespace Oetools.Builder.Project {
                 try {
                     target = Path.GetFullPath(target);
                 } catch (Exception e) {
-                    throw new TaskExecutionException($"Could not convert the target path to an absolute path, the original path pattern was {targetPathWithPlaceholders.PrettyQuote()}, it was resolved into the target {target.PrettyQuote()} but failed with the exception : {e.Message}", e);
+                    throw new TaskExecutionException(this, $"Could not convert the target path to an absolute path, the original path pattern was {targetPathWithPlaceholders.PrettyQuote()}, it was resolved into the target {target.PrettyQuote()} but failed with the exception : {e.Message}", e);
                 }
             }
 
@@ -97,7 +97,7 @@ namespace Oetools.Builder.Project {
                     }
                     originalString.ValidatePlaceHolders();
                 } catch (Exception e) {
-                    var ex = new TargetValidationException(this, $"Invalid path expression {originalString.PrettyQuote()}, reason : {e.Message}", e) {
+                    var ex = new TargetValidationException( $"Invalid path expression {originalString.PrettyQuote()}, reason : {e.Message}", e) {
                         TargetNumber = i
                     };
                     throw ex;

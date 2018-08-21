@@ -33,8 +33,22 @@ namespace Oetools.Builder {
     
     public class TaskExecutor {
         
-        public IEnumerable<IOeTask> Tasks { get; set; }
+        internal string Name { get; set; }
         
+        private IEnumerable<IOeTask> _tasks;
+
+        public IEnumerable<IOeTask> Tasks {
+            get => _tasks;
+            set {
+                _tasks = value;
+                if (_tasks != null) {
+                    foreach (var task in _tasks) {
+                        InjectPropertiesInTask(task);
+                    }
+                }
+            }
+        }
+
         public ILogger Log { get; set; }
 
         public UoeExecutionEnv Env { get; set; }
@@ -64,7 +78,7 @@ namespace Oetools.Builder {
                 } catch (OperationCanceledException) {
                     throw;
                 } catch (Exception e) {
-                    throw new TaskExecutorException($"Unexpected exception when executing {task.ToString().PrettyQuote()} : {e.Message}", e);
+                    throw new TaskExecutorException(this, $"Unexpected exception when executing {task.ToString().PrettyQuote()} : {e.Message}", e);
                 } finally {
                     task.PublishException -= TaskOnPublishException;
                 }
@@ -77,7 +91,6 @@ namespace Oetools.Builder {
         /// <param name="task"></param>
         /// <exception cref="TaskExecutorException"></exception>
         protected virtual void ExecuteTask(IOeTask task) {
-            InjectPropertiesInTask(task);
             switch (task) {
                 case IOeTaskFile taskOnFiles:
                     taskOnFiles.ExecuteForFiles(GetFilesReadyForTaskExecution(taskOnFiles, GetTaskFiles(taskOnFiles)));
@@ -95,6 +108,9 @@ namespace Oetools.Builder {
         protected virtual void InjectPropertiesInTask(IOeTask task) {
             task.SetLog(Log);
             task.SetCancelSource(CancelSource);
+            if (task is IOeTaskCompile taskCompile) {
+                taskCompile.SetFileExtensionFilter(ProjectProperties?.CompilationOptions?.CompilableFilePattern ?? OeCompilationOptions.GetDefaultCompilableFilePattern());
+            }
         }
 
         /// <summary>
@@ -105,13 +121,13 @@ namespace Oetools.Builder {
         /// <returns></returns>
         protected virtual IEnumerable<IOeFileToBuildTargetFile> GetFilesReadyForTaskExecution(IOeTaskFile task, List<OeFile> initialFiles) {
             if (task is IOeTaskFileTargetFile taskWithTargetFiles) {
-                foreach (var file in initialFiles.Where(f => f.TargetsFiles == null)) {
-                    file.TargetsFiles = taskWithTargetFiles.GetFileTargets(file.SourceFilePath, BaseTargetDirectory);
+                foreach (var file in initialFiles) {
+                    file.TargetsFiles = taskWithTargetFiles.GetFileTargets(file.SourcePathForTaskExecution, BaseTargetDirectory);
                 }
             }
             if (task is IOeTaskFileTargetArchive taskWithTargetArchives) {
-                foreach (var file in initialFiles.Where(f => f.TargetsArchives == null)) {
-                    file.TargetsArchives = taskWithTargetArchives.GetFileTargets(file.SourceFilePath, BaseTargetDirectory);
+                foreach (var file in initialFiles) {
+                    file.TargetsArchives = taskWithTargetArchives.GetFileTargets(file.SourcePathForTaskExecution, BaseTargetDirectory);
                 }
             }
             return initialFiles;
@@ -133,5 +149,6 @@ namespace Oetools.Builder {
             }
         }
 
+        public override string ToString() => $"Task executor{(string.IsNullOrEmpty(Name) ? "" : $" {Name}")}";
     }
 }

@@ -23,16 +23,13 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Exceptions {
     
-    public class FilterValidationException : TaskValidationException {
+    public class FilterValidationException : BuilderException {
         
-        public string FilterCollectionName { get; set; }
         public int FilterNumber { get; set; }
 
-        private string FilterTaskPath =>  $"{TaskPath} > {(string.IsNullOrEmpty(FilterCollectionName) ? "E" : $"Filters {FilterCollectionName}, e")}rror in filter part {FilterNumber.ToString().PrettyQuote()} (the order is wildcards then regexes) : {base.Message}";
+        public FilterValidationException(string message) : base(message) { }
+        public FilterValidationException(string message, Exception innerException) : base(message, innerException) { }
         
-        public override string Message => $"{FilterTaskPath} : {ErrorMessage}";
-
-        public FilterValidationException(OeTask task, string message) : base(task, message) { }
-        public FilterValidationException(OeTask task, string message, Exception innerException) : base(task, message, innerException) { }
+        public override string Message => $"Filter {FilterNumber.ToString()} : {base.Message ?? ""}";
     }
 }

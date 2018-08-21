@@ -50,6 +50,7 @@ namespace Oetools.Builder {
         public override void Execute() {
             Log?.Info("Compiling files from all tasks");
             CompileFiles();
+            CheckCompiledFiles();
             try {
                 base.Execute();
             } finally {
@@ -57,30 +58,32 @@ namespace Oetools.Builder {
             }
         }
 
+        /// <summary>
+        /// Compiles all the files that need to be compile for all the <see cref="IOeTaskCompile"/> tasks in <see cref="TaskExecutor.Tasks"/>
+        /// </summary>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="TaskExecutorException"></exception>
         private void CompileFiles() {
-            var compilablePattern = ProjectProperties?.CompilationOptions?.CompilableFilePattern ?? OeCompilationOptions.GetDefaultCompilableFilePattern();
             var tryToOptimizeCompilationFolder = ProjectProperties?.CompilationOptions?.TryToOptimizeCompilationDirectory ?? OeCompilationOptions.GetDefaultTryToOptimizeCompilationDirectory();
-            var filesToCompile = tryToOptimizeCompilationFolder ? 
-                GetFilesToCompile(Tasks, TaskFiles.Where(f => f.SourceFilePath.TestFileNameAgainstListOfPatterns(compilablePattern)), BaseTargetDirectory) :
-                GetFilesToCompile(Tasks, TaskFiles.Where(f => f.SourceFilePath.TestFileNameAgainstListOfPatterns(compilablePattern)));
+            var filesToCompile = tryToOptimizeCompilationFolder ? GetFilesToCompile(Tasks, TaskFiles, BaseTargetDirectory) :GetFilesToCompile(Tasks, TaskFiles);
             
             if (filesToCompile.Count == 0) {
                 return;
             }
             if (ProjectProperties == null) {
-                throw new ArgumentNullException($"{nameof(ProjectProperties)} can't be null");
+                throw new ArgumentNullException(nameof(ProjectProperties));
             }
             if (Env == null) {
-                throw new ArgumentNullException($"{nameof(Env)} can't be null");
+                throw new ArgumentNullException(nameof(Env));
             }
             if (string.IsNullOrEmpty(SourceDirectory)) {
-                throw new ArgumentNullException($"{nameof(SourceDirectory)} can't be null");
+                throw new ArgumentNullException(nameof(SourceDirectory));
             }
             
             _compiler = ProjectProperties.GetParallelCompiler(Env, SourceDirectory);
             _compiler.FilesToCompile = filesToCompile;
 
-            CancelSource.Token.Register(OnExecutionCancel);
+            CancelSource?.Token.Register(OnExecutionCancel);
             _compiler.Start();
             _compiler.WaitForExecutionEnd();
             
@@ -90,12 +93,37 @@ namespace Oetools.Builder {
             if (_compiler.ExecutionFailed || _compiler.ExecutionHandledExceptions) {
                 CompilerHandledExceptions = _compiler.HandledExceptions;
                 if (_compiler.ExecutionFailed || ThrowIfWarning) {
-                    throw new TaskExecutorException($"The compiler threw exceptions :\n- {string.Join("\n- ", _compiler.HandledExceptions?.Select(e => e.Message) ?? new List<string>())}");
+                    throw new TaskExecutorException(this, $"The compiler threw exceptions :\n- {string.Join("\n- ", _compiler.HandledExceptions?.Select(e => e.Message) ?? new List<string>())}");
                 }
             }
         }
 
+        /// <summary>
+        /// Checks that all the files compiled correctly, can throw an exception if not
+        /// </summary>
+        /// <exception cref="TaskExecutorException"></exception>
+        private void CheckCompiledFiles() {
+            if (CompiledFiles == null) {
+                return;
+            }
+            
+            foreach (var file in CompiledFiles) {
+                if (file.CompiledCorrectly) {
+                    continue;     
+                }
+                if (!ThrowIfWarning && file.CompiledWithWarnings) {
+                    continue;
+                }
+                var stopBuildOnCompilationError = ProjectProperties?.StopBuildOnCompilationError ?? OeProjectProperties.GetDefaultStopBuildOnCompilationError();
+                if (!stopBuildOnCompilationError) {
+                    continue;
+                }
+                throw new TaskExecutorException(this, $"The source file {file.SourceFilePath.PrettyQuote()} was not compiled correctly");
+            }
+        }
+        
         private void OnExecutionCancel() {
+            Log?.Debug("Cancel request, killing compilation processes");
             _compiler?.KillProcess();
         }
 
@@ -180,13 +208,18 @@ namespace Oetools.Builder {
 
         protected override IEnumerable<IOeFileToBuildTargetFile> GetFilesReadyForTaskExecution(IOeTaskFile task, List<OeFile> initialFiles) {
             if (task is IOeTaskCompile) {
-                foreach (var file in initialFiles) {
+                var i = 0;
+                while (i < initialFiles.Count) {
+                    var file = initialFiles[i];
                     var compiledFile = CompiledFiles?.FirstOrDefault(cf => cf.SourceFilePath.Equals(file.SourceFilePath));
-                    if (compiledFile != null && compiledFile.CompiledCorrectly) {
+                    if (compiledFile != null && (compiledFile.CompiledCorrectly || compiledFile.CompiledWithWarnings)) {
                         file.SourcePathForTaskExecution = compiledFile.CompilationRcodeFilePath;
                     } else {
-                        throw new TaskExecutorException($"Could not find the compiled path (rcode) for the source file {file.SourceFilePath.PrettyQuote()}");
+                        // the file didn't compile, we delete it from the list
+                        initialFiles.RemoveAt(i);
+                        continue;
                     }
+                    i++;
                 }
             }
             return base.GetFilesReadyForTaskExecution(task, initialFiles);

@@ -42,7 +42,7 @@ namespace Oetools.Builder.Project {
             using (var reader = new StreamReader(path)) {
                 interfaceXml = (OeProject) serializer.Deserialize(reader);
             }
-
+            interfaceXml.InitIds();
             return interfaceXml;
         }
 
@@ -148,6 +148,27 @@ namespace Oetools.Builder.Project {
                 }
             }
             return output;
+        }
+
+        /// <summary>
+        /// Give each configuration/variables a unique number to identify it
+        /// </summary>
+        internal void InitIds() {
+            if (BuildConfigurations != null) {
+                var i = 0;
+                foreach (var configuration in BuildConfigurations.Where(s => s != null)) {
+                    configuration.InitIds();
+                    configuration.Id = i;
+                    i++;
+                }
+            }
+            if (GlobalVariables != null) {
+                var i = 0;
+                foreach (var variable in GlobalVariables.Where(v => v != null)) {
+                    variable.Id = i;
+                    i++;
+                }
+            }
         }
     }
     

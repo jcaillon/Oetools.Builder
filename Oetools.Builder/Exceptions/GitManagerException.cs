@@ -20,8 +20,5 @@
 using System;
 
 namespace Oetools.Builder.Exceptions {
-    public class GitManagerException : Exception {
-        
-    }
-    public class GitManagerCantFindMergeCommitException : GitManagerException {}
+    public class GitManagerException : BuilderException { }
 }

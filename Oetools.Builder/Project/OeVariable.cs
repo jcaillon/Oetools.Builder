@@ -26,8 +26,13 @@ namespace Oetools.Builder.Project {
             
         [XmlAttribute("Name")]
         public string Name { get; set; }
+        
+        [XmlIgnore]
+        internal int Id { get; set; }
             
         [XmlAttribute("Value")]
         public string Value { get; set; }
+
+        public override string ToString() => $"Variable [{Id}]{(string.IsNullOrEmpty(Name) ? "" : $" {Name}")}";
     }
 }

@@ -21,8 +21,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Oetools.Builder.Exceptions;
@@ -205,16 +203,7 @@ namespace Oetools.Builder.Utilities {
                 return oeFile;
             }
             try {
-                using (var md5 = MD5.Create()) {
-                    using (var stream = File.OpenRead(oeFile.SourceFilePath)) {
-                        StringBuilder sBuilder = new StringBuilder();
-                        foreach (var b in md5.ComputeHash(stream)) {
-                            sBuilder.Append(b.ToString("x2"));
-                        }
-                        // Return the hexadecimal string
-                        oeFile.Hash = sBuilder.ToString();
-                    }
-                }
+                oeFile.Hash = Utils.GetMd5FromFilePath(oeFile.SourceFilePath);
             } catch (Exception e) {
                 throw new Exception($"Error getting information on file {oeFile.SourceFilePath}, check permissions", e);
             }

@@ -21,26 +21,17 @@ using System;
 using Oetools.Builder.Project;
 
 namespace Oetools.Builder.Exceptions {
-    public class TaskValidationException : Exception {
-        public string PropertyName { get; set; }
-        public string StepName { get; set; }
-        public int StepNumber { get; set; }
-        public OeTask Task { get; }
-        public int TaskNumber { get; set; }
-        public string ErrorMessage { get; }
+    public class TaskValidationException : BuilderException {
         
-        protected string TaskPath => $"{(!string.IsNullOrEmpty(PropertyName) ? $"{PropertyName} > " : "")}{(!string.IsNullOrEmpty(StepName) ? $"{StepName} " : "Step ")}{StepNumber} > {(!string.IsNullOrEmpty(Task?.Label) ? $"{Task?.Label} " : "Task ")}{TaskNumber}";
-
-        public override string Message => $"{TaskPath} : {ErrorMessage}";
-
+        public OeTask Task { get; }
+        
         public TaskValidationException(OeTask task, string message) : base(message) {
             Task = task;
-            ErrorMessage = message;
         }
         public TaskValidationException(OeTask task, string message, Exception innerException) : base(message, innerException) {
             Task = task;
-            ErrorMessage = message;
         }
         
+        public override string Message => $"{Task?.ToString() ?? ""} : {base.Message ?? ""}";
     }
 }

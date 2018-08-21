@@ -129,28 +129,41 @@ namespace Oetools.Builder.Project {
         public string BuildHistoryInputFilePath { get; set; }
         internal static string GetDefaultBuildHistoryInputFilePath(string sourceDirectory) => Path.Combine(OeBuilderConstants.GetProjectDirectoryBuild(sourceDirectory), "latest.xml");
         
+        /// <summary>
+        /// Should warnings be considered as errors and stop the build
+        /// </summary>
         [XmlElement(ElementName = "TreatWarningsAsErrors")]
         public bool? TreatWarningsAsErrors { get; set; }
         internal static bool GetDefaultTreatWarningsAsErrors() => false;
         
         /// <summary>
+        /// Should the build be stopped if a file fails to compile
+        /// </summary>
+        [XmlElement(ElementName = "StopBuildOnCompilationError")]
+        public bool? StopBuildOnCompilationError { get; set; }
+        internal static bool GetDefaultStopBuildOnCompilationError() => true;
+        
+        [XmlElement(ElementName = "ShutdownCompilationDatabasesAfterBuild")]
+        public bool? ShutdownCompilationDatabasesAfterBuild { get; set; }
+        internal static bool GetDefaultShutdownCompilationDatabasesAfterBuild() => true;
+        
+        /// <summary>
         /// Validate that is object is correct
         /// </summary>
-        /// <exception cref="FilterValidationException"></exception>
+        /// <exception cref="BuildConfigurationException"></exception>
         public void Validate() {
             ValidateFilters(PropathSourceDirectoriesFilter, nameof(PropathSourceDirectoriesFilter));
             ValidateFilters(SourceToBuildPathFilter, nameof(SourceToBuildPathFilter));
+            if ((CompilationOptions?.NumberProcessPerCore ?? 0) > 10) {
+                throw new PropertiesException($"The property {typeof(OeCompilationOptions).GetXmlName(nameof(OeCompilationOptions.NumberProcessPerCore))} should not exceed 10");
+            }
         }
         
         private void ValidateFilters(OeTaskFilter filter, string propertyNameOf) {
             try {
                 filter.Validate();
             } catch (Exception e) {
-                var et = e as FilterValidationException;
-                if (et != null) {
-                    et.FilterCollectionName = typeof(OeProjectProperties).GetXmlName(propertyNameOf);
-                }
-                throw new BuildConfigurationException(et != null ? et.Message : "Unexpected exception when checking filters", et ?? e);
+                throw new PropertiesException($"Filter property {propertyNameOf} : {e.Message}", e);
             }
         }
 
@@ -266,7 +279,7 @@ namespace Oetools.Builder.Project {
                 CompileWithListing = CompilationOptions?.CompileWithListing ?? OeCompilationOptions.GetDefaultCompileWithListing(),
                 CompileWithPreprocess = CompilationOptions?.CompileWithPreprocess ?? OeCompilationOptions.GetDefaultCompileWithPreprocess(),
                 CompileWithXref = CompilationOptions?.CompileWithXref ?? OeCompilationOptions.GetDefaultCompileWithXref(),
-                MaxNumberOfProcesses = CompilationOptions?.ForceSingleProcess ?? OeCompilationOptions.GetDefaultForceSingleProcess() ? 1 : Math.Max(1, Environment.ProcessorCount * CompilationOptions?.NumberProcessPerCore ?? OeCompilationOptions.GetDefaultNumberProcessPerCore()),
+                MaxNumberOfProcesses = OeCompilationOptions.GetNumberOfProcessesToUse(CompilationOptions),
                 MinimumNumberOfFilesPerProcess = CompilationOptions?.MinimumNumberOfFilesPerProcess ?? OeCompilationOptions.GetDefaultMinimumNumberOfFilesPerProcess(),
                 WorkingDirectory = workingDirectory,
                 NeedDatabaseConnection = true

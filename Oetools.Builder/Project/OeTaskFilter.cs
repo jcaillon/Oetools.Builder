@@ -85,6 +85,7 @@ namespace Oetools.Builder.Project {
         private string _include;
         private string _includeRegex;
         private string _excludeRegex;
+        private string _fileExtensionsFilter;
         
         public List<string> GetRegexIncludeStrings() => (Include?.Split(';').Select(s => s.PathWildCardToRegex())).UnionHandleNull(IncludeRegex?.Split(';'));
         public List<string> GetRegexExcludeStrings() => (Exclude?.Split(';').Select(s => s.PathWildCardToRegex())).UnionHandleNull(ExcludeRegex?.Split(';'));
@@ -117,6 +118,11 @@ namespace Oetools.Builder.Project {
         /// <param name="filePath"></param>
         /// <returns></returns>
         public bool IsFileIncluded(string filePath) {
+            if (!string.IsNullOrEmpty(_fileExtensionsFilter)) {
+                if (!filePath.TestFileNameAgainstListOfPatterns(_fileExtensionsFilter)) {
+                    return false;
+                }
+            }
             var includeRegexes = GetIncludeRegex();
             return includeRegexes.Count == 0 || includeRegexes.Any(regex => regex.IsMatch(filePath));
         }
@@ -128,6 +134,17 @@ namespace Oetools.Builder.Project {
         /// <returns></returns>
         public bool IsFileExcluded(string filePath) {
             return GetExcludeRegex().Any(regex => regex.IsMatch(filePath));
+        }
+
+        /// <summary>
+        /// Allows to define another filter on the file extension; only the files with thoses extensions will be
+        /// allowed
+        /// </summary>
+        /// <param name="fileExtensionFiler"></param>
+        public void SetFileExtensionFilter(string fileExtensionFiler) {
+            if (string.IsNullOrEmpty(_fileExtensionsFilter)) {
+                _fileExtensionsFilter = fileExtensionFiler;
+            }
         }
         
         protected List<Regex> GetExcludeRegex() {
@@ -165,7 +182,7 @@ namespace Oetools.Builder.Project {
                 try {
                     output.Add(new Regex(regexString));
                 } catch (Exception e) {
-                    var ex = new FilterValidationException(this, $"Invalid filter regex expression {regexString.PrettyQuote()}, reason : {e.Message}", e) {
+                    var ex = new FilterValidationException($"Invalid filter regex expression {regexString.PrettyQuote()}, reason : {e.Message}", e) {
                         FilterNumber = i
                     };
                     throw ex;
@@ -190,7 +207,7 @@ namespace Oetools.Builder.Project {
                 try {
                     Utils.ValidatePathWildCard(originalString);
                 } catch (Exception e) {
-                    var ex = new FilterValidationException(this, $"Invalid path expression {originalString.PrettyQuote()}, reason : {e.Message}", e) {
+                    var ex = new FilterValidationException($"Invalid path expression {originalString.PrettyQuote()}, reason : {e.Message}", e) {
                         FilterNumber = i
                     };
                     throw ex;

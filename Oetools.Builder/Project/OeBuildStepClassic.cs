@@ -20,45 +20,9 @@
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
-using Oetools.Builder.Exceptions;
 using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.Project {
-    
-    public abstract class OeBuildStep {
-                
-        [XmlAttribute("Label")]
-        public string Label { get; set; }
-
-        public virtual List<OeTask> GetTaskList() => null;
-
-        /// <summary>
-        /// Validate tasks in this step
-        /// </summary>
-        /// <param name="buildFromList">should the task also be validated with <see cref="IOeTaskFile.ValidateCanIncludeFiles"/></param>
-        /// <exception cref="TaskValidationException"></exception>
-        public void Validate(bool buildFromList) {
-            var i = 0;
-            foreach (var task in GetTaskList()) {
-                try {
-                    if (string.IsNullOrEmpty(task.Label)) {
-                        task.Label = $"Task {i}";
-                    }
-                    task.Validate();
-                    if (buildFromList && task is IOeTaskFile taskFile) {
-                        taskFile.ValidateCanIncludeFiles();
-                    }
-                } catch (Exception e) {
-                    var et = e as TaskValidationException ?? new TaskValidationException(task, "Unexpected exception validating a task", e);
-                    et.TaskNumber = i;
-                    et.StepName = Label;
-                    throw et;
-                }
-                i++;
-            }
-        }
-    }
-    
     [Serializable]
     public class OeBuildStepClassic : OeBuildStep {
                 
@@ -77,5 +41,7 @@ namespace Oetools.Builder.Project {
         public List<OeTask> Tasks { get; set; }
 
         public override List<OeTask> GetTaskList() => Tasks;
+
+        internal override void InitIds() => InitIds(Tasks);
     }
 }
