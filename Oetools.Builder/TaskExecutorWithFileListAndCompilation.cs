@@ -64,14 +64,14 @@ namespace Oetools.Builder {
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="TaskExecutorException"></exception>
         private void CompileFiles() {
-            var tryToOptimizeCompilationFolder = ProjectProperties?.CompilationOptions?.TryToOptimizeCompilationDirectory ?? OeCompilationOptions.GetDefaultTryToOptimizeCompilationDirectory();
+            var tryToOptimizeCompilationFolder = Properties?.CompilationOptions?.TryToOptimizeCompilationDirectory ?? OeCompilationOptions.GetDefaultTryToOptimizeCompilationDirectory();
             var filesToCompile = tryToOptimizeCompilationFolder ? GetFilesToCompile(Tasks, TaskFiles, BaseTargetDirectory) :GetFilesToCompile(Tasks, TaskFiles);
             
             if (filesToCompile.Count == 0) {
                 return;
             }
-            if (ProjectProperties == null) {
-                throw new ArgumentNullException(nameof(ProjectProperties));
+            if (Properties == null) {
+                throw new ArgumentNullException(nameof(Properties));
             }
             if (Env == null) {
                 throw new ArgumentNullException(nameof(Env));
@@ -80,7 +80,7 @@ namespace Oetools.Builder {
                 throw new ArgumentNullException(nameof(SourceDirectory));
             }
             
-            _compiler = ProjectProperties.GetParallelCompiler(Env, SourceDirectory);
+            _compiler = Properties.GetParallelCompiler(Env, SourceDirectory);
             _compiler.FilesToCompile = filesToCompile;
 
             CancelSource?.Token.Register(OnExecutionCancel);
@@ -114,7 +114,7 @@ namespace Oetools.Builder {
                 if (!ThrowIfWarning && file.CompiledWithWarnings) {
                     continue;
                 }
-                var stopBuildOnCompilationError = ProjectProperties?.StopBuildOnCompilationError ?? OeProjectProperties.GetDefaultStopBuildOnCompilationError();
+                var stopBuildOnCompilationError = Properties?.BuildOptions?.StopBuildOnCompilationError ?? OeBuildOptions.GetDefaultStopBuildOnCompilationError();
                 if (!stopBuildOnCompilationError) {
                     continue;
                 }

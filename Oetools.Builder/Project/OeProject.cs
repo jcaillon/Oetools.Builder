@@ -68,11 +68,10 @@ namespace Oetools.Builder.Project {
 #endif
         
         [XmlElement("Properties")]
-        public OeProjectProperties GlobalProperties { get; set; }
+        public OeProperties GlobalProperties { get; set; }
         
         /// <summary>
         /// Global variables applicable to all build
-        /// TODO : useful for webclient variables like application name!
         /// </summary>
         [XmlArray("GlobalVariables")]
         [XmlArrayItem("Variable", typeof(OeVariable))]
@@ -88,8 +87,10 @@ namespace Oetools.Builder.Project {
         /// <returns></returns>
         public static OeProject GetDefaultProject() {
             var output = new OeProject {
-                GlobalProperties = new OeProjectProperties {
-                    OutputDirectoryPath = Path.Combine("{{SOURCE_DIRECTORY}}", "bin")
+                GlobalProperties = new OeProperties {
+                    BuildOptions = new OeBuildOptions {
+                        OutputDirectoryPath = Path.Combine("{{SOURCE_DIRECTORY}}", "bin")
+                    }
                 },
                 BuildConfigurations = new List<OeBuildConfiguration> {
                     new OeBuildConfiguration {
@@ -139,7 +140,7 @@ namespace Oetools.Builder.Project {
             var output = (OeBuildConfiguration) Utils.DeepCopyPublicProperties(buildConfiguration, typeof(OeBuildConfiguration));
             
             // we take the global properties by default but they can be overload by the build configuration properties
-            output.Properties = (OeProjectProperties) Utils.DeepCopyPublicProperties(buildConfiguration.Properties, typeof(OeProjectProperties), GlobalProperties);
+            output.Properties = (OeProperties) Utils.DeepCopyPublicProperties(buildConfiguration.Properties, typeof(OeProperties), GlobalProperties);
             
             // add global variables to the build configuration
             if (GlobalVariables != null) {

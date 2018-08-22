@@ -92,7 +92,7 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlElement("OverloadProperties")]
         [DeepCopy(Ignore = true)]
-        public OeProjectProperties Properties { get; set; }
+        public OeProperties Properties { get; set; }
             
         /// <summary>
         /// Default variables are added by the builder, see <see cref="ApplyVariables"/>, also <see cref="OeProject.GlobalProperties"/>
@@ -146,7 +146,7 @@ namespace Oetools.Builder.Project {
                 Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameProjectLocalDirectory, Value = OeBuilderConstants.GetProjectDirectoryLocal(sourceDirectory) });                 
             }             
             Variables.Add(new OeVariable { Name = UoeConstants.OeDlcEnvVar, Value = Properties.DlcDirectoryPath });  
-            Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = Properties.OutputDirectoryPath });  
+            Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = Properties.BuildOptions.OutputDirectoryPath });  
             Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameConfigurationName, Value = ConfigurationName });
             try {
                 Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameCurrentDirectory, Value = Directory.GetCurrentDirectory() });

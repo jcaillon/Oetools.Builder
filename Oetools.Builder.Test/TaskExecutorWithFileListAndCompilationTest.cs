@@ -68,7 +68,9 @@ namespace Oetools.Builder.Test {
                 TaskFiles = taskFiles,
                 OutputDirectory = Path.Combine(TestFolder, "source2", "bin"),
                 SourceDirectory = sourceDir,
-                ProjectProperties = new OeProjectProperties(),
+                Properties = new OeProperties {
+                    BuildOptions = new OeBuildOptions()
+                },
                 Env = new UoeExecutionEnv {
                     UseProgressCharacterMode = true
                 }
@@ -81,8 +83,8 @@ namespace Oetools.Builder.Test {
             
             taskExecutor.Tasks = new List<IOeTask> { taskCompile };
 
-            taskExecutor.ProjectProperties.TreatWarningsAsErrors = true;
-            taskExecutor.ProjectProperties.StopBuildOnCompilationError = true;
+            taskExecutor.Properties.BuildOptions.TreatWarningsAsErrors = true;
+            taskExecutor.Properties.BuildOptions.StopBuildOnCompilationError = true;
 
             Assert.ThrowsException<TaskExecutorException>(() => taskExecutor.Execute());
             
@@ -91,8 +93,8 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(0, taskExecutor.CompilerHandledExceptions?.Count ?? 0, "no exceptions, we just have compilations problems but the compiler itself is OK");
             Assert.AreEqual(2, taskExecutor.CompiledFiles.Where(cp => cp.CompilationErrors != null).SelectMany(cp => cp.CompilationErrors).Count(), "we should find 2 compilation errors (2 for the same file file2.w)");
             
-            taskExecutor.ProjectProperties.TreatWarningsAsErrors = true;
-            taskExecutor.ProjectProperties.StopBuildOnCompilationError = false;
+            taskExecutor.Properties.BuildOptions.TreatWarningsAsErrors = true;
+            taskExecutor.Properties.BuildOptions.StopBuildOnCompilationError = false;
 
             // this should not throw exception since we don't want the build to stop on compilation error
             taskExecutor.Execute();
@@ -103,8 +105,8 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(1, taskTargets.Count, "we expect only 1 target because the file that didn't compile was no included");
             Assert.IsTrue(taskTargets.Exists(t => t.GetTargetFilePath().Equals(Path.Combine(TestFolder, "source2", "bin", @"file1.r"))));
             
-            taskExecutor.ProjectProperties.TreatWarningsAsErrors = false;
-            taskExecutor.ProjectProperties.StopBuildOnCompilationError = true;
+            taskExecutor.Properties.BuildOptions.TreatWarningsAsErrors = false;
+            taskExecutor.Properties.BuildOptions.StopBuildOnCompilationError = true;
             
             File.WriteAllText(Path.Combine(sourceDir, "file2.w"), "quit. quit.");
             taskCompile.Files.Clear();
@@ -118,8 +120,8 @@ namespace Oetools.Builder.Test {
             taskTargets = taskCompile.Files.SelectMany(f => f.TargetsFiles).ToList();
             Assert.AreEqual(2, taskTargets.Count, "we expect 2 targets here");
             
-            taskExecutor.ProjectProperties.TreatWarningsAsErrors = true;
-            taskExecutor.ProjectProperties.StopBuildOnCompilationError = true;
+            taskExecutor.Properties.BuildOptions.TreatWarningsAsErrors = true;
+            taskExecutor.Properties.BuildOptions.StopBuildOnCompilationError = true;
             
             File.WriteAllText(Path.Combine(sourceDir, "file2.w"), "quit. quit.");
 
@@ -150,7 +152,7 @@ namespace Oetools.Builder.Test {
                 },
                 OutputDirectory = Path.Combine(TestFolder, "source", "bin"),
                 SourceDirectory = sourceDir,
-                ProjectProperties = new OeProjectProperties(),
+                Properties = new OeProperties(),
                 Env = new UoeExecutionEnv {
                     UseProgressCharacterMode = true
                 }

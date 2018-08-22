@@ -27,6 +27,11 @@ namespace Oetools.Builder.Test {
     
     [TestClass]
     public class BuilderTest {
+
+        [TestMethod]
+        public void Builder_Test_() {
+            
+        }
         
         [TestMethod]
         public void GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification_Test() {

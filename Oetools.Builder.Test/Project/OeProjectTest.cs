@@ -100,9 +100,11 @@ namespace Oetools.Builder.Test.Project {
                         Name = "globalname1"
                     }
                 },
-                GlobalProperties = new OeProjectProperties {
+                GlobalProperties = new OeProperties {
                     DlcDirectoryPath = "globaldlc",
-                    OutputDirectoryPath = "globaloutput"
+                    BuildOptions = new OeBuildOptions {
+                        OutputDirectoryPath = "globaloutput"
+                    }
                 },
                 BuildConfigurations = new List<OeBuildConfiguration> {
                     new OeBuildConfiguration {
@@ -115,7 +117,7 @@ namespace Oetools.Builder.Test.Project {
                                 Name = "localname1"
                             }
                         },
-                        Properties = new OeProjectProperties {
+                        Properties = new OeProperties {
                             DlcDirectoryPath = "localdlc"
                         }
                     }
@@ -127,7 +129,7 @@ namespace Oetools.Builder.Test.Project {
             Assert.AreEqual(2, conf.Variables.Count);
             Assert.AreEqual("second", conf.ConfigurationName);
             Assert.AreEqual("localdlc", conf.Properties.DlcDirectoryPath);
-            Assert.AreEqual("globaloutput", conf.Properties.OutputDirectoryPath);
+            Assert.AreEqual("globaloutput", conf.Properties.BuildOptions.OutputDirectoryPath);
             
 
         }
@@ -148,11 +150,15 @@ namespace Oetools.Builder.Test.Project {
             // should load null values
             Assert.AreEqual(null, loadedProject.GlobalProperties.UseCharacterModeExecutable);
             
-            project.GlobalProperties = new OeProjectProperties {
+            project.GlobalProperties = new OeProperties {
                 AddAllSourceDirectoriesToPropath = true,
                 AddDefaultOpenedgePropath = true,
-                BuildHistoryInputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
-                BuildHistoryOutputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
+                BuildOptions = new OeBuildOptions {
+                    BuildHistoryInputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
+                    BuildHistoryOutputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
+                    OutputDirectoryPath = "D:\\output",
+                    ReportHtmlFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.html")
+                },
                 CompilationOptions = new OeCompilationOptions {
                     CompilableFilePattern = OeBuilderConstants.CompilableExtensionsPattern,
                     ForceSingleProcess = false,
@@ -187,7 +193,6 @@ namespace Oetools.Builder.Test.Project {
                     StoreSourceHash = false
                 },
                 IniFilePath = "C:\\my.ini",
-                OutputDirectoryPath = "D:\\output",
                 ProcedurePathToExecuteAfterAnyProgressExecution = "",
                 ProcedurePathToExecuteBeforeAnyProgressExecution = "",
                 ProgresCommandLineExtraParameters = "my extra param \"in quotes\" ''",
@@ -206,7 +211,6 @@ namespace Oetools.Builder.Test.Project {
                     Exclude = "**/derp",
                     ExcludeRegex = "\\\\[D][d]"
                 },
-                ReportHtmlFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.html"),
                 SourceToBuildPathFilter =new OeTaskFilter {
                     Exclude = "**/derp",
                     ExcludeRegex = "\\\\[D][d]"
@@ -217,7 +221,7 @@ namespace Oetools.Builder.Test.Project {
                     OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true,
                     OnlyIncludeSourceFilesModifiedSinceLastCommit = true
                 },
-                TemporaryDirectoryPath = "{{TEMP}}"
+                OpenedgeTemporaryDirectoryPath = "{{TEMP}}"
             };
             
             project.GlobalVariables = new List<OeVariable> {

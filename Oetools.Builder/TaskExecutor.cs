@@ -53,13 +53,13 @@ namespace Oetools.Builder {
 
         public UoeExecutionEnv Env { get; set; }
         
-        public OeProjectProperties ProjectProperties { get; set; }
+        public OeProperties Properties { get; set; }
 
         protected virtual string BaseTargetDirectory => null;
 
         public CancellationTokenSource CancelSource { get; set; }
         
-        public bool ThrowIfWarning => ProjectProperties?.TreatWarningsAsErrors ?? OeProjectProperties.GetDefaultTreatWarningsAsErrors();
+        public bool ThrowIfWarning => Properties?.BuildOptions?.TreatWarningsAsErrors ?? OeBuildOptions.GetDefaultTreatWarningsAsErrors();
         
         /// <summary>
         /// Executes all the tasks
@@ -109,7 +109,7 @@ namespace Oetools.Builder {
             task.SetLog(Log);
             task.SetCancelSource(CancelSource);
             if (task is IOeTaskCompile taskCompile) {
-                taskCompile.SetFileExtensionFilter(ProjectProperties?.CompilationOptions?.CompilableFilePattern ?? OeCompilationOptions.GetDefaultCompilableFilePattern());
+                taskCompile.SetFileExtensionFilter(Properties?.CompilationOptions?.CompilableFilePattern ?? OeCompilationOptions.GetDefaultCompilableFilePattern());
             }
         }
 

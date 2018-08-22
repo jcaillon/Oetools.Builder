@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Attributes;
 
 namespace Oetools.Builder.History {
     [Serializable]
@@ -35,6 +36,7 @@ namespace Oetools.Builder.History {
         /// <summary>
         /// A list of the targets for this file
         /// </summary>
+        [DeepCopy(Ignore = true)]
         [XmlArray("Targets")]
         [XmlArrayItem("Copied", typeof(OeTargetFileCopy))]
         [XmlArrayItem("Prolibed", typeof(OeTargetProlib))]

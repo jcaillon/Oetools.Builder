@@ -3,12 +3,12 @@
   <xs:element name="Project" nillable="true" type="OeProject" />
   <xs:complexType name="OeProject">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="Properties" type="OeProjectProperties" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Properties" type="OeProperties" />
       <xs:element minOccurs="0" maxOccurs="1" name="GlobalVariables" type="ArrayOfOeVariable" />
       <xs:element minOccurs="0" maxOccurs="1" name="BuildConfigurations" type="ArrayOfOeBuildConfiguration" />
     </xs:sequence>
   </xs:complexType>
-  <xs:complexType name="OeProjectProperties">
+  <xs:complexType name="OeProperties">
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="1" name="DlcDirectoryPath" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="ProjectDatabases" type="ArrayOfOeProjectDatabase" />
@@ -23,16 +23,12 @@
       <xs:element minOccurs="0" maxOccurs="1" name="ProgresCommandLineExtraParameters" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteBeforeAnyProgressExecution" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteAfterAnyProgressExecution" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="TemporaryDirectoryPath" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeTemporaryDirectoryPath" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildPathFilter" type="OeTaskFilter" />
       <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildGitFilter" type="OeGitFilter" />
       <xs:element minOccurs="0" maxOccurs="1" name="CompilationOptions" type="OeCompilationOptions" />
       <xs:element minOccurs="0" maxOccurs="1" name="IncrementalBuildOptions" type="OeIncrementalBuildOptions" />
-      <xs:element minOccurs="0" maxOccurs="1" name="OutputDirectoryPath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="ReportHtmlFilePath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryOutputFilePath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryInputFilePath" type="xs:string" />
-      <xs:element minOccurs="1" maxOccurs="1" name="TreatWarningsAsErrors" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildOptions" type="OeBuildOptions" />
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeProjectDatabase">
@@ -265,6 +261,17 @@
       <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedSourceFileToOutput" nillable="true" type="xs:boolean" />
     </xs:sequence>
   </xs:complexType>
+  <xs:complexType name="OeBuildOptions">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="OutputDirectoryPath" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryOutputFilePath" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryInputFilePath" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="ReportHtmlFilePath" type="xs:string" />
+      <xs:element minOccurs="1" maxOccurs="1" name="TreatWarningsAsErrors" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="StopBuildOnCompilationError" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="ShutdownCompilationDatabasesAfterBuild" nillable="true" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
   <xs:complexType name="ArrayOfOeVariable">
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="unbounded" name="Variable" nillable="true" type="OeVariable" />
@@ -281,7 +288,7 @@
   </xs:complexType>
   <xs:complexType name="OeBuildConfiguration">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="OverloadProperties" type="OeProjectProperties" />
+      <xs:element minOccurs="0" maxOccurs="1" name="OverloadProperties" type="OeProperties" />
       <xs:element minOccurs="0" maxOccurs="1" name="BuildVariables" type="ArrayOfOeVariable" />
       <xs:element minOccurs="0" maxOccurs="1" name="PreBuildTasks" type="ArrayOfOeBuildStepClassic" />
       <xs:element minOccurs="0" maxOccurs="1" name="BuildSourceTasks" type="ArrayOfOeBuildStepCompile" />

@@ -66,7 +66,7 @@ namespace Oetools.Builder.Test.Utilities {
             File.WriteAllText(dfPath3, dfcontent2);
 
             var build = new OeBuildConfiguration {
-                Properties = new OeProjectProperties {
+                Properties = new OeProperties {
                     DlcDirectoryPath = dlcPath,
                     ProjectDatabases = new List<OeProjectDatabase> {
                         new OeProjectDatabase {

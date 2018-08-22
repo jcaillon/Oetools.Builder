@@ -63,7 +63,7 @@ namespace Oetools.Builder.Test.Project {
             var dirInfo = Directory.CreateDirectory(Path.Combine(TestFolder, "test1_hidden"));
             dirInfo.Attributes |= FileAttributes.Hidden;
 
-            var prop = new OeProjectProperties {
+            var prop = new OeProperties {
                 PropathEntries = !Utils.IsRuntimeWindowsPlatform ? null : new List<string> {
                     "{{DLC}}",
                     "C:\\Windows\\System32",

@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (OeProjectProperties.cs) is part of Oetools.Builder.
+// This file (OeProperties.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ namespace Oetools.Builder.Project {
     /// to use &lt;VARIABLE&gt; which will be replace at the beggining of the build by <see cref="OeBuildConfiguration.Variables"/>
     /// </remarks>
     [Serializable]
-    public class OeProjectProperties {
+    public class OeProperties {
         
         [XmlElement(ElementName = "DlcDirectoryPath")]
         public string DlcDirectoryPath { get; set; }
@@ -90,8 +90,8 @@ namespace Oetools.Builder.Project {
         [XmlElement(ElementName = "ProcedurePathToExecuteAfterAnyProgressExecution")]
         public string ProcedurePathToExecuteAfterAnyProgressExecution { get; set; }
 
-        [XmlElement(ElementName = "TemporaryDirectoryPath")]
-        public string TemporaryDirectoryPath { get; set; }      
+        [XmlElement(ElementName = "OpenedgeTemporaryDirectoryPath")]
+        public string OpenedgeTemporaryDirectoryPath { get; set; }      
         
         /// <summary>
         /// Allows to exclude path from being treated by <see cref="OeBuildConfiguration.BuildSourceTasks"/>
@@ -112,40 +112,9 @@ namespace Oetools.Builder.Project {
             
         [XmlElement(ElementName = "IncrementalBuildOptions")]
         public OeIncrementalBuildOptions IncrementalBuildOptions { get; set; }
-
-        [XmlElement(ElementName = "OutputDirectoryPath")]
-        public string OutputDirectoryPath { get; set; }
-        internal static string GetDefaultOutputDirectoryPath(string sourceDirectory) => Path.Combine(sourceDirectory, "bin");
-
-        [XmlElement(ElementName = "ReportHtmlFilePath")]
-        public string ReportHtmlFilePath { get; set; }
-        internal static string GetDefaultReportHtmlFilePath(string sourceDirectory) => Path.Combine(OeBuilderConstants.GetProjectDirectoryBuild(sourceDirectory), "latest.html");
-            
-        [XmlElement(ElementName = "BuildHistoryOutputFilePath")]
-        public string BuildHistoryOutputFilePath { get; set; }
-        internal static string GetDefaultBuildHistoryOutputFilePath(string sourceDirectory) => Path.Combine(OeBuilderConstants.GetProjectDirectoryBuild(sourceDirectory), "latest.xml");
-            
-        [XmlElement(ElementName = "BuildHistoryInputFilePath")]
-        public string BuildHistoryInputFilePath { get; set; }
-        internal static string GetDefaultBuildHistoryInputFilePath(string sourceDirectory) => Path.Combine(OeBuilderConstants.GetProjectDirectoryBuild(sourceDirectory), "latest.xml");
         
-        /// <summary>
-        /// Should warnings be considered as errors and stop the build
-        /// </summary>
-        [XmlElement(ElementName = "TreatWarningsAsErrors")]
-        public bool? TreatWarningsAsErrors { get; set; }
-        internal static bool GetDefaultTreatWarningsAsErrors() => false;
-        
-        /// <summary>
-        /// Should the build be stopped if a file fails to compile
-        /// </summary>
-        [XmlElement(ElementName = "StopBuildOnCompilationError")]
-        public bool? StopBuildOnCompilationError { get; set; }
-        internal static bool GetDefaultStopBuildOnCompilationError() => true;
-        
-        [XmlElement(ElementName = "ShutdownCompilationDatabasesAfterBuild")]
-        public bool? ShutdownCompilationDatabasesAfterBuild { get; set; }
-        internal static bool GetDefaultShutdownCompilationDatabasesAfterBuild() => true;
+        [XmlElement(ElementName = "BuildOptions")]
+        public OeBuildOptions BuildOptions { get; set; }
         
         /// <summary>
         /// Validate that is object is correct
@@ -171,7 +140,7 @@ namespace Oetools.Builder.Project {
         /// Clean the path of all path properties
         /// </summary>
         public void SanitizePathInPublicProperties() {
-            Utils.ForEachPublicPropertyStringInObject(typeof(OeProjectProperties), this, (propInfo, value) => {
+            Utils.ForEachPublicPropertyStringInObject(typeof(OeProperties), this, (propInfo, value) => {
                 if (!propInfo.Name.Contains("Path")) {
                     return value;
                 }
@@ -248,7 +217,7 @@ namespace Oetools.Builder.Project {
         /// <returns></returns>
         public UoeExecutionEnv GetOeExecutionEnvironment(string sourceDirectory, CancellationTokenSource cancelSource) => 
             new UoeExecutionEnv {
-                TempDirectory = TemporaryDirectoryPath?.TakeDefaultIfNeeded($".oe_tmp-{Utils.GetRandomName()}"),
+                TempDirectory = OpenedgeTemporaryDirectoryPath?.TakeDefaultIfNeeded($".oe_tmp-{Utils.GetRandomName()}"),
                 UseProgressCharacterMode = UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable(),
                 DatabaseAliases = DatabaseAliases,
                 DatabaseConnectionString = DatabaseConnectionExtraParameters,

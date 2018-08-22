@@ -59,6 +59,8 @@ namespace Oetools.Builder {
         }
 
         public bool UseIncrementalBuild => BuildConfiguration.Properties.IncrementalBuildOptions?.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled();
+        
+        public string OutputDirectory => BuildConfiguration.Properties.BuildOptions?.OutputDirectoryPath.TakeDefaultIfNeeded(OeBuildOptions.GetDefaultOutputDirectoryPath(SourceDirectory));
 
         public UoeExecutionEnv Env { get; private set; }
         
@@ -80,9 +82,7 @@ namespace Oetools.Builder {
         public Builder(OeProject project, string buildConfigurationName = null) {
             // make a copy of the build configuration
             BuildConfiguration = project.GetBuildConfigurationCopy(buildConfigurationName) ?? project.GetDefaultBuildConfigurationCopy();
-            CancelSource.Token.Register(() => {
-                Log?.Debug("Build cancel requested");
-            });
+            
         }
         
         public void Dispose() {
@@ -93,6 +93,10 @@ namespace Oetools.Builder {
         /// Main method, builds
         /// </summary>
         public void Build() {
+            CancelSource.Token.Register(() => {
+                Log?.Debug("Build cancel requested");
+            });
+            
             Log?.Debug($"Initializing build with {BuildConfiguration}");
             Env = BuildConfiguration.Properties.GetOeExecutionEnvironment(SourceDirectory, CancelSource);
             // TODO : create + start a database!
@@ -153,7 +157,7 @@ namespace Oetools.Builder {
         }
         
         private void TaskExecutorConfigurator(TaskExecutorWithFileList executor) {
-            executor.OutputDirectory = BuildConfiguration.Properties.OutputDirectoryPath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultOutputDirectoryPath(SourceDirectory));
+            executor.OutputDirectory = OutputDirectory;
         }
 
         private List<T> ExecuteBuildStep<T>(IEnumerable<OeBuildStep> steps, string oeBuildConfigurationPropertyName, Action<T> taskExecutorConfigurator) where T : TaskExecutor, new() {
@@ -166,7 +170,7 @@ namespace Oetools.Builder {
                     Log?.Debug($"{executionName} step {i}{(!string.IsNullOrEmpty(step.Label) ? $" : {step.Label}" : "")}");
                     var executor = new T {
                         Tasks = step.GetTaskList(),
-                        ProjectProperties = BuildConfiguration.Properties,
+                        Properties = BuildConfiguration.Properties,
                         Env = Env,
                         Log = Log,
                         CancelSource = CancelSource
@@ -180,21 +184,38 @@ namespace Oetools.Builder {
         }
 
         private void OutputHistory() {
-            var outputHistoryPath = BuildConfiguration.Properties.BuildHistoryOutputFilePath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultBuildHistoryOutputFilePath(SourceDirectory));
+            if (BuildSourceTaskExecutors == null) {
+                return;
+            }
+            var outputDirectory = OutputDirectory;
+            var outputHistoryPath = BuildConfiguration.Properties.BuildOptions?.BuildHistoryOutputFilePath.TakeDefaultIfNeeded(OeBuildOptions.GetDefaultBuildHistoryOutputFilePath(SourceDirectory));
             var history = new OeBuildHistory();
-            history.BuiltFiles = BuildSourceTaskExecutors?
-                .SelectMany(exec => exec?.Tasks)
-                .Where(t => t is IOeTaskFile)
-                .Cast<IOeTaskFile>()
-                .SelectMany(t => t.GetFilesBuilt())
-                .ToList();
-            // TODO : remove targets that are out of the output directory, we won't be able to "undo" them so it is useless to keep that info
+            var builtFiles = new List<OeFileBuilt>();
+            foreach (var fileBuilt in BuildSourceTaskExecutors
+                 .SelectMany(exec => exec?.Tasks)
+                 .Where(t => t is IOeTaskFile)
+                 .Cast<IOeTaskFile>()
+                 .SelectMany(t => t.GetFilesBuilt())) {
+                // remove targets that are out of the output directory, we won't be able to "undo" them so it is useless to keep that info
+                var targetsOutputDirectory = fileBuilt.Targets
+                    .Where(t => t.GetTargetFilePath().StartsWith(outputDirectory, StringComparison.CurrentCultureIgnoreCase))
+                    .ToList();
+                if (targetsOutputDirectory.Count == fileBuilt.Targets.Count) {
+                    builtFiles.Add(fileBuilt);
+                } else if (targetsOutputDirectory.Count > 0) {
+                    var copy = (OeFileBuilt) Utils.DeepCopyPublicProperties(fileBuilt, fileBuilt.GetType());
+                    copy.Targets = targetsOutputDirectory;
+                    builtFiles.Add(copy);
+                }
+            }
+            
             // also add all the files that were not rebuild from the previous build history
             // also ensures that all files have HASH info
+            history.BuiltFiles = builtFiles;
         }
 
         private void OutputReport() {
-            var outputReportPath = BuildConfiguration.Properties.ReportHtmlFilePath.TakeDefaultIfNeeded(OeProjectProperties.GetDefaultReportHtmlFilePath(SourceDirectory));
+            var outputReportPath = BuildConfiguration.Properties.BuildOptions?.ReportHtmlFilePath.TakeDefaultIfNeeded(OeBuildOptions.GetDefaultReportHtmlFilePath(SourceDirectory));
             var reportExporter = new BuildReportExport(outputReportPath, this);
             reportExporter.Create();
         }
