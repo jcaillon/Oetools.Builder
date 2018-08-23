@@ -27,7 +27,7 @@ namespace Oetools.Builder.Test.Project {
     public class OeBuildConfigurationTest {
 
         public void Test() {
-            var project = OeProject.GetDefaultProject();
+            var project = OeProject.GetStandardProject();
             var bc = project.GetDefaultBuildConfigurationCopy();
             
             bc.PostBuildTasks = new List<OeBuildStepClassic> {

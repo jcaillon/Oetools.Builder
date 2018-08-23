@@ -31,21 +31,20 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlElement(ElementName = "Enabled")]
         public bool? Enabled { get; set; }
-        internal static bool GetDefaultEnabled() => false;
+        public static bool GetDefaultEnabled() => true;
                 
         /// <summary>
         /// True if the tool should use a checksum (md5) for each file to figure out if it has changed
         /// </summary>
         [XmlElement(ElementName = "StoreSourceHash")]
         public bool? StoreSourceHash { get; set; }
-        internal static bool GetDefaultStoreSourceHash() => false;
+        public static bool GetDefaultStoreSourceHash() => false;
             
         /// <summary>
-        /// If a source file has been deleted since the last build, should we try to delete it in the output directory
-        /// if it still exists?
+        /// If a source file has been deleted since the last build, should we try to delete all its previous targets
         /// </summary>
         [XmlElement(ElementName = "MirrorDeletedSourceFileToOutput")]
         public bool? MirrorDeletedSourceFileToOutput { get; set; }
-        internal static bool GetDefaultMirrorDeletedSourceFileToOutput() => false;
+        public static bool GetDefaultMirrorDeletedSourceFileToOutput() => false;
     }
 }

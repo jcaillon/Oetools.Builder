@@ -33,7 +33,7 @@ namespace Oetools.Builder.Utilities {
     
     public class SourceFilesLister {
         
-        protected ILogger Log { get; set; }
+        public ILogger Log { protected get; set; }
         
         public string SourceDirectory { get; }
 
@@ -73,7 +73,7 @@ namespace Oetools.Builder.Utilities {
         }
 
         /// <summary>
-        /// Returns a list of files in the <see cref="SourceDirectory"/>, considering all the filter options in this class
+        /// Returns a list of existing files in the <see cref="SourceDirectory"/>, considering all the filter options in this class
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
@@ -99,9 +99,6 @@ namespace Oetools.Builder.Utilities {
                     SetFileState(oeFile);
                 }
             }
-            
-            // add all previous source files that are now missing
-            output.AddRange(GetDeletedFileList(listedFiles));
             return output;
         }
 
@@ -126,27 +123,6 @@ namespace Oetools.Builder.Utilities {
             return Utils.EnumerateAllFiles(SourceDirectory, SearchOption.AllDirectories, sourcePathExcludeRegexStrings, ExcludeHiddenFolders, CancelSource)
                 .Where(IsFileIncludedBySourcePathFilters)
                 .ToHashSet(new HashSet<string>(StringComparer.CurrentCultureIgnoreCase));
-        }
-
-        /// <summary>
-        /// Returns a list of deleted OeFile based on the <see cref="PreviousSourceFiles"/> and <param name="currentFileList"></param>
-        /// which represents the files currently existing
-        /// </summary>
-        /// <param name="currentFileList"></param>
-        /// <returns></returns>
-        private List<OeFile> GetDeletedFileList(HashSet<string> currentFileList) {
-            List<OeFile> output = new List<OeFile>();
-            if (PreviousSourceFiles == null) {
-                return output;
-            }
-            foreach (var previousSourceFile in PreviousSourceFiles.Where(f => f.State != OeFileState.Deleted)) {
-                if (!currentFileList.Contains(previousSourceFile.SourceFilePath)) {
-                    var deletedFile = previousSourceFile.GetDeepCopy();
-                    deletedFile.State = OeFileState.Deleted;
-                    output.Add(deletedFile);
-                }
-            }
-            return output;
         }
 
         /// <summary>
@@ -235,7 +211,9 @@ namespace Oetools.Builder.Utilities {
         private HashSet<string> GetBaseFileListFromGit() {
             var output = new List<string>();
 
-            var gitManager = new GitManager();
+            var gitManager = new GitManager {
+                Log = Log
+            };
             gitManager.SetCurrentDirectory(SourceDirectory);
             
             if (SourcePathGitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit ?? OeGitFilter.GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit()) {

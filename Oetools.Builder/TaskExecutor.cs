@@ -35,21 +35,11 @@ namespace Oetools.Builder {
         
         internal string Name { get; set; }
         
-        private IEnumerable<IOeTask> _tasks;
+        internal int Id { get; set; }
+        
+        public virtual IEnumerable<IOeTask> Tasks { get; set; }
 
-        public IEnumerable<IOeTask> Tasks {
-            get => _tasks;
-            set {
-                _tasks = value;
-                if (_tasks != null) {
-                    foreach (var task in _tasks) {
-                        InjectPropertiesInTask(task);
-                    }
-                }
-            }
-        }
-
-        public ILogger Log { get; set; }
+        public ILogger Log { protected get; set; }
 
         public UoeExecutionEnv Env { get; set; }
         
@@ -60,7 +50,7 @@ namespace Oetools.Builder {
         public CancellationTokenSource CancelSource { get; set; }
         
         public bool ThrowIfWarning => Properties?.BuildOptions?.TreatWarningsAsErrors ?? OeBuildOptions.GetDefaultTreatWarningsAsErrors();
-        
+
         /// <summary>
         /// Executes all the tasks
         /// </summary>
@@ -70,10 +60,14 @@ namespace Oetools.Builder {
                 return;
             }
             foreach (var task in Tasks) {
-                Log?.Info($"Executing task {task}");
+                Log?.Info($"Injecting task properties for {task}");
+                InjectPropertiesInTask(task);
+                
                 CancelSource?.Token.ThrowIfCancellationRequested();
                 try {
                     task.PublishException += TaskOnPublishException;
+                    
+                    Log?.Info($"Executing task {task}");
                     ExecuteTask(task);
                 } catch (OperationCanceledException) {
                     throw;
@@ -109,7 +103,7 @@ namespace Oetools.Builder {
             task.SetLog(Log);
             task.SetCancelSource(CancelSource);
             if (task is IOeTaskCompile taskCompile) {
-                taskCompile.SetFileExtensionFilter(Properties?.CompilationOptions?.CompilableFilePattern ?? OeCompilationOptions.GetDefaultCompilableFilePattern());
+                taskCompile.SetFileExtensionFilter(Properties?.CompilationOptions?.CompilableFileExtensionPattern ?? OeCompilationOptions.GetDefaultCompilableFileExtensionPattern());
             }
         }
 
@@ -149,6 +143,6 @@ namespace Oetools.Builder {
             }
         }
 
-        public override string ToString() => $"Task executor{(string.IsNullOrEmpty(Name) ? "" : $" {Name}")}";
+        public override string ToString() => $"{Name} step {Id}";
     }
 }

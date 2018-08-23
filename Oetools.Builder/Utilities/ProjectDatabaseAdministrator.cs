@@ -32,7 +32,7 @@ namespace Oetools.Builder.Utilities {
     
     public class ProjectDatabaseAdministrator : IDisposable {
         
-        public ILogger Log { get; set; }
+        public ILogger Log { protected get; set; }
 
         public string SourceDirectory { get; }
         
@@ -62,7 +62,7 @@ namespace Oetools.Builder.Utilities {
             Properties = configuration.Properties;
             ConfigurationId = configuration.Id;
             try {
-                DbAdmin = new UoeDatabaseAdministrator(Properties?.DlcDirectoryPath.TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectoryPath()));
+                DbAdmin = new UoeDatabaseAdministrator((Properties?.DlcDirectoryPath).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectoryPath()));
             } catch (Exception e) {
                 throw new ProjectDatabaseAdministratorException($"Error initiating the database administrator for the projet : {e.Message}", e);
             }
@@ -89,12 +89,6 @@ namespace Oetools.Builder.Utilities {
             }
         }
 
-        /// <summary>
-        /// Returns true if the databases created and started by this class should be shutdown on build done
-        /// </summary>
-        /// <returns></returns>
-        public bool ShouldShutdownCompilationDatabasesAfterBuild() => Properties?.BuildOptions?.ShutdownCompilationDatabasesAfterBuild ?? OeBuildOptions.GetDefaultShutdownCompilationDatabasesAfterBuild();
-        
         /// <summary>
         /// Sets up all the databases needed for the project, starts them and returns the needed connection strings (or null if no db)
         /// </summary>

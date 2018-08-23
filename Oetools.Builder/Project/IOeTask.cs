@@ -27,6 +27,14 @@ using Oetools.Builder.Utilities;
 namespace Oetools.Builder.Project {
     public interface IOeTask {
 
+        /// <summary>
+        /// Executes the task
+        /// </summary>
+        /// <remarks>
+        /// - This method should throw <see cref="TaskExecutionException"/> if needed
+        /// - This method can publish warnings using <see cref="OeTask.AddExecutionWarning"/>
+        /// </remarks>
+        /// <exception cref="TaskExecutionException"></exception>
         void Execute();
 
         List<TaskExecutionException> GetExceptionList();

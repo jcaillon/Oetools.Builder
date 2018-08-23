@@ -139,14 +139,16 @@ namespace Oetools.Builder.Project {
         /// <exception cref="BuildVariableException"></exception>
         /// <exception cref="BuildConfigurationException"></exception>
         public void ApplyVariables(string sourceDirectory) {
+            Variables = Variables ?? new List<OeVariable>();
+            
             // add some default variables
             if (!string.IsNullOrEmpty(sourceDirectory)) {
                 Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameSourceDirectory, Value = sourceDirectory });    
                 Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameProjectDirectory, Value = OeBuilderConstants.GetProjectDirectory(sourceDirectory) });                
-                Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameProjectLocalDirectory, Value = OeBuilderConstants.GetProjectDirectoryLocal(sourceDirectory) });                 
+                Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameProjectLocalDirectory, Value = OeBuilderConstants.GetProjectDirectoryLocal(sourceDirectory) });              
             }             
-            Variables.Add(new OeVariable { Name = UoeConstants.OeDlcEnvVar, Value = Properties.DlcDirectoryPath });  
-            Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = Properties.BuildOptions.OutputDirectoryPath });  
+            Variables.Add(new OeVariable { Name = UoeConstants.OeDlcEnvVar, Value = (Properties?.DlcDirectoryPath).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectoryPath()) });  
+            Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = Properties?.BuildOptions?.OutputDirectoryPath ?? OeBuilderConstants.GetDefaultOutputDirectory(sourceDirectory) });  
             Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameConfigurationName, Value = ConfigurationName });
             try {
                 Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameCurrentDirectory, Value = Directory.GetCurrentDirectory() });
@@ -188,6 +190,9 @@ namespace Oetools.Builder.Project {
         }
         
         private void ValidateStepsList(IEnumerable<OeBuildStep> steps, string propertyNameOf, bool buildFromList) {
+            if (steps == null) {
+                return;
+            }
             foreach (var step in steps) {
                 try {
                     step.Validate(buildFromList);

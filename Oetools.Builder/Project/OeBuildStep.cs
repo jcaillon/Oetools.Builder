@@ -21,7 +21,11 @@ namespace Oetools.Builder.Project {
         /// <param name="buildFromList">should the task also be validated with <see cref="IOeTaskFile.ValidateCanIncludeFiles"/></param>
         /// <exception cref="BuildStepException"></exception>
         public void Validate(bool buildFromList) {
-            foreach (var task in GetTaskList()) {
+            var tasks = GetTaskList();
+            if (tasks == null) {
+                return;
+            }
+            foreach (var task in tasks) {
                 try {
                     task.Validate();
                     if (buildFromList && task is IOeTaskFile taskFile) {

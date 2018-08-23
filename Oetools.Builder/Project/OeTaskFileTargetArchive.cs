@@ -60,7 +60,7 @@ namespace Oetools.Builder.Project {
         /// <returns></returns>
         public virtual string GetTargetArchive() => throw new NotImplementedException();
 
-        protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
+        protected sealed override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
             ExecuteForFilesInternal(files.ToList().Cast<IOeFileToBuildTargetArchive>());
         }
 

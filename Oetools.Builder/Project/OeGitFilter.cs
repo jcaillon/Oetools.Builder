@@ -30,7 +30,7 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlElement(ElementName = "OnlyIncludeSourceFilesModifiedSinceLastCommit")]
         public bool? OnlyIncludeSourceFilesModifiedSinceLastCommit { get; set; }
-        internal static bool GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit() => false;
+        public static bool GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit() => false;
             
         /// <summary>
         /// If true, only the committed files that were committed exclusively on the current branch will be elligible for the <see cref="OeBuildConfiguration.BuildSourceTasks"/>
@@ -39,7 +39,7 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlElement(ElementName = "OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch")]
         public bool? OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch { get; set; }
-        internal static bool GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch() => false;
+        public static bool GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch() => false;
             
         /// <summary>
         /// In detached mode, the CURRENT_BRANCH_NAME is not defined, you can set this value to the branch name to use for the option <see cref="OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch"/>

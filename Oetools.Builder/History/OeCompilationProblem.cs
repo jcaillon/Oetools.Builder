@@ -17,9 +17,12 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
+using System;
 using System.Xml.Serialization;
-using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
+using Oetools.Utilities.Lib;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.History {
     public abstract class OeCompilationProblem {
@@ -43,17 +46,28 @@ namespace Oetools.Builder.History {
             
         [XmlAttribute(AttributeName ="Column")]
         public int Column { get; set; }
-                        
-        /// <summary>
-        /// indicates if the error appears several times
-        /// </summary>
-        [XmlAttribute(AttributeName ="Times")]
-        public int Times { get; set; }
             
         [XmlAttribute(AttributeName ="ErrorNumber")]
         public int ErrorNumber { get; set; }
             
         [XmlAttribute(AttributeName ="Message")]
         public string Message { get; set; }
+        
+        internal static OeCompilationProblem New(string compiledSourceFilePath, UoeCompilationProblem  problem) {
+            OeCompilationProblem output;
+            switch (problem) {
+                case UoeCompilationError _:
+                    output = new OeCompilationError();
+                    break;
+                case UoeCompilationWarning _:
+                    output = new OeCompilationWarning();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(UoeCompilationProblem), problem, "no matching type");
+            }
+            Utils.DeepCopyPublicProperties(problem, output.GetType(), output);
+            output.CompiledSourceFilePath = compiledSourceFilePath;
+            return output;
+        }
     }
 }

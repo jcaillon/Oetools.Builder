@@ -160,9 +160,8 @@ namespace Oetools.Builder.Test.Utilities {
             File.WriteAllText(Path.Combine(repoDir, "sub", "file2"), "content");
             
             list = lister.GetFileList();
-            Assert.AreEqual(4, list.Count, "count all");
+            Assert.AreEqual(3, list.Count, "count all");
             Assert.AreEqual(1, list.Count(f => f.State == OeFileState.Modified), "1 modified");
-            Assert.AreEqual(1, list.Count(f => f.State == OeFileState.Modified), "1 deleted");
             Assert.AreEqual(2, list.Count(f => f.State == OeFileState.Unchanged), "2 unchanged");
 
             lister.PreviousSourceFiles = list;
@@ -180,8 +179,7 @@ namespace Oetools.Builder.Test.Utilities {
             File.Delete(Path.Combine(repoDir, "sub", "file3"));
             
             list = lister.GetFileList();
-            Assert.AreEqual(4, list.Count, "count all");
-            Assert.AreEqual(2, list.Count(f => f.State == OeFileState.Deleted), "2 deleted");
+            Assert.AreEqual(2, list.Count, "count all");
             Assert.AreEqual(2, list.Count(f => f.State == OeFileState.Unchanged), "2 unchanged");
             
             lister.PreviousSourceFiles = list;

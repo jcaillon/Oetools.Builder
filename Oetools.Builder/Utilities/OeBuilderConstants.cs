@@ -31,6 +31,7 @@ namespace Oetools.Builder.Utilities {
 
         private const string OeProjectDirectory = ".oe";
         private const string OeProjectLocalDirectory = "local";
+        private const string OeProjectOutput = "bin";
         
         public const string OeVarNameSourceDirectory = "SOURCE_DIRECTORY";
         public const string OeVarNameProjectDirectory = "PROJECT_DIRECTORY";
@@ -44,5 +45,6 @@ namespace Oetools.Builder.Utilities {
         public static string GetProjectDirectoryLocal(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory, OeProjectLocalDirectory);
         public static string GetProjectDirectoryBuild(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory, OeProjectLocalDirectory, "build");
         public static string GetProjectDirectoryLocalDb(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory, OeProjectLocalDirectory, "db");
+        public static string GetDefaultOutputDirectory(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectOutput);
     }
 }

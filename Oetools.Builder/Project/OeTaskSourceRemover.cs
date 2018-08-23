@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (OeTaskFileDelete.cs) is part of Oetools.Builder.
+// This file (OeTaskExec.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,13 +18,24 @@
 // ========================================================================
 #endregion
 using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
+using Oetools.Builder.History;
 
 namespace Oetools.Builder.Project {
     
     [Serializable]
-    [XmlRoot("Delete")]
-    public class OeTaskFileDelete : OeTaskFile {
+    [XmlRoot("SourceRemover")]
+    internal class OeTaskSourceRemover : OeTask, IOeTaskFileBuilder {
+            
+        private IEnumerable<OeFileBuilt> _filesBuilt = null;
         
+        protected override void ExecuteInternal() => throw new NotImplementedException();
+        
+        [XmlIgnore]
+        internal List<OeFileBuilt> FilesToRemove { get; set; }
+
+        public IEnumerable<OeFileBuilt> GetFilesBuilt() => _filesBuilt;
+
     }
 }

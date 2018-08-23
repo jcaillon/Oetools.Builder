@@ -225,7 +225,7 @@ namespace Oetools.Builder.Test {
             };
             
             
-            var filesToCompile = TaskExecutorWithFileListAndCompilation.GetFilesToCompile(tasks, files.Where(f => f.SourceFilePath.TestFileNameAgainstListOfPatterns(OeCompilationOptions.GetDefaultCompilableFilePattern())));
+            var filesToCompile = TaskExecutorWithFileListAndCompilation.GetFilesToCompile(tasks, files.Where(f => f.SourceFilePath.TestFileNameAgainstListOfPatterns(OeCompilationOptions.GetDefaultCompilableFileExtensionPattern())));
             
             Assert.AreEqual(5, filesToCompile.Count);
             Assert.IsTrue(filesToCompile.Exists(f => f.FileSize.Equals(10)), "should preserve file size");

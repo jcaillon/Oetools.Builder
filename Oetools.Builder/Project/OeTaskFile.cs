@@ -31,7 +31,7 @@ namespace Oetools.Builder.Project {
 
     public abstract class OeTaskFile : OeTaskFilter, IOeTaskFile {
 
-        protected List<OeFileBuilt> _filesBuilt;
+        private IEnumerable<OeFileBuilt> _filesBuilt;
         
         /// <summary>
         /// Validates that the task is correct (correct parameters and can execute)
@@ -76,7 +76,10 @@ namespace Oetools.Builder.Project {
                     var validDir = Utils.GetLongestValidDirectory(path);
                     if (!string.IsNullOrEmpty(validDir)) {
                         Log?.Info($"Listing directory : {validDir.PrettyQuote()}");
-                        output.AddRange(new SourceFilesLister(validDir, CancelSource) { SourcePathFilter = this }
+                        output.AddRange(new SourceFilesLister(validDir, CancelSource) {
+                                SourcePathFilter = this,
+                                Log = Log
+                            }
                             .GetFileList()
                             .Where(f => GetIncludeRegex()[i].IsMatch(f.SourceFilePath))
                         );
@@ -92,20 +95,41 @@ namespace Oetools.Builder.Project {
         }
         
         public void ExecuteForFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
+            var oeFileToBuildTargetFiles = files.ToList();
             try {
-                ExecuteForFilesInternal(files);
-            } catch (OperationCanceledException) {
-                throw;
+                ExecuteForFilesInternal(oeFileToBuildTargetFiles);
+            } catch (OperationCanceledException e) {
+                throw new TaskExecutionException(this, e.Message, e);
+            } catch (TaskExecutionException e) {
+                AddExecutionError(e);
+                return;
             } catch (Exception e) {
                 AddExecutionError(new TaskExecutionException(this, $"Unexpected error in task {ToString().PrettyQuote()} : {e.Message}", e));
+                return;
             }
+            // add the built files to the list
+            _filesBuilt = oeFileToBuildTargetFiles.Cast<OeFileBuilt>();
         }
 
+        /// <summary>
+        /// Execute the task for a set of files
+        /// </summary>
+        /// <remarks>
+        /// - Every files passed to that method will be added to a listed returned by <see cref="IOeTaskFileBuilder.GetFilesBuilt"/> (if no exceptions)
+        /// - This method should throw <see cref="TaskExecutionException"/> if needed
+        /// - This method can publish warnings using <see cref="OeTask.AddExecutionWarning"/>
+        /// </remarks>
+        /// <param name="files"></param>
+        /// <exception cref="TaskExecutionException"></exception>
         protected virtual void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
             throw new NotImplementedException();
         }
-        
-        public List<OeFileBuilt> GetFilesBuilt() => _filesBuilt;
+
+        protected sealed override void ExecuteInternal() {
+            throw new Exception($"This should never get called, class implementing {nameof(IOeTaskFile)} are using {nameof(ExecuteForFilesInternal)} instead");
+        }
+
+        public IEnumerable<OeFileBuilt> GetFilesBuilt() => _filesBuilt;
         
     }
 }

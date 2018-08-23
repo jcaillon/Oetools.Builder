@@ -42,7 +42,7 @@ namespace Oetools.Builder.Project {
         
         [XmlElement(ElementName = "DlcDirectoryPath")]
         public string DlcDirectoryPath { get; set; }
-        internal static string GetDefaultDlcDirectoryPath() => UoeUtilities.GetDlcPathFromEnv().ToCleanPath();
+        public static string GetDefaultDlcDirectoryPath() => UoeUtilities.GetDlcPathFromEnv().ToCleanPath();
         
         [XmlArray("ProjectDatabases")]
         [XmlArrayItem("ProjectDatabase", typeof(OeProjectDatabase))]
@@ -64,7 +64,7 @@ namespace Oetools.Builder.Project {
         
         [XmlElement(ElementName = "AddAllSourceDirectoriesToPropath")]
         public bool? AddAllSourceDirectoriesToPropath { get; set; }
-        internal static bool GetDefaultAddAllSourceDirectoriesToPropath() => true;
+        public static bool GetDefaultAddAllSourceDirectoriesToPropath() => true;
             
         [XmlElement(ElementName = "PropathSourceDirectoriesFilter")]
         public OeTaskFilter PropathSourceDirectoriesFilter { get; set; }
@@ -75,11 +75,11 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlElement(ElementName = "AddDefaultOpenedgePropath")]
         public bool? AddDefaultOpenedgePropath { get; set; }
-        internal static bool GetDefaultAddDefaultOpenedgePropath() => true;
+        public static bool GetDefaultAddDefaultOpenedgePropath() => true;
 
         [XmlElement(ElementName = "UseCharacterModeExecutable")]
         public bool? UseCharacterModeExecutable { get; set; }
-        internal static bool GetDefaultUseCharacterModeExecutable() => false;
+        public static bool GetDefaultUseCharacterModeExecutable() => false;
 
         [XmlElement(ElementName = "ProgresCommandLineExtraParameters")]
         public string ProgresCommandLineExtraParameters { get; set; }
@@ -91,7 +91,8 @@ namespace Oetools.Builder.Project {
         public string ProcedurePathToExecuteAfterAnyProgressExecution { get; set; }
 
         [XmlElement(ElementName = "OpenedgeTemporaryDirectoryPath")]
-        public string OpenedgeTemporaryDirectoryPath { get; set; }      
+        public string OpenedgeTemporaryDirectoryPath { get; set; }
+        public static string GetDefaultOpenedgeTemporaryDirectoryPath() => Path.Combine(Path.GetTempPath(), $".oe_tmp-{Utils.GetRandomName()}");
         
         /// <summary>
         /// Allows to exclude path from being treated by <see cref="OeBuildConfiguration.BuildSourceTasks"/>
@@ -105,16 +106,27 @@ namespace Oetools.Builder.Project {
         /// Obviously, you need GIT installed and present in your OS path
         /// </summary>
         [XmlElement(ElementName = "SourceToBuildGitFilter")]
-        public OeGitFilter SourceToBuildGitFilter { get; set; }       
+        public OeGitFilter SourceToBuildGitFilter { get; set; }    
+        public static OeGitFilter GetDefaultSourceToBuildGitFilter() => new OeGitFilter();
                   
         [XmlElement(ElementName = "CompilationOptions")]
         public OeCompilationOptions CompilationOptions { get; set; }
+        public static OeCompilationOptions GetDefaultCompilationOptions() => new OeCompilationOptions();
             
         [XmlElement(ElementName = "IncrementalBuildOptions")]
         public OeIncrementalBuildOptions IncrementalBuildOptions { get; set; }
+        public static OeIncrementalBuildOptions GetDefaultIncrementalBuildOptions() => new OeIncrementalBuildOptions();
         
         [XmlElement(ElementName = "BuildOptions")]
         public OeBuildOptions BuildOptions { get; set; }
+        public static OeBuildOptions GetDefaultBuildOptions() => new OeBuildOptions();
+
+        /// <summary>
+        /// Sets default values to all the properties (and recursively) of this object, using tge GetDefault... methods
+        /// </summary>
+        public void SetDefaultValues() {
+            Utils.SetDefaultValues(this);
+        }
         
         /// <summary>
         /// Validate that is object is correct
@@ -130,7 +142,7 @@ namespace Oetools.Builder.Project {
         
         private void ValidateFilters(OeTaskFilter filter, string propertyNameOf) {
             try {
-                filter.Validate();
+                filter?.Validate();
             } catch (Exception e) {
                 throw new PropertiesException($"Filter property {propertyNameOf} : {e.Message}", e);
             }
@@ -160,21 +172,25 @@ namespace Oetools.Builder.Project {
         /// <returns></returns>
         public List<string> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory, CancellationTokenSource cancelSource = null) {
             var output = new HashSet<string>();
-            foreach (var propathEntry in PropathEntries) {
-                var entry = propathEntry.ToCleanPath();
-                try {
-                    // need to take into account relative paths
-                    if (!Path.IsPathRooted(entry)) {
-                        entry = Path.GetFullPath(Path.Combine(sourceDirectory, entry));
-                    }
-                    if (!Directory.Exists(entry) && !File.Exists(entry)) {
+            if (PropathEntries != null) {
+                foreach (var propathEntry in PropathEntries) {
+                    var entry = propathEntry.ToCleanPath();
+                    try {
+                        // need to take into account relative paths
+                        if (!Path.IsPathRooted(entry)) {
+                            entry = Path.GetFullPath(Path.Combine(sourceDirectory, entry));
+                        }
+
+                        if (!Directory.Exists(entry) && !File.Exists(entry)) {
+                            continue;
+                        }
+                    } catch (Exception) {
                         continue;
                     }
-                } catch (Exception) {
-                    continue;
-                }
-                if (!output.Contains(entry)) {
-                    output.Add(entry);
+
+                    if (!output.Contains(entry)) {
+                        output.Add(entry);
+                    }
                 }
             }
             // read from ini
@@ -185,7 +201,7 @@ namespace Oetools.Builder.Project {
                     }
                 }
             }
-            if (AddAllSourceDirectoriesToPropath ?? GetDefaultAddAllSourceDirectoriesToPropath()) {
+            if (AddAllSourceDirectoriesToPropath ?? GetDefaultAddAllSourceDirectoriesToPropath() && Directory.Exists(sourceDirectory)) {
                 var lister = new SourceFilesLister(sourceDirectory, cancelSource) {
                     SourcePathFilter = PropathSourceDirectoriesFilter
                 };
@@ -197,7 +213,7 @@ namespace Oetools.Builder.Project {
             }
             if (AddDefaultOpenedgePropath ?? GetDefaultAddDefaultOpenedgePropath()) {
                 // %DLC%/tty or %DLC%/gui + %DLC% + %DLC%/bin
-                foreach (var file in UoeUtilities.GetProgressSessionDefaultPropath(DlcDirectoryPath, UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable())) {
+                foreach (var file in UoeUtilities.GetProgressSessionDefaultPropath(DlcDirectoryPath.TakeDefaultIfNeeded(GetDefaultDlcDirectoryPath()), UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable())) {
                     if (!output.Contains(file)) {
                         output.Add(file);
                     }
@@ -217,7 +233,7 @@ namespace Oetools.Builder.Project {
         /// <returns></returns>
         public UoeExecutionEnv GetOeExecutionEnvironment(string sourceDirectory, CancellationTokenSource cancelSource) => 
             new UoeExecutionEnv {
-                TempDirectory = OpenedgeTemporaryDirectoryPath?.TakeDefaultIfNeeded($".oe_tmp-{Utils.GetRandomName()}"),
+                TempDirectory = OpenedgeTemporaryDirectoryPath.TakeDefaultIfNeeded(GetDefaultOpenedgeTemporaryDirectoryPath()),
                 UseProgressCharacterMode = UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable(),
                 DatabaseAliases = DatabaseAliases,
                 DatabaseConnectionString = DatabaseConnectionExtraParameters,
@@ -238,8 +254,10 @@ namespace Oetools.Builder.Project {
         /// <returns></returns>
         public UoeExecutionParallelCompile GetParallelCompiler(IUoeExecutionEnv env, string workingDirectory) =>
             new UoeExecutionParallelCompile(env) {
-                AnalysisModeSimplifiedDatabaseReferences = CompilationOptions?.UseSimplerAnalysisForDatabaseReference ?? OeCompilationOptions.GetDefaultUseSimplerAnalysisForDatabaseReference(),
                 CompileInAnalysisMode = IncrementalBuildOptions?.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled(),
+                WorkingDirectory = workingDirectory,
+                NeedDatabaseConnection = true,
+                AnalysisModeSimplifiedDatabaseReferences = CompilationOptions?.UseSimplerAnalysisForDatabaseReference ?? OeCompilationOptions.GetDefaultUseSimplerAnalysisForDatabaseReference(),
                 CompileOptions = CompilationOptions?.CompileOptions,
                 CompilerMultiCompile = CompilationOptions?.UseCompilerMultiCompile ?? OeCompilationOptions.GetDefaultUseCompilerMultiCompile(),
                 CompileStatementExtraOptions = CompilationOptions?.CompileStatementExtraOptions,
@@ -249,9 +267,7 @@ namespace Oetools.Builder.Project {
                 CompileWithPreprocess = CompilationOptions?.CompileWithPreprocess ?? OeCompilationOptions.GetDefaultCompileWithPreprocess(),
                 CompileWithXref = CompilationOptions?.CompileWithXref ?? OeCompilationOptions.GetDefaultCompileWithXref(),
                 MaxNumberOfProcesses = OeCompilationOptions.GetNumberOfProcessesToUse(CompilationOptions),
-                MinimumNumberOfFilesPerProcess = CompilationOptions?.MinimumNumberOfFilesPerProcess ?? OeCompilationOptions.GetDefaultMinimumNumberOfFilesPerProcess(),
-                WorkingDirectory = workingDirectory,
-                NeedDatabaseConnection = true
+                MinimumNumberOfFilesPerProcess = CompilationOptions?.MinimumNumberOfFilesPerProcess ?? OeCompilationOptions.GetDefaultMinimumNumberOfFilesPerProcess()
             };
     }
 }

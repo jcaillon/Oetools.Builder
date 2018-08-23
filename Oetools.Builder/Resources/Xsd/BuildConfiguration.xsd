@@ -251,7 +251,7 @@
       <xs:element minOccurs="0" maxOccurs="1" name="CompileOptions" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="CompileStatementExtraOptions" type="xs:string" />
       <xs:element minOccurs="1" maxOccurs="1" name="TryToOptimizeCompilationDirectory" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CompilableFilePattern" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CompilableFileExtensionPattern" type="xs:string" />
       <xs:element minOccurs="1" maxOccurs="1" name="ForceSingleProcess" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="NumberProcessPerCore" nillable="true" type="xs:unsignedByte" />
       <xs:element minOccurs="1" maxOccurs="1" name="MinimumNumberOfFilesPerProcess" nillable="true" type="xs:int" />

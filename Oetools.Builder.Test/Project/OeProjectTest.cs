@@ -47,6 +47,20 @@ namespace Oetools.Builder.Test.Project {
         public static void Cleanup() {
             Utils.DeleteDirectoryIfExists(TestFolder, true);
         }
+
+        private const string DefaultMethodPrefix = "GetDefault";
+        
+        [TestMethod]
+        public void CheckForGetDefaultMethodsAssociatedWithProperties() {
+            foreach (var type in TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}")) {
+                foreach (var methodInfo in type.GetMethods().ToList().Where(m => m.IsStatic && m.Name.StartsWith(DefaultMethodPrefix))) {
+                    var prop = type.GetProperty(methodInfo.Name.Replace(DefaultMethodPrefix, ""));
+                    Assert.IsNotNull(prop, $"if {methodInfo.Name} exists, we should find the property {methodInfo.Name.Replace(DefaultMethodPrefix, "")} which is not the case...");
+                    //Assert.AreEqual(methodInfo.ReturnType, prop.PropertyType, $"The method {methodInfo.Name} should return the same type as {methodInfo.Name.Replace(DefaultMethodPrefix, "")}");
+                    Assert.IsTrue(prop.PropertyType.IsAssignableFrom(methodInfo.ReturnType), $"The method {methodInfo.Name} should return the same type as {methodInfo.Name.Replace(DefaultMethodPrefix, "")}");
+                }
+            }
+        }
         
         /// <summary>
         /// We need every single public property in the <see cref="Oetools.Builder.Project"/> namespace to be nullable
@@ -138,7 +152,7 @@ namespace Oetools.Builder.Test.Project {
         public void Serialization_Test() {
             Utils.CreateDirectoryIfNeeded(TestFolder);
             
-            var project = OeProject.GetDefaultProject();
+            var project = OeProject.GetStandardProject();
             
             project.Save(Path.Combine(TestFolder, "project_default.xml"));
             
@@ -160,7 +174,7 @@ namespace Oetools.Builder.Test.Project {
                     ReportHtmlFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.html")
                 },
                 CompilationOptions = new OeCompilationOptions {
-                    CompilableFilePattern = OeBuilderConstants.CompilableExtensionsPattern,
+                    CompilableFileExtensionPattern = OeBuilderConstants.CompilableExtensionsPattern,
                     ForceSingleProcess = false,
                     TryToOptimizeCompilationDirectory = false,
                     MinimumNumberOfFilesPerProcess = 10,

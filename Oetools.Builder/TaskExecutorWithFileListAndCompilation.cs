@@ -36,6 +36,22 @@ using Oetools.Utilities.Openedge.Execution.Exceptions;
 namespace Oetools.Builder {
        
     public class TaskExecutorWithFileListAndCompilation : TaskExecutorWithFileList {
+        
+        private IEnumerable<IOeTask> _tasks;
+
+        public override IEnumerable<IOeTask> Tasks {
+            get => _tasks;
+            set {
+                _tasks = value;
+                if (_tasks != null) {
+                    foreach (var task in _tasks) {
+                        if (task is IOeTaskCompile taskCompile) {
+                            taskCompile.SetFileExtensionFilter(Properties?.CompilationOptions?.CompilableFileExtensionPattern ?? OeCompilationOptions.GetDefaultCompilableFileExtensionPattern());
+                        }
+                    }
+                }
+            }
+        }
 
         public List<UoeCompiledFile> CompiledFiles { get; private set; }
         

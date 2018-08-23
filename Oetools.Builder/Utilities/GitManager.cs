@@ -29,6 +29,8 @@ namespace Oetools.Builder.Utilities {
     
     public class GitManager {
         
+        public ILogger Log { protected get; set; }
+        
         public GitManager() {
             GitExe = new ProcessIo("git") {
                 WorkingDirectory = Directory.GetCurrentDirectory()

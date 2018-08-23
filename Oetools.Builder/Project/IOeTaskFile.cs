@@ -23,19 +23,19 @@ using Oetools.Builder.History;
 
 namespace Oetools.Builder.Project {
     
-    public interface IOeTaskFile : IOeTaskFilter {
+    public interface IOeTaskFile : IOeTaskFilter, IOeTaskFileBuilder {
         
         /// <summary>
-        /// 
+        /// Execute the task for a set of files
         /// </summary>
         /// <remarks>
-        /// Every files passed to that method should either be added to a listed returned by <see cref="GetFilesBuilt"/>
-        /// or the task should publish an exception with <see cref="IOeTask.PublishException"/>
+        /// - Every files passed to that method will be added to a listed returned by <see cref="IOeTaskFileBuilder.GetFilesBuilt"/> (if no exceptions)
+        /// - This method should throw <see cref="TaskExecutionException"/> if needed
+        /// - This method can publish warnings using <see cref="OeTask.AddExecutionWarning"/>
         /// </remarks>
         /// <param name="files"></param>
+        /// <exception cref="TaskExecutionException"></exception>
         void ExecuteForFiles(IEnumerable<IOeFileToBuildTargetFile> files);
-
-        List<OeFileBuilt> GetFilesBuilt();
 
         /// <summary>
         /// Given the inclusion wildcard paths and exclusion patterns, returns a list of files on which to apply this task

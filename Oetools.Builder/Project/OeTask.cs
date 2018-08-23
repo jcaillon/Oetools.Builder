@@ -60,6 +60,14 @@ namespace Oetools.Builder.Project {
             }
         }
 
+        /// <summary>
+        /// Executes the task
+        /// </summary>
+        /// <remarks>
+        /// - This method should throw <see cref="TaskExecutionException"/> if needed
+        /// - This method can publish warnings using <see cref="OeTask.AddExecutionWarning"/>
+        /// </remarks>
+        /// <exception cref="TaskExecutionException"></exception>
         protected virtual void ExecuteInternal() {
             throw new NotImplementedException();
         }

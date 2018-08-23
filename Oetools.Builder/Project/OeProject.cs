@@ -85,7 +85,7 @@ namespace Oetools.Builder.Project {
         /// Returns an initialized project with default properties
         /// </summary>
         /// <returns></returns>
-        public static OeProject GetDefaultProject() {
+        public static OeProject GetStandardProject() {
             var output = new OeProject {
                 GlobalProperties = new OeProperties {
                     BuildOptions = new OeBuildOptions {

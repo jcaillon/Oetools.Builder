@@ -17,20 +17,155 @@
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
+using Oetools.Builder.Project;
+using Oetools.Builder.Utilities;
+using Oetools.Utilities.Lib;
 using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Test {
     
     [TestClass]
     public class BuilderTest {
+        
+        private static string _testFolder;
 
+        private static string TestFolder => _testFolder ?? (_testFolder = TestHelper.GetTestFolder(nameof(BuilderTest)));
+                     
+        [ClassInitialize]
+        public static void Init(TestContext context) {
+            Cleanup();
+            Utils.CreateDirectoryIfNeeded(TestFolder);
+        }
+
+
+        [ClassCleanup]
+        public static void Cleanup() {
+            Utils.DeleteDirectoryIfExists(TestFolder, true);
+        }
+        
         [TestMethod]
-        public void Builder_Test_() {
+        public void Builder_Source_Test() {
+            var sourceDirectory = Path.Combine(TestFolder, "source1");
+            Utils.CreateDirectoryIfNeeded(sourceDirectory);
+            var builder = new Builder(new OeBuildConfiguration {
+            });
+            builder.SourceDirectory = sourceDirectory;
             
+        }
+        
+        /// <summary>
+        /// Tests that we get what we need in <see cref="Builder.BuildHistory"/> for <see cref="OeBuildHistory.CompilationProblems"/>
+        /// </summary>
+        [TestMethod]
+        public void Builder_History_Compiled_Files_Test() {
+            var sourceDirectory = Path.Combine(TestFolder, "source1");
+            Utils.CreateDirectoryIfNeeded(sourceDirectory);
+            File.WriteAllText(Path.Combine(sourceDirectory, "file1.p"), "quit."); // compile ok
+            File.WriteAllText(Path.Combine(sourceDirectory, "file2.w"), "quit. quit."); // compile with warnings
+            File.WriteAllText(Path.Combine(sourceDirectory, "file3.p"), "nof..sense, will not compile"); // compile with errors
+
+            var builder = new Builder(new OeBuildConfiguration {
+                BuildSourceTasks = new List<OeBuildStepCompile> {
+                    new OeBuildStepCompile {
+                        Tasks = new List<OeTask> {
+                            new OeTaskFileTargetFileCompile { Include = "**" }
+                        }
+                    },
+                    new OeBuildStepCompile {
+                        Tasks = new List<OeTask> {
+                            new OeTaskFileTargetFileCopy { Include = "**" }
+                        }
+                    }
+                }
+            }) {
+                SourceDirectory = sourceDirectory
+            };
+
+            Assert.AreEqual(true, builder.BuildConfiguration.Properties.IncrementalBuildOptions.Enabled); 
+            Assert.AreEqual(false, builder.FullRebuild);
+
+            try {
+                builder.Build();
+                Assert.Fail("The build should fail");
+            } catch (BuilderException e) {
+                Assert.AreEqual(typeof(TaskExecutorException), e.InnerException.GetType());
+            }
+            
+            //var pb = builder.BuildHistory.CompilationProblems.ToList();
+            //
+            //Assert.AreEqual(5, pb.Count);
+            
+            builder.Dispose();            
+            
+        }
+        
+        private class OeTaskFileTargetFileCompile : OeTaskFileTargetFileCopy, IOeTaskCompile { }
+        
+        private class OeTaskFileTargetFileCopy : OeTaskFileTargetFile {
+            protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) { }
+            public override void Validate() { }
+            
+        }
+        
+        [TestMethod]
+        public void GetDeletedFileList_Test() {
+            var sourceDirectory = Path.Combine(TestFolder, "source_deleted");
+            Utils.CreateDirectoryIfNeeded(sourceDirectory);
+            File.WriteAllText(Path.Combine(sourceDirectory, "file1"), "");
+            
+            var deletedFiles = Builder.GetDeletedFileList(new List<OeFileBuilt> {
+                new OeFileBuilt {
+                    SourceFilePath = Path.Combine(sourceDirectory, "file1")
+                },
+                new OeFileBuilt {
+                    SourceFilePath = Path.Combine(sourceDirectory, "file2")
+                },
+                new OeFileBuilt {
+                    SourceFilePath = Path.Combine(sourceDirectory, "file3"),
+                    State = OeFileState.Deleted
+                }
+            });
+            
+            Assert.AreEqual(1, deletedFiles.Count);
+            Assert.AreEqual(Path.Combine(sourceDirectory, "file2"), deletedFiles[0].SourceFilePath);
+
+        }
+        
+        [TestMethod]
+        public void Builder_Test_Cancel() {
+            var builder = new Builder(new OeBuildConfiguration {
+                PreBuildTasks = new List<OeBuildStepClassic> {
+                    new OeBuildStepClassic {
+                        Tasks = new List<OeTask> {
+                            new TaskWaitForCancel()
+                        }
+                    }
+                }
+            });
+            
+            Task.Factory.StartNew(() => {
+                Thread.Sleep(1000);
+                builder.Cancel();
+            });
+
+            Exception ex = null;
+            try {
+                builder.Build();
+            } catch (OperationCanceledException e) {
+                ex = e;
+            }
+            
+            Assert.IsNotNull(ex);
         }
         
         [TestMethod]
@@ -121,6 +256,14 @@ namespace Oetools.Builder.Test {
 
         }
 
+        private class TaskWaitForCancel : OeTask {
+            protected override void ExecuteInternal() {
+                Log?.Debug("");
+                CancelSource.Token.WaitHandle.WaitOne();
+                CancelSource.Token.ThrowIfCancellationRequested();
+            }
+        }
+        
         private class EnvExecution2 : UoeExecutionEnv {
             
             public override Dictionary<string, string> TablesCrc => TablesCrcSet;

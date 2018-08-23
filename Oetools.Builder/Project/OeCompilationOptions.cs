@@ -18,35 +18,37 @@
 // ========================================================================
 #endregion
 using System;
+using System.Runtime.CompilerServices;
 using System.Xml.Serialization;
 
 namespace Oetools.Builder.Project {
+    
     [Serializable]
     public class OeCompilationOptions {
 
         [XmlElement(ElementName = "CompileWithDebugList")]
         public bool? CompileWithDebugList { get; set; }
-        internal static bool GetDefaultCompileWithDebugList() => false;
+        public static bool GetDefaultCompileWithDebugList() => false;
 
         [XmlElement(ElementName = "CompileWithXmlXref")]
         public bool? CompileWithXmlXref { get; set; }
-        internal static bool GetDefaultCompileWithXmlXref() => false;
+        public static bool GetDefaultCompileWithXmlXref() => false;
 
         [XmlElement(ElementName = "CompileWithXref")]
         public bool? CompileWithXref { get; set; }
-        internal static bool GetDefaultCompileWithXref() => false;
+        public static bool GetDefaultCompileWithXref() => false;
 
         [XmlElement(ElementName = "CompileWithListing")]
         public bool? CompileWithListing { get; set; }
-        internal static bool GetDefaultCompileWithListing() => false;
+        public static bool GetDefaultCompileWithListing() => false;
 
         [XmlElement(ElementName = "CompileWithPreprocess")]
         public bool? CompileWithPreprocess { get; set; }
-        internal static bool GetDefaultCompileWithPreprocess() => false;
+        public static bool GetDefaultCompileWithPreprocess() => false;
 
         [XmlElement(ElementName = "UseCompilerMultiCompile")]
         public bool? UseCompilerMultiCompile { get; set; }
-        internal static bool GetDefaultUseCompilerMultiCompile() => false;
+        public static bool GetDefaultUseCompilerMultiCompile() => false;
 
         /// <summary>
         /// only since 11.7 : require-full-names, require-field-qualifiers, require-full-keywords
@@ -62,28 +64,28 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlElement(ElementName = "TryToOptimizeCompilationDirectory")]
         public bool? TryToOptimizeCompilationDirectory { get; set; }
-        internal static bool GetDefaultTryToOptimizeCompilationDirectory() => false;
+        public static bool GetDefaultTryToOptimizeCompilationDirectory() => false;
 
-        [XmlElement(ElementName = "CompilableFilePattern")]
-        public string CompilableFilePattern { get; set; }
-        internal static string GetDefaultCompilableFilePattern() => "*.p;*.cls;*.w;*.t";
+        [XmlElement(ElementName = "CompilableFileExtensionPattern")]
+        public string CompilableFileExtensionPattern { get; set; }
+        public static string GetDefaultCompilableFileExtensionPattern() => "*.p;*.cls;*.w;*.t";
                 
         [XmlElement(ElementName = "ForceSingleProcess")]
         public bool? ForceSingleProcess { get; set; }
-        internal static bool GetDefaultForceSingleProcess() => false;
+        public static bool GetDefaultForceSingleProcess() => false;
 
         public static int GetNumberOfProcessesToUse(OeCompilationOptions compilationOptions) => compilationOptions?.ForceSingleProcess ?? GetDefaultForceSingleProcess() ? 1 : Math.Max(1, Environment.ProcessorCount * (compilationOptions?.NumberProcessPerCore ?? GetDefaultNumberProcessPerCore()));
 
         [XmlElement(ElementName = "NumberProcessPerCore")]
         public byte? NumberProcessPerCore { get; set; }
-        internal static byte GetDefaultNumberProcessPerCore() => 1;
+        public static byte GetDefaultNumberProcessPerCore() => 1;
 
         [XmlElement(ElementName = "MinimumNumberOfFilesPerProcess")]
         public int? MinimumNumberOfFilesPerProcess { get; set; }
-        internal static int GetDefaultMinimumNumberOfFilesPerProcess() => 10;
+        public static int GetDefaultMinimumNumberOfFilesPerProcess() => 10;
             
         [XmlElement(ElementName = "UseSimplerAnalysisForDatabaseReference")]
         public bool? UseSimplerAnalysisForDatabaseReference { get; set; }
-        internal static bool GetDefaultUseSimplerAnalysisForDatabaseReference() => false;
+        public static bool GetDefaultUseSimplerAnalysisForDatabaseReference() => false;
     }
 }

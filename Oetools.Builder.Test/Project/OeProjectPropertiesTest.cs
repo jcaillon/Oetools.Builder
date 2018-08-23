@@ -45,7 +45,19 @@ namespace Oetools.Builder.Test.Project {
         public static void Cleanup() {
             Utils.DeleteDirectoryIfExists(TestFolder, true);
         }
-        
+
+
+        [TestMethod]
+        public void SetDefaultValues_Test() {
+            var prop = new OeProperties();
+            prop.SetDefaultValues();
+            Assert.AreEqual(prop.DlcDirectoryPath, OeProperties.GetDefaultDlcDirectoryPath());
+            Assert.AreEqual(prop.BuildOptions.TreatWarningsAsErrors, OeBuildOptions.GetDefaultTreatWarningsAsErrors());
+            Assert.AreEqual(prop.SourceToBuildGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch, OeGitFilter.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch());
+            Assert.AreEqual(prop.IncrementalBuildOptions.MirrorDeletedSourceFileToOutput, OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput());
+            Assert.AreEqual(prop.CompilationOptions.CompileWithDebugList, OeCompilationOptions.GetDefaultCompileWithDebugList());
+        }
+
         [TestMethod]
         public void GetPropath_Test() {
             

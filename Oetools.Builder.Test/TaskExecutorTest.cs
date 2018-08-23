@@ -60,11 +60,8 @@ namespace Oetools.Builder.Test {
             taskExecutor.Execute();
         }
 
-        private bool _cancelled;
-        
         [TestMethod]
         public void TaskExecutor_Test_cancel() {
-            _cancelled = false;
             var taskExecutor = new TaskExecutor();
             CancellationTokenSource cancelSource = new CancellationTokenSource();
             taskExecutor.CancelSource = cancelSource;
@@ -74,15 +71,16 @@ namespace Oetools.Builder.Test {
             
             Task.Factory.StartNew(() => {
                 Thread.Sleep(1000);
-                _cancelled = true;
                 cancelSource.Cancel();
             });
 
+            Exception ex = null;
             try {
                 taskExecutor.Execute();
-            } catch (OperationCanceledException) {
+            } catch (OperationCanceledException e) {
+                ex = e;
             }
-            Assert.IsTrue(_cancelled);
+            Assert.IsNotNull(ex);
         }
 
 
@@ -184,6 +182,7 @@ namespace Oetools.Builder.Test {
             }
             public void SetFileExtensionFilter(string filter) {
                 IsFileFilter = true;
+                PublishException?.Invoke(null, null);
             }
             public List<TaskExecutionException> GetExceptionList() => null;
         }
@@ -213,6 +212,7 @@ namespace Oetools.Builder.Test {
             public event EventHandler<TaskExceptionEventArgs> PublishException;
             public void SetCancelSource(CancellationTokenSource cancelSource) {
                 _cancelSource = cancelSource;
+                PublishException?.Invoke(null, null);
             }
             public List<TaskExecutionException> GetExceptionList() => null;
         }
