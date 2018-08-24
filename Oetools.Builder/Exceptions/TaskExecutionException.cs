@@ -20,6 +20,7 @@
 
 using System;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Task;
 
 namespace Oetools.Builder.Exceptions {
     public class TaskExecutionException : BuilderException {
@@ -33,6 +34,6 @@ namespace Oetools.Builder.Exceptions {
             Task = task;
         }
         
-        public override string Message => $"{Task?.ToString() ?? ""} : {base.Message ?? ""}";
+        public override string Message => $"{Task?.ToString() ?? "Unknown task"} : {base.Message ?? ""}";
     }
 }

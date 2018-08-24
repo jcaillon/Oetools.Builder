@@ -20,6 +20,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Task;
 
 namespace Oetools.Builder.Test.Project {
     
@@ -75,7 +76,7 @@ namespace Oetools.Builder.Test.Project {
             targetTask.TargetFilePath = "{{1}}file.{{3}}";
 
             Assert.AreEqual(1, targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Count);
-            Assert.IsTrue(targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Exists(s => s.GetTargetFilePath().Equals(@"C:\folder\file.txt")));
+            Assert.IsTrue(targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Exists(s => s.GetTargetPath().Equals(@"C:\folder\file.txt")));
 
         }
 

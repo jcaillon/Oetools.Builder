@@ -85,7 +85,7 @@ namespace Oetools.Builder.Test.History {
                                 TargetPackFilePath = @"D:\initialtarget\targetcab1",
                                 RelativeTargetFilePath = ""
                             },
-                            new OeTargetProlib {
+                            new OeTargetArchiveProlib {
                                 TargetPackFilePath = @"D:\initialtarget\targetprolib1",
                                 RelativeTargetFilePath = ""
                             },
@@ -115,10 +115,10 @@ namespace Oetools.Builder.Test.History {
             Assert.AreEqual(@"E:\newsource\source1", loadedHistory.BuiltFiles[0].SourceFilePath);
             Assert.AreEqual(@"E:\newsource\include3", ((OeFileBuiltCompiled)loadedHistory.BuiltFiles[1]).RequiredFiles[0]);
             Assert.AreEqual(@"E:\newsource\include4", ((OeFileBuiltCompiled)loadedHistory.BuiltFiles[1]).RequiredFiles[1]);
-            Assert.AreEqual(@"F:\newtarget\target1", loadedHistory.BuiltFiles[0].Targets[0].GetTargetFilePath());
-            Assert.AreEqual(@"F:\newtarget\targetcab1", loadedHistory.BuiltFiles[0].Targets[1].GetTargetFilePath());
-            Assert.AreEqual(@"F:\newtarget\targetprolib1", loadedHistory.BuiltFiles[0].Targets[2].GetTargetFilePath());
-            Assert.AreEqual(@"F:\newtarget\targetzip1", loadedHistory.BuiltFiles[0].Targets[3].GetTargetFilePath());
+            Assert.AreEqual(@"F:\newtarget\target1", loadedHistory.BuiltFiles[0].Targets[0].GetTargetPath());
+            Assert.AreEqual(@"F:\newtarget\targetcab1", loadedHistory.BuiltFiles[0].Targets[1].GetTargetPath());
+            Assert.AreEqual(@"F:\newtarget\targetprolib1", loadedHistory.BuiltFiles[0].Targets[2].GetTargetPath());
+            Assert.AreEqual(@"F:\newtarget\targetzip1", loadedHistory.BuiltFiles[0].Targets[3].GetTargetPath());
         }
         
     }

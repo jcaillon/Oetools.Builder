@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using Oetools.Builder.Project.Task;
 using Oetools.Builder.Resources;
 using Oetools.Utilities.Lib;
 

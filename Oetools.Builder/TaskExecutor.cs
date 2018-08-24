@@ -25,8 +25,8 @@ using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
-using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder {
@@ -37,7 +37,9 @@ namespace Oetools.Builder {
         
         internal int Id { get; set; }
         
-        public virtual IEnumerable<IOeTask> Tasks { get; set; }
+        public bool TestMode { get; set; }
+        
+        public IEnumerable<IOeTask> Tasks { get; set; }
 
         public ILogger Log { protected get; set; }
 
@@ -55,26 +57,40 @@ namespace Oetools.Builder {
         /// Executes all the tasks
         /// </summary>
         /// <exception cref="TaskExecutorException"></exception>
-        public virtual void Execute() {
+        public void Execute() {
             if (Tasks == null) {
                 return;
             }
+            try {
+                Log?.Debug("Injecting task properties");
+                foreach (var task in Tasks) {
+                    InjectPropertiesInTask(task);
+                }
+                ExecuteInternal();
+            } catch (OperationCanceledException) {
+                throw;
+            } catch (TaskExecutorException) {
+                throw;
+            } catch (Exception e) {
+                throw new TaskExecutorException(this, e.Message, e);
+            }
+        }
+
+        protected virtual void ExecuteInternal() {
             foreach (var task in Tasks) {
-                Log?.Info($"Injecting task properties for {task}");
-                InjectPropertiesInTask(task);
-                
                 CancelSource?.Token.ThrowIfCancellationRequested();
                 try {
-                    task.PublishException += TaskOnPublishException;
-                    
-                    Log?.Info($"Executing task {task}");
+                    task.PublishWarning += TaskOnPublishException;
+                    Log?.Info($"Starting task {task}");
                     ExecuteTask(task);
                 } catch (OperationCanceledException) {
                     throw;
+                } catch (TaskExecutionException e) {
+                    throw new TaskExecutorException(this, e.Message, e);
                 } catch (Exception e) {
-                    throw new TaskExecutorException(this, $"Unexpected exception when executing {task.ToString().PrettyQuote()} : {e.Message}", e);
+                    throw new TaskExecutorException(this, $"Unexpected exception : {task} : {e.Message}", e);
                 } finally {
-                    task.PublishException -= TaskOnPublishException;
+                    task.PublishWarning -= TaskOnPublishException;
                 }
             }
         }
@@ -83,8 +99,8 @@ namespace Oetools.Builder {
         /// Executes a single task
         /// </summary>
         /// <param name="task"></param>
-        /// <exception cref="TaskExecutorException"></exception>
-        protected virtual void ExecuteTask(IOeTask task) {
+        /// <exception cref="TaskExecutionException"></exception>
+        private void ExecuteTask(IOeTask task) {
             switch (task) {
                 case IOeTaskFile taskOnFiles:
                     taskOnFiles.ExecuteForFiles(GetFilesReadyForTaskExecution(taskOnFiles, GetTaskFiles(taskOnFiles)));
@@ -101,9 +117,11 @@ namespace Oetools.Builder {
         /// <param name="task"></param>
         protected virtual void InjectPropertiesInTask(IOeTask task) {
             task.SetLog(Log);
+            task.SetTestMode(TestMode);
             task.SetCancelSource(CancelSource);
             if (task is IOeTaskCompile taskCompile) {
                 taskCompile.SetFileExtensionFilter(Properties?.CompilationOptions?.CompilableFileExtensionPattern ?? OeCompilationOptions.GetDefaultCompilableFileExtensionPattern());
+                taskCompile.SetProperties(Properties);
             }
         }
 
@@ -114,17 +132,24 @@ namespace Oetools.Builder {
         /// <param name="initialFiles"></param>
         /// <returns></returns>
         protected virtual IEnumerable<IOeFileToBuildTargetFile> GetFilesReadyForTaskExecution(IOeTaskFile task, List<OeFile> initialFiles) {
-            if (task is IOeTaskFileTargetFile taskWithTargetFiles) {
-                foreach (var file in initialFiles) {
-                    file.TargetsFiles = taskWithTargetFiles.GetFileTargets(file.SourcePathForTaskExecution, BaseTargetDirectory);
-                }
-            }
-            if (task is IOeTaskFileTargetArchive taskWithTargetArchives) {
-                foreach (var file in initialFiles) {
-                    file.TargetsArchives = taskWithTargetArchives.GetFileTargets(file.SourcePathForTaskExecution, BaseTargetDirectory);
-                }
-            }
+            SetFilesTargets(task, initialFiles, BaseTargetDirectory);
             return initialFiles;
+        }
+
+        internal static void SetFilesTargets(IOeTask task, List<OeFile> initialFiles, string baseTargetDirectory) {
+            switch (task) {
+                case IOeTaskFileTargetFile taskWithTargetFiles:
+                    foreach (var file in initialFiles.Where(file => file.TargetsFiles == null)) {
+                        file.TargetsFiles = taskWithTargetFiles.GetFileTargets(file.SourceFilePath, baseTargetDirectory);
+                    }
+
+                    break;
+                case IOeTaskFileTargetArchive taskWithTargetArchives:
+                    foreach (var file in initialFiles.Where(file => file.TargetsArchives == null)) {
+                        file.TargetsArchives = taskWithTargetArchives.GetFileTargets(file.SourceFilePath, baseTargetDirectory);
+                    }
+                    break;
+            }
         }
 
         /// <summary>
@@ -133,13 +158,15 @@ namespace Oetools.Builder {
         /// <param name="task"></param>
         /// <returns></returns>
         protected virtual List<OeFile> GetTaskFiles(IOeTaskFile task) {
+            Log?.Debug("Gets the list of files on which to apply this task from path inclusion");
             return task.GetIncludedFiles();
         }
         
-        private void TaskOnPublishException(object sender, TaskExceptionEventArgs e) {
-            // if error, cancel the whole execution
-            if (!e.IsWarning || ThrowIfWarning) {
-                CancelSource.Cancel();
+        private void TaskOnPublishException(object sender, TaskWarningEventArgs e) {
+            var publishedException = new TaskExecutorException(this, e.Exception.Message, e.Exception);
+            Log?.Warn($"Task warning : {publishedException.Message}", publishedException);
+            if (ThrowIfWarning) {
+                throw e.Exception;
             }
         }
 

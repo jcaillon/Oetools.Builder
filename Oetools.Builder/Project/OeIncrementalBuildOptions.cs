@@ -46,5 +46,14 @@ namespace Oetools.Builder.Project {
         [XmlElement(ElementName = "MirrorDeletedSourceFileToOutput")]
         public bool? MirrorDeletedSourceFileToOutput { get; set; }
         public static bool GetDefaultMirrorDeletedSourceFileToOutput() => false;
+            
+        /// <summary>
+        /// If a target has been deleted or added since the last build, should we try to apply those modifications
+        /// by default, if a file was not modified, we just don't build it, even if its targets have changed
+        /// also, if a file is modified and we changed its targets since the last build, 
+        /// </summary>
+        [XmlElement(ElementName = "MirrorDeletedAndNewTargetsToOutput")]
+        public bool? MirrorDeletedAndNewTargetsToOutput { get; set; }
+        public static bool GetDefaultMirrorDeletedAndNewTargetsToOutput() => false;
     }
 }

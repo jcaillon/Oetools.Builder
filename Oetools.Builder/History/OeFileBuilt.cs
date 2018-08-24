@@ -19,6 +19,7 @@
 #endregion
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Attributes;
@@ -39,9 +40,11 @@ namespace Oetools.Builder.History {
         [DeepCopy(Ignore = true)]
         [XmlArray("Targets")]
         [XmlArrayItem("Copied", typeof(OeTargetFileCopy))]
-        [XmlArrayItem("Prolibed", typeof(OeTargetProlib))]
+        [XmlArrayItem("Prolibed", typeof(OeTargetArchiveProlib))]
         [XmlArrayItem("Zipped", typeof(OeTargetArchiveZip))]
         [XmlArrayItem("Cabbed", typeof(OeTargetArchiveCab))]
         public List<OeTarget> Targets { get; set; }
+
+        public override IEnumerable<OeTarget> GetAllTargets() => Targets;
     }
 }

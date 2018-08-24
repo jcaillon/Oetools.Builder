@@ -11,4 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Oetools.Builder\Oetools.Builder.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Project\Task" />
+  </ItemGroup>
 </Project>

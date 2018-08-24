@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Openedge.Execution;
@@ -94,12 +95,12 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(true, builder.BuildConfiguration.Properties.IncrementalBuildOptions.Enabled); 
             Assert.AreEqual(false, builder.FullRebuild);
 
-            try {
-                builder.Build();
-                Assert.Fail("The build should fail");
-            } catch (BuilderException e) {
-                Assert.AreEqual(typeof(TaskExecutorException), e.InnerException.GetType());
-            }
+            //try {
+            //    builder.Build();
+            //    Assert.Fail("The build should fail because file3.p does not compile");
+            //} catch (BuilderException e) {
+            //    Assert.AreEqual(typeof(TaskExecutorException), e.InnerException.GetType());
+            //}
             
             //var pb = builder.BuildHistory.CompilationProblems.ToList();
             //
@@ -108,37 +109,45 @@ namespace Oetools.Builder.Test {
             builder.Dispose();            
             
         }
-        
-        private class OeTaskFileTargetFileCompile : OeTaskFileTargetFileCopy, IOeTaskCompile { }
-        
-        private class OeTaskFileTargetFileCopy : OeTaskFileTargetFile {
-            protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) { }
+
+        private class OeTaskFileTargetZipCompile : OeTaskFileTargetArchive, IOeTaskCompile {
+            private IEnumerable<OeFile> executeFiles;
+            public void SetCompiledFiles(List<UoeCompiledFile> compiledFile) { CompiledFiles = compiledFile; }
+            public void SetProperties(OeProperties properties) { }
+            public List<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
+            private List<UoeCompiledFile> CompiledFiles { get; set; }
+            protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetArchive> files) {
+                executeFiles = files.Cast<OeFile>();
+            }
             public override void Validate() { }
-            
+            protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
+            public override IEnumerable<OeFileBuilt> GetFilesBuilt() => executeFiles?.Select(f => {
+                var fileBuilt = new OeFileBuilt(f) {
+                    Targets = f.GetAllTargets().ToList()
+                };
+                return fileBuilt;
+            });
+        }
+
+        private class OeTaskFileTargetFileCompile : OeTaskFileTargetFileCopy, IOeTaskCompile {
+            public void SetProperties(OeProperties properties) { }
+            public void SetCompiledFiles(List<UoeCompiledFile> compiledFile) { CompiledFiles = compiledFile; }
+            public List<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
+            private List<UoeCompiledFile> CompiledFiles { get; set; }
         }
         
-        [TestMethod]
-        public void GetDeletedFileList_Test() {
-            var sourceDirectory = Path.Combine(TestFolder, "source_deleted");
-            Utils.CreateDirectoryIfNeeded(sourceDirectory);
-            File.WriteAllText(Path.Combine(sourceDirectory, "file1"), "");
-            
-            var deletedFiles = Builder.GetDeletedFileList(new List<OeFileBuilt> {
-                new OeFileBuilt {
-                    SourceFilePath = Path.Combine(sourceDirectory, "file1")
-                },
-                new OeFileBuilt {
-                    SourceFilePath = Path.Combine(sourceDirectory, "file2")
-                },
-                new OeFileBuilt {
-                    SourceFilePath = Path.Combine(sourceDirectory, "file3"),
-                    State = OeFileState.Deleted
-                }
+        private class OeTaskFileTargetFileCopy : OeTaskFileTargetFile {
+            private IEnumerable<OeFile> executeFiles;
+            protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
+                executeFiles = files.Cast<OeFile>();
+            }
+            public override void Validate() { }
+            public override IEnumerable<OeFileBuilt> GetFilesBuilt() => executeFiles?.Select(f => {
+                var fileBuilt = new OeFileBuilt(f) {
+                    Targets = f.GetAllTargets().ToList()
+                };
+                return fileBuilt;
             });
-            
-            Assert.AreEqual(1, deletedFiles.Count);
-            Assert.AreEqual(Path.Combine(sourceDirectory, "file2"), deletedFiles[0].SourceFilePath);
-
         }
         
         [TestMethod]
@@ -161,11 +170,11 @@ namespace Oetools.Builder.Test {
             Exception ex = null;
             try {
                 builder.Build();
-            } catch (OperationCanceledException e) {
+            } catch (BuilderException e) {
                 ex = e;
             }
-            
             Assert.IsNotNull(ex);
+            Assert.AreEqual(typeof(OperationCanceledException), ex.InnerException.GetType());
         }
         
         [TestMethod]

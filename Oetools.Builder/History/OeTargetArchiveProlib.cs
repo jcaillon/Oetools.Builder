@@ -24,5 +24,7 @@ using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.History {
     [Serializable]
-    public class OeTargetProlib : OeTargetArchive { }
+    public class OeTargetArchiveProlib : OeTargetArchive {
+        
+    }
 }

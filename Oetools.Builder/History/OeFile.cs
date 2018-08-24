@@ -20,10 +20,10 @@
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
-using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Attributes;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.History {
     
@@ -81,6 +81,8 @@ namespace Oetools.Builder.History {
         [XmlIgnore]
         [DeepCopy(Ignore = true)]
         public List<OeTargetFile> TargetsFiles { get; set; }
+
+        public virtual IEnumerable<OeTarget> GetAllTargets() => TargetsArchives.UnionHandleNull<OeTarget>(TargetsFiles);
         
         public OeFile GetDeepCopy() {
             return (OeFile) Utils.DeepCopyPublicProperties(this, typeof(OeFile));

@@ -24,6 +24,7 @@ using System.Linq;
 using System.Threading;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
+using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib;

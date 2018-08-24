@@ -79,7 +79,7 @@ namespace Oetools.Builder {
         }
         
         private void OutputHistory(string outputHistoryFilePath) {
-            if (BuildHistory == null || BuildSourceTaskExecutors == null) {
+            if (BuildHistory == null) {
                 return;
             }
             // BuildHistory

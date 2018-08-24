@@ -23,5 +23,7 @@ using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.History {
     [Serializable]
-    public class OeTargetFileCopy : OeTargetFile { }
+    public class OeTargetFileCopy : OeTargetFile {
+        
+    }
 }

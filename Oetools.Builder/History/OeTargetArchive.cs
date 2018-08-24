@@ -17,16 +17,14 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-using System;
+
 using System.IO;
 using System.Xml.Serialization;
-using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
 
 namespace Oetools.Builder.History {
     
-    [Serializable]
-    public class OeTargetArchive : OeTarget {
+    public abstract class OeTargetArchive : OeTarget {
         
         /// <summary>
         /// Relative path inside the archive
@@ -41,6 +39,6 @@ namespace Oetools.Builder.History {
         [BaseDirectory(Type = BaseDirectoryType.OutputDirectory)]
         public string TargetPackFilePath { get; set; }
         
-        public override string GetTargetFilePath() => Path.Combine(TargetPackFilePath, RelativeTargetFilePath);
+        public override string GetTargetPath() => Path.Combine(TargetPackFilePath, RelativeTargetFilePath);
     }
 }

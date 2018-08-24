@@ -53,6 +53,13 @@ namespace Oetools.Builder.Project {
         public bool? StopBuildOnCompilationError { get; set; }
         public static bool GetDefaultStopBuildOnCompilationError() => true;
         
+        /// <summary>
+        /// Should the build be stopped if a file compiles with warnings
+        /// </summary>
+        [XmlElement(ElementName = "StopBuildOnCompilationWarning")]
+        public bool? StopBuildOnCompilationWarning { get; set; }
+        public static bool GetDefaultStopBuildOnCompilationWarning() => true;
+        
         [XmlElement(ElementName = "ShutdownCompilationDatabasesAfterBuild")]
         public bool? ShutdownCompilationDatabasesAfterBuild { get; set; }
         public static bool GetDefaultShutdownCompilationDatabasesAfterBuild() => true;

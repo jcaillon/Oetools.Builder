@@ -26,10 +26,10 @@ using System.Runtime.CompilerServices;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Task;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Execution;
-using Oetools.Utilities.Openedge.Execution.Exceptions;
 
 [assembly: InternalsVisibleTo("Oetools.Builder.Test")]
 
@@ -37,38 +37,19 @@ namespace Oetools.Builder {
        
     public class TaskExecutorWithFileListAndCompilation : TaskExecutorWithFileList {
         
-        private IEnumerable<IOeTask> _tasks;
-
-        public override IEnumerable<IOeTask> Tasks {
-            get => _tasks;
-            set {
-                _tasks = value;
-                if (_tasks != null) {
-                    foreach (var task in _tasks) {
-                        if (task is IOeTaskCompile taskCompile) {
-                            taskCompile.SetFileExtensionFilter(Properties?.CompilationOptions?.CompilableFileExtensionPattern ?? OeCompilationOptions.GetDefaultCompilableFileExtensionPattern());
-                        }
-                    }
-                }
-            }
-        }
-
-        public List<UoeCompiledFile> CompiledFiles { get; private set; }
-        
-        public List<UoeExecutionException> CompilerHandledExceptions { get; private set; }
-        
         public int CompilerNumberOfProcessesUsed { get; private set; }
         
-        public string SourceDirectory { get; set; }
+        public string SourceDirectory { private get; set; }
         
         private UoeExecutionParallelCompile _compiler;
 
-        public override void Execute() {
-            Log?.Info("Compiling files from all tasks");
-            CompileFiles();
-            CheckCompiledFiles();
+        private List<UoeCompiledFile> _compiledFiles;
+
+        protected override void ExecuteInternal() {
             try {
-                base.Execute();
+                Log?.Info("Compiling files from all tasks");
+                CompileFiles();
+                base.ExecuteInternal();
             } finally {
                 _compiler?.Dispose();
             }
@@ -103,44 +84,28 @@ namespace Oetools.Builder {
             _compiler.Start();
             _compiler.WaitForExecutionEnd();
             
-            CompiledFiles = _compiler.CompiledFiles;
+            _compiledFiles = _compiler.CompiledFiles;
             CompilerNumberOfProcessesUsed = _compiler.TotalNumberOfProcesses;
 
             if (_compiler.ExecutionFailed || _compiler.ExecutionHandledExceptions) {
-                CompilerHandledExceptions = _compiler.HandledExceptions;
+                var compilerException = new CompilerException(_compiler.HandledExceptions);
                 if (_compiler.ExecutionFailed || ThrowIfWarning) {
-                    throw new TaskExecutorException(this, $"The compiler threw exceptions :\n- {string.Join("\n- ", _compiler.HandledExceptions?.Select(e => e.Message) ?? new List<string>())}");
+                    throw new TaskExecutorException(this, $"The compiler threw exceptions :{compilerException.Message}", compilerException);
                 }
             }
         }
 
-        /// <summary>
-        /// Checks that all the files compiled correctly, can throw an exception if not
-        /// </summary>
-        /// <exception cref="TaskExecutorException"></exception>
-        private void CheckCompiledFiles() {
-            if (CompiledFiles == null) {
-                return;
-            }
-            
-            foreach (var file in CompiledFiles) {
-                if (file.CompiledCorrectly) {
-                    continue;     
-                }
-                if (!ThrowIfWarning && file.CompiledWithWarnings) {
-                    continue;
-                }
-                var stopBuildOnCompilationError = Properties?.BuildOptions?.StopBuildOnCompilationError ?? OeBuildOptions.GetDefaultStopBuildOnCompilationError();
-                if (!stopBuildOnCompilationError) {
-                    continue;
-                }
-                throw new TaskExecutorException(this, $"The source file {file.SourceFilePath.PrettyQuote()} was not compiled correctly");
-            }
-        }
-        
         private void OnExecutionCancel() {
             Log?.Debug("Cancel request, killing compilation processes");
             _compiler?.KillProcess();
+        }
+
+        protected override IEnumerable<IOeFileToBuildTargetFile> GetFilesReadyForTaskExecution(IOeTaskFile task, List<OeFile> initialFiles) {
+            if (task is IOeTaskCompile taskCompile) {
+                Log?.Debug("Associate the list of compiled files for the task");
+                taskCompile.SetCompiledFiles(_compiledFiles?.Where(cf => initialFiles.Exists(f => f.SourceFilePath.Equals(cf.SourceFilePath))).ToList());
+            }
+            return base.GetFilesReadyForTaskExecution(task, initialFiles);
         }
 
         /// <summary>
@@ -220,25 +185,6 @@ namespace Oetools.Builder {
             }
 
             return filesToCompile;
-        }
-
-        protected override IEnumerable<IOeFileToBuildTargetFile> GetFilesReadyForTaskExecution(IOeTaskFile task, List<OeFile> initialFiles) {
-            if (task is IOeTaskCompile) {
-                var i = 0;
-                while (i < initialFiles.Count) {
-                    var file = initialFiles[i];
-                    var compiledFile = CompiledFiles?.FirstOrDefault(cf => cf.SourceFilePath.Equals(file.SourceFilePath));
-                    if (compiledFile != null && (compiledFile.CompiledCorrectly || compiledFile.CompiledWithWarnings)) {
-                        file.SourcePathForTaskExecution = compiledFile.CompilationRcodeFilePath;
-                    } else {
-                        // the file didn't compile, we delete it from the list
-                        initialFiles.RemoveAt(i);
-                        continue;
-                    }
-                    i++;
-                }
-            }
-            return base.GetFilesReadyForTaskExecution(task, initialFiles);
         }
     }
 }

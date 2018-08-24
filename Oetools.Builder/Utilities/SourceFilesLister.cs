@@ -26,6 +26,7 @@ using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Task;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 

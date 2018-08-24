@@ -17,11 +17,12 @@
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-using System.IO;
+
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
-using Oetools.Builder.Project;
+using Oetools.Builder.History;
+using Oetools.Builder.Project.Task;
 
 namespace Oetools.Builder.Test.Project {
     
@@ -53,7 +54,7 @@ namespace Oetools.Builder.Test.Project {
             task.RelativeTargetDirectory = "dir";
             
             Assert.AreEqual(1, task.GetFileTargets(@"C:\folder\source.txt", @"D:\").ToList().Count);
-            var list = task.GetFileTargets(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetFilePath()).ToList();
+            var list = task.GetFileTargets(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetPath()).ToList();
             Assert.IsTrue(list.Exists(s => s.Equals(@"D:\archive.pack\dir\source.txt")));
             
             task.RelativeTargetFilePath = @"dir\newfilename";
@@ -69,7 +70,7 @@ namespace Oetools.Builder.Test.Project {
             task.RelativeTargetFilePath = "{{1}}file.{{3}}";
             task.RelativeTargetDirectory = null;
 
-            list = task.GetFileTargets(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetFilePath()).ToList();
+            list = task.GetFileTargets(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetPath()).ToList();
             Assert.AreEqual(2, list.Count);
             Assert.IsTrue(list.Exists(s => s.Equals(@"D:\archive.pack\folder\file.txt")));
             Assert.IsTrue(list.Exists(s => s.Equals(@"C:\arc.txt\folder\file.txt")), "we expect to have /arc converted into C:\\");
@@ -78,6 +79,7 @@ namespace Oetools.Builder.Test.Project {
         private class OeTaskOnFilesTargetsArchives2 : OeTaskFileTargetArchive {
             public override string GetTargetArchive() => ArchivePath;
             public string ArchivePath { get; set; }
+            protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
         }
         
     }

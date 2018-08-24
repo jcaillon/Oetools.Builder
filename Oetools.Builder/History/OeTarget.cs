@@ -17,10 +17,24 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-namespace Oetools.Builder.History {
-    public abstract class OeTarget {
 
-        public virtual string GetTargetFilePath() => null;
+using System.Xml.Serialization;
+
+namespace Oetools.Builder.History {
+    
+    public abstract class OeTarget {
+        
+        /// <summary>
+        /// if true, it means this target was actually a deletion; otherwise it was a creation
+        /// </summary>
+        [XmlAttribute("DeletionMode")]
+        public int DeletionMode { get; set; }
+
+        public bool IsDeletionMode() => DeletionMode == 1;
+        
+        public void SetDeletionMode() => DeletionMode = 1;
+
+        public virtual string GetTargetPath() => null;
 
     }
 }

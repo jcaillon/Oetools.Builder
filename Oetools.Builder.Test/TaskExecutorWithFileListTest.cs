@@ -23,6 +23,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Task;
 
 namespace Oetools.Builder.Test {
     
@@ -53,10 +54,10 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(2, task1.Files.Count, "only file1.ext and file3 were included");
             var taskTargets = task1.Files.SelectMany(f => f.TargetsFiles).ToList();
             Assert.AreEqual(4, taskTargets.Count, "we expect 4 targets");
-            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetFilePath().Equals(@"C:\outputdir\relative\file1.ext")));
-            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetFilePath().Equals(@"C:\outputdir\relative\file3.ext")));
-            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetFilePath().Equals(@"C:\newfile")));
-            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetFilePath().Equals(@"C:\newfile")));
+            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(@"C:\outputdir\relative\file1.ext")));
+            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(@"C:\outputdir\relative\file3.ext")));
+            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(@"C:\newfile")));
+            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(@"C:\newfile")));
         }
         
         private class TaskOnFile : OeTaskFileTargetFile {

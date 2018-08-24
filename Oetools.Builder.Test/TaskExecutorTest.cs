@@ -28,8 +28,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Test {
     
@@ -83,24 +85,52 @@ namespace Oetools.Builder.Test {
             Assert.IsNotNull(ex);
         }
 
-
         [TestMethod]
-        public void TaskExecutor_Test_cancel_on_exception() {
-            var taskExecutor = new TaskExecutor();
-            CancellationTokenSource cancelSource = new CancellationTokenSource();
-            taskExecutor.CancelSource = cancelSource;
-            taskExecutor.Tasks = new List<IOeTask> {
-                new TaskExceptionAndWaitForCancel()
+        public void TaskExecutor_Test_task_warning() {
+            var taskExecutor = new TaskExecutor {
+                Tasks = new List<IOeTask> {
+                    new TaskWarning()
+                }
             };
-            Assert.IsFalse(cancelSource.IsCancellationRequested);
-            OperationCanceledException e = null;
+            TaskExecutorException e = null;
             try {
                 taskExecutor.Execute();
-            } catch (OperationCanceledException ex) {
+            } catch (TaskExecutorException ex) {
+                e = ex;
+            }
+            Assert.IsNull(e);
+            Assert.IsNotNull(taskExecutor.Tasks.ToList()[0].GetExceptionList());
+            Assert.AreEqual(1, taskExecutor.Tasks.ToList()[0].GetExceptionList().Count);
+
+            // TreatWarningsAsErrors
+            
+            taskExecutor.Properties = new OeProperties {
+                BuildOptions = new OeBuildOptions {
+                    TreatWarningsAsErrors = true
+                }
+            };
+            try {
+                taskExecutor.Execute();
+            } catch (TaskExecutorException ex) {
                 e = ex;
             }
             Assert.IsNotNull(e);
-            Assert.IsTrue(cancelSource.IsCancellationRequested);
+        }
+
+        [TestMethod]
+        public void TaskExecutor_Test_task_exception() {
+            var taskExecutor = new TaskExecutor {
+                Tasks = new List<IOeTask> {
+                    new TaskException()
+                }
+            };
+            TaskExecutorException e = null;
+            try {
+                taskExecutor.Execute();
+            } catch (TaskExecutorException ex) {
+                e = ex;
+            }
+            Assert.IsNotNull(e);
         }
 
         [TestMethod]
@@ -109,6 +139,9 @@ namespace Oetools.Builder.Test {
             Assert.IsFalse(task.IsCancelSourceSet);
             Assert.IsFalse(task.IsLogSet);
             Assert.IsFalse(task.IsFileFilter);
+            Assert.IsFalse(task.IsTestSet);
+            Assert.IsFalse(task.IsFilesCompiledSet);
+            Assert.IsFalse(task.IsPropertySet);
             var taskExecutor = new TaskExecutor();
             taskExecutor.Tasks = new List<IOeTask> {
                 task
@@ -117,6 +150,9 @@ namespace Oetools.Builder.Test {
             Assert.IsTrue(task.IsCancelSourceSet);
             Assert.IsTrue(task.IsLogSet);
             Assert.IsTrue(task.IsFileFilter);
+            Assert.IsTrue(task.IsTestSet);
+            Assert.IsTrue(task.IsPropertySet);
+            Assert.IsFalse(task.IsFilesCompiledSet);
         }
         
 
@@ -148,8 +184,8 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(2, task2.Files.Count, "we expect 2 files here");
             var task2Targets = task2.Files.SelectMany(f => f.TargetsArchives).ToList();
             Assert.AreEqual(2, task2Targets.Count, "we expect 2 targets");
-            Assert.IsTrue(task2Targets.Exists(t => t.GetTargetFilePath().Equals($"{baseDir}\\archive.zip\\newfile1")));
-            Assert.IsTrue(task2Targets.Exists(t => t.GetTargetFilePath().Equals($"{baseDir}\\archive.zip\\newfile2.ext")));
+            Assert.IsTrue(task2Targets.Exists(t => t.GetTargetPath().Equals($"{baseDir}\\archive.zip\\newfile1")));
+            Assert.IsTrue(task2Targets.Exists(t => t.GetTargetPath().Equals($"{baseDir}\\archive.zip\\newfile2.ext")));
         }
 
         private class TaskOnFile : OeTaskFileTargetFile {
@@ -166,40 +202,53 @@ namespace Oetools.Builder.Test {
             }
             public override string GetTargetArchive() => Archive;
             public string Archive { get; set; }
+            protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
         }
         
         private class TaskInjectionTest : IOeTask, IOeTaskCompile {
             public bool IsLogSet { get; private set; }
             public bool IsCancelSourceSet { get; private set; }
             public bool IsFileFilter { get; private set; }
+            public bool IsTestSet { get; private set; }
+            public bool IsFilesCompiledSet { get; private set; }
+            public bool IsPropertySet { get; private set; }
             public void Execute() { }
             public void SetLog(ILogger log) {
                 IsLogSet = true; 
             }
-            public event EventHandler<TaskExceptionEventArgs> PublishException;
+            public void SetProperties(OeProperties properties) {
+                IsPropertySet = true;
+            }
+            public void SetTestMode(bool testMode) {
+                IsTestSet = true;
+            }
+            public event EventHandler<TaskWarningEventArgs> PublishWarning;
             public void SetCancelSource(CancellationTokenSource cancelSource) {
                 IsCancelSourceSet = true;
             }
             public void SetFileExtensionFilter(string filter) {
                 IsFileFilter = true;
-                PublishException?.Invoke(null, null);
+                PublishWarning?.Invoke(null, null);
             }
+            public void SetCompiledFiles(List<UoeCompiledFile> compiledFile) {
+                IsFilesCompiledSet = true;
+            }
+            public List<UoeCompiledFile> GetCompiledFiles() => null;
             public List<TaskExecutionException> GetExceptionList() => null;
         }
         
-        private class TaskExceptionAndWaitForCancel : IOeTask {
-            private CancellationTokenSource _cancelSource;
-            public void Execute() {
-                PublishException?.Invoke(this, new TaskExceptionEventArgs(false, new TaskExecutionException(null, "oups!")));
-                _cancelSource.Token.WaitHandle.WaitOne();
-                _cancelSource.Token.ThrowIfCancellationRequested();
+        private class TaskException : OeTask {
+            public override void Validate() { }
+            protected override void ExecuteInternal() {
+                AddExecutionError(new TaskExecutionException(this, "oups!"));
             }
-            public void SetLog(ILogger log) {}
-            public event EventHandler<TaskExceptionEventArgs> PublishException;
-            public void SetCancelSource(CancellationTokenSource cancelSource) {
-                _cancelSource = cancelSource;
+        }
+        
+        private class TaskWarning : OeTask {
+            public override void Validate() { }
+            protected override void ExecuteInternal() {
+                AddExecutionWarning(new TaskExecutionException(this, "oups warning!"));
             }
-            public List<TaskExecutionException> GetExceptionList() => null;
         }
         
         private class TaskWaitForCancel : IOeTask {
@@ -209,10 +258,13 @@ namespace Oetools.Builder.Test {
                 _cancelSource.Token.ThrowIfCancellationRequested();
             }
             public void SetLog(ILogger log) {}
-            public event EventHandler<TaskExceptionEventArgs> PublishException;
+            public void SetTestMode(bool testMode) { }
+            public void SetThrowIfWarning(bool throwIfWarning) {}
+
+            public event EventHandler<TaskWarningEventArgs> PublishWarning;
             public void SetCancelSource(CancellationTokenSource cancelSource) {
                 _cancelSource = cancelSource;
-                PublishException?.Invoke(null, null);
+                PublishWarning?.Invoke(null, null);
             }
             public List<TaskExecutionException> GetExceptionList() => null;
         }

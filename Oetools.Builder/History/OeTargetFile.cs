@@ -24,8 +24,7 @@ using Oetools.Builder.Utilities.Attributes;
 
 namespace Oetools.Builder.History {
     
-    [Serializable]
-    public class OeTargetFile : OeTarget {
+    public abstract class OeTargetFile : OeTarget {
         
         /// <summary>
         /// Target file path
@@ -34,6 +33,6 @@ namespace Oetools.Builder.History {
         [BaseDirectory(Type = BaseDirectoryType.OutputDirectory)]
         public string TargetFilePath { get; set; }
         
-        public override string GetTargetFilePath() => TargetFilePath;
+        public override string GetTargetPath() => TargetFilePath;
     }
 }

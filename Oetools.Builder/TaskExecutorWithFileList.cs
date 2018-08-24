@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Task;
 
 namespace Oetools.Builder {
     
@@ -42,6 +43,7 @@ namespace Oetools.Builder {
         protected override string BaseTargetDirectory => OutputDirectory;
 
         protected override List<OeFile> GetTaskFiles(IOeTaskFile task) {
+            Log?.Debug("Gets the list of files on which to apply this task from input files list");
             return TaskFiles.Where(f => task.IsFilePassingFilter(f.SourceFilePath)).ToList();
         }
        
