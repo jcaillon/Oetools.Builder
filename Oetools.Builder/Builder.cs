@@ -39,21 +39,10 @@ namespace Oetools.Builder {
     public class Builder : IDisposable {
 
         public ILogger Log { protected get; set; }
-
-        public string SourceDirectory {
-            get => _sourceDirectory;
-            set =>_sourceDirectory = value.ToCleanPath();
-        }
-        
-        public bool TestMode { get; set; }
-
-        public bool FullRebuild { get; set; }
-
+      
         public OeBuildConfiguration BuildConfiguration { get; }
 
         public OeBuildHistory BuildHistory { get; private set; }
-
-        public UoeExecutionEnv Env { get; set; }
 
         public List<OeFileBuilt> PreviouslyBuiltFiles { get; set; }
 
@@ -61,15 +50,20 @@ namespace Oetools.Builder {
         
         public CancellationTokenSource CancelSource { get; } = new CancellationTokenSource();
 
+        private string BuildTemporaryDirectory { get; set; }
+
         protected bool UseIncrementalBuild => BuildConfiguration.Properties.IncrementalBuildOptions.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled();
 
-        protected bool StoreSourceHash => BuildConfiguration.Properties.IncrementalBuildOptions?.StoreSourceHash ?? OeIncrementalBuildOptions.GetDefaultStoreSourceHash();
+        private bool StoreSourceHash => BuildConfiguration.Properties.IncrementalBuildOptions?.StoreSourceHash ?? OeIncrementalBuildOptions.GetDefaultStoreSourceHash();
         
-        protected bool MirrorDeletedSourceFileToOutput => BuildConfiguration.Properties.IncrementalBuildOptions?.MirrorDeletedSourceFileToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput();
+        private bool MirrorDeletedSourceFileToOutput => BuildConfiguration.Properties.IncrementalBuildOptions?.MirrorDeletedSourceFileToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput();
         
-        protected bool MirrorDeletedAndNewTargetsToOutput => BuildConfiguration.Properties.IncrementalBuildOptions?.MirrorDeletedAndNewTargetsToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedAndNewTargetsToOutput();
+        private bool MirrorDeletedAndNewTargetsToOutput => BuildConfiguration.Properties.IncrementalBuildOptions?.MirrorDeletedAndNewTargetsToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedAndNewTargetsToOutput();
+
+        protected string SourceDirectory => BuildConfiguration.Properties.BuildOptions?.SourceDirectoryPath;
         
-        private string _sourceDirectory;
+        public bool FullRebuild => BuildConfiguration.Properties.BuildOptions?.FullRebuild ?? OeBuildOptions.GetDefaultFullRebuild();
+        
 
         /// <summary>
         /// Initiliaze the build
@@ -88,16 +82,13 @@ namespace Oetools.Builder {
         }
 
         private void ConstructorInitialization() {
-            if (string.IsNullOrEmpty(SourceDirectory)) {
-                SourceDirectory = Directory.GetCurrentDirectory();
-            }
             BuildConfiguration.Properties = BuildConfiguration.Properties ?? new OeProperties();
             BuildConfiguration.Properties.SetDefaultValues();
             BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath = BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath ?? OeBuilderConstants.GetDefaultOutputDirectory(SourceDirectory);
         }
 
         public void Dispose() {
-            Utils.DeleteDirectoryIfExists(Env?.TempDirectory, true);
+            Utils.DeleteDirectoryIfExists(BuildTemporaryDirectory, true);
         }
         
         /// <summary>
@@ -140,7 +131,8 @@ namespace Oetools.Builder {
             });
             
             Log?.Debug($"Initializing build with {BuildConfiguration}");
-            Env = Env ?? BuildConfiguration.Properties.GetOeExecutionEnvironment(SourceDirectory, CancelSource);
+            BuildConfiguration.Properties.SetCancellationSource(CancelSource);
+            BuildTemporaryDirectory = BuildConfiguration.Properties.GetEnv().TempDirectory;
             
             Log?.Debug("Validating build configuration");
             BuildConfiguration.Validate();
@@ -151,7 +143,7 @@ namespace Oetools.Builder {
             Log?.Debug("Sanitizing path properties");
             BuildConfiguration.Properties.SanitizePathInPublicProperties();
         }
-        
+
         protected virtual void PostBuild() {
             if (UseIncrementalBuild) {
                 BuildHistory = GetBuildHistory();
@@ -192,10 +184,8 @@ namespace Oetools.Builder {
                         Id = i,
                         Tasks = step.GetTaskList(),
                         Properties = BuildConfiguration.Properties,
-                        Env = Env,
                         Log = Log,
-                        CancelSource = CancelSource,
-                        TestMode = TestMode
+                        CancelSource = CancelSource
                     };
                     taskExecutorConfigurator?.Invoke(executor);
                     TaskExecutors.Add(executor);
@@ -206,16 +196,13 @@ namespace Oetools.Builder {
         }
 
         private void TaskExecutorConfiguratorBuildOutput(TaskExecutorWithFileList executor) {
-            executor.OutputDirectory = BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath;
-            var sourceLister = new SourceFilesLister(executor.OutputDirectory, CancelSource) {
+            var sourceLister = new SourceFilesLister(BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, CancelSource) {
                 Log = Log
             };
             executor.TaskFiles = sourceLister.GetFileList();
         }
 
         private void TaskExecutorConfiguratorBuildSource(TaskExecutorWithFileListAndCompilation executor) {
-            executor.OutputDirectory = BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath;
-            executor.SourceDirectory = SourceDirectory;
             executor.TaskFiles = GetSourceFilesToRebuild(out List<OeFile> unfilteredSourceFilesList);
 
             List<IOeTask> extraRemoverTasks = null;
@@ -339,7 +326,7 @@ namespace Oetools.Builder {
 
             // add the files that need to be rebuild because of a dependency or table CRC modification
             if (PreviouslyBuiltFiles != null) {
-                var extraFilesToRebuild = GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(Env, output, PreviouslyBuiltFiles.Where(f => f is OeFileBuiltCompiled).Cast<OeFileBuiltCompiled>().ToList());
+                var extraFilesToRebuild = GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification(BuildConfiguration.Properties.GetEnv(), output, PreviouslyBuiltFiles.Where(f => f is OeFileBuiltCompiled).Cast<OeFileBuiltCompiled>().ToList());
                 foreach (var oeFile in sourceLister.FilterSourceFiles(extraFilesToRebuild)) {
                     if (!output.Exists(f => f.SourceFilePath.Equals(oeFile.SourceFilePath, StringComparison.CurrentCultureIgnoreCase)) && File.Exists(oeFile.SourceFilePath)) {
                         output.Add(oeFile);

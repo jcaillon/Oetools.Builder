@@ -32,8 +32,7 @@ namespace Oetools.Builder.Exceptions {
             HandledExceptions = handledExceptions;
         }
         
+        public override string Message => $"Compiler exception{(HandledExceptions != null && HandledExceptions.Count > 0 ? $" :\n- {string.Join("\n- ", HandledExceptions.Select(e => e.Message))}" : "")}";
         
-
-        public override string Message => string.Join("\n- ", HandledExceptions?.Select(e => e.Message) ?? new List<string>());
     }
 }

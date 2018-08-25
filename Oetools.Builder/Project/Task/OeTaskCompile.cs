@@ -22,43 +22,31 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge;
 using Oetools.Utilities.Openedge.Execution;
+using Oetools.Utilities.Openedge.Execution.Exceptions;
 
 namespace Oetools.Builder.Project.Task {
     
     public static class OeTaskCompile {
 
-        public static List<UoeCompiledFile> CompileFiles(OeProperties properties, List<UoeCompiledFile> compiledFiles, ref List<OeFile> files) {
+        public static List<UoeCompiledFile> CompileFiles(OeProperties properties, List<UoeCompiledFile> compiledFiles, ref List<OeFile> files, CancellationTokenSource cancelSource) {
+            
+            // compile the files if needed
             if (compiledFiles == null) {
-                throw new NotImplementedException("Implement this case, we need to compile the files first");
+                compiledFiles = CompileFiles(properties, files.Select(f => new UoeFileToCompile(f.SourceFilePath) { FileSize = f.Size }).ToList(), cancelSource);
             }
             
-            var stopBuildOnCompilationError = properties?.BuildOptions?.StopBuildOnCompilationError ?? OeBuildOptions.GetDefaultStopBuildOnCompilationError();
-            var stopBuildOnCompilationWarning = properties?.BuildOptions?.StopBuildOnCompilationWarning ?? OeBuildOptions.GetDefaultStopBuildOnCompilationWarning();
-            
-            foreach (var file in compiledFiles) {
-                if (file.CompiledCorrectly) {
-                    continue;     
-                }
-                if (!stopBuildOnCompilationError) {
-                    continue;
-                }
-                if (!stopBuildOnCompilationWarning && file.CompiledWithWarnings) {
-                    continue;
-                }
-                throw new TaskCompileException($"The source file {file.SourceFilePath.PrettyQuote()} was not compiled correctly", file.CompilationErrors);
-            }
-            
+            // change the source file to copy from, and change the target extensions
             var i = 0;
             while (i < files.Count) {
                 var file = files[i];
                 var compiledFile = compiledFiles.FirstOrDefault(cf => cf.SourceFilePath.Equals(file.SourceFilePath));
                 if (compiledFile != null && (compiledFile.CompiledCorrectly || compiledFile.CompiledWithWarnings)) {
-                    // change the source file to copy from, and change the target extensions
                     file.SourcePathForTaskExecution = compiledFile.CompilationRcodeFilePath;
                     foreach (var targetFile in file.TargetsFiles.ToNonNullList()) {
                         targetFile.TargetFilePath = Path.ChangeExtension(targetFile.TargetFilePath, UoeConstants.ExtR);
@@ -75,6 +63,32 @@ namespace Oetools.Builder.Project.Task {
             }
             
             return compiledFiles;
+        }
+
+        public static List<UoeCompiledFile> CompileFiles(OeProperties properties, List<UoeFileToCompile> files, CancellationTokenSource cancelSource) {
+            if (files == null || files.Count == 0) {
+                return new List<UoeCompiledFile>();
+            }
+            if (properties == null) {
+                throw new ArgumentNullException(nameof(properties));
+            }
+            using (var compiler = properties.GetParallelCompiler(properties.BuildOptions?.SourceDirectoryPath)) {
+                compiler.FilesToCompile = files;
+
+                compiler.Start();
+                compiler.WaitForExecutionEnd(cancelSource: cancelSource);
+                if (cancelSource?.IsCancellationRequested ?? false) {
+                    compiler.KillProcess();
+                    compiler.WaitForExecutionEnd();
+                }
+                if (compiler.ExecutionFailed || compiler.ExecutionHandledExceptions) {
+                    if (compiler.HandledExceptions.Exists(e => e is UoeExecutionCompilationStoppedException) || compiler.ExecutionFailed || (properties.BuildOptions?.TreatWarningsAsErrors ?? OeBuildOptions.GetDefaultTreatWarningsAsErrors())) {
+                        throw new CompilerException(compiler.HandledExceptions);
+                    }
+                }
+                return compiler.CompiledFiles;
+            }
+
         }
     }
 }

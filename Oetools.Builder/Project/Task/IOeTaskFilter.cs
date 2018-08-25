@@ -22,6 +22,7 @@ using System.Collections.Generic;
 
 namespace Oetools.Builder.Project.Task {
     public interface IOeTaskFilter : IOeTask {
+        
         List<string> GetRegexIncludeStrings();
         List<string> GetRegexExcludeStrings();
         List<string> GetIncludeStrings();

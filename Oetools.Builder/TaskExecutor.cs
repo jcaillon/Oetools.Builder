@@ -27,7 +27,6 @@ using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
-using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder {
     
@@ -37,21 +36,17 @@ namespace Oetools.Builder {
         
         internal int Id { get; set; }
         
-        public bool TestMode { get; set; }
-        
         public IEnumerable<IOeTask> Tasks { get; set; }
 
         public ILogger Log { protected get; set; }
-
-        public UoeExecutionEnv Env { get; set; }
         
         public OeProperties Properties { get; set; }
 
         protected virtual string BaseTargetDirectory => null;
 
-        public CancellationTokenSource CancelSource { get; set; }
+        public CancellationTokenSource CancelSource { protected get; set; }
         
-        public bool ThrowIfWarning => Properties?.BuildOptions?.TreatWarningsAsErrors ?? OeBuildOptions.GetDefaultTreatWarningsAsErrors();
+        protected bool ThrowIfWarning => Properties?.BuildOptions?.TreatWarningsAsErrors ?? OeBuildOptions.GetDefaultTreatWarningsAsErrors();
 
         /// <summary>
         /// Executes all the tasks
@@ -117,7 +112,7 @@ namespace Oetools.Builder {
         /// <param name="task"></param>
         protected virtual void InjectPropertiesInTask(IOeTask task) {
             task.SetLog(Log);
-            task.SetTestMode(TestMode);
+            task.SetTestMode(Properties?.BuildOptions?.TestMode ?? OeBuildOptions.GetDefaultTestMode());
             task.SetCancelSource(CancelSource);
             if (task is IOeTaskCompile taskCompile) {
                 taskCompile.SetFileExtensionFilter(Properties?.CompilationOptions?.CompilableFileExtensionPattern ?? OeCompilationOptions.GetDefaultCompilableFileExtensionPattern());
@@ -136,7 +131,7 @@ namespace Oetools.Builder {
             return initialFiles;
         }
 
-        internal static void SetFilesTargets(IOeTask task, List<OeFile> initialFiles, string baseTargetDirectory) {
+        internal static void SetFilesTargets(IOeTask task, IEnumerable<OeFile> initialFiles, string baseTargetDirectory) {
             switch (task) {
                 case IOeTaskFileTargetFile taskWithTargetFiles:
                     foreach (var file in initialFiles.Where(file => file.TargetsFiles == null)) {
@@ -170,6 +165,6 @@ namespace Oetools.Builder {
             }
         }
 
-        public override string ToString() => $"{Name} step {Id}";
+        public override string ToString() => $"{(!string.IsNullOrEmpty(Name) ? $"{Name} ": "")}step {Id}";
     }
 }

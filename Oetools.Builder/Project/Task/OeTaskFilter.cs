@@ -35,6 +35,17 @@ namespace Oetools.Builder.Project.Task {
         /// <summary>
         /// ; are authorized
         /// </summary>
+        /// <remarks>
+        ///     Allows to tranform a matching string using **, * and ? (wildcards) into a valid regex expression
+        ///     it escapes regex special char so it will work as you expect!
+        ///     Ex: foo*.xls? will become ^foo.*\.xls.$
+        ///     - ** matches any char any nb of time (greedy match! allows to do stuff like C:\((**))((*)).txt)
+        ///     - * matches only non path separators any time
+        ///     - ? matches non path separators 1 time
+        ///     - (( will be transformed into open capturing parenthesis
+        ///     - )) will be transformed into close capturing parenthesis
+        ///     - || will be transformed into |
+        /// </remarks>
         [XmlAttribute(AttributeName = "Exclude")]
         public string Exclude {
             get => _exclude;
@@ -47,6 +58,17 @@ namespace Oetools.Builder.Project.Task {
         /// <summary>
         /// Separate different path with ; if a file is matched with several include path, only the first one is used
         /// </summary>
+        /// <remarks>
+        ///     Allows to tranform a matching string using **, * and ? (wildcards) into a valid regex expression
+        ///     it escapes regex special char so it will work as you expect!
+        ///     Ex: foo*.xls? will become ^foo.*\.xls.$
+        ///     - ** matches any char any nb of time (greedy match! allows to do stuff like C:\((**))((*)).txt)
+        ///     - * matches only non path separators any time
+        ///     - ? matches non path separators 1 time
+        ///     - (( will be transformed into open capturing parenthesis
+        ///     - )) will be transformed into close capturing parenthesis
+        ///     - || will be transformed into |
+        /// </remarks>
         [XmlAttribute(AttributeName = "Include")]
         public string Include {
             get => _include;

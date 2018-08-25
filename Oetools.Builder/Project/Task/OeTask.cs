@@ -66,7 +66,7 @@ namespace Oetools.Builder.Project.Task {
             } catch (TaskExecutionException) {
                 throw;
             } catch (Exception e) {
-                AddExecutionError(new TaskExecutionException(this, $"Unexpected error : {e.Message}", e));
+                AddExecutionErrorAndThrow(new TaskExecutionException(this, $"Unexpected error : {e.Message}", e));
             }
         }
 
@@ -98,11 +98,20 @@ namespace Oetools.Builder.Project.Task {
             return _exceptions;
         }
 
-        protected void AddExecutionError(TaskExecutionException exception) {
+        /// <summary>
+        /// Don't use this method, directly throw an <see cref="TaskExecutionException"/> instead
+        /// </summary>
+        /// <param name="exception"></param>
+        /// <exception cref="TaskExecutionException"></exception>
+        protected void AddExecutionErrorAndThrow(TaskExecutionException exception) {
             (_exceptions ?? (_exceptions = new List<TaskExecutionException>())).Add(exception);
             throw exception;
         }
 
+        /// <summary>
+        /// Call this method to publish a warning in the task
+        /// </summary>
+        /// <param name="exception"></param>
         protected void AddExecutionWarning(TaskExecutionException exception) {
             (_exceptions ?? (_exceptions = new List<TaskExecutionException>())).Add(exception);
             PublishWarning?.Invoke(this, new TaskWarningEventArgs(exception));

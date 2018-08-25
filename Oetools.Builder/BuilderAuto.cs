@@ -45,8 +45,9 @@ namespace Oetools.Builder {
                 var projectDbConnectionStrings = dbAdmin.SetupProjectDatabases();
                 if (projectDbConnectionStrings != null && projectDbConnectionStrings.Count > 0) {
                     Log?.Debug("Adding project databases connection strings to the execution environment");
-                    Env.DatabaseConnectionString = $"{Env.DatabaseConnectionString ?? ""} {string.Join(" ", projectDbConnectionStrings)}";
-                    Log?.Debug($"The connection string is now {Env.DatabaseConnectionString}");
+                    var env = BuildConfiguration.Properties.GetEnv();
+                    env.DatabaseConnectionString = $"{env.DatabaseConnectionString ?? ""} {string.Join(" ", projectDbConnectionStrings)}";
+                    Log?.Debug($"The connection string is now {env.DatabaseConnectionString}");
                 }
             }
         }

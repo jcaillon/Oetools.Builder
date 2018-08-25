@@ -39,6 +39,10 @@ namespace Oetools.Builder.Test.Project {
 
             task.RelativeTargetDirectory = "cool";
             
+            Assert.ThrowsException<TaskValidationException>(() => task.Validate());
+
+            task.ArchivePath = "needed as well";
+            
             task.Validate();
         }
         
@@ -80,6 +84,7 @@ namespace Oetools.Builder.Test.Project {
             public override string GetTargetArchive() => ArchivePath;
             public string ArchivePath { get; set; }
             protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
+            public override string GetTargetArchivePropertyName() => nameof(ArchivePath);
         }
         
     }

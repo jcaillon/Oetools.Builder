@@ -29,6 +29,12 @@ namespace Oetools.Builder.Project.Task {
     [Serializable]
     [XmlRoot("CompileInCab")]
     public class OeTaskFileTargetArchiveCompileCab : OeTaskFileTargetArchiveCab, IOeTaskCompile {
+
+        private OeProperties ProjectProperties { get; set; }
+        
+        private List<UoeCompiledFile> CompiledFiles { get; set; }
+
+        public List<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
         
         public void SetCompiledFiles(List<UoeCompiledFile> compiledFile) {
             CompiledFiles = compiledFile;
@@ -38,15 +44,9 @@ namespace Oetools.Builder.Project.Task {
             ProjectProperties = properties;
         }
 
-        private OeProperties ProjectProperties { get; set; }
-
-        public List<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
-
-        private List<UoeCompiledFile> CompiledFiles { get; set; }
-
         protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetArchive> files) {
             var filesToBuild = files.Cast<OeFile>().ToList();
-            CompiledFiles = OeTaskCompile.CompileFiles(ProjectProperties, CompiledFiles, ref filesToBuild);
+            CompiledFiles = OeTaskCompile.CompileFiles(ProjectProperties, CompiledFiles, ref filesToBuild, CancelSource);
             base.ExecuteForFilesInternal(filesToBuild);
         }
     }

@@ -110,20 +110,11 @@ namespace Oetools.Builder.Project.Task {
             } catch (TaskExecutionException) {
                 throw;
             } catch (Exception e) {
-                AddExecutionError(new TaskExecutionException(this, $"Unexpected error : {e.Message}", e));
+                AddExecutionErrorAndThrow(new TaskExecutionException(this, $"Unexpected error : {e.Message}", e));
             }
         }
 
-        /// <summary>
-        /// The method to override to handle the execution of this task
-        /// </summary>
-        /// <remarks>
-        /// - Every files passed to that method will be added to a listed returned by <see cref="IOeTaskFileBuilder.GetFilesBuilt"/> (if no exceptions)
-        /// - This method should throw <see cref="TaskExecutionException"/> if needed
-        /// - This method can publish warnings using <see cref="OeTask.AddExecutionWarning"/>
-        /// </remarks>
-        /// <param name="files"></param>
-        /// <exception cref="TaskExecutionException"></exception>
+        /// <inheritdoc cref="IOeTaskFile.ExecuteForFiles"/>
         protected virtual void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
             throw new NotImplementedException();
         }

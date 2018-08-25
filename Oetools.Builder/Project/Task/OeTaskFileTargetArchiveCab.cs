@@ -45,6 +45,8 @@ namespace Oetools.Builder.Project.Task {
 
         public override string GetTargetArchive() => TargetCabFilePath;
         
+        public override string GetTargetArchivePropertyName() => nameof(TargetCabFilePath);
+
         protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveCab();
     }
 }

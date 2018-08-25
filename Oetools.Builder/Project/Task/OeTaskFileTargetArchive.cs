@@ -56,16 +56,14 @@ namespace Oetools.Builder.Project.Task {
         /// </summary>
         /// <returns></returns>
         public virtual string GetTargetArchive() => throw new NotImplementedException();
+        
+        public virtual string GetTargetArchivePropertyName() => throw new NotImplementedException();
 
         protected sealed override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
             ExecuteForFilesInternal(files.ToList().Cast<IOeFileToBuildTargetArchive>());
         }
 
-        /// <summary>
-        /// The method to override to handle the execution of this task
-        /// </summary>
-        /// <param name="files"></param>
-        /// <exception cref="NotImplementedException"></exception>
+        /// <inheritdoc cref="IOeTaskFile.ExecuteForFiles"/>
         protected virtual void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetArchive> files) {
             throw new NotImplementedException();
         }
@@ -73,6 +71,9 @@ namespace Oetools.Builder.Project.Task {
         public override void Validate() {
             if (string.IsNullOrEmpty(RelativeTargetFilePath) && string.IsNullOrEmpty(RelativeTargetDirectory)) {
                 throw new TaskValidationException(this, $"This task needs the following properties to be defined : {GetType().GetXmlName(nameof(RelativeTargetFilePath))} and/or {GetType().GetXmlName(nameof(RelativeTargetDirectory))}");
+            }
+            if (string.IsNullOrEmpty(GetTargetArchive())) {
+                throw new TaskValidationException(this, $"This task needs the following propertiy to be defined : {GetType().GetXmlName(GetTargetArchivePropertyName())}");
             }
             CheckTargetPath((RelativeTargetFilePath?.Split(';')).UnionHandleNull(RelativeTargetDirectory?.Split(';')));
             CheckTargetPath(GetTargetArchive()?.Split(';'));

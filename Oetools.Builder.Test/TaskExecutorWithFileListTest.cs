@@ -39,7 +39,11 @@ namespace Oetools.Builder.Test {
                     new OeFile { SourceFilePath = @"C:\sourcedir\file2.ext" },
                     new OeFile { SourceFilePath = @"C:\sourcedir\file3.ext" }
                 },
-                OutputDirectory = @"C:\outputdir"
+                Properties = new OeProperties {
+                    BuildOptions = new OeBuildOptions {
+                        OutputDirectoryPath = @"C:\outputdir"
+                    }
+                }
             };
             var task1 = new TaskOnFile {
                 Include = @"C:\sourcedir**",

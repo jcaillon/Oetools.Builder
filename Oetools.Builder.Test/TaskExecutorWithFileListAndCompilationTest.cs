@@ -18,6 +18,7 @@
 // ========================================================================
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -27,7 +28,6 @@ using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
 using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Test {
@@ -67,13 +67,11 @@ namespace Oetools.Builder.Test {
             };
             var taskExecutor = new TaskExecutorWithFileListAndCompilation {
                 TaskFiles = taskFiles,
-                OutputDirectory = Path.Combine(TestFolder, "source2", "bin"),
-                SourceDirectory = sourceDir,
                 Properties = new OeProperties {
-                    BuildOptions = new OeBuildOptions()
-                },
-                Env = new UoeExecutionEnv {
-                    UseProgressCharacterMode = true
+                    BuildOptions = new OeBuildOptions {
+                        OutputDirectoryPath = Path.Combine(TestFolder, "source2", "bin"),
+                        SourceDirectoryPath = sourceDir,
+                    }
                 }
             };
 
@@ -87,13 +85,17 @@ namespace Oetools.Builder.Test {
             taskExecutor.Properties.BuildOptions.StopBuildOnCompilationWarning = true;
             taskExecutor.Properties.BuildOptions.StopBuildOnCompilationError = true;
 
-            Assert.ThrowsException<TaskExecutorException>(() => taskExecutor.Execute());
+            Exception ex = null;
+            try {
+                taskExecutor.Execute();
+            } catch (Exception e) {
+                ex = e;
+            }
+            Assert.IsNotNull(ex);
+            Assert.AreEqual(null, taskCompile.GetCompiledFiles(), "build failed we don't get results");
+            Assert.AreEqual(typeof(CompilerException), ex.InnerException.GetType());
             
-            Assert.AreEqual(2, taskCompile.GetCompiledFiles().Count, "2 files compiled");
-            Assert.AreEqual(1, taskExecutor.CompilerNumberOfProcessesUsed, "1 process used");
-            Assert.AreEqual(2, taskCompile.GetCompiledFiles().Where(cp => cp.CompilationErrors != null).SelectMany(cp => cp.CompilationErrors).Count(), "we should find 2 compilation errors (2 for the same file file2.w)");
-            
-            taskExecutor.Properties.BuildOptions.StopBuildOnCompilationWarning = true;
+            taskExecutor.Properties.BuildOptions.StopBuildOnCompilationWarning = false;
             taskExecutor.Properties.BuildOptions.StopBuildOnCompilationError = false;
 
             // this should not throw exception since we don't want the build to stop on compilation error
@@ -111,7 +113,7 @@ namespace Oetools.Builder.Test {
             File.WriteAllText(Path.Combine(sourceDir, "file2.w"), "quit. quit.");
             taskCompile.Files.Clear();
             
-            // we stop on errors but we do not consider warnings as error, so we should be ok w/o exceptions
+            // we stop on errors but not on warnings so it's ok
             taskExecutor.Execute();
             
             Assert.AreEqual(2, taskCompile.Files.Count, "both files will be copied");
@@ -123,15 +125,14 @@ namespace Oetools.Builder.Test {
             taskExecutor.Properties.BuildOptions.StopBuildOnCompilationWarning = true;
             taskExecutor.Properties.BuildOptions.StopBuildOnCompilationError = true;
             
-            File.WriteAllText(Path.Combine(sourceDir, "file2.w"), "quit. quit.");
-
-            // now we consider warnings as errors and we stop on errors
-            Assert.ThrowsException<TaskExecutorException>(() => taskExecutor.Execute());
-            
-            Assert.AreEqual(1, taskCompile.GetCompiledFiles().Count(cf => cf.CompiledCorrectly), "we should have only one file compiled correctly");
-            Assert.AreEqual(1, taskCompile.GetCompiledFiles().Count(cf => cf.CompiledWithWarnings), "and one with warning");
-            taskTargets = taskCompile.Files.SelectMany(f => f.TargetsFiles).ToList();
-            Assert.AreEqual(2, taskTargets.Count, "we expect 2 targets here");
+            // now we consider warnings as errors
+            ex = null;
+            try {
+                taskExecutor.Execute();
+            } catch (Exception e) {
+                ex = e;
+            }
+            Assert.IsNotNull(ex);
         }
         
                 
@@ -150,11 +151,11 @@ namespace Oetools.Builder.Test {
                     new OeFile { SourceFilePath = Path.Combine(sourceDir, "file2.w") },
                     new OeFile { SourceFilePath = Path.Combine(sourceDir, "file3.ext") }
                 },
-                OutputDirectory = Path.Combine(TestFolder, "source", "bin"),
-                SourceDirectory = sourceDir,
-                Properties = new OeProperties(),
-                Env = new UoeExecutionEnv {
-                    UseProgressCharacterMode = true
+                Properties = new OeProperties {
+                    BuildOptions = new OeBuildOptions {
+                        SourceDirectoryPath = sourceDir,
+                        OutputDirectoryPath = Path.Combine(TestFolder, "source", "bin")
+                    }
                 }
             };
 
@@ -172,7 +173,6 @@ namespace Oetools.Builder.Test {
             taskExecutor.Execute();
             
             Assert.AreEqual(2, taskCompile.GetCompiledFiles().Count, "2 files compiled");
-            Assert.AreEqual(1, taskExecutor.CompilerNumberOfProcessesUsed, "1 process used");
 
             Assert.AreEqual(2, taskCompile.Files.Count, "file1.p and file2.w were included");
             var taskTargets = taskCompile.Files.SelectMany(f => f.TargetsFiles).ToList();
@@ -194,7 +194,7 @@ namespace Oetools.Builder.Test {
             private List<UoeCompiledFile> CompiledFiles { get; set; }
             protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
                 var filesToBuild = files.Cast<OeFile>().ToList();
-                CompiledFiles = OeTaskCompile.CompileFiles(ProjectProperties, CompiledFiles, ref filesToBuild);
+                CompiledFiles = OeTaskCompile.CompileFiles(ProjectProperties, CompiledFiles, ref filesToBuild, null);
                 Files.AddRange(filesToBuild);
             }
         }

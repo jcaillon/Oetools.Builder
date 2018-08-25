@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Xml.Schema;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project.Task;
@@ -40,7 +41,7 @@ namespace Oetools.Builder.Project {
     /// </remarks>
     [Serializable]
     public class OeProperties {
-        
+
         [XmlElement(ElementName = "DlcDirectoryPath")]
         public string DlcDirectoryPath { get; set; }
         public static string GetDefaultDlcDirectoryPath() => UoeUtilities.GetDlcPathFromEnv().ToCleanPath();
@@ -169,9 +170,9 @@ namespace Oetools.Builder.Project {
         /// </summary>
         /// <param name="sourceDirectory"></param>
         /// <param name="simplifyPathWithWorkingDirectory"></param>
-        /// <param name="cancelSource"></param>
         /// <returns></returns>
-        public List<string> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory, CancellationTokenSource cancelSource = null) {
+        /// <exception cref="Exception"></exception>
+        public List<string> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory) {
             var output = new HashSet<string>();
             if (PropathEntries != null) {
                 foreach (var propathEntry in PropathEntries) {
@@ -203,7 +204,7 @@ namespace Oetools.Builder.Project {
                 }
             }
             if (AddAllSourceDirectoriesToPropath ?? GetDefaultAddAllSourceDirectoriesToPropath() && Directory.Exists(sourceDirectory)) {
-                var lister = new SourceFilesLister(sourceDirectory, cancelSource) {
+                var lister = new SourceFilesLister(sourceDirectory, _cancelSource) {
                     SourcePathFilter = PropathSourceDirectoriesFilter
                 };
                 foreach (var directory in lister.GetDirectoryList()) {
@@ -226,35 +227,48 @@ namespace Oetools.Builder.Project {
             return output.ToList();
         }
 
+
+        private CancellationTokenSource _cancelSource;
+
+        /// <summary>
+        /// Sets the cancellation source used in this class for long operations (like <see cref="GetPropath"/>)
+        /// </summary>
+        /// <param name="source"></param>
+        public void SetCancellationSource(CancellationTokenSource source) => _cancelSource = source;
+
+        private UoeExecutionEnv _env;
+
         /// <summary>
         /// Get the execution environment from these properties
         /// </summary>
-        /// <param name="sourceDirectory"></param>
-        /// <param name="cancelSource"></param>
-        /// <returns></returns>
-        public UoeExecutionEnv GetOeExecutionEnvironment(string sourceDirectory, CancellationTokenSource cancelSource) => 
-            new UoeExecutionEnv {
-                TempDirectory = OpenedgeTemporaryDirectoryPath.TakeDefaultIfNeeded(GetDefaultOpenedgeTemporaryDirectoryPath()),
-                UseProgressCharacterMode = UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable(),
-                DatabaseAliases = DatabaseAliases,
-                DatabaseConnectionString = DatabaseConnectionExtraParameters,
-                DatabaseConnectionStringAppendMaxTryOne = true,
-                DlcDirectoryPath = DlcDirectoryPath.TakeDefaultIfNeeded(GetDefaultDlcDirectoryPath()),
-                IniFilePath = IniFilePath,
-                PostExecutionProgramPath = ProcedurePathToExecuteAfterAnyProgressExecution,
-                PreExecutionProgramPath = ProcedurePathToExecuteBeforeAnyProgressExecution,
-                ProExeCommandLineParameters = ProgresCommandLineExtraParameters,
-                ProPathList = GetPropath(sourceDirectory, true, cancelSource)
-            };
+        public UoeExecutionEnv GetEnv() {
+            if (_env == null) {
+                _env = new UoeExecutionEnv {
+                    TempDirectory = OpenedgeTemporaryDirectoryPath.TakeDefaultIfNeeded(GetDefaultOpenedgeTemporaryDirectoryPath()),
+                    UseProgressCharacterMode = UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable(),
+                    DatabaseAliases = DatabaseAliases,
+                    DatabaseConnectionString = DatabaseConnectionExtraParameters,
+                    DatabaseConnectionStringAppendMaxTryOne = true,
+                    DlcDirectoryPath = DlcDirectoryPath.TakeDefaultIfNeeded(GetDefaultDlcDirectoryPath()),
+                    IniFilePath = IniFilePath,
+                    PostExecutionProgramPath = ProcedurePathToExecuteAfterAnyProgressExecution,
+                    PreExecutionProgramPath = ProcedurePathToExecuteBeforeAnyProgressExecution,
+                    ProExeCommandLineParameters = ProgresCommandLineExtraParameters,
+                    ProPathList = GetPropath((BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()), true)
+                };
+            }
+            return _env;
+        }
+        
+        public void SetEnv(UoeExecutionEnv value) => _env = value;
 
         /// <summary>
         /// Get the parallel compiler from these properties
         /// </summary>
-        /// <param name="env"></param>
         /// <param name="workingDirectory"></param>
         /// <returns></returns>
-        public UoeExecutionParallelCompile GetParallelCompiler(IUoeExecutionEnv env, string workingDirectory) =>
-            new UoeExecutionParallelCompile(env) {
+        public UoeExecutionParallelCompile GetParallelCompiler(string workingDirectory) =>
+            new UoeExecutionParallelCompile(GetEnv()) {
                 CompileInAnalysisMode = IncrementalBuildOptions?.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled(),
                 WorkingDirectory = workingDirectory,
                 NeedDatabaseConnection = true,
@@ -268,7 +282,9 @@ namespace Oetools.Builder.Project {
                 CompileWithPreprocess = CompilationOptions?.CompileWithPreprocess ?? OeCompilationOptions.GetDefaultCompileWithPreprocess(),
                 CompileWithXref = CompilationOptions?.CompileWithXref ?? OeCompilationOptions.GetDefaultCompileWithXref(),
                 MaxNumberOfProcesses = OeCompilationOptions.GetNumberOfProcessesToUse(CompilationOptions),
-                MinimumNumberOfFilesPerProcess = CompilationOptions?.MinimumNumberOfFilesPerProcess ?? OeCompilationOptions.GetDefaultMinimumNumberOfFilesPerProcess()
+                MinimumNumberOfFilesPerProcess = CompilationOptions?.MinimumNumberOfFilesPerProcess ?? OeCompilationOptions.GetDefaultMinimumNumberOfFilesPerProcess(),
+                StopOnCompilationError = BuildOptions?.StopBuildOnCompilationError ?? OeBuildOptions.GetDefaultStopBuildOnCompilationError(),
+                StopOnCompilationWarning = BuildOptions?.StopBuildOnCompilationWarning ?? OeBuildOptions.GetDefaultStopBuildOnCompilationWarning()
             };
     }
 }

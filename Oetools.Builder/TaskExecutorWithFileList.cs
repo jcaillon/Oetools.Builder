@@ -38,9 +38,7 @@ namespace Oetools.Builder {
             set => _taskFiles = value.ToList(); // copy the list
         }
 
-        public string OutputDirectory { get; set; }
-
-        protected override string BaseTargetDirectory => OutputDirectory;
+        protected override string BaseTargetDirectory => Properties?.BuildOptions?.OutputDirectoryPath;
 
         protected override List<OeFile> GetTaskFiles(IOeTaskFile task) {
             Log?.Debug("Gets the list of files on which to apply this task from input files list");

@@ -35,5 +35,7 @@ namespace Oetools.Builder.Project.Task {
         public override string GetTargetArchive() => TargetProlibFilePath;
         
         protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveProlib();
+        
+        public override string GetTargetArchivePropertyName() => nameof(TargetProlibFilePath);
     }
 }

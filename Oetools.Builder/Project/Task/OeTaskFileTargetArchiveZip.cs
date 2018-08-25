@@ -44,5 +44,7 @@ namespace Oetools.Builder.Project.Task {
         public override string GetTargetArchive() => TargetZipFilePath;
         
         protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
+        
+        public override string GetTargetArchivePropertyName() => nameof(TargetZipFilePath);
     }
 }

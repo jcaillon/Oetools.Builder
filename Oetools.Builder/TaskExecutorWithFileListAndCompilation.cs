@@ -37,22 +37,12 @@ namespace Oetools.Builder {
        
     public class TaskExecutorWithFileListAndCompilation : TaskExecutorWithFileList {
         
-        public int CompilerNumberOfProcessesUsed { get; private set; }
-        
-        public string SourceDirectory { private get; set; }
-        
-        private UoeExecutionParallelCompile _compiler;
-
         private List<UoeCompiledFile> _compiledFiles;
 
         protected override void ExecuteInternal() {
-            try {
-                Log?.Info("Compiling files from all tasks");
-                CompileFiles();
-                base.ExecuteInternal();
-            } finally {
-                _compiler?.Dispose();
-            }
+            Log?.Info("Compiling files from all tasks");
+            CompileFiles();
+            base.ExecuteInternal();
         }
 
         /// <summary>
@@ -62,7 +52,7 @@ namespace Oetools.Builder {
         /// <exception cref="TaskExecutorException"></exception>
         private void CompileFiles() {
             var tryToOptimizeCompilationFolder = Properties?.CompilationOptions?.TryToOptimizeCompilationDirectory ?? OeCompilationOptions.GetDefaultTryToOptimizeCompilationDirectory();
-            var filesToCompile = tryToOptimizeCompilationFolder ? GetFilesToCompile(Tasks, TaskFiles, BaseTargetDirectory) :GetFilesToCompile(Tasks, TaskFiles);
+            var filesToCompile = tryToOptimizeCompilationFolder ? GetFilesToCompile(Tasks, TaskFiles, BaseTargetDirectory) : GetFilesToCompile(Tasks, TaskFiles);
             
             if (filesToCompile.Count == 0) {
                 return;
@@ -70,34 +60,11 @@ namespace Oetools.Builder {
             if (Properties == null) {
                 throw new ArgumentNullException(nameof(Properties));
             }
-            if (Env == null) {
-                throw new ArgumentNullException(nameof(Env));
+            try {
+                _compiledFiles = OeTaskCompile.CompileFiles(Properties, filesToCompile, CancelSource);
+            } catch (Exception e) {
+                throw new TaskExecutorException(this, e.Message, e);
             }
-            if (string.IsNullOrEmpty(SourceDirectory)) {
-                throw new ArgumentNullException(nameof(SourceDirectory));
-            }
-            
-            _compiler = Properties.GetParallelCompiler(Env, SourceDirectory);
-            _compiler.FilesToCompile = filesToCompile;
-
-            CancelSource?.Token.Register(OnExecutionCancel);
-            _compiler.Start();
-            _compiler.WaitForExecutionEnd();
-            
-            _compiledFiles = _compiler.CompiledFiles;
-            CompilerNumberOfProcessesUsed = _compiler.TotalNumberOfProcesses;
-
-            if (_compiler.ExecutionFailed || _compiler.ExecutionHandledExceptions) {
-                var compilerException = new CompilerException(_compiler.HandledExceptions);
-                if (_compiler.ExecutionFailed || ThrowIfWarning) {
-                    throw new TaskExecutorException(this, $"The compiler threw exceptions :{compilerException.Message}", compilerException);
-                }
-            }
-        }
-
-        private void OnExecutionCancel() {
-            Log?.Debug("Cancel request, killing compilation processes");
-            _compiler?.KillProcess();
         }
 
         protected override IEnumerable<IOeFileToBuildTargetFile> GetFilesReadyForTaskExecution(IOeTaskFile task, List<OeFile> initialFiles) {
@@ -148,6 +115,9 @@ namespace Oetools.Builder {
                 
                 // get all the compile tasks that handle this file
                 var compileTasksForThisFile = compileTasks.Where(t => t.IsFilePassingFilter(file.SourceFilePath)).ToList();
+                if (compileTasksForThisFile.Count == 0) {
+                    continue;
+                }
 
                 // set all the targets (from all compile tasks) for this file, we need this to set UoeFileToCompile.PreferedTargetDirectory
                 foreach (var task in compileTasksForThisFile) {
@@ -160,28 +130,25 @@ namespace Oetools.Builder {
                     }
                 }
 
-                if (compileTasksForThisFile.Count > 0) {
-
-                    string preferedTargetDirectory = null;
-                    var allTargets = file.TargetsArchives?.Select(a => a.TargetPackFilePath).UnionHandleNull(file.TargetsFiles?.Select(f => f.TargetFilePath));
-                    var firstTargetWithDifferentDiscDrive = allTargets?.FirstOrDefault(s => !Utils.ArePathOnSameDrive(s, file.SourceFilePath));
-                    if (firstTargetWithDifferentDiscDrive != null) {
-                        // basically, we found 1 file that targets a different disc drive
-                        if (allTargets.All(s => Utils.ArePathOnSameDrive(s, firstTargetWithDifferentDiscDrive))) {
-                            // and all targets are on the same disc drive, it is worth targetting this
-                            // TODO : maybe the first won't do, search for one that does
-                            if (Path.GetFileNameWithoutExtension(firstTargetWithDifferentDiscDrive).Equals(Path.GetFileNameWithoutExtension(file.SourceFilePath))) {
-                                preferedTargetDirectory = Path.GetDirectoryName(firstTargetWithDifferentDiscDrive);
-                            }
+                string preferedTargetDirectory = null;
+                var allTargets = file.TargetsArchives?.Select(a => a.TargetPackFilePath).UnionHandleNull(file.TargetsFiles?.Select(f => f.TargetFilePath));
+                var firstTargetWithDifferentDiscDrive = allTargets?.FirstOrDefault(s => !Utils.ArePathOnSameDrive(s, file.SourceFilePath));
+                if (firstTargetWithDifferentDiscDrive != null) {
+                    // basically, we found 1 file that targets a different disc drive
+                    if (allTargets.All(s => Utils.ArePathOnSameDrive(s, firstTargetWithDifferentDiscDrive))) {
+                        // and all targets are on the same disc drive, it is worth targetting this
+                        // TODO : maybe the first won't do, search for one that does
+                        if (Path.GetFileNameWithoutExtension(firstTargetWithDifferentDiscDrive).Equals(Path.GetFileNameWithoutExtension(file.SourceFilePath))) {
+                            preferedTargetDirectory = Path.GetDirectoryName(firstTargetWithDifferentDiscDrive);
                         }
                     }
-                    
-                    // at least one compile task takes care of this file, we need to compile it
-                    filesToCompile.Add(new UoeFileToCompile(file.SourceFilePath) {
-                        FileSize = file.Size,
-                        PreferedTargetDirectory = preferedTargetDirectory
-                    });
                 }
+                
+                // at least one compile task takes care of this file, we need to compile it
+                filesToCompile.Add(new UoeFileToCompile(file.SourceFilePath) {
+                    FileSize = file.Size,
+                    PreferedTargetDirectory = preferedTargetDirectory
+                });
             }
 
             return filesToCompile;

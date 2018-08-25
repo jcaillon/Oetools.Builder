@@ -20,12 +20,21 @@
 using System;
 using System.IO;
 using System.Xml.Serialization;
-using Oetools.Builder.Utilities;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project {
     
     [Serializable]
     public class OeBuildOptions {
+        
+        private string _sourceDirectoryPath;
+
+        [XmlElement(ElementName = "SourceDirectoryPath")]
+        public string SourceDirectoryPath {
+            get => _sourceDirectoryPath;
+            set => _sourceDirectoryPath = value.ToCleanPath();
+        }
+        public static string GetDefaultSourceDirectoryPath() => Directory.GetCurrentDirectory();
         
         [XmlElement(ElementName = "OutputDirectoryPath")]
         public string OutputDirectoryPath { get; set; }
@@ -58,10 +67,19 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlElement(ElementName = "StopBuildOnCompilationWarning")]
         public bool? StopBuildOnCompilationWarning { get; set; }
-        public static bool GetDefaultStopBuildOnCompilationWarning() => true;
+        public static bool GetDefaultStopBuildOnCompilationWarning() => false;
         
         [XmlElement(ElementName = "ShutdownCompilationDatabasesAfterBuild")]
         public bool? ShutdownCompilationDatabasesAfterBuild { get; set; }
         public static bool GetDefaultShutdownCompilationDatabasesAfterBuild() => true;
+        
+        [XmlElement(ElementName = "FullRebuild")]
+        public bool? FullRebuild { get; set; }
+        public static bool GetDefaultFullRebuild() => false;
+        
+        [XmlElement(ElementName = "TestMode")]
+        public bool? TestMode { get; set; }
+        public static bool GetDefaultTestMode() => false;
+        
     }
 }

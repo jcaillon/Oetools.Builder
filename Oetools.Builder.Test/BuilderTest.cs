@@ -60,7 +60,6 @@ namespace Oetools.Builder.Test {
             Utils.CreateDirectoryIfNeeded(sourceDirectory);
             var builder = new Builder(new OeBuildConfiguration {
             });
-            builder.SourceDirectory = sourceDirectory;
             
         }
         
@@ -79,28 +78,34 @@ namespace Oetools.Builder.Test {
                 BuildSourceTasks = new List<OeBuildStepCompile> {
                     new OeBuildStepCompile {
                         Tasks = new List<OeTask> {
-                            new OeTaskFileTargetFileCompile { Include = "**" }
+                            new OeTaskFileTargetFileCompile2 { Include = "**", TargetDirectory = "" },
+                            new OeTaskFileTargetArchiveCompileProlib2 { Include = "**", TargetProlibFilePath = "my.pl", RelativeTargetDirectory = "" }
                         }
                     },
                     new OeBuildStepCompile {
                         Tasks = new List<OeTask> {
-                            new OeTaskFileTargetFileCopy { Include = "**" }
+                            new OeTaskFileTargetFileCopy2 { Include = "**", Exclude = "**((.p||.w))", TargetDirectory = "copied" }
                         }
                     }
+                },
+                Properties = new OeProperties {
+                    BuildOptions = new OeBuildOptions {
+                        SourceDirectoryPath = sourceDirectory,
+                        StopBuildOnCompilationError = false,
+                        StopBuildOnCompilationWarning = false
+                    }
                 }
-            }) {
-                SourceDirectory = sourceDirectory
-            };
+            });
 
             Assert.AreEqual(true, builder.BuildConfiguration.Properties.IncrementalBuildOptions.Enabled); 
             Assert.AreEqual(false, builder.FullRebuild);
 
-            //try {
-            //    builder.Build();
-            //    Assert.Fail("The build should fail because file3.p does not compile");
-            //} catch (BuilderException e) {
-            //    Assert.AreEqual(typeof(TaskExecutorException), e.InnerException.GetType());
-            //}
+            try {
+                builder.Build();
+                Assert.Fail("The build should fail because file3.p does not compile");
+            } catch (BuilderException e) {
+                Assert.AreEqual(typeof(TaskExecutorException), e.InnerException.GetType());
+            }
             
             //var pb = builder.BuildHistory.CompilationProblems.ToList();
             //
@@ -110,44 +115,61 @@ namespace Oetools.Builder.Test {
             
         }
 
-        private class OeTaskFileTargetZipCompile : OeTaskFileTargetArchive, IOeTaskCompile {
-            private IEnumerable<OeFile> executeFiles;
-            public void SetCompiledFiles(List<UoeCompiledFile> compiledFile) { CompiledFiles = compiledFile; }
-            public void SetProperties(OeProperties properties) { }
-            public List<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
-            private List<UoeCompiledFile> CompiledFiles { get; set; }
+        private class OeTaskFileTargetArchiveCompileProlib2 : OeTaskFileTargetArchiveCompileProlib {
+            private List<OeFileBuilt> _builtFiles = new List<OeFileBuilt>();
             protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetArchive> files) {
-                executeFiles = files.Cast<OeFile>();
+                foreach (var file in files.Cast<OeFile>()) {
+                    if (file.SourcePathForTaskExecution.Contains("error")) {
+                        throw new TaskExecutionException(this, $"the file has error in its name : {file.SourcePathForTaskExecution}");
+                    } 
+                    if (file.SourcePathForTaskExecution.Contains("warning")) {
+                        AddExecutionWarning(new TaskExecutionException(this, $"the file has warning in its name : {file.SourcePathForTaskExecution}"));
+                    } else {
+                        _builtFiles.Add(new OeFileBuilt(file) {
+                            Targets = file.GetAllTargets().ToList()
+                        });
+                    }
+                }
             }
-            public override void Validate() { }
-            protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
-            public override IEnumerable<OeFileBuilt> GetFilesBuilt() => executeFiles?.Select(f => {
-                var fileBuilt = new OeFileBuilt(f) {
-                    Targets = f.GetAllTargets().ToList()
-                };
-                return fileBuilt;
-            });
+            public override IEnumerable<OeFileBuilt> GetFilesBuilt() => _builtFiles;
         }
 
-        private class OeTaskFileTargetFileCompile : OeTaskFileTargetFileCopy, IOeTaskCompile {
-            public void SetProperties(OeProperties properties) { }
-            public void SetCompiledFiles(List<UoeCompiledFile> compiledFile) { CompiledFiles = compiledFile; }
-            public List<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
-            private List<UoeCompiledFile> CompiledFiles { get; set; }
+        private class OeTaskFileTargetFileCompile2 : OeTaskFileTargetFileCompile {
+            private List<OeFileBuilt> _builtFiles = new List<OeFileBuilt>();
+            protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
+                foreach (var file in files.Cast<OeFile>()) {
+                    if (file.SourcePathForTaskExecution.Contains("error")) {
+                        throw new TaskExecutionException(this, $"the file has error in its name : {file.SourcePathForTaskExecution}");
+                    } 
+                    if (file.SourcePathForTaskExecution.Contains("warning")) {
+                        AddExecutionWarning(new TaskExecutionException(this, $"the file has warning in its name : {file.SourcePathForTaskExecution}"));
+                    } else {
+                        _builtFiles.Add(new OeFileBuilt(file) {
+                            Targets = file.GetAllTargets().ToList()
+                        });
+                    }
+                }
+            }
+            public override IEnumerable<OeFileBuilt> GetFilesBuilt() => _builtFiles;
         }
         
-        private class OeTaskFileTargetFileCopy : OeTaskFileTargetFile {
-            private IEnumerable<OeFile> executeFiles;
+        private class OeTaskFileTargetFileCopy2 : OeTaskFileTargetFileCopy {
+            private List<OeFileBuilt> _builtFiles = new List<OeFileBuilt>();
             protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
-                executeFiles = files.Cast<OeFile>();
+                foreach (var file in files.Cast<OeFile>()) {
+                    if (file.SourcePathForTaskExecution.Contains("error")) {
+                        throw new TaskExecutionException(this, $"the file has error in its name : {file.SourcePathForTaskExecution}");
+                    } 
+                    if (file.SourcePathForTaskExecution.Contains("warning")) {
+                        AddExecutionWarning(new TaskExecutionException(this, $"the file has warning in its name : {file.SourcePathForTaskExecution}"));
+                    } else {
+                        _builtFiles.Add(new OeFileBuilt(file) {
+                            Targets = file.GetAllTargets().ToList()
+                        });
+                    }
+                }
             }
-            public override void Validate() { }
-            public override IEnumerable<OeFileBuilt> GetFilesBuilt() => executeFiles?.Select(f => {
-                var fileBuilt = new OeFileBuilt(f) {
-                    Targets = f.GetAllTargets().ToList()
-                };
-                return fileBuilt;
-            });
+            public override IEnumerable<OeFileBuilt> GetFilesBuilt() => _builtFiles;
         }
         
         [TestMethod]

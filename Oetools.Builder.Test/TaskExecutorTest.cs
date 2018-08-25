@@ -240,7 +240,7 @@ namespace Oetools.Builder.Test {
         private class TaskException : OeTask {
             public override void Validate() { }
             protected override void ExecuteInternal() {
-                AddExecutionError(new TaskExecutionException(this, "oups!"));
+                AddExecutionErrorAndThrow(new TaskExecutionException(this, "oups!"));
             }
         }
         

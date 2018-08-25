@@ -30,7 +30,7 @@ namespace Oetools.Builder.Project.Task {
         /// Execute the task for a set of files
         /// </summary>
         /// <remarks>
-        /// - Every files passed to that method will be added to a listed returned by <see cref="IOeTaskFileBuilder.GetFilesBuilt"/> (if no exceptions)
+        /// - The task should create/add a list of files that it builds, list that is returned by <see cref="IOeTaskFileBuilder.GetFilesBuilt"/>
         /// - This method should throw <see cref="TaskExecutionException"/> if needed
         /// - This method can publish warnings using <see cref="OeTask.AddExecutionWarning"/>
         /// </remarks>

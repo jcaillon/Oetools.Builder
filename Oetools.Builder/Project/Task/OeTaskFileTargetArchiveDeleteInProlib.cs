@@ -20,16 +20,22 @@
 
 using System;
 using System.Xml.Serialization;
+using Oetools.Builder.Utilities.Attributes;
 
 namespace Oetools.Builder.Project.Task {
     [Serializable]
     [XmlRoot("DeleteInProlib")]
-    public class OeTaskFileTargetArchiveDeleteInProlib : OeTaskFileTargetArchive {
+    public class OeTaskFileTargetArchiveDeleteInProlib : OeTask {
             
         /// <summary>
         /// The relative file path pattern to delete inside the matched prolib file
         /// </summary>
         [XmlAttribute("RelativeFilePatternToDelete")]
         public string RelativeFilePatternToDelete { get; set; }
+        
+        [XmlAttribute("TargetProlibFilePath")]
+        [ReplaceVariables(LeaveUnknownUntouched = true)]
+        public string TargetProlibFilePath { get; set; }
+        
     }
 }

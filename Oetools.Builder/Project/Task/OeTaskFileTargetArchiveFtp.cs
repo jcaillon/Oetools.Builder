@@ -35,5 +35,7 @@ namespace Oetools.Builder.Project.Task {
         public override OeCompressionLevel GetArchivesCompressionLevel() => OeCompressionLevel.None;
 
         public override string GetTargetArchive() => TargetFtpUri;
+        
+        public override string GetTargetArchivePropertyName() => nameof(TargetFtpUri);
     }
 }
