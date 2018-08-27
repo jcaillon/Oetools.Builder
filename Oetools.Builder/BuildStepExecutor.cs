@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (TaskExecutor.cs) is part of Oetools.Builder.
+// This file (BuildStepExecutor.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -30,13 +30,13 @@ using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder {
     
-    public class TaskExecutor {
+    public class BuildStepExecutor {
         
         internal string Name { get; set; }
         
         internal int Id { get; set; }
         
-        public IEnumerable<IOeTask> Tasks { get; set; }
+        public List<IOeTask> Tasks { get; set; }
 
         public ILogger Log { protected get; set; }
         
@@ -126,7 +126,7 @@ namespace Oetools.Builder {
         /// <param name="task"></param>
         /// <param name="initialFiles"></param>
         /// <returns></returns>
-        protected virtual IEnumerable<IOeFileToBuildTargetFile> GetFilesReadyForTaskExecution(IOeTaskFile task, List<OeFile> initialFiles) {
+        protected virtual List<OeFile> GetFilesReadyForTaskExecution(IOeTaskFile task, List<OeFile> initialFiles) {
             SetFilesTargets(task, initialFiles, BaseTargetDirectory);
             return initialFiles;
         }

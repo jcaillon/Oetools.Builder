@@ -34,20 +34,17 @@ namespace Oetools.Builder.Project.Task {
     
     public static class OeTaskCompile {
 
-        public static List<UoeCompiledFile> CompileFiles(OeProperties properties, List<UoeCompiledFile> compiledFiles, ref List<OeFile> files, CancellationTokenSource cancelSource) {
-            
-            // compile the files if needed
-            if (compiledFiles == null) {
-                compiledFiles = CompileFiles(properties, files.Select(f => new UoeFileToCompile(f.SourceFilePath) { FileSize = f.Size }).ToList(), cancelSource);
-            }
-            
-            // change the source file to copy from, and change the target extensions
+        public static List<OeFile> GetRcodeFilesToBuild(List<OeFile> originalFiles, List<UoeCompiledFile> compiledFiles) {
             var i = 0;
-            while (i < files.Count) {
-                var file = files[i];
+            while (i < originalFiles.Count) {
+                var file = originalFiles[i];
                 var compiledFile = compiledFiles.FirstOrDefault(cf => cf.SourceFilePath.Equals(file.SourceFilePath));
                 if (compiledFile != null && (compiledFile.CompiledCorrectly || compiledFile.CompiledWithWarnings)) {
+                    
+                    // change the source file to copy from
                     file.SourcePathForTaskExecution = compiledFile.CompilationRcodeFilePath;
+                    
+                    // change the targets extentions
                     foreach (var targetFile in file.TargetsFiles.ToNonNullList()) {
                         targetFile.TargetFilePath = Path.ChangeExtension(targetFile.TargetFilePath, UoeConstants.ExtR);
                     }
@@ -56,13 +53,13 @@ namespace Oetools.Builder.Project.Task {
                     }
                 } else {
                     // the file didn't compile, we delete it from the list
-                    files.RemoveAt(i);
+                    originalFiles.RemoveAt(i);
                     continue;
                 }
+
                 i++;
             }
-            
-            return compiledFiles;
+            return originalFiles;
         }
 
         public static List<UoeCompiledFile> CompileFiles(OeProperties properties, List<UoeFileToCompile> files, CancellationTokenSource cancelSource) {

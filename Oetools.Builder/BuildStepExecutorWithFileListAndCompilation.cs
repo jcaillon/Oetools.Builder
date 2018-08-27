@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (TaskExecutorWithFileListAndCompilation.cs) is part of Oetools.Builder.
+// This file (BuildStepExecutorWithFileListAndCompilation.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder {
        
-    public class TaskExecutorWithFileListAndCompilation : TaskExecutorWithFileList {
+    public class BuildStepExecutorWithFileListAndCompilation : BuildStepExecutorWithFileList {
         
         private List<UoeCompiledFile> _compiledFiles;
 
@@ -46,7 +46,7 @@ namespace Oetools.Builder {
         }
 
         /// <summary>
-        /// Compiles all the files that need to be compile for all the <see cref="IOeTaskCompile"/> tasks in <see cref="TaskExecutor.Tasks"/>
+        /// Compiles all the files that need to be compile for all the <see cref="IOeTaskCompile"/> tasks in <see cref="BuildStepExecutor.Tasks"/>
         /// </summary>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="TaskExecutorException"></exception>
@@ -67,7 +67,7 @@ namespace Oetools.Builder {
             }
         }
 
-        protected override IEnumerable<IOeFileToBuildTargetFile> GetFilesReadyForTaskExecution(IOeTaskFile task, List<OeFile> initialFiles) {
+        protected override List<OeFile> GetFilesReadyForTaskExecution(IOeTaskFile task, List<OeFile> initialFiles) {
             if (task is IOeTaskCompile taskCompile) {
                 Log?.Debug("Associate the list of compiled files for the task");
                 taskCompile.SetCompiledFiles(_compiledFiles?.Where(cf => initialFiles.Exists(f => f.SourceFilePath.Equals(cf.SourceFilePath))).ToList());

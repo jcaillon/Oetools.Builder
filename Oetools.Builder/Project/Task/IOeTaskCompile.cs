@@ -31,9 +31,10 @@ namespace Oetools.Builder.Project.Task {
         void SetFileExtensionFilter(string filter);
 
         void SetCompiledFiles(List<UoeCompiledFile> compiledFile);
+        List<UoeCompiledFile> GetCompiledFiles();
         
         void SetProperties(OeProperties properties);
+        OeProperties GetProperties();
 
-        List<UoeCompiledFile> GetCompiledFiles();
     }
 }

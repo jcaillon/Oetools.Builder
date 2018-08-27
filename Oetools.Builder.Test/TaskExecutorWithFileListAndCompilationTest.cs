@@ -65,7 +65,7 @@ namespace Oetools.Builder.Test {
                 new OeFile { SourceFilePath = Path.Combine(sourceDir, "file2.w") },
                 new OeFile { SourceFilePath = Path.Combine(sourceDir, "file3.ext") }
             };
-            var taskExecutor = new TaskExecutorWithFileListAndCompilation {
+            var taskExecutor = new BuildStepExecutorWithFileListAndCompilation {
                 TaskFiles = taskFiles,
                 Properties = new OeProperties {
                     BuildOptions = new OeBuildOptions {
@@ -145,7 +145,7 @@ namespace Oetools.Builder.Test {
             var sourceDir = Path.Combine(TestFolder, "source");
             Utils.CreateDirectoryIfNeeded(sourceDir);
             
-            var taskExecutor = new TaskExecutorWithFileListAndCompilation {
+            var taskExecutor = new BuildStepExecutorWithFileListAndCompilation {
                 TaskFiles = new List<OeFile> {
                     new OeFile { SourceFilePath = Path.Combine(sourceDir, "file1.p") },
                     new OeFile { SourceFilePath = Path.Combine(sourceDir, "file2.w") },
@@ -183,19 +183,8 @@ namespace Oetools.Builder.Test {
         
         private class TaskCompile : OeTaskFileTargetFile, IOeTaskCompile {
             public List<IOeFileToBuildTargetFile> Files { get; } = new List<IOeFileToBuildTargetFile>();
-            public void SetCompiledFiles(List<UoeCompiledFile> compiledFile) {
-                CompiledFiles = compiledFile;
-            }
-            public void SetProperties(OeProperties properties) {
-                ProjectProperties = properties;
-            }
-            private OeProperties ProjectProperties { get; set; }
-            public List<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
-            private List<UoeCompiledFile> CompiledFiles { get; set; }
-            protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
-                var filesToBuild = files.Cast<OeFile>().ToList();
-                CompiledFiles = OeTaskCompile.CompileFiles(ProjectProperties, CompiledFiles, ref filesToBuild, null);
-                Files.AddRange(filesToBuild);
+            public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
+                Files.AddRange(files);
             }
         }
 
@@ -239,7 +228,7 @@ namespace Oetools.Builder.Test {
                 task.SetFileExtensionFilter(OeCompilationOptions.GetDefaultCompilableFileExtensionPattern());
             }
             
-            var filesToCompile = TaskExecutorWithFileListAndCompilation.GetFilesToCompile(tasks, files);
+            var filesToCompile = BuildStepExecutorWithFileListAndCompilation.GetFilesToCompile(tasks, files);
             
             Assert.AreEqual(5, filesToCompile.Count);
             Assert.IsTrue(filesToCompile.Exists(f => f.FileSize.Equals(10)), "should preserve file size");
@@ -257,7 +246,6 @@ namespace Oetools.Builder.Test {
 
         private class TaskFilterCompile : OeTaskFilter, IOeTaskCompile {
             public void SetCompiledFiles(List<UoeCompiledFile> compiledFile) { CompiledFiles = compiledFile; }
-            public void SetProperties(OeProperties properties) { }
             public List<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
             private List<UoeCompiledFile> CompiledFiles { get; set; }
         }

@@ -23,7 +23,7 @@ using Oetools.Builder.History;
 
 namespace Oetools.Builder.Project.Task {
     
-    public interface IOeTaskFileTargetArchive : IOeTaskFile {
+    internal interface IOeTaskFileTargetArchive : IOeTaskFile {
 
         /// <summary>
         /// Returns a list of target file path for the corresponding source <param name="filePath" />,
@@ -33,5 +33,8 @@ namespace Oetools.Builder.Project.Task {
         /// <param name="baseTargetDirectory"></param>
         /// <returns></returns>
         List<OeTargetArchive> GetFileTargets(string filePath, string baseTargetDirectory = null);
+
+        /// <inheritdoc cref="IOeTaskFile.ExecuteForFiles"/>
+        void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files);
     }
 }

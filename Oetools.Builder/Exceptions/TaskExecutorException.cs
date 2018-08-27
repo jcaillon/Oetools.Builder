@@ -24,15 +24,15 @@ using Oetools.Builder.Project;
 namespace Oetools.Builder.Exceptions {
     public class TaskExecutorException : BuilderException {
         
-        public TaskExecutor TaskExecutor { get; }
+        public BuildStepExecutor BuildStepExecutor { get; }
         
-        public TaskExecutorException(TaskExecutor taskExecutor, string message) : base(message) {
-            TaskExecutor = taskExecutor;
+        public TaskExecutorException(BuildStepExecutor buildStepExecutor, string message) : base(message) {
+            BuildStepExecutor = buildStepExecutor;
         }
-        public TaskExecutorException(TaskExecutor taskExecutor, string message, Exception innerException) : base(message, innerException) {
-            TaskExecutor = taskExecutor;
+        public TaskExecutorException(BuildStepExecutor buildStepExecutor, string message, Exception innerException) : base(message, innerException) {
+            BuildStepExecutor = buildStepExecutor;
         }
         
-        public override string Message => $"{TaskExecutor?.ToString() ?? ""} : {base.Message ?? ""}";
+        public override string Message => $"{BuildStepExecutor?.ToString() ?? ""} : {base.Message ?? ""}";
     }
 }

@@ -30,25 +30,6 @@ namespace Oetools.Builder.Project.Task {
     [Serializable]
     [XmlRoot("Compile")]
     public class OeTaskFileTargetFileCompile : OeTaskFileTargetFileCopy, IOeTaskCompile {
-        
-        private OeProperties ProjectProperties { get; set; }
 
-        private List<UoeCompiledFile> CompiledFiles { get; set; }
-
-        public List<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
-        
-        public void SetCompiledFiles(List<UoeCompiledFile> compiledFile) {
-            CompiledFiles = compiledFile;
-        }
-
-        public void SetProperties(OeProperties properties) {
-            ProjectProperties = properties;
-        }
-
-        protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
-            var filesToBuild = files.Cast<OeFile>().ToList();
-            CompiledFiles = OeTaskCompile.CompileFiles(ProjectProperties, CompiledFiles, ref filesToBuild, CancelSource);
-            base.ExecuteForFilesInternal(filesToBuild);
-        }
     }
 }

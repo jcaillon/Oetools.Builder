@@ -31,7 +31,7 @@ namespace Oetools.Builder.Test.Project {
             var project = OeProject.GetStandardProject();
             var bc = project.GetDefaultBuildConfigurationCopy();
             
-            bc.PostBuildTasks = new List<OeBuildStepClassic> {
+            bc.PostBuildStepGroup = new List<OeBuildStepClassic> {
                 new OeBuildStepClassic {
                     Tasks = new List<OeTask> {
                         new OeTaskFileTargetArchiveProlib() {

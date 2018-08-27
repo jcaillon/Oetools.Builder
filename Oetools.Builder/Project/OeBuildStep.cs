@@ -6,6 +6,7 @@ using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project.Task;
 
 namespace Oetools.Builder.Project {
+    
     public abstract class OeBuildStep {
                 
         [XmlAttribute("Label")]

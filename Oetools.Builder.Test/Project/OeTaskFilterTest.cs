@@ -108,7 +108,7 @@ namespace Oetools.Builder.Test.Project {
         [DataRow(@"**/folder*", false)]
         [DataRow(@"**((/folder*", true)]
         [DataRow(@"**))/folder*", true)]
-        [DataRow(@"**|", true)]
+        [DataRow(@"**||", false)]
         [DataRow("\nverg", true)]
         public void OeTaskFilter_Validate_pathWildCard_Test(string pathWildCard, bool throws) {
             var filter = new OeTaskFilter {

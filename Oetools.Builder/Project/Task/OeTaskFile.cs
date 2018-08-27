@@ -27,6 +27,7 @@ using Oetools.Builder.History;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project.Task {
 
@@ -98,12 +99,34 @@ namespace Oetools.Builder.Project.Task {
         /// </summary>
         /// <param name="files"></param>
         /// <exception cref="TaskExecutionException"></exception>
-        public void ExecuteForFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
+        public void ExecuteForFiles(List<OeFile> files) {
             Log?.Debug($"Executing {this}");
-            var oeFileToBuildTargetFiles = files.ToList();
             try {
                 if (!TestMode) {
-                    ExecuteForFilesInternal(oeFileToBuildTargetFiles);
+                    if (this is IOeTaskCompile thisOeTaskCompile) {
+                        Log?.Debug("Is a compile task");
+                        var compiledFiles = thisOeTaskCompile.GetCompiledFiles();
+                        if (compiledFiles == null) {
+                            Log?.Debug("Start file compilation");
+                            compiledFiles = OeTaskCompile.CompileFiles(thisOeTaskCompile.GetProperties(), files.Select(f => new UoeFileToCompile(f.SourceFilePath) {
+                                FileSize = f.Size
+                            }).ToList(), CancelSource);
+                            thisOeTaskCompile.SetCompiledFiles(compiledFiles);
+                        }
+                        Log?.Debug("Switching orignal source files for rcode files to build");
+                        files = OeTaskCompile.GetRcodeFilesToBuild(files, compiledFiles);
+                    }
+                    switch (this) {
+                        case IOeTaskFileTargetFile oeTaskFileTargetFile:
+                            oeTaskFileTargetFile.ExecuteForFilesTargetFiles(files);
+                            break;
+                        case IOeTaskFileTargetArchive oeTaskFileTargetArchive:
+                            oeTaskFileTargetArchive.ExecuteForFilesTargetArchives(files);
+                            break;
+                        default:
+                            ExecuteForFilesInternal(files);
+                            break;
+                    }
                 }
             } catch (OperationCanceledException) {
                 throw;
@@ -115,7 +138,7 @@ namespace Oetools.Builder.Project.Task {
         }
 
         /// <inheritdoc cref="IOeTaskFile.ExecuteForFiles"/>
-        protected virtual void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
+        protected virtual void ExecuteForFilesInternal(List<OeFile> files) {
             throw new NotImplementedException();
         }
 

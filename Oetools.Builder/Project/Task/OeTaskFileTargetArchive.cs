@@ -59,17 +59,13 @@ namespace Oetools.Builder.Project.Task {
         
         public virtual string GetTargetArchivePropertyName() => throw new NotImplementedException();
 
-        protected sealed override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
-            ExecuteForFilesInternal(files.ToList().Cast<IOeFileToBuildTargetArchive>());
-        }
-
         /// <inheritdoc cref="IOeTaskFile.ExecuteForFiles"/>
-        protected virtual void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetArchive> files) {
+        public virtual void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files) {
             throw new NotImplementedException();
         }
         
         public override void Validate() {
-            if (string.IsNullOrEmpty(RelativeTargetFilePath) && string.IsNullOrEmpty(RelativeTargetDirectory)) {
+            if (string.IsNullOrEmpty(RelativeTargetFilePath) && RelativeTargetDirectory == null) {
                 throw new TaskValidationException(this, $"This task needs the following properties to be defined : {GetType().GetXmlName(nameof(RelativeTargetFilePath))} and/or {GetType().GetXmlName(nameof(RelativeTargetDirectory))}");
             }
             if (string.IsNullOrEmpty(GetTargetArchive())) {

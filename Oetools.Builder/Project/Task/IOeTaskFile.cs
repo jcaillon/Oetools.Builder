@@ -36,7 +36,7 @@ namespace Oetools.Builder.Project.Task {
         /// </remarks>
         /// <param name="files"></param>
         /// <exception cref="TaskExecutionException"></exception>
-        void ExecuteForFiles(IEnumerable<IOeFileToBuildTargetFile> files);
+        void ExecuteForFiles(List<OeFile> files);
 
         /// <summary>
         /// Given the inclusion wildcard paths and exclusion patterns, returns a list of files on which to apply this task

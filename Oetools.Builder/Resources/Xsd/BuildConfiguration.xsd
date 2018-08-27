@@ -111,6 +111,14 @@
       <xs:enumeration value="Lazy" />
     </xs:restriction>
   </xs:simpleType>
+  <xs:complexType name="OeTaskFileTargetArchiveDeleteInProlib">
+    <xs:complexContent mixed="false">
+      <xs:extension base="OeTask">
+        <xs:attribute name="RelativeFilePatternToDelete" type="xs:string" />
+        <xs:attribute name="TargetProlibFilePath" type="xs:string" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
   <xs:complexType name="OeTaskRemoveDir">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTask" />
@@ -202,13 +210,6 @@
       <xs:extension base="OeTaskFileTargetArchiveProlib" />
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetArchiveDeleteInProlib">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTargetArchive">
-        <xs:attribute name="RelativeFilePatternToDelete" type="xs:string" />
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
   <xs:complexType name="OeTaskFileTargetFile" abstract="true">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTaskFileTarget">
@@ -263,17 +264,22 @@
       <xs:element minOccurs="1" maxOccurs="1" name="Enabled" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="StoreSourceHash" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedSourceFileToOutput" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedAndNewTargetsToOutput" nillable="true" type="xs:boolean" />
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeBuildOptions">
     <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="SourceDirectoryPath" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="OutputDirectoryPath" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryOutputFilePath" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryInputFilePath" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="ReportHtmlFilePath" type="xs:string" />
       <xs:element minOccurs="1" maxOccurs="1" name="TreatWarningsAsErrors" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="StopBuildOnCompilationError" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="StopBuildOnCompilationWarning" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="ShutdownCompilationDatabasesAfterBuild" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="FullRebuild" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="TestMode" nillable="true" type="xs:boolean" />
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeVariable">

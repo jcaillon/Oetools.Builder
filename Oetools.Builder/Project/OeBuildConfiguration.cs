@@ -108,28 +108,28 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlArray("PreBuildTasks")]
         [XmlArrayItem("Step", typeof(OeBuildStepClassic))]
-        public List<OeBuildStepClassic> PreBuildTasks { get; set; }
+        public List<OeBuildStepClassic> PreBuildStepGroup { get; set; }
 
         /// <summary>
         /// This list of tasks can only include files located in the source directory
         /// </summary>
         [XmlArray("BuildSourceTasks")]
         [XmlArrayItem("Step", typeof(OeBuildStepCompile))]
-        public List<OeBuildStepCompile> BuildSourceTasks { get; set; }
+        public List<OeBuildStepCompile> BuildSourceStepGroup { get; set; }
             
         /// <summary>
         /// This list of tasks can only include files located in the output directory
         /// </summary>
         [XmlArray("BuildOutputTasks")]
         [XmlArrayItem("Step", typeof(OeBuildStepClassic))]
-        public List<OeBuildStepClassic> BuildOutputTasks { get; set; }
+        public List<OeBuildStepClassic> BuildOutputStepGroup { get; set; }
         
         /// <summary>
         /// This list of tasks can include any file
         /// </summary>
         [XmlArray("PostBuildTasks")]
         [XmlArrayItem("Step", typeof(OeBuildStepClassic))]
-        public List<OeBuildStepClassic> PostBuildTasks { get; set; }
+        public List<OeBuildStepClassic> PostBuildStepGroup { get; set; }
                     
         /// <summary>
         /// Add the default variables and apply the variables on all public properties of type string
@@ -183,10 +183,10 @@ namespace Oetools.Builder.Project {
         /// <exception cref="Exception"></exception>
         /// <exception cref="BuildStepException"></exception>
         public void ValidateAllTasks() {
-            ValidateStepsList(PreBuildTasks, nameof(PreBuildTasks), false);
-            ValidateStepsList(BuildSourceTasks, nameof(BuildSourceTasks), true);
-            ValidateStepsList(BuildOutputTasks, nameof(BuildOutputTasks), true);
-            ValidateStepsList(PostBuildTasks, nameof(PostBuildTasks), false);
+            ValidateStepsList(PreBuildStepGroup, nameof(PreBuildStepGroup), false);
+            ValidateStepsList(BuildSourceStepGroup, nameof(BuildSourceStepGroup), true);
+            ValidateStepsList(BuildOutputStepGroup, nameof(BuildOutputStepGroup), true);
+            ValidateStepsList(PostBuildStepGroup, nameof(PostBuildStepGroup), false);
         }
         
         private void ValidateStepsList(IEnumerable<OeBuildStep> steps, string propertyNameOf, bool buildFromList) {
@@ -207,10 +207,10 @@ namespace Oetools.Builder.Project {
         /// Give each build step/variables a unique number to identify it
         /// </summary>
         internal void InitIds() {
-            InitIds(PreBuildTasks);
-            InitIds(BuildSourceTasks);
-            InitIds(BuildOutputTasks);
-            InitIds(PostBuildTasks);
+            InitIds(PreBuildStepGroup);
+            InitIds(BuildSourceStepGroup);
+            InitIds(BuildOutputStepGroup);
+            InitIds(PostBuildStepGroup);
             if (Variables != null) {
                 var i = 0;
                 foreach (var variable in Variables.Where(v => v != null)) {

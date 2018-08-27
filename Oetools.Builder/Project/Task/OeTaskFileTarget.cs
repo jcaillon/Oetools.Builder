@@ -23,9 +23,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Oetools.Builder.Exceptions;
+using Oetools.Builder.History;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project.Task {
     
@@ -60,7 +62,7 @@ namespace Oetools.Builder.Project.Task {
                     target = Path.Combine(baseTargetDirectory, target);
                     isPathRooted = true;
                 } else if (!mustBeRelativePath) {
-                    throw new TaskExecutionException(this, $"This task is not allowed to target relative path because no base target directory is defined at this moment, the error occured for : {targetPathWithPlaceholders.PrettyQuote()}");
+                    throw new TaskExecutionException(this, $"This task is not allowed to target a relative path because no base target directory is defined for this task, the error occured for : {targetPathWithPlaceholders.PrettyQuote()}");
                 }
             } else if (mustBeRelativePath) {
                 throw new TaskExecutionException(this, $"The following path should resolve to a relative path : {targetPathWithPlaceholders.PrettyQuote()}");
@@ -107,5 +109,12 @@ namespace Oetools.Builder.Project.Task {
             }
         }
         
+        private List<UoeCompiledFile> CompiledFiles { get; set; }
+        public void SetCompiledFiles(List<UoeCompiledFile> compiledFile) => CompiledFiles = compiledFile;
+        public List<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
+        
+        protected sealed override void ExecuteForFilesInternal(List<OeFile> files) {
+            base.ExecuteForFilesInternal(files);
+        }
     }
 }

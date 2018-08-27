@@ -38,7 +38,7 @@ namespace Oetools.Builder.Project.Task {
 
         public override void Validate() {
             base.Validate();
-            if (string.IsNullOrEmpty(TargetFilePath) && string.IsNullOrEmpty(TargetDirectory)) {
+            if (string.IsNullOrEmpty(TargetFilePath) && TargetDirectory == null) {
                 throw new TaskValidationException(this, $"This task needs the following properties to be defined : {GetType().GetXmlName(nameof(TargetFilePath))} and/or {GetType().GetXmlName(nameof(TargetDirectory))}");
             }
             CheckTargetPath((TargetFilePath?.Split(';')).UnionHandleNull(TargetDirectory?.Split(';')));
@@ -82,5 +82,10 @@ namespace Oetools.Builder.Project.Task {
             return output;
         }
 
+        /// <inheritdoc cref="IOeTaskFile.ExecuteForFiles"/>
+        public virtual void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
+            throw new System.NotImplementedException();
+        }
+        
     }
 }

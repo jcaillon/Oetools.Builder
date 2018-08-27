@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (TaskExecutorWithFileList.cs) is part of Oetools.Builder.
+// This file (BuildStepExecutorWithFileList.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,17 +21,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using Oetools.Builder.History;
-using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder {
     
-    public class TaskExecutorWithFileList : TaskExecutor {
+    public class BuildStepExecutorWithFileList : BuildStepExecutor {
         
         private List<OeFile> _taskFiles;
 
         /// <summary>
-        /// List of unique existing files that will be treated by the current list of <see cref="TaskExecutor.Tasks"/>
+        /// List of unique existing files that will be treated by the current list of <see cref="BuildStepExecutor.Tasks"/>
         /// </summary>
         public List<OeFile> TaskFiles {
             get => _taskFiles;
@@ -42,7 +42,7 @@ namespace Oetools.Builder {
 
         protected override List<OeFile> GetTaskFiles(IOeTaskFile task) {
             Log?.Debug("Gets the list of files on which to apply this task from input files list");
-            return TaskFiles.Where(f => task.IsFilePassingFilter(f.SourceFilePath)).ToList();
+            return (TaskFiles?.Where(f => task.IsFilePassingFilter(f.SourceFilePath))).ToNonNullList();
         }
        
     }

@@ -95,7 +95,7 @@ namespace Oetools.Builder.Project {
                 },
                 BuildConfigurations = new List<OeBuildConfiguration> {
                     new OeBuildConfiguration {
-                        BuildSourceTasks = new List<OeBuildStepCompile> {
+                        BuildSourceStepGroup = new List<OeBuildStepCompile> {
                             new OeBuildStepCompile {
                                 Label = "Compile all files next to their source",
                                 Tasks = new List<OeTask> {
@@ -129,7 +129,7 @@ namespace Oetools.Builder.Project {
         /// </summary>
         /// <returns></returns>
         public OeBuildConfiguration GetDefaultBuildConfigurationCopy() {
-            return GetBuildConfigurationCopy(BuildConfigurations.FirstOrDefault());
+            return GetBuildConfigurationCopy(BuildConfigurations?.FirstOrDefault() ?? new OeBuildConfiguration());
         }
 
         private OeBuildConfiguration GetBuildConfigurationCopy(OeBuildConfiguration buildConfiguration) {

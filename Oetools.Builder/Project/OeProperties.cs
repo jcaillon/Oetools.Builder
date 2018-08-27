@@ -97,14 +97,14 @@ namespace Oetools.Builder.Project {
         public static string GetDefaultOpenedgeTemporaryDirectoryPath() => Path.Combine(Path.GetTempPath(), $".oe_tmp-{Utils.GetRandomName()}");
         
         /// <summary>
-        /// Allows to exclude path from being treated by <see cref="OeBuildConfiguration.BuildSourceTasks"/>
+        /// Allows to exclude path from being treated by <see cref="OeBuildConfiguration.BuildSourceStepGroup"/>
         /// Specify what should not be considered as a source file in your source directory (for instance, the docs/ folder)
         /// </summary>
         [XmlElement(ElementName = "SourceToBuildPathFilter")]
         public OeTaskFilter SourceToBuildPathFilter { get; set; }
                 
         /// <summary>
-        /// Use this to apply GIT filters to your <see cref="OeBuildConfiguration.BuildSourceTasks"/>
+        /// Use this to apply GIT filters to your <see cref="OeBuildConfiguration.BuildSourceStepGroup"/>
         /// Obviously, you need GIT installed and present in your OS path
         /// </summary>
         [XmlElement(ElementName = "SourceToBuildGitFilter")]

@@ -56,7 +56,7 @@ namespace Oetools.Builder.Test {
 
         [TestMethod]
         public void TaskExecutor_Test_basic1() {
-            var taskExecutor = new TaskExecutor();
+            var taskExecutor = new BuildStepExecutor();
             
             // won't do much, but shouldn't fail
             taskExecutor.Execute();
@@ -64,7 +64,7 @@ namespace Oetools.Builder.Test {
 
         [TestMethod]
         public void TaskExecutor_Test_cancel() {
-            var taskExecutor = new TaskExecutor();
+            var taskExecutor = new BuildStepExecutor();
             CancellationTokenSource cancelSource = new CancellationTokenSource();
             taskExecutor.CancelSource = cancelSource;
             taskExecutor.Tasks = new List<IOeTask> {
@@ -87,7 +87,7 @@ namespace Oetools.Builder.Test {
 
         [TestMethod]
         public void TaskExecutor_Test_task_warning() {
-            var taskExecutor = new TaskExecutor {
+            var taskExecutor = new BuildStepExecutor {
                 Tasks = new List<IOeTask> {
                     new TaskWarning()
                 }
@@ -119,7 +119,7 @@ namespace Oetools.Builder.Test {
 
         [TestMethod]
         public void TaskExecutor_Test_task_exception() {
-            var taskExecutor = new TaskExecutor {
+            var taskExecutor = new BuildStepExecutor {
                 Tasks = new List<IOeTask> {
                     new TaskException()
                 }
@@ -142,7 +142,7 @@ namespace Oetools.Builder.Test {
             Assert.IsFalse(task.IsTestSet);
             Assert.IsFalse(task.IsFilesCompiledSet);
             Assert.IsFalse(task.IsPropertySet);
-            var taskExecutor = new TaskExecutor();
+            var taskExecutor = new BuildStepExecutor();
             taskExecutor.Tasks = new List<IOeTask> {
                 task
             };
@@ -164,7 +164,7 @@ namespace Oetools.Builder.Test {
             File.WriteAllText(Path.Combine(baseDir, "file1.ext"), "");
             File.WriteAllText(Path.Combine(baseDir, "file2.ext"), "");
             
-            var taskExecutor = new TaskExecutor();
+            var taskExecutor = new BuildStepExecutor();
             var task1 = new TaskOnFile {
                 Include = $"{baseDir}/**",
                 Exclude = "**2.ext"
@@ -190,14 +190,14 @@ namespace Oetools.Builder.Test {
 
         private class TaskOnFile : OeTaskFileTargetFile {
             public List<IOeFileToBuildTargetFile> Files { get; set; } = new List<IOeFileToBuildTargetFile>();
-            protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
+            public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
                 Files.AddRange(files);
             }
         }
         
         private class TaskOnArchive : OeTaskFileTargetArchive {
             public List<IOeFileToBuildTargetArchive> Files { get; set; } = new List<IOeFileToBuildTargetArchive>();
-            protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetArchive> files) {
+            public override void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files) {
                 Files.AddRange(files);
             }
             public override string GetTargetArchive() => Archive;
@@ -205,7 +205,7 @@ namespace Oetools.Builder.Test {
             protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
         }
         
-        private class TaskInjectionTest : IOeTask, IOeTaskCompile {
+        private class TaskInjectionTest : IOeTaskCompile {
             public bool IsLogSet { get; private set; }
             public bool IsCancelSourceSet { get; private set; }
             public bool IsFileFilter { get; private set; }
@@ -219,6 +219,9 @@ namespace Oetools.Builder.Test {
             public void SetProperties(OeProperties properties) {
                 IsPropertySet = true;
             }
+
+            public OeProperties GetProperties() => null;
+
             public void SetTestMode(bool testMode) {
                 IsTestSet = true;
             }
@@ -259,8 +262,6 @@ namespace Oetools.Builder.Test {
             }
             public void SetLog(ILogger log) {}
             public void SetTestMode(bool testMode) { }
-            public void SetThrowIfWarning(bool throwIfWarning) {}
-
             public event EventHandler<TaskWarningEventArgs> PublishWarning;
             public void SetCancelSource(CancellationTokenSource cancelSource) {
                 _cancelSource = cancelSource;

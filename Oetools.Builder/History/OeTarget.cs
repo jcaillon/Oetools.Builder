@@ -28,11 +28,11 @@ namespace Oetools.Builder.History {
         /// if true, it means this target was actually a deletion; otherwise it was a creation
         /// </summary>
         [XmlAttribute("DeletionMode")]
-        public int DeletionMode { get; set; }
+        public string DeletionMode { get; set; }
 
-        public bool IsDeletionMode() => DeletionMode == 1;
+        public bool IsDeletionMode() => !string.IsNullOrEmpty(DeletionMode);
         
-        public void SetDeletionMode() => DeletionMode = 1;
+        public void SetDeletionMode() => DeletionMode = "1";
 
         public virtual string GetTargetPath() => null;
 

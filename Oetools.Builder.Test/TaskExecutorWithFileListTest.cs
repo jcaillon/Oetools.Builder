@@ -33,7 +33,7 @@ namespace Oetools.Builder.Test {
         [TestMethod]
         public void TaskExecutorWithFileListTest_Test_task_files() {
             var baseDir = TestHelper.GetTestFolder(nameof(TaskExecutorWithFileListTest));
-            var taskExecutor = new TaskExecutorWithFileList {
+            var taskExecutor = new BuildStepExecutorWithFileList {
                 TaskFiles = new List<OeFile> {
                     new OeFile { SourceFilePath = @"C:\sourcedir\file1.ext" },
                     new OeFile { SourceFilePath = @"C:\sourcedir\file2.ext" },
@@ -66,7 +66,7 @@ namespace Oetools.Builder.Test {
         
         private class TaskOnFile : OeTaskFileTargetFile {
             public List<IOeFileToBuildTargetFile> Files { get; set; } = new List<IOeFileToBuildTargetFile>();
-            protected override void ExecuteForFilesInternal(IEnumerable<IOeFileToBuildTargetFile> files) {
+            public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
                 Files.AddRange(files);
             }
         }

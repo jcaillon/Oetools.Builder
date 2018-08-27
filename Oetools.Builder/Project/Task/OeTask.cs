@@ -30,15 +30,25 @@ namespace Oetools.Builder.Project.Task {
     
     public abstract class OeTask : IOeTask {
         
+        [XmlAttribute("Label")]
+        public string Label { get; set; }
+        
+        [XmlIgnore]
+        internal int Id { get; set; }   
+        
         public event EventHandler<TaskWarningEventArgs> PublishWarning;
         
         protected CancellationTokenSource CancelSource { get; set; }
+        public void SetCancelSource(CancellationTokenSource cancelSource) => CancelSource = cancelSource;
 
         protected bool TestMode { get; set; }
+        public void SetTestMode(bool testMode) => TestMode = testMode;
         
         protected ILogger Log { get; set; }
+        public void SetLog(ILogger log) => Log = log;
 
         private List<TaskExecutionException> _exceptions;
+        public List<TaskExecutionException> GetExceptionList() => _exceptions;
         
         /// <summary>
         /// Validates that the task is correct (correct parameters and can execute)
@@ -46,11 +56,9 @@ namespace Oetools.Builder.Project.Task {
         /// <exception cref="TaskValidationException"></exception>
         public virtual void Validate() { }
         
-        [XmlAttribute("Label")]
-        public string Label { get; set; }
-        
-        [XmlIgnore]
-        internal int Id { get; set; }
+        private OeProperties ProjectProperties { get; set; }
+        public void SetProperties(OeProperties properties) => ProjectProperties = properties;
+        public OeProperties GetProperties() => ProjectProperties;
 
         /// <summary>
         /// Main entry point for simple execution tasks
@@ -80,22 +88,6 @@ namespace Oetools.Builder.Project.Task {
         /// <exception cref="TaskExecutionException"></exception>
         protected virtual void ExecuteInternal() {
             throw new NotImplementedException();
-        }
-
-        public void SetLog(ILogger log) {
-            Log = log;
-        }
-
-        public void SetTestMode(bool testMode) {
-            TestMode = testMode;
-        }
-
-        public void SetCancelSource(CancellationTokenSource cancelSource) {
-            CancelSource = cancelSource;
-        }
-
-        public List<TaskExecutionException> GetExceptionList() {
-            return _exceptions;
         }
 
         /// <summary>
