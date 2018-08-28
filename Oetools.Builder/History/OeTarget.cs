@@ -32,7 +32,7 @@ namespace Oetools.Builder.History {
 
         public bool IsDeletionMode() => !string.IsNullOrEmpty(DeletionMode);
         
-        public void SetDeletionMode() => DeletionMode = "1";
+        public void SetDeletionMode(bool deletionMode) => DeletionMode = deletionMode ? "1" : null;
 
         public virtual string GetTargetPath() => null;
 

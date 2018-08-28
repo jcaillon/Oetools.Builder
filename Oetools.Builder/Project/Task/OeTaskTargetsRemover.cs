@@ -36,16 +36,18 @@ namespace Oetools.Builder.Project.Task {
 
         private List<OeFileBuilt> _builtFiles;
         
-        protected override void ExecuteInternal() {
-            var targetsToDelete = FilesWithTargetsToRemove.SelectMany(f => f.Targets).Where(target => target.IsDeletionMode()).ToList();
-            
-            var fileTargets = targetsToDelete.Where(target => target is OeTargetFileCopy);
+        protected sealed override void ExecuteInternal() {
+            var targetsToRemove = FilesWithTargetsToRemove.SelectMany(f => f.Targets).Where(target => target.IsDeletionMode()).ToList();
+            ExecuteTargetsRemoval(targetsToRemove);
+            _builtFiles = FilesWithTargetsToRemove;
+        }
+
+        protected virtual void ExecuteTargetsRemoval(List<OeTarget> targetsToRemove) {
+            var fileTargets = targetsToRemove.Where(target => target is OeTargetFileCopy);
             Log?.Debug("Deleting all file targets");
 
-            var archiveTargets = targetsToDelete.Where(target => target is OeTargetArchive);
+            var archiveTargets = targetsToRemove.Where(target => target is OeTargetArchive);
             Log?.Debug("Deleting all archive targets");
-
-            _builtFiles = FilesWithTargetsToRemove;
         }
         
         /// <summary>

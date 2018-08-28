@@ -68,7 +68,7 @@ namespace Oetools.Builder.Test {
             File.WriteAllText(Path.Combine(sourceDirectory, "subfolder", "file5.p"), "");
             File.WriteAllText(Path.Combine(sourceDirectory, "subfolder", "resource.ext"), "");
             
-            var builder = new Builder(new OeBuildConfiguration {
+            var builder = new Builder2(new OeBuildConfiguration {
                 BuildSourceStepGroup = new List<OeBuildStepCompile> {
                     new OeBuildStepCompile {
                         Tasks = new List<OeTask> {
@@ -393,6 +393,20 @@ namespace Oetools.Builder.Test {
             }
             public override IEnumerable<OeFileBuilt> GetFilesBuilt() => _builtFiles;
         }
+        
+        private class Builder2 : Builder {
+            public Builder2(OeProject project, string buildConfigurationName = null) : base(project, buildConfigurationName) { }
+            public Builder2(OeBuildConfiguration buildConfiguration) : base(buildConfiguration) { }
+            protected override OeTaskTargetsRemover GetNewTaskTargetsRemover(string deletingPreviousTargetsThatNoLongerExist, List<OeFileBuilt> filesToDelete) =>
+                new OeTaskTargetsRemover2 {
+                    Label = deletingPreviousTargetsThatNoLongerExist, 
+                    FilesWithTargetsToRemove = filesToDelete
+                };
+        }
+        
+        private class OeTaskTargetsRemover2 : OeTaskTargetsRemover {
+            protected override void ExecuteTargetsRemoval(List<OeTarget> targetsToRemove) { }
+        }
 
         [DataTestMethod]
         [DataRow(true)]
@@ -510,291 +524,12 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(typeof(OperationCanceledException), ex.InnerException.GetType());
         }
 
-        [TestMethod]
-        public void GetTaskTargetsRemover_Test() {
-            var prevBuilt = new List<OeFileBuilt> {
-                new OeFileBuilt {
-                    SourceFilePath = "source1",
-                    Targets = new List<OeTarget> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target1"
-                        }
-                    }
-                },
-                new OeFileBuilt {
-                    State = OeFileState.Deleted,
-                    SourceFilePath = "source2",
-                    Targets = new List<OeTarget> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target2"
-                        }
-                    }
-                },
-                new OeFileBuilt {
-                    SourceFilePath = "source3",
-                    Targets = new List<OeTarget> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target5"
-                        }
-                    }
-                },
-            };
-            var allSourceFiles = new List<OeFile> {
-                new OeFile {
-                    State = OeFileState.Unchanged,
-                    SourceFilePath = "source1",
-                    TargetsFiles = new List<OeTargetFile> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target3"
-                        }
-                    }
-                },
-                new OeFile {
-                    State = OeFileState.Deleted,
-                    SourceFilePath = "source3",
-                    TargetsFiles = new List<OeTargetFile> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target4"
-                        },
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target5"
-                        }
-                    }
-                }
-            };
-            var output = Builder.GetTaskTargetsRemover(allSourceFiles, prevBuilt, null) as OeTaskTargetsRemover;
-            
-            Assert.IsNotNull(output);
-            Assert.AreEqual(1, output.FilesWithTargetsToRemove.Count, "source1 only should appear, source 3 has a new target but still has the old one and source 2 was deleted in previous build so those targets are already gone");
-            Assert.AreEqual("source1", output.FilesWithTargetsToRemove[0].SourceFilePath);
-
-        }
-
-        [TestMethod]
-        public void GetTaskSourceRemover_Test() {
-            
-            File.WriteAllText(Path.Combine(TestFolder, "source3"), "");
-            
-            var prevBuilt = new List<OeFileBuilt> {
-                new OeFileBuilt {
-                    SourceFilePath = "/random/source1",
-                    Targets = new List<OeTarget> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target1"
-                        }
-                    }
-                },
-                new OeFileBuilt {
-                    SourceFilePath = "/random/source2",
-                    Targets = new List<OeTarget> {
-                        new OeTargetArchiveZip {
-                            TargetPackFilePath = "target2",
-                            RelativeTargetFilePath = ""
-                        }
-                    }
-                },
-                new OeFileBuilt {
-                    SourceFilePath = Path.Combine(TestFolder, "source3"),
-                    Targets = new List<OeTarget> {
-                        new OeTargetArchiveZip {
-                            TargetPackFilePath = "target3",
-                            RelativeTargetFilePath = ""
-                        }
-                    }
-                }
-            };
-                        
-            var output = Builder.GetTaskSourceRemover(prevBuilt, null) as OeTaskTargetsRemover;
-            
-            Assert.IsNotNull(output);
-            Assert.AreEqual(2, output.FilesWithTargetsToRemove.Count);
-            Assert.AreEqual("/random/source1", output.FilesWithTargetsToRemove[0].SourceFilePath);
-            Assert.AreEqual("/random/source2", output.FilesWithTargetsToRemove[1].SourceFilePath);
-        }
-
-        [TestMethod]
-        public void GetSourceFilesToRebuildBecauseTheyHaveNewTargets_Test() {
-            var allSourceFiles = new List<OeFile> {
-                new OeFile {
-                    State = OeFileState.Unchanged,
-                    SourceFilePath = "source1",
-                    TargetsFiles = new List<OeTargetFile> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target1"
-                        }
-                    }
-                },
-                new OeFile {
-                    State = OeFileState.Unchanged,
-                    SourceFilePath = "source2",
-                    TargetsFiles = new List<OeTargetFile> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target2"
-                        }
-                    },
-                    TargetsArchives = new List<OeTargetArchive> {
-                        new OeTargetArchiveZip {
-                            TargetPackFilePath = "target3",
-                            RelativeTargetFilePath = ""
-                        }
-                    }
-                },
-                new OeFile {
-                    State = OeFileState.Modified,
-                    SourceFilePath = "source3",
-                    TargetsFiles = new List<OeTargetFile> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target4"
-                        }
-                    }
-                }
-            };
-            var prevBuilt = new List<OeFileBuilt> {
-                new OeFileBuilt {
-                    SourceFilePath = "source1",
-                    Targets = new List<OeTarget> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target1"
-                        }
-                    }
-                },
-                new OeFileBuilt {
-                    SourceFilePath = "source2",
-                    Targets = new List<OeTarget> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target2"
-                        }
-                    }
-                }
-            };
-            
-            var output = Builder.GetSourceFilesToRebuildBecauseTheyHaveNewTargets(allSourceFiles, prevBuilt).ToList();
-            
-            Assert.AreEqual(1, output.Count);
-            Assert.AreEqual("source2", output[0].SourceFilePath);
-
-        }
-
-        [TestMethod]
-        public void GetListOfFileToCompileBecauseOfTableCrcChanges_Test() {
-            var env = new EnvExecution2();
-            var previouslyBuiltFiles = new List<OeFileBuiltCompiled>();
-
-            var output = Builder.GetSourceFilesToRebuildBecauseOfTableCrcChanges(env, previouslyBuiltFiles).ToList();
-
-            Assert.AreEqual(0, output.Count, "empty for now");
-
-            previouslyBuiltFiles = new List<OeFileBuiltCompiled> {
-                new OeFileBuiltCompiled(new OeFile("source1")) {
-                    RequiredDatabaseReferences = new List<OeDatabaseReference> {
-                        new OeDatabaseReferenceSequence {
-                            QualifiedName = "sequence1"
-                        }
-                    }
-                },
-                new OeFileBuiltCompiled(new OeFile("source2")),
-                new OeFileBuiltCompiled(new OeFile("source3")) {
-                    RequiredDatabaseReferences = new List<OeDatabaseReference> {
-                        new OeDatabaseReferenceTable {
-                            QualifiedName = "table2",
-                            Crc = "crc2"
-                        }
-                    }
-                }
-            };
-            
-            output = Builder.GetSourceFilesToRebuildBecauseOfTableCrcChanges(env, previouslyBuiltFiles).ToList();
-
-            Assert.AreEqual(2, output.Count);
-            Assert.IsTrue(output.Exists(f => f.SourceFilePath.Equals("source1")));
-            Assert.IsTrue(output.Exists(f => f.SourceFilePath.Equals("source3")));
-
-            env.SequencesSet = new HashSet<string> {
-                "sequence1"
-            };
-            env.TablesCrcSet = new Dictionary<string, string> {
-                {
-                    "table2", "crc2"
-                }
-            };
-
-            output = Builder.GetSourceFilesToRebuildBecauseOfTableCrcChanges(env, previouslyBuiltFiles).ToList();
-
-            Assert.AreEqual(0, output.Count, "we should have nothing");
-            
-            env.TablesCrcSet = new Dictionary<string, string> {
-                {
-                    "table2", "crcdifferent"
-                }
-            };
-            output = Builder.GetSourceFilesToRebuildBecauseOfTableCrcChanges(env, previouslyBuiltFiles).ToList();
-
-            Assert.AreEqual(1, output.Count, "we should have source 3 now because the table CRC has changed");
-            Assert.IsTrue(output.Exists(f => f.SourceFilePath.Equals("source3")));
-
-        }
-        
-        [TestMethod]
-        public void GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification_Test() {
-            var modifiedFiles = new List<OeFile>();
-            var previouslyBuiltFiles = new List<OeFileBuiltCompiled>();
-
-            var output = Builder.GetSourceFilesToRebuildBecauseOfDependencesModification(modifiedFiles, previouslyBuiltFiles).ToList();
-
-            Assert.AreEqual(0, output.Count, "empty for now");
-
-            modifiedFiles = new List<OeFile> {
-                new OeFile("file1"),
-                new OeFile("file2"),
-                new OeFile("file3"),
-                new OeFile("file4")
-            };
-            
-            output = Builder.GetSourceFilesToRebuildBecauseOfDependencesModification(modifiedFiles, previouslyBuiltFiles).ToList();
-
-            Assert.AreEqual(0, output.Count, "still empty");
-            
-            previouslyBuiltFiles = new List<OeFileBuiltCompiled> {
-                new OeFileBuiltCompiled(new OeFile("source1")) {
-                    RequiredFiles = new List<string> {
-                        "file5",
-                        "file6"
-                    }
-                },
-                new OeFileBuiltCompiled(new OeFile("source2")) {
-                    RequiredFiles = new List<string> {
-                        "source3"
-                    }
-                },
-                new OeFileBuiltCompiled(new OeFile("source3")) {
-                    RequiredFiles = new List<string> {
-                        "file1"
-                    }
-                }
-            };
-            
-            output = Builder.GetSourceFilesToRebuildBecauseOfDependencesModification(modifiedFiles, previouslyBuiltFiles).ToList();
-
-            Assert.AreEqual(2, output.Count, "source2 and source3 should be included");
-            Assert.AreEqual("source3", output[0].SourceFilePath, "source2 should be included since it requires source3 which is now also rebuilt");
-            Assert.AreEqual("source2", output[1].SourceFilePath, "source3 should be included since it requires file1 which need to be rebuilt");
-        }
-
         private class TaskWaitForCancel : OeTask {
             protected override void ExecuteInternal() {
                 Log?.Debug("");
                 CancelSource.Token.WaitHandle.WaitOne();
                 CancelSource.Token.ThrowIfCancellationRequested();
             }
-        }
-        
-        private class EnvExecution2 : UoeExecutionEnv {
-            
-            public override Dictionary<string, string> TablesCrc => TablesCrcSet;
-            public override HashSet<string> Sequences => SequencesSet;
-
-            public Dictionary<string, string> TablesCrcSet { get; set; } = new Dictionary<string, string>();
-            public HashSet<string> SequencesSet { get; set; } = new HashSet<string>();
         }
     }
 }

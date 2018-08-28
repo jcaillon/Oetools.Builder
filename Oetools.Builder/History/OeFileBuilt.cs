@@ -37,7 +37,6 @@ namespace Oetools.Builder.History {
         /// <summary>
         /// A list of the targets for this file
         /// </summary>
-        [DeepCopy(Ignore = true)]
         [XmlArray("Targets")]
         [XmlArrayItem("Copied", typeof(OeTargetFileCopy))]
         [XmlArrayItem("Prolibed", typeof(OeTargetArchiveProlib))]

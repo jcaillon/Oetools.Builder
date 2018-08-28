@@ -32,8 +32,6 @@ using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Execution;
 
-[assembly: InternalsVisibleTo("Oetools.Builder.Test")]
-
 namespace Oetools.Builder {
     
     public class Builder : IDisposable {
@@ -72,7 +70,7 @@ namespace Oetools.Builder {
             .ToList();
         
         /// <summary>
-        /// Initiliaze the build
+        /// Initialize the build
         /// </summary>
         /// <param name="project"></param>
         /// <param name="buildConfigurationName"></param>
@@ -211,15 +209,22 @@ namespace Oetools.Builder {
                     var previouslyBuiltCompiled = PreviouslyBuiltFiles.Where(f => f is OeFileBuiltCompiled).Cast<OeFileBuiltCompiled>().ToList();
                     
                     Log?.Debug("Add files to rebuild because one of the reference table or sequence have changed since the previous build");
-                    filesToRebuild.AddRange(GetSourceFilesToRebuildBecauseOfTableCrcChanges(BuildConfiguration.Properties.GetEnv(), previouslyBuiltCompiled));
+                    filesToRebuild.AddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfTableCrcChanges(BuildConfiguration.Properties.GetEnv(), previouslyBuiltCompiled));
                     
                     Log?.Debug("Add files to rebuild because one of their dependencies (think include files) has changed since the previous build");
-                    filesToRebuild.AddRange(GetSourceFilesToRebuildBecauseOfDependencesModification(filesToRebuild, previouslyBuiltCompiled));
+                    filesToRebuild.AddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(filesToRebuild, previouslyBuiltCompiled));
                 }
 
                 if (MirrorDeletedSourceFileToOutput || MirrorDeletedTargetsToOutput) {
                     Log?.Info("Mirroring deleted files in source to the output directory");
-                    newTasks.Add(GetTaskSourceRemover(PreviouslyBuiltFiles, Log));
+                    Log?.Debug("Making a list of all the files that were deleted since the previous build (the targets of those files must be deleted");
+                    var filesToDelete = IncrementalBuildHelper.GetBuiltFilesDeletedSincePreviousBuild(PreviouslyBuiltFiles).ToNonNullList();
+                    if (filesToDelete.Any()) {
+                        newTasks.Add(new OeTaskTargetsRemover {
+                            Label = "Deleting files missing from the previous build",
+                            FilesWithTargetsToRemove = filesToDelete.ToList()
+                        });
+                    }
                 }
 
                 if (RebuildFilesWithNewTargets || MirrorDeletedTargetsToOutput) {
@@ -237,12 +242,16 @@ namespace Oetools.Builder {
 
                     if (!FullRebuild && RebuildFilesWithNewTargets) {
                         Log?.Info("Adding files with new targets to the build list");
-                        filesToRebuild.AddRange(GetSourceFilesToRebuildBecauseTheyHaveNewTargets(unfilteredSourceFilesList, PreviouslyBuiltFiles));
+                        filesToRebuild.AddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseTheyHaveNewTargets(unfilteredSourceFilesList, PreviouslyBuiltFiles));
                     }
 
                     if (MirrorDeletedTargetsToOutput) {
                         Log?.Info("Mirroring deleted targets to the output directory");
-                        newTasks.Add(GetTaskTargetsRemover(unfilteredSourceFilesList, PreviouslyBuiltFiles, Log));
+                        Log?.Debug("Making a list of all source files that had targets existing in the previous build which don't existing anymore (those targets must be deleted)");
+                        var filesToDelete = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(unfilteredSourceFilesList, PreviouslyBuiltFiles).ToNonNullList();
+                        if (filesToDelete.Any()) {
+                            newTasks.Add(GetNewTaskTargetsRemover("Deleting previous targets that no longer exist", filesToDelete));
+                        }
                     }
                 }
                 
@@ -263,7 +272,7 @@ namespace Oetools.Builder {
                 executor.TaskFiles = unfilteredSourceFilesList;
             }
         }
-        
+
         private OeBuildHistory GetBuildHistory() {
             var history = new OeBuildHistory {
                 BuiltFiles = GetFilesBuiltHistory(),
@@ -335,6 +344,8 @@ namespace Oetools.Builder {
             // add all the files that were not rebuild from the previous build history
             if (PreviouslyBuiltFiles != null) {
                 foreach (var previousFile in PreviouslyBuiltFiles.Where(oldFile => oldFile.State != OeFileState.Deleted && !builtFiles.ContainsKey(oldFile.SourceFilePath))) {
+                    var previousFileCopy = (OeFileBuilt) Utils.DeepCopyPublicProperties(previousFile, previousFile.GetType());
+                    previousFileCopy.State = OeFileState.Unchanged;
                     builtFiles.Add(previousFile.SourceFilePath, previousFile);
                 }
             }
@@ -372,128 +383,11 @@ namespace Oetools.Builder {
             return sourceLister;
         }
         
-        internal static IEnumerable<OeFile> GetSourceFilesToRebuildBecauseTheyHaveNewTargets(List<OeFile> allExistingSourceFilesWithSetTargets, List<OeFileBuilt> previousFilesBuilt) {
-            foreach (var newFile in allExistingSourceFilesWithSetTargets.Where(file => file.State == OeFileState.Unchanged)) {
-                var previousFile = previousFilesBuilt.First(prevFile => prevFile.SourceFilePath.Equals(newFile.SourceFilePath, StringComparison.CurrentCultureIgnoreCase));
-                var previouslyCreatedTargets = previousFile.Targets.ToNonNullList().Where(target => !target.IsDeletionMode()).Select(t => t.GetTargetPath()).ToList();
-                foreach (var targetPath in newFile.GetAllTargets().Select(t => t.GetTargetPath())) {
-                    if (!previouslyCreatedTargets.Exists(prevTarget => prevTarget.Equals(targetPath, StringComparison.CurrentCultureIgnoreCase))) {
-                        yield return newFile;
-                        break;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns a raw list of files that need to be rebuilt because one of their dependencies (source file, include) has been modified (modified/deleted)
-        /// This list must then be filtered considering files that do not exist anymore or files that were already added to the rebuild list
-        /// </summary>
-        /// <param name="filesModified"></param>
-        /// <param name="previousFilesBuilt"></param>
-        /// <returns></returns>
-        internal static IEnumerable<OeFile> GetSourceFilesToRebuildBecauseOfDependencesModification(List<OeFile> filesModified, List<OeFileBuiltCompiled> previousFilesBuilt) {
-            for (int i = 0; i < filesModified.Count; i++) {
-                bool firstAdd = true;
-                foreach (var result in previousFilesBuilt.Where(prevf => prevf.RequiredFiles != null && 
-                    prevf.RequiredFiles.Any(prevFile => filesModified[i].SourceFilePath.Equals(prevFile, StringComparison.CurrentCultureIgnoreCase)))) {
-                    if (firstAdd) {
-                        filesModified.Add(result);
-                    }
-                    firstAdd = false;
-                    yield return result.GetDeepCopy();
-                }
-            }
-        }
+        protected virtual OeTaskTargetsRemover GetNewTaskTargetsRemover(string deletingPreviousTargetsThatNoLongerExist, List<OeFileBuilt> filesToDelete) =>
+            new OeTaskTargetsRemover {
+                Label = deletingPreviousTargetsThatNoLongerExist, 
+                FilesWithTargetsToRemove = filesToDelete
+            };
         
-        /// <summary>
-        /// Returns a raw list of files that need to be rebuilt because one of their database references has been modified (modified/deleted)
-        /// This list must then be filtered considering files that do not exist anymore or files that were already added to the rebuild list
-        /// </summary>
-        /// <param name="env"></param>
-        /// <param name="previousFilesBuilt"></param>
-        /// <returns></returns>
-        internal static IEnumerable<OeFile> GetSourceFilesToRebuildBecauseOfTableCrcChanges(UoeExecutionEnv env, List<OeFileBuiltCompiled> previousFilesBuilt) {
-            var sequences = env.Sequences;
-            var tables = env.TablesCrc;
-            
-            // add all previous that required a database reference that has now changed
-            foreach (var previousFile in previousFilesBuilt) {
-                var allReferencesOk = previousFile.RequiredDatabaseReferences?.All(dRef => {
-                    switch (dRef) {
-                        case OeDatabaseReferenceSequence sequence:
-                            return sequences.Contains(sequence.QualifiedName);
-                        case OeDatabaseReferenceTable table:
-                            return tables.ContainsKey(table.QualifiedName) && tables[table.QualifiedName].EqualsCi(table.Crc);
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                }) ?? true;
-                if (!allReferencesOk) {
-                    yield return previousFile.GetDeepCopy();
-                }
-            }
-        }
-        
-        internal static IOeTask GetTaskSourceRemover(List<OeFileBuilt> previousFilesBuilt, ILogger log) {
-            log?.Debug("Making a list of all the files that were deleted since the previous build (the targets of those files must be deleted");
-            var deletedFileList = new List<OeFileBuilt>();
-            foreach (var previousSourceFile in previousFilesBuilt.Where(f => f.State != OeFileState.Deleted)) {
-                if (!File.Exists(previousSourceFile.SourceFilePath)) {
-                    if (previousSourceFile.Targets != null && previousSourceFile.Targets.Count > 0) {
-                        previousSourceFile.Targets.ForEach(target => target.SetDeletionMode());
-                        deletedFileList.Add(previousSourceFile);
-                    }
-                }
-            }
-            if (deletedFileList.Count > 0) {
-                log?.Debug($"Added {deletedFileList.Count} files to the {typeof(OeTaskTargetsRemover).GetXmlName()} task because they no longer exist in the source directory, their targets will be deleted");
-                return new OeTaskTargetsRemover {
-                    Label = "Deleting files missing from the previous build",
-                    FilesWithTargetsToRemove = deletedFileList
-                };
-            }
-            
-            return null;
-        }
-
-        internal static IOeTask GetTaskTargetsRemover(List<OeFile> allExistingSourceFilesWithSetTargets, List<OeFileBuilt> previousFilesBuilt, ILogger log) {
-            log?.Debug("Making a list of all unchanged files that have targets existing in the previous build but not existing anymore (those targets must be deleted)");
-            
-            var filesWithTargetsToDelete = new List<OeFileBuilt>();
-            foreach (var previousFile in previousFilesBuilt.Where(file => file.State != OeFileState.Deleted)) {
-                var newFile = allExistingSourceFilesWithSetTargets.FirstOrDefault(nFile => nFile.SourceFilePath.Equals(previousFile.SourceFilePath, StringComparison.CurrentCultureIgnoreCase));
-                // if the newFile doesn't exist, it is because it has been deleted since and it should be listed in the OeTaskSourceRemover
-                if (newFile != null) {
-                    var finalFileTargets = newFile.GetAllTargets().ToList();
-                    bool isFileWithTargetsToDelete = false;
-                    var newCreateTargets = finalFileTargets.Select(t => t.GetTargetPath()).ToList();
-                    foreach (var previousTarget in previousFile.Targets.ToNonNullList().Where(target => !target.IsDeletionMode())) {
-                        var previousTargetPath = previousTarget.GetTargetPath();
-                        if (!newCreateTargets.Exists(target => target.Equals(previousTargetPath, StringComparison.CurrentCultureIgnoreCase))) {
-                            // the old target doesn't exist anymore, add it in deletion mode this time
-                            isFileWithTargetsToDelete = true;
-                            previousTarget.SetDeletionMode();
-                            finalFileTargets.Add(previousTarget);
-                        }
-                    }
-                    if (isFileWithTargetsToDelete) {
-                        var previousFileCopy = (OeFileBuilt) Utils.DeepCopyPublicProperties(previousFile, typeof(OeFileBuilt));
-                        previousFileCopy.Targets = finalFileTargets;
-                        filesWithTargetsToDelete.Add(previousFileCopy);
-                    }
-                }
-            }
-
-            if (filesWithTargetsToDelete.Count > 0) {
-                log?.Debug($"Added {filesWithTargetsToDelete.Count} files to the {typeof(OeTaskTargetsRemover).GetXmlName()} task because they have targets that no longer exist in the current build configuration, their old targets will be deleted");
-                return new OeTaskTargetsRemover {
-                    Label = "Deleting previous targets that no longer exist",
-                    FilesWithTargetsToRemove = filesWithTargetsToDelete
-                };
-            }
-
-            return null;
-        }
     }
 }
