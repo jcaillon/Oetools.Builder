@@ -42,7 +42,7 @@ namespace Oetools.Builder {
       
         public OeBuildConfiguration BuildConfiguration { get; }
 
-        public OeBuildHistory BuildHistory { get; private set; }
+        public OeBuildHistory BuildSourceHistory { get; private set; }
 
         public List<OeFileBuilt> PreviouslyBuiltFiles { get; set; }
 
@@ -138,7 +138,7 @@ namespace Oetools.Builder {
 
         protected virtual void PostBuild() {
             if (UseIncrementalBuild) {
-                BuildHistory = GetBuildHistory();
+                BuildSourceHistory = GetBuildHistory();
             }
         }
         
@@ -247,6 +247,7 @@ namespace Oetools.Builder {
                 }
                 
                 // add files to rebuild
+                executor.TaskFiles = new List<OeFile>();
                 foreach (var file in sourceLister.FilterSourceFiles(filesToRebuild)) {
                     if (!executor.TaskFiles.Exists(f => f.SourceFilePath.Equals(file.SourceFilePath, StringComparison.CurrentCultureIgnoreCase)) && 
                         File.Exists(file.SourceFilePath)) {

@@ -249,18 +249,18 @@ namespace Oetools.Builder.Test {
 
             builder.Build();
             
-            Assert.AreEqual(3, builder.BuildHistory.CompilationProblems.Count);
-            Assert.AreEqual(1, builder.BuildHistory.CompilationProblems.Count(p => p is OeCompilationWarning));
+            Assert.AreEqual(3, builder.BuildSourceHistory.CompilationProblems.Count);
+            Assert.AreEqual(1, builder.BuildSourceHistory.CompilationProblems.Count(p => p is OeCompilationWarning));
 
-            Assert.AreEqual(3, builder.BuildHistory.BuiltFiles.Count);
-            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "first", "file1.r"), builder.BuildHistory.BuiltFiles[0].GetAllTargets().ToList()[0].GetTargetPath());
-            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "second", "file1.r"), builder.BuildHistory.BuiltFiles[0].GetAllTargets().ToList()[1].GetTargetPath());
-            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "my.pl", "file2.r"), builder.BuildHistory.BuiltFiles[1].GetAllTargets().ToList()[0].GetTargetPath());
-            Assert.AreEqual("derp.out.p", builder.BuildHistory.BuiltFiles[2].GetAllTargets().ToList()[0].GetTargetPath());
+            Assert.AreEqual(3, builder.BuildSourceHistory.BuiltFiles.Count);
+            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "first", "file1.r"), builder.BuildSourceHistory.BuiltFiles[0].GetAllTargets().ToList()[0].GetTargetPath());
+            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "second", "file1.r"), builder.BuildSourceHistory.BuiltFiles[0].GetAllTargets().ToList()[1].GetTargetPath());
+            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "my.pl", "file2.r"), builder.BuildSourceHistory.BuiltFiles[1].GetAllTargets().ToList()[0].GetTargetPath());
+            Assert.AreEqual("derp.out.p", builder.BuildSourceHistory.BuiltFiles[2].GetAllTargets().ToList()[0].GetTargetPath());
             
             // we asked for hash
-            Assert.IsFalse(string.IsNullOrEmpty(builder.BuildHistory.BuiltFiles[0].Hash));
-            Assert.IsFalse(string.IsNullOrEmpty(builder.BuildHistory.BuiltFiles[1].Hash));
+            Assert.IsFalse(string.IsNullOrEmpty(builder.BuildSourceHistory.BuiltFiles[0].Hash));
+            Assert.IsFalse(string.IsNullOrEmpty(builder.BuildSourceHistory.BuiltFiles[1].Hash));
             
             builder.Dispose();        
             
@@ -320,18 +320,18 @@ namespace Oetools.Builder.Test {
 
             builder.Build();
             
-            Assert.AreEqual(3, builder.BuildHistory.CompilationProblems.Count);
-            Assert.AreEqual(1, builder.BuildHistory.CompilationProblems.Count(p => p is OeCompilationWarning));
+            Assert.AreEqual(3, builder.BuildSourceHistory.CompilationProblems.Count);
+            Assert.AreEqual(1, builder.BuildSourceHistory.CompilationProblems.Count(p => p is OeCompilationWarning));
 
-            Assert.AreEqual(3, builder.BuildHistory.BuiltFiles.Count);
-            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "first", "file1.r"), builder.BuildHistory.BuiltFiles[0].GetAllTargets().ToList()[0].GetTargetPath());
-            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "second", "file1.r"), builder.BuildHistory.BuiltFiles[0].GetAllTargets().ToList()[1].GetTargetPath());
-            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "my.pl", "file2.r"), builder.BuildHistory.BuiltFiles[1].GetAllTargets().ToList()[0].GetTargetPath());
-            Assert.AreEqual("derp.out.p", builder.BuildHistory.BuiltFiles[2].GetAllTargets().ToList()[0].GetTargetPath());
+            Assert.AreEqual(3, builder.BuildSourceHistory.BuiltFiles.Count);
+            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "first", "file1.r"), builder.BuildSourceHistory.BuiltFiles[0].GetAllTargets().ToList()[0].GetTargetPath());
+            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "second", "file1.r"), builder.BuildSourceHistory.BuiltFiles[0].GetAllTargets().ToList()[1].GetTargetPath());
+            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "my.pl", "file2.r"), builder.BuildSourceHistory.BuiltFiles[1].GetAllTargets().ToList()[0].GetTargetPath());
+            Assert.AreEqual("derp.out.p", builder.BuildSourceHistory.BuiltFiles[2].GetAllTargets().ToList()[0].GetTargetPath());
             
             // we asked for hash
-            Assert.IsFalse(string.IsNullOrEmpty(builder.BuildHistory.BuiltFiles[0].Hash));
-            Assert.IsFalse(string.IsNullOrEmpty(builder.BuildHistory.BuiltFiles[1].Hash));
+            Assert.IsFalse(string.IsNullOrEmpty(builder.BuildSourceHistory.BuiltFiles[0].Hash));
+            Assert.IsFalse(string.IsNullOrEmpty(builder.BuildSourceHistory.BuiltFiles[1].Hash));
             
             builder.Dispose();        
             
@@ -410,7 +410,7 @@ namespace Oetools.Builder.Test {
         }
 
         /// <summary>
-        /// Tests that we get what we need in <see cref="Builder.BuildHistory"/> for <see cref="OeBuildHistory.CompilationProblems"/>
+        /// Tests that we get what we need in <see cref="Builder.BuildSourceHistory"/> for <see cref="OeBuildHistory.CompilationProblems"/>
         /// </summary>
         [TestMethod]
         public void Builder_Test_All_Task_build_steps() {

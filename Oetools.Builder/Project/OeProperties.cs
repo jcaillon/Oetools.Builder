@@ -83,8 +83,8 @@ namespace Oetools.Builder.Project {
         public bool? UseCharacterModeExecutable { get; set; }
         public static bool GetDefaultUseCharacterModeExecutable() => false;
 
-        [XmlElement(ElementName = "ProgresCommandLineExtraParameters")]
-        public string ProgresCommandLineExtraParameters { get; set; }
+        [XmlElement(ElementName = "OpenedgeCommandLineExtraParameters")]
+        public string OpenedgeCommandLineExtraParameters { get; set; }
 
         [XmlElement(ElementName = "ProcedurePathToExecuteBeforeAnyProgressExecution")]
         public string ProcedurePathToExecuteBeforeAnyProgressExecution { get; set; }
@@ -124,7 +124,7 @@ namespace Oetools.Builder.Project {
         public static OeBuildOptions GetDefaultBuildOptions() => new OeBuildOptions();
 
         /// <summary>
-        /// Sets default values to all the properties (and recursively) of this object, using tge GetDefault... methods
+        /// Sets default values to all the properties (and recursively) of this object, using the GetDefault... methods
         /// </summary>
         public void SetDefaultValues() {
             Utils.SetDefaultValues(this);
@@ -253,7 +253,7 @@ namespace Oetools.Builder.Project {
                     IniFilePath = IniFilePath,
                     PostExecutionProgramPath = ProcedurePathToExecuteAfterAnyProgressExecution,
                     PreExecutionProgramPath = ProcedurePathToExecuteBeforeAnyProgressExecution,
-                    ProExeCommandLineParameters = ProgresCommandLineExtraParameters,
+                    ProExeCommandLineParameters = OpenedgeCommandLineExtraParameters,
                     ProPathList = GetPropath((BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()), true)
                 };
             }

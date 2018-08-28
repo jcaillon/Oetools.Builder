@@ -210,7 +210,7 @@ namespace Oetools.Builder.Test.Project {
                 IniFilePath = "C:\\my.ini",
                 ProcedurePathToExecuteAfterAnyProgressExecution = "",
                 ProcedurePathToExecuteBeforeAnyProgressExecution = "",
-                ProgresCommandLineExtraParameters = "my extra param \"in quotes\" ''",
+                OpenedgeCommandLineExtraParameters = "my extra param \"in quotes\" ''",
                 ProjectDatabases = new List<OeProjectDatabase> {
                     new OeProjectDatabase {
                         DataDefinitionFilePath = "C:\\folder\\file.df",

@@ -52,11 +52,11 @@ namespace Oetools.Builder.Test.Project {
         public void SetDefaultValues_Test() {
             var prop = new OeProperties();
             prop.SetDefaultValues();
-            Assert.AreEqual(prop.DlcDirectoryPath, OeProperties.GetDefaultDlcDirectoryPath());
-            Assert.AreEqual(prop.BuildOptions.TreatWarningsAsErrors, OeBuildOptions.GetDefaultTreatWarningsAsErrors());
-            Assert.AreEqual(prop.SourceToBuildGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch, OeGitFilter.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch());
-            Assert.AreEqual(prop.IncrementalBuildOptions.MirrorDeletedSourceFileToOutput, OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput());
-            Assert.AreEqual(prop.CompilationOptions.CompileWithDebugList, OeCompilationOptions.GetDefaultCompileWithDebugList());
+            Assert.AreEqual(OeProperties.GetDefaultDlcDirectoryPath(), prop.DlcDirectoryPath);
+            Assert.AreEqual(OeGitFilter.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch(), prop.SourceToBuildGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch);
+            Assert.AreEqual(OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput(), prop.IncrementalBuildOptions.MirrorDeletedSourceFileToOutput);
+            Assert.AreEqual(OeCompilationOptions.GetDefaultCompileWithDebugList(), prop.CompilationOptions.CompileWithDebugList);
+            Assert.AreEqual(OeBuildOptions.GetDefaultTreatWarningsAsErrors(), prop.BuildOptions.TreatWarningsAsErrors);
         }
 
         [TestMethod]
@@ -64,7 +64,7 @@ namespace Oetools.Builder.Test.Project {
             
             var iniPath = !Utils.IsRuntimeWindowsPlatform ? null : Path.Combine(TestFolder, "test.ini");
             if (!string.IsNullOrEmpty(iniPath)) {
-                File.WriteAllText(iniPath, "[Startup]\nPROPATH=t:\\error:exception\";C:\\Windows,%TEMP%;z:\\nooooop");
+                File.WriteAllText(iniPath, "[Startup]\nPROPATH=t:\\error:exception\";C:\\Windows,%TEMP%;z:\\no");
             }
 
             Directory.CreateDirectory(Path.Combine(TestFolder, "test1"));
