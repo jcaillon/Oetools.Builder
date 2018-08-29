@@ -27,6 +27,7 @@ using Oetools.Builder.History;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
+using Oetools.Utilities.Openedge;
 using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project.Task {
@@ -99,7 +100,7 @@ namespace Oetools.Builder.Project.Task {
         /// </summary>
         /// <param name="files"></param>
         /// <exception cref="TaskExecutionException"></exception>
-        public void ExecuteForFiles(List<OeFile> files) {
+        public void ExecuteForFiles(FileList<OeFile> files) {
             Log?.Debug($"Executing {this}");
             try {
                 if (!TestMode) {
@@ -110,11 +111,11 @@ namespace Oetools.Builder.Project.Task {
                             Log?.Debug("Start file compilation");
                             compiledFiles = OeTaskCompile.CompileFiles(thisOeTaskCompile.GetProperties(), files.Select(f => new UoeFileToCompile(f.SourceFilePath) {
                                 FileSize = f.Size
-                            }).ToList(), CancelSource);
+                            }), CancelSource);
                             thisOeTaskCompile.SetCompiledFiles(compiledFiles);
                         }
                         Log?.Debug("Switching orignal source files for rcode files to build");
-                        files = OeTaskCompile.GetRcodeFilesToBuild(files, compiledFiles);
+                        files = OeTaskCompile.SetRcodeFilesAsTargetsInsteadOfSourceFiles(files, compiledFiles);
                     }
                     switch (this) {
                         case IOeTaskFileTargetFile oeTaskFileTargetFile:
@@ -127,6 +128,24 @@ namespace Oetools.Builder.Project.Task {
                             ExecuteForFilesInternal(files);
                             break;
                     }
+                } else {
+                    _builtFiles = new List<OeFileBuilt>();
+                    var isThisTaskCompile = this is IOeTaskCompile;
+                    foreach (var file in files) {
+                        if (isThisTaskCompile) {
+                            // change target file extensions to .r
+                            foreach (var target in file.GetAllTargets()) {
+                                if (target is OeTargetFile targetFile) {
+                                    targetFile.TargetFilePath = Path.ChangeExtension(targetFile.TargetFilePath, UoeConstants.ExtR);
+                                } else if (target is OeTargetArchive targetArchive) {
+                                    targetArchive.RelativeTargetFilePath = Path.ChangeExtension(targetArchive.RelativeTargetFilePath, UoeConstants.ExtR);
+                                }
+                            }
+                        }
+                        var fileBuilt = GetNewFileBuilt(file);
+                        fileBuilt.Targets = file.GetAllTargets().ToList();
+                        _builtFiles.Add(fileBuilt);
+                    }
                 }
             } catch (OperationCanceledException) {
                 throw;
@@ -135,6 +154,19 @@ namespace Oetools.Builder.Project.Task {
             } catch (Exception e) {
                 AddExecutionErrorAndThrow(new TaskExecutionException(this, $"Unexpected error : {e.Message}", e));
             }
+        }
+
+        protected OeFileBuilt GetNewFileBuilt(OeFile sourceFile) {
+            if (this is IOeTaskCompile thisOeTaskCompile) {
+                var newFileBuilt = new OeFileBuiltCompiled(sourceFile);
+                var compiledFile = thisOeTaskCompile.GetCompiledFiles().FirstOrDefault(cf => cf.SourceFilePath.Equals(sourceFile.SourceFilePath));
+                if (compiledFile != null) {
+                    newFileBuilt.RequiredFiles = compiledFile.RequiredFiles?.ToList();
+                    newFileBuilt.RequiredDatabaseReferences = compiledFile.RequiredDatabaseReferences?.Select(OeDatabaseReference.New).ToList();
+                }
+                return newFileBuilt;
+            }
+            return new OeFileBuilt(sourceFile);
         }
 
         /// <inheritdoc cref="IOeTaskFile.ExecuteForFiles"/>
@@ -150,7 +182,8 @@ namespace Oetools.Builder.Project.Task {
         /// Override this method to return the list of built files
         /// </summary>
         /// <returns></returns>
-        public virtual IEnumerable<OeFileBuilt> GetFilesBuilt() => throw new NotImplementedException();
+        public virtual IEnumerable<OeFileBuilt> GetFilesBuilt() => _builtFiles;
         
+        private List<OeFileBuilt> _builtFiles = null;
     }
 }

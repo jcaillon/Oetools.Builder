@@ -105,7 +105,7 @@ namespace Oetools.Builder.Utilities {
         internal static IEnumerable<OeFileBuilt> GetBuiltFilesDeletedSincePreviousBuild(List<OeFileBuilt> previousFilesBuilt) {
             foreach (var previousFile in previousFilesBuilt.Where(f => f.State != OeFileState.Deleted)) {
                 if (!File.Exists(previousFile.SourceFilePath) && previousFile.Targets != null && previousFile.Targets.Count > 0) {
-                    var previousFileCopy = (OeFileBuilt) Utils.DeepCopyPublicProperties(previousFile, previousFile.GetType());
+                    var previousFileCopy = previousFile.GetDeepCopy();
                     previousFileCopy.Targets.ForEach(target => target.SetDeletionMode(true));
                     previousFileCopy.State = OeFileState.Deleted;
                     yield return previousFileCopy;
@@ -140,7 +140,7 @@ namespace Oetools.Builder.Utilities {
                 if (isFileWithTargetsToDelete) {
                     var originalPreviousFileTargets = previousFile.Targets.ToList();
                     previousFile.Targets = finalFileTargets;
-                    var previousFileCopy = (OeFileBuilt) Utils.DeepCopyPublicProperties(previousFile, previousFile.GetType());
+                    var previousFileCopy = previousFile.GetDeepCopy();
                     previousFile.Targets = originalPreviousFileTargets;
                     previousFileCopy.Targets.ForEach(target => target.SetDeletionMode(true));
                     switch (newFile.State) {

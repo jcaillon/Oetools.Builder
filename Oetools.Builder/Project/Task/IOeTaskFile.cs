@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {
     
@@ -36,7 +37,7 @@ namespace Oetools.Builder.Project.Task {
         /// </remarks>
         /// <param name="files"></param>
         /// <exception cref="TaskExecutionException"></exception>
-        void ExecuteForFiles(List<OeFile> files);
+        void ExecuteForFiles(FileList<OeFile> files);
 
         /// <summary>
         /// Given the inclusion wildcard paths and exclusion patterns, returns a list of files on which to apply this task

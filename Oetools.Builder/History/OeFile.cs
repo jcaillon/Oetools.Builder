@@ -28,7 +28,7 @@ using Oetools.Utilities.Lib.Extension;
 namespace Oetools.Builder.History {
     
     [Serializable]
-    public class OeFile : IOeFileToBuildTargetFile, IOeFileToBuildTargetArchive {
+    public class OeFile : IOeFileToBuildTargetFile, IOeFileToBuildTargetArchive, IFileListItem {
 
         public OeFile() { }
 
@@ -84,10 +84,6 @@ namespace Oetools.Builder.History {
 
         public virtual IEnumerable<OeTarget> GetAllTargets() => TargetsArchives.UnionHandleNull<OeTarget>(TargetsFiles);
         
-        public OeFile GetDeepCopy() {
-            return (OeFile) Utils.DeepCopyPublicProperties(this, typeof(OeFile));
-        }
-
         public override string ToString() => SourceFilePath;
     }
 }

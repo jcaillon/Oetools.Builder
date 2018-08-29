@@ -19,6 +19,7 @@
 #endregion
 
 using System.Collections.Generic;
+using Oetools.Utilities.Lib;
 using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project.Task {
@@ -30,8 +31,8 @@ namespace Oetools.Builder.Project.Task {
         /// <param name="filter"></param>
         void SetFileExtensionFilter(string filter);
 
-        void SetCompiledFiles(List<UoeCompiledFile> compiledFile);
-        List<UoeCompiledFile> GetCompiledFiles();
+        void SetCompiledFiles(FileList<UoeCompiledFile> compiledFile);
+        FileList<UoeCompiledFile> GetCompiledFiles();
         
         void SetProperties(OeProperties properties);
         OeProperties GetProperties();

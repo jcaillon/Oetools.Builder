@@ -37,7 +37,7 @@ namespace Oetools.Builder {
        
     public class BuildStepExecutorWithFileListAndCompilation : BuildStepExecutorWithFileList {
         
-        private List<UoeCompiledFile> _compiledFiles;
+        private FileList<UoeCompiledFile> _compiledFiles;
 
         protected override void ExecuteInternal() {
             Log?.Info("Compiling files from all tasks");
@@ -82,14 +82,14 @@ namespace Oetools.Builder {
         /// <param name="tasks"></param>
         /// <param name="files"></param>
         /// <returns></returns>
-        internal static List<UoeFileToCompile> GetFilesToCompile(IEnumerable<IOeTask> tasks, IEnumerable<OeFile> files) {
+        internal static FileList<UoeFileToCompile> GetFilesToCompile(IEnumerable<IOeTask> tasks, IEnumerable<OeFile> files) {
             var compileTasks = tasks.Where(t => t is IOeTaskCompile && t is IOeTaskFilter).Cast<IOeTaskFilter>().ToList();
             return files
                 .Where(f => compileTasks.Any(t => t.IsFilePassingFilter(f.SourceFilePath)))
                 .Select(f => new UoeFileToCompile(f.SourceFilePath) { FileSize = f.Size })
-                .ToList();
+                .ToFileList();
         }
-
+        
         /// <summary>
         /// Returns a list of all files that need to be compiled for all the <param name="tasks" /> considering an initial list of
         /// elligible <param name="files" /> (the input files must be compilable file type)
@@ -105,8 +105,8 @@ namespace Oetools.Builder {
         /// <param name="files"></param>
         /// <param name="baseTargetDirectory"></param>
         /// <returns></returns>
-        internal static List<UoeFileToCompile> GetFilesToCompile(IEnumerable<IOeTask> tasks, IEnumerable<OeFile> files, string baseTargetDirectory) {
-            var filesToCompile = new List<UoeFileToCompile>();
+        internal static FileList<UoeFileToCompile> GetFilesToCompile(IEnumerable<IOeTask> tasks, IEnumerable<OeFile> files, string baseTargetDirectory) {
+            var filesToCompile = new FileList<UoeFileToCompile>();
             
             // list all the tasks that need to compile files
             var compileTasks = tasks.Where(t => t is IOeTaskCompile && t is IOeTaskFilter).Cast<IOeTaskFilter>().ToList();
@@ -145,7 +145,7 @@ namespace Oetools.Builder {
                 }
                 
                 // at least one compile task takes care of this file, we need to compile it
-                filesToCompile.Add(new UoeFileToCompile(file.SourceFilePath) {
+                filesToCompile.TryAdd(new UoeFileToCompile(file.SourceFilePath) {
                     FileSize = file.Size,
                     PreferedTargetDirectory = preferedTargetDirectory
                 });

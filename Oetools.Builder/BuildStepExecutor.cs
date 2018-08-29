@@ -71,6 +71,10 @@ namespace Oetools.Builder {
             }
         }
 
+        public virtual void Configure() {
+            
+        }
+
         protected virtual void ExecuteInternal() {
             foreach (var task in Tasks) {
                 CancelSource?.Token.ThrowIfCancellationRequested();

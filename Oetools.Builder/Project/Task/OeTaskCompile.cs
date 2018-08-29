@@ -25,6 +25,7 @@ using System.Linq;
 using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
+using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge;
 using Oetools.Utilities.Openedge.Execution;
@@ -34,11 +35,10 @@ namespace Oetools.Builder.Project.Task {
     
     public static class OeTaskCompile {
 
-        public static List<OeFile> GetRcodeFilesToBuild(List<OeFile> originalFiles, List<UoeCompiledFile> compiledFiles) {
-            var i = 0;
-            while (i < originalFiles.Count) {
-                var file = originalFiles[i];
-                var compiledFile = compiledFiles.FirstOrDefault(cf => cf.SourceFilePath.Equals(file.SourceFilePath));
+        public static FileList<OeFile> SetRcodeFilesAsTargetsInsteadOfSourceFiles(FileList<OeFile> originalFiles, FileList<UoeCompiledFile> compiledFiles) {
+            var filesToRemove = new List<OeFile>();
+            foreach (var file in originalFiles) {
+                var compiledFile = compiledFiles[file.SourceFilePath];
                 if (compiledFile != null && (compiledFile.CompiledCorrectly || compiledFile.CompiledWithWarnings)) {
                     
                     // change the source file to copy from
@@ -53,18 +53,18 @@ namespace Oetools.Builder.Project.Task {
                     }
                 } else {
                     // the file didn't compile, we delete it from the list
-                    originalFiles.RemoveAt(i);
-                    continue;
+                    filesToRemove.Add(file);
                 }
-
-                i++;
+            }
+            foreach (var file in filesToRemove) {
+                originalFiles.Remove(file);
             }
             return originalFiles;
         }
 
-        public static List<UoeCompiledFile> CompileFiles(OeProperties properties, List<UoeFileToCompile> files, CancellationTokenSource cancelSource) {
+        public static FileList<UoeCompiledFile> CompileFiles(OeProperties properties, FileList<UoeFileToCompile> files, CancellationTokenSource cancelSource) {
             if (files == null || files.Count == 0) {
-                return new List<UoeCompiledFile>();
+                return new FileList<UoeCompiledFile>();
             }
             if (properties == null) {
                 throw new ArgumentNullException(nameof(properties));

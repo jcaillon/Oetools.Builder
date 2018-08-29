@@ -109,9 +109,9 @@ namespace Oetools.Builder.Project.Task {
             }
         }
         
-        private List<UoeCompiledFile> CompiledFiles { get; set; }
-        public void SetCompiledFiles(List<UoeCompiledFile> compiledFile) => CompiledFiles = compiledFile;
-        public List<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
+        private FileList<UoeCompiledFile> CompiledFiles { get; set; }
+        public void SetCompiledFiles(FileList<UoeCompiledFile> compiledFile) => CompiledFiles = compiledFile;
+        public FileList<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
         
         protected sealed override void ExecuteForFilesInternal(List<OeFile> files) {
             base.ExecuteForFilesInternal(files);

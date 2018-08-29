@@ -22,21 +22,17 @@ using System.Collections.Generic;
 using System.Linq;
 using Oetools.Builder.History;
 using Oetools.Builder.Project.Task;
+using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder {
     
     public class BuildStepExecutorWithFileList : BuildStepExecutor {
         
-        private List<OeFile> _taskFiles;
-
         /// <summary>
         /// List of unique existing files that will be treated by the current list of <see cref="BuildStepExecutor.Tasks"/>
         /// </summary>
-        public List<OeFile> TaskFiles {
-            get => _taskFiles;
-            set => _taskFiles = value.ToList(); // copy the list
-        }
+        public FileList<OeFile> TaskFiles { get; set; }
 
         protected override string BaseTargetDirectory => Properties?.BuildOptions?.OutputDirectoryPath;
 

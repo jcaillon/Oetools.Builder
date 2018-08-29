@@ -233,10 +233,10 @@ namespace Oetools.Builder.Test {
                 IsFileFilter = true;
                 PublishWarning?.Invoke(null, null);
             }
-            public void SetCompiledFiles(List<UoeCompiledFile> compiledFile) {
+            public void SetCompiledFiles(FileList<UoeCompiledFile> compiledFile) {
                 IsFilesCompiledSet = true;
             }
-            public List<UoeCompiledFile> GetCompiledFiles() => null;
+            public FileList<UoeCompiledFile> GetCompiledFiles() => null;
             public List<TaskExecutionException> GetExceptionList() => null;
         }
         

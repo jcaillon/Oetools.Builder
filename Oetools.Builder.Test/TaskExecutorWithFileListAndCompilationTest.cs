@@ -232,11 +232,11 @@ namespace Oetools.Builder.Test {
             
             Assert.AreEqual(5, filesToCompile.Count);
             Assert.IsTrue(filesToCompile.Exists(f => f.FileSize.Equals(10)), "should preserve file size");
-            Assert.IsTrue(filesToCompile.Exists(f => f.SourcePath.Equals(@"/folder/file1.p")));
-            Assert.IsTrue(filesToCompile.Exists(f => f.SourcePath.Equals(@"/folder/file2.cls")));
-            Assert.IsTrue(filesToCompile.Exists(f => f.SourcePath.Equals(@"/new/file3.t")));
-            Assert.IsTrue(filesToCompile.Exists(f => f.SourcePath.Equals(@"/new/file4.w")));
-            Assert.IsTrue(filesToCompile.Exists(f => f.SourcePath.Equals(@"/filtered/file4.w")));
+            Assert.IsTrue(filesToCompile.Exists(f => f.SourceFilePath.Equals(@"/folder/file1.p")));
+            Assert.IsTrue(filesToCompile.Exists(f => f.SourceFilePath.Equals(@"/folder/file2.cls")));
+            Assert.IsTrue(filesToCompile.Exists(f => f.SourceFilePath.Equals(@"/new/file3.t")));
+            Assert.IsTrue(filesToCompile.Exists(f => f.SourceFilePath.Equals(@"/new/file4.w")));
+            Assert.IsTrue(filesToCompile.Exists(f => f.SourceFilePath.Equals(@"/filtered/file4.w")));
         }
 
         [TestMethod]
@@ -245,9 +245,9 @@ namespace Oetools.Builder.Test {
         }
 
         private class TaskFilterCompile : OeTaskFilter, IOeTaskCompile {
-            public void SetCompiledFiles(List<UoeCompiledFile> compiledFile) { CompiledFiles = compiledFile; }
-            public List<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
-            private List<UoeCompiledFile> CompiledFiles { get; set; }
+            public void SetCompiledFiles(FileList<UoeCompiledFile> compiledFile) { CompiledFiles = compiledFile; }
+            public FileList<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
+            private FileList<UoeCompiledFile> CompiledFiles { get; set; }
         }
     }
 }

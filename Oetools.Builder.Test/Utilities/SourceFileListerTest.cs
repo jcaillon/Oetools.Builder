@@ -63,27 +63,27 @@ namespace Oetools.Builder.Test.Utilities {
             Utils.CreateDirectoryIfNeeded(Path.Combine(repoDir, "folder2"));
             Utils.CreateDirectoryIfNeeded(Path.Combine(repoDir, "folder_special", "sub"));
             
-            Assert.AreEqual(5, lister.GetDirectoryList().Count, "the default filters should catch .git and .svn");
+            Assert.AreEqual(5, lister.GetDirectoryList().Count(), "the default filters should catch .git and .svn");
 
             lister.SourcePathFilter = new OeTaskFilter {
                 Include = @"**sub**"
             };
 
-            Assert.AreEqual(2, lister.GetDirectoryList().Count, "2 included");
+            Assert.AreEqual(2, lister.GetDirectoryList().Count(), "2 included");
             
             lister.SourcePathFilter = new OeTaskFilter {
                 Include = @"**sub**",
                 Exclude = @"**special**"
             };
 
-            Assert.AreEqual(1, lister.GetDirectoryList().Count, "1 included");
+            Assert.AreEqual(1, lister.GetDirectoryList().Count(), "1 included");
             
             
             lister.SourcePathFilter = new OeTaskFilter {
                 Exclude = @"**special**"
             };
             
-            Assert.AreEqual(3, lister.GetDirectoryList().Count, "2");
+            Assert.AreEqual(3, lister.GetDirectoryList().Count(), "2");
         }
 
         [TestMethod]
@@ -191,7 +191,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(3, list.Count, "count all");
             Assert.AreEqual(1, list.Count(f => f.State == OeFileState.Added), "1 added");
             Assert.AreEqual(2, list.Count(f => f.State == OeFileState.Unchanged), "2 unchanged");
-            Assert.IsTrue(!list.Exists(f => f.SourceFilePath.Contains("file3")));   
+            Assert.IsNotNull(list["file3"]);
         }
 
         [TestMethod]
@@ -265,7 +265,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.IsTrue(newList.All(f => f.State == OeFileState.Modified), "all modified because the old HASH was null");
             
             // set up the hash for all files
-            newList.ForEach(f => SourceFilesLister.SetFileHash(f));
+            newList.ToList().ForEach(f => SourceFilesLister.SetFileHash(f));
             lister.PreviousSourceFiles = newList;
                         
             newList = lister.GetFileList();
@@ -299,7 +299,7 @@ namespace Oetools.Builder.Test.Utilities {
             };
             
             Assert.AreEqual(1, lister.GetFileList().Count, "no .pls file");
-            Assert.AreEqual(Path.Combine(repoDir, "monfichier.txt"), lister.GetFileList()[0].SourceFilePath, "check file path");
+            Assert.AreEqual(Path.Combine(repoDir, "monfichier.txt"), lister.GetFileList().ElementAt(0).SourceFilePath, "check file path");
 
             lister.SourcePathFilter = null;
             
@@ -310,7 +310,7 @@ namespace Oetools.Builder.Test.Utilities {
             };
             
             Assert.AreEqual(1, lister.GetFileList().Count, "no .txt file");
-            Assert.AreEqual(Path.Combine(repoDir, "subfolder", "monfichier.pls"), lister.GetFileList()[0].SourceFilePath, "check my pls file");
+            Assert.AreEqual(Path.Combine(repoDir, "subfolder", "monfichier.pls"), lister.GetFileList().ElementAt(0).SourceFilePath, "check my pls file");
             
             lister.SourcePathFilter = new OeTaskFilter {
                 Include = "**"
@@ -370,7 +370,7 @@ namespace Oetools.Builder.Test.Utilities {
             File.WriteAllText(Path.Combine(repoDir, "init file"), "");
             
             Assert.AreEqual(1, lister.GetFileList().Count, "now we get one file");
-            Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList()[0].SourceFilePath, "check that we get what we expect");
+            Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList().ElementAt(0).SourceFilePath, "check that we get what we expect");
             
             lister.SourcePathGitFilter = new OeGitFilter {
                 OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true,
@@ -389,7 +389,7 @@ namespace Oetools.Builder.Test.Utilities {
            
             
             Assert.AreEqual(1, lister.GetFileList().Count, "now it's committed so we can list it again");
-            Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList()[0].SourceFilePath, "check that we get full path");
+            Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList().ElementAt(0).SourceFilePath, "check that we get full path");
             
             // new branch v1/dev/issue1
             try {
@@ -411,7 +411,7 @@ namespace Oetools.Builder.Test.Utilities {
             lister.SourcePathGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = false;
             
             Assert.AreEqual(2, lister.GetFileList().Count, "but now we do");
-            Assert.IsTrue(lister.GetFileList().Exists(f => f.SourceFilePath.Equals(Path.Combine(repoDir, "new file1"))), "check that we still get full path");
+            Assert.IsNotNull(lister.GetFileList()[Path.Combine(repoDir, "new file1")], "check that we still get full path");
             
             // add files to index
             _git.ExecuteGitCommand("add --all");

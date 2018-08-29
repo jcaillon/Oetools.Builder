@@ -57,7 +57,7 @@ namespace Oetools.Builder.History {
         public List<OeWebclientPackage> WebclientPackageInfo { get; set; }
 
         /// <summary>
-        /// List of all the files deployed from the source directory
+        /// Files built during this build
         /// </summary>
         [XmlArray("BuiltFiles")]
         [XmlArrayItem("BuiltFile", typeof(OeFileBuilt))]

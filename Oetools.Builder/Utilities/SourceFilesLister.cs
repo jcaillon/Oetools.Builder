@@ -58,7 +58,7 @@ namespace Oetools.Builder.Utilities {
 
         public OeGitFilter SourcePathGitFilter { get; set; }
 
-        public IEnumerable<OeFile> PreviousSourceFiles { get; set; }
+        public FileList<OeFile> PreviousSourceFiles { get; set; }
         
         public CancellationTokenSource CancelSource { get; set; }
         
@@ -79,17 +79,21 @@ namespace Oetools.Builder.Utilities {
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         /// <exception cref="OperationCanceledException"></exception>
-        public List<OeFile> GetFileList() {
-            HashSet<string> listedFiles;
+        public FileList<OeFile> GetFileList() {
+            IEnumerable<string> listedFiles;
             if (SourcePathGitFilter != null && ((SourcePathGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch ?? OeGitFilter.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch()) || (SourcePathGitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit ?? OeGitFilter.GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit()))) {
                 listedFiles = GetBaseFileListFromGit();
             } else {
                 listedFiles = GetBaseFileList();
             }
 
-            var output = new List<OeFile>();
+            var output = new FileList<OeFile>();
             foreach (var file in listedFiles) {
                 CancelSource?.Token.ThrowIfCancellationRequested();
+                if (output.Contains(file)) {
+                    continue;
+                }
+                
                 var oeFile = new OeFile(file); // all the files here exist
                 output.Add(oeFile);
                 
@@ -108,22 +112,20 @@ namespace Oetools.Builder.Utilities {
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public List<string> GetDirectoryList() {
+        public IEnumerable<string> GetDirectoryList() {
             var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(SourcePathFilter);
             return Utils.EnumerateAllFolders(SourceDirectory, SearchOption.AllDirectories, sourcePathExcludeRegexStrings, ExcludeHiddenFolders, CancelSource)
-                .Where(IsFileIncludedBySourcePathFilters)
-                .ToList();
+                .Where(IsFileIncludedBySourcePathFilters);
         }
 
         /// <summary>
         /// Returns a list of all the files in the source directory, filtered with <see cref="SourcePathFilter"/>
         /// </summary>
         /// <returns></returns>
-        private HashSet<string> GetBaseFileList() {
+        private IEnumerable<string> GetBaseFileList() {
             var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(SourcePathFilter);
             return Utils.EnumerateAllFiles(SourceDirectory, SearchOption.AllDirectories, sourcePathExcludeRegexStrings, ExcludeHiddenFolders, CancelSource)
-                .Where(IsFileIncludedBySourcePathFilters)
-                .ToHashSet(new HashSet<string>(StringComparer.CurrentCultureIgnoreCase));
+                .Where(IsFileIncludedBySourcePathFilters);
         }
 
         /// <summary>
@@ -136,8 +138,7 @@ namespace Oetools.Builder.Utilities {
                 oeFile.State = OeFileState.Added;
                 return;
             }
-            // TODO : might be worth it to turn PreviousSourceFiles into a dictionnary?
-            var previousFile = PreviousSourceFiles.FirstOrDefault(f => f.SourceFilePath.EqualsCi(oeFile.SourceFilePath));
+            var previousFile = PreviousSourceFiles[oeFile];
             if (previousFile == null || previousFile.State == OeFileState.Deleted) {
                 oeFile.State = OeFileState.Added;
             } else {
@@ -209,7 +210,7 @@ namespace Oetools.Builder.Utilities {
         /// Returns a list of files in the source directory based on a git filter and also filtered with <see cref="SourcePathFilter"/>
         /// </summary>
         /// <returns></returns>
-        private HashSet<string> GetBaseFileListFromGit() {
+        private IEnumerable<string> GetBaseFileListFromGit() {
             var output = new List<string>();
 
             var gitManager = new GitManager {
@@ -228,7 +229,7 @@ namespace Oetools.Builder.Utilities {
                     // this exception means we can't find commits that exist only on that branch
                     // we list every file committed in the repo instead (= all files in repo minus all modified files)
                     var allFiles = GetBaseFileList();
-                    var workingFiles = gitManager.GetAllModifiedFilesSinceLastCommit().ToHashSet(new HashSet<string>(StringComparer.CurrentCultureIgnoreCase));
+                    var workingFiles = gitManager.GetAllModifiedFilesSinceLastCommit().ToHashSet(new HashSet<string>(StringComparer.OrdinalIgnoreCase));
                     output.AddRange(allFiles.Select(f => f.FromAbsolutePathToRelativePath(SourceDirectory)).Where(f => !workingFiles.Contains(f)));
                 }
             }
@@ -239,8 +240,7 @@ namespace Oetools.Builder.Utilities {
             return output
                 .Select(s => Path.Combine(SourceDirectory, s.ToCleanPath()))
                 .Where(File.Exists)
-                .Where(IsFilePassingSourcePathFilters)
-                .ToHashSet(new HashSet<string>(StringComparer.CurrentCultureIgnoreCase));
+                .Where(IsFilePassingSourcePathFilters);
         }
         
         /// <summary>

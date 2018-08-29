@@ -19,6 +19,7 @@
 #endregion
 using System;
 using System.Xml.Serialization;
+using Oetools.Utilities.Openedge;
 
 namespace Oetools.Builder.History {
     
@@ -28,7 +29,24 @@ namespace Oetools.Builder.History {
     /// </summary>
     [Serializable]
     public class OeDatabaseReference {
+        
         [XmlAttribute(AttributeName = "QualifiedName")]
         public string QualifiedName { get; set; }
+        
+        internal static OeDatabaseReference New(UoeDatabaseReference reference) {
+            switch (reference) {
+                case UoeDatabaseReferenceSequence _:
+                    return new OeDatabaseReferenceSequence {
+                        QualifiedName = reference.QualifiedName
+                    };
+                case UoeDatabaseReferenceTable table:
+                    return new OeDatabaseReferenceTable {
+                        QualifiedName = reference.QualifiedName,
+                        Crc = table.Crc
+                    };
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(UoeDatabaseReference), reference, "no matching type");
+            }
+        }
     }
 }
