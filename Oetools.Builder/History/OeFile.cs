@@ -33,7 +33,7 @@ namespace Oetools.Builder.History {
         public OeFile() { }
 
         public OeFile(string sourceFilePath) {
-            SourceFilePath = sourceFilePath;
+            FilePath = sourceFilePath;
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Oetools.Builder.History {
         /// </summary>
         [XmlAttribute(AttributeName = "SourceFilePath")]
         [BaseDirectory(Type = BaseDirectoryType.SourceDirectory)]
-        public string SourceFilePath { get; set; }
+        public string FilePath { get; set; }
 
         [XmlAttribute(AttributeName = "LastWriteTime")]
         public DateTime LastWriteTime { get; set; }
@@ -64,13 +64,13 @@ namespace Oetools.Builder.History {
         private string _sourcePathForTaskExecution;
         
         /// <summary>
-        /// Can be different from <see cref="SourceFilePath"/> for instance in the case of a .p, <see cref="SourcePathForTaskExecution"/>
+        /// Can be different from <see cref="FilePath"/> for instance in the case of a .p, <see cref="SourcePathForTaskExecution"/>
         /// will be set to the path of the .r code to copy instead of the actual source path
         /// </summary>
         [XmlIgnore]
         [DeepCopy(Ignore = true)]
         public string SourcePathForTaskExecution {
-            get => _sourcePathForTaskExecution ?? SourceFilePath;
+            get => _sourcePathForTaskExecution ?? FilePath;
             set => _sourcePathForTaskExecution = value;
         }
 
@@ -84,6 +84,6 @@ namespace Oetools.Builder.History {
 
         public virtual IEnumerable<OeTarget> GetAllTargets() => TargetsArchives.UnionHandleNull<OeTarget>(TargetsFiles);
         
-        public override string ToString() => SourceFilePath;
+        public override string ToString() => FilePath;
     }
 }

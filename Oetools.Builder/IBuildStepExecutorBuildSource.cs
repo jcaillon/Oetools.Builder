@@ -6,7 +6,7 @@ using Oetools.Utilities.Lib;
 namespace Oetools.Builder {
     internal interface IBuildStepExecutorBuildSource {
         FileList<OeFileBuilt> PreviouslyBuiltFiles { get; set; }
-        IEnumerable<OeTask> AllTasksOfAllSteps { get; set; }
+        IEnumerable<IOeTask> AllTasksOfAllSteps { get; set; }
         bool IsLastBuildStepExecutor { get; set; }
     }
 }

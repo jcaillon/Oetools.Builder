@@ -17,7 +17,6 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-using System;
 
 namespace Oetools.Builder.Utilities {
     

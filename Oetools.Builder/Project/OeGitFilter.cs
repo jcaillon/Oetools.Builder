@@ -56,5 +56,11 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlElement(ElementName = "CurrentBranchOriginCommit")]
         public string CurrentBranchOriginCommit { get; set; }
+
+        /// <summary>
+        /// Is this filter active
+        /// </summary>
+        /// <returns></returns>
+        internal bool IsActive() => (OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch ?? GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch()) || (OnlyIncludeSourceFilesModifiedSinceLastCommit ?? GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit());
     }
 }

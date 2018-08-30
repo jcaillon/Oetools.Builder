@@ -18,7 +18,6 @@
 // ========================================================================
 #endregion
 
-using System.Collections.Generic;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Utilities.Lib;
@@ -43,7 +42,7 @@ namespace Oetools.Builder.Project.Task {
         /// Given the inclusion wildcard paths and exclusion patterns, returns a list of files on which to apply this task
         /// </summary>
         /// <returns></returns>
-        List<OeFile> GetIncludedFiles();
+        FileList<OeFile> GetIncludedFiles();
 
         /// <summary>
         /// Validates that the task can be applied on files without having a base directory to list; for that,

@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.History;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {
     
@@ -34,7 +35,7 @@ namespace Oetools.Builder.Project.Task {
     [XmlRoot("TargetsRemover")]
     public class OeTaskTargetsRemover : OeTask, IOeTaskFileBuilder {
 
-        private List<OeFileBuilt> _builtFiles;
+        private FileList<OeFileBuilt> _builtFiles;
         
         protected sealed override void ExecuteInternal() {
             var targetsToRemove = FilesWithTargetsToRemove.SelectMany(f => f.Targets).Where(target => target.IsDeletionMode()).ToList();
@@ -42,7 +43,7 @@ namespace Oetools.Builder.Project.Task {
             _builtFiles = FilesWithTargetsToRemove;
         }
 
-        protected virtual void ExecuteTargetsRemoval(List<OeTarget> targetsToRemove) {
+        private void ExecuteTargetsRemoval(List<OeTarget> targetsToRemove) {
             var fileTargets = targetsToRemove.Where(target => target is OeTargetFileCopy);
             Log?.Debug("Deleting all file targets");
 
@@ -54,9 +55,9 @@ namespace Oetools.Builder.Project.Task {
         /// a list of files with targets to remove
         /// </summary>
         [XmlIgnore]
-        internal List<OeFileBuilt> FilesWithTargetsToRemove { get; set; }
+        internal FileList<OeFileBuilt> FilesWithTargetsToRemove { get; set; }
 
-        public IEnumerable<OeFileBuilt> GetFilesBuilt() => _builtFiles;
+        public FileList<OeFileBuilt> GetFilesBuilt() => _builtFiles;
 
 
     }

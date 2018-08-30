@@ -90,7 +90,7 @@ namespace Oetools.Builder.Utilities {
             string currentBranch = null;
             if (firstCommitRef.Contains("HEAD ->")) {
                 // we are on a branch, get the name of the branch commitRef = "HEAD -> v2/ft/INC0439347", we want "v2/ft/INC0439347"
-                currentBranch = optionalCurrentBranchName ?? firstCommitRef.Substring(firstCommitRef.IndexOf("-> ", StringComparison.CurrentCultureIgnoreCase) + 3).Trim();
+                currentBranch = optionalCurrentBranchName ?? firstCommitRef.Substring(firstCommitRef.IndexOf("-> ", StringComparison.Ordinal) + 3).Trim();
             } else {
                 // we are in detached mode commitRef = "HEAD", we are on no branch so obviously we can't find the commit on this non existing branch
                 var split = firstCommitRefs.Split(',').ToList();

@@ -40,8 +40,10 @@ namespace Oetools.Builder {
         private FileList<UoeCompiledFile> _compiledFiles;
 
         protected override void ExecuteInternal() {
-            Log?.Info("Compiling files from all tasks");
-            CompileFiles();
+            if (!TestMode) {
+                Log?.Info("Compiling files from all tasks before executing all the tasks");
+                CompileFiles();
+            }
             base.ExecuteInternal();
         }
 
@@ -67,10 +69,10 @@ namespace Oetools.Builder {
             }
         }
 
-        protected override List<OeFile> GetFilesReadyForTaskExecution(IOeTaskFile task, List<OeFile> initialFiles) {
+        protected override FileList<OeFile> GetFilesReadyForTaskExecution(IOeTaskFile task, FileList<OeFile> initialFiles) {
             if (task is IOeTaskCompile taskCompile) {
                 Log?.Debug("Associate the list of compiled files for the task");
-                taskCompile.SetCompiledFiles(_compiledFiles?.Where(cf => initialFiles.Exists(f => f.SourceFilePath.Equals(cf.SourceFilePath))).ToList());
+                taskCompile.SetCompiledFiles(_compiledFiles?.CopyWhere(cf => initialFiles.Contains(cf.FilePath)));
             }
             return base.GetFilesReadyForTaskExecution(task, initialFiles);
         }
@@ -82,11 +84,11 @@ namespace Oetools.Builder {
         /// <param name="tasks"></param>
         /// <param name="files"></param>
         /// <returns></returns>
-        internal static FileList<UoeFileToCompile> GetFilesToCompile(IEnumerable<IOeTask> tasks, IEnumerable<OeFile> files) {
+        internal static FileList<UoeFileToCompile> GetFilesToCompile(IEnumerable<IOeTask> tasks, FileList<OeFile> files) {
             var compileTasks = tasks.Where(t => t is IOeTaskCompile && t is IOeTaskFilter).Cast<IOeTaskFilter>().ToList();
             return files
-                .Where(f => compileTasks.Any(t => t.IsFilePassingFilter(f.SourceFilePath)))
-                .Select(f => new UoeFileToCompile(f.SourceFilePath) { FileSize = f.Size })
+                .CopyWhere(f => compileTasks.Any(t => t.IsFilePassingFilter(f.FilePath)))
+                .Select(f => new UoeFileToCompile(f.FilePath) { FileSize = f.Size })
                 .ToFileList();
         }
         
@@ -105,7 +107,7 @@ namespace Oetools.Builder {
         /// <param name="files"></param>
         /// <param name="baseTargetDirectory"></param>
         /// <returns></returns>
-        internal static FileList<UoeFileToCompile> GetFilesToCompile(IEnumerable<IOeTask> tasks, IEnumerable<OeFile> files, string baseTargetDirectory) {
+        internal static FileList<UoeFileToCompile> GetFilesToCompile(IEnumerable<IOeTask> tasks, FileList<OeFile> files, string baseTargetDirectory) {
             var filesToCompile = new FileList<UoeFileToCompile>();
             
             // list all the tasks that need to compile files
@@ -114,7 +116,7 @@ namespace Oetools.Builder {
             foreach (var file in files) {
                 
                 // get all the compile tasks that handle this file
-                var compileTasksForThisFile = compileTasks.Where(t => t.IsFilePassingFilter(file.SourceFilePath)).ToList();
+                var compileTasksForThisFile = compileTasks.Where(t => t.IsFilePassingFilter(file.FilePath)).ToList();
                 if (compileTasksForThisFile.Count == 0) {
                     continue;
                 }
@@ -122,30 +124,30 @@ namespace Oetools.Builder {
                 // set all the targets (from all compile tasks) for this file, we need this to set UoeFileToCompile.PreferedTargetDirectory
                 foreach (var task in compileTasksForThisFile) {
                     if (task is IOeTaskFileTargetFile taskWithTargetFiles) {
-                        (file.TargetsFiles ?? (file.TargetsFiles = new List<OeTargetFile>())).AddRange(taskWithTargetFiles.GetFileTargets(file.SourceFilePath, baseTargetDirectory));
+                        (file.TargetsFiles ?? (file.TargetsFiles = new List<OeTargetFile>())).AddRange(taskWithTargetFiles.GetFileTargets(file.FilePath, baseTargetDirectory));
                     }
 
                     if (task is IOeTaskFileTargetArchive taskWithTargetArchives) {
-                        (file.TargetsArchives ?? (file.TargetsArchives = new List<OeTargetArchive>())).AddRange(taskWithTargetArchives.GetFileTargets(file.SourceFilePath, baseTargetDirectory));
+                        (file.TargetsArchives ?? (file.TargetsArchives = new List<OeTargetArchive>())).AddRange(taskWithTargetArchives.GetFileTargets(file.FilePath, baseTargetDirectory));
                     }
                 }
 
                 string preferedTargetDirectory = null;
                 var allTargets = file.TargetsArchives?.Select(a => a.TargetPackFilePath).UnionHandleNull(file.TargetsFiles?.Select(f => f.TargetFilePath));
-                var firstTargetWithDifferentDiscDrive = allTargets?.FirstOrDefault(s => !Utils.ArePathOnSameDrive(s, file.SourceFilePath));
+                var firstTargetWithDifferentDiscDrive = allTargets?.FirstOrDefault(s => !Utils.ArePathOnSameDrive(s, file.FilePath));
                 if (firstTargetWithDifferentDiscDrive != null) {
                     // basically, we found 1 file that targets a different disc drive
                     if (allTargets.All(s => Utils.ArePathOnSameDrive(s, firstTargetWithDifferentDiscDrive))) {
                         // and all targets are on the same disc drive, it is worth targetting this
                         // TODO : maybe the first won't do, search for one that does
-                        if (Path.GetFileNameWithoutExtension(firstTargetWithDifferentDiscDrive).Equals(Path.GetFileNameWithoutExtension(file.SourceFilePath))) {
+                        if (Path.GetFileNameWithoutExtension(firstTargetWithDifferentDiscDrive).EqualsCi(Path.GetFileNameWithoutExtension(file.FilePath))) {
                             preferedTargetDirectory = Path.GetDirectoryName(firstTargetWithDifferentDiscDrive);
                         }
                     }
                 }
                 
                 // at least one compile task takes care of this file, we need to compile it
-                filesToCompile.TryAdd(new UoeFileToCompile(file.SourceFilePath) {
+                filesToCompile.TryAdd(new UoeFileToCompile(file.FilePath) {
                     FileSize = file.Size,
                     PreferedTargetDirectory = preferedTargetDirectory
                 });

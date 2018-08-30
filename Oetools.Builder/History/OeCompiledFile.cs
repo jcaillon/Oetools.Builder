@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (OeTaskFileTargetFileCompile.cs) is part of Oetools.Builder.
+// This file (OeCompilationProblem.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,13 +19,26 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
+using Oetools.Builder.Utilities.Attributes;
+using Oetools.Utilities.Lib;
 
-namespace Oetools.Builder.Project.Task {
+namespace Oetools.Builder.History {
     
     [Serializable]
-    [XmlRoot("Compile")]
-    public class OeTaskFileTargetFileCompile : OeTaskFileTargetFileCopy, IOeTaskCompile {
-
+    public class OeCompiledFile : IFileListItem {
+            
+        /// <summary>
+        /// Path of the file compiled
+        /// </summary>
+        [XmlAttribute(AttributeName ="SourceFilePath")]
+        [BaseDirectory(Type = BaseDirectoryType.SourceDirectory)]
+        public string FilePath { get; set; }
+            
+        [XmlArray("CompilationProblems")]
+        [XmlArrayItem("Error", typeof(OeCompilationError))]
+        [XmlArrayItem("Warning", typeof(OeCompilationWarning))]
+        public List<OeCompilationProblem> CompilationProblems { get; set; }
     }
 }

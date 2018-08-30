@@ -169,7 +169,8 @@ namespace Oetools.Builder {
             var executionName = typeof(OeBuildConfiguration).GetXmlName(oeBuildConfigurationPropertyName);
             
             Log?.Debug($"Starting {executionName}");
-            
+
+            List<IOeTask> tasksDone = new List<IOeTask>();
             if (steps != null) {
                 var stepsList = steps.ToList();
                 var i = 0;
@@ -184,15 +185,16 @@ namespace Oetools.Builder {
                         CancelSource = CancelSource
                     };
                     BuildStepExecutors.Add(executor);
-                    executor.Configure();
                     if (executor is IBuildStepExecutorBuildSource buildSourceExecutor) {
                         buildSourceExecutor.PreviouslyBuiltFiles = PreviouslyBuiltFiles;
                         buildSourceExecutor.IsLastBuildStepExecutor = i == stepsList.Count - 1;
                         if (buildSourceExecutor.IsLastBuildStepExecutor) {
-                            buildSourceExecutor.AllTasksOfAllSteps = stepsList.SelectMany(stp => stp.GetTaskList().ToNonNullList());
+                            buildSourceExecutor.AllTasksOfAllSteps = tasksDone;
                         }
                     }
+                    executor.Configure();
                     executor.Execute();
+                    tasksDone.AddRange(executor.Tasks);
                     i++;
                 }
             }
@@ -201,7 +203,7 @@ namespace Oetools.Builder {
         private OeBuildHistory GetBuildHistory() {
             var history = new OeBuildHistory {
                 BuiltFiles = GetFilesBuiltHistory().ToList(),
-                CompilationProblems = GetSourceCompilationProblems(),
+                CompiledFiles = GetSourceCompilationProblems().ToList(),
                 WebclientPackageInfo = null // TODO : webclient package info
             };
             return history;
@@ -211,25 +213,32 @@ namespace Oetools.Builder {
         /// List all the compilation problems of all the compile tasks
         /// </summary>
         /// <returns></returns>
-        private List<OeCompilationProblem> GetSourceCompilationProblems() {
-            var output = new List<OeCompilationProblem>();
+        private FileList<OeCompiledFile> GetSourceCompilationProblems() {
+            var output = new FileList<OeCompiledFile>();
+            
             // add all compilation problems
             foreach (var file in BuildStepExecutors
-                .Where(te => te is BuildStepExecutorWithFileListAndCompilation)
-                .SelectMany(exec => (exec?.Tasks).ToNonNullList())
+                .Where(te => te is BuildStepExecutorBuildSource)
+                .SelectMany(exec => exec.Tasks.ToNonNullList())
                 .Where(task => task is IOeTaskCompile)
                 .Cast<IOeTaskCompile>()
                 .SelectMany(task => task.GetCompiledFiles().ToNonNullList())) {
                 if (file.CompilationErrors == null || file.CompilationErrors.Count == 0) {
                     continue;
                 }
-                if (output.Exists(cp => cp.SourceFilePath.Equals(file.SourceFilePath, StringComparison.CurrentCultureIgnoreCase))) {
+                if (output.Contains(file.FilePath)) {
                     continue;
                 }
+                var compiledFile = new OeCompiledFile {
+                    FilePath = file.FilePath,
+                    CompilationProblems = new List<OeCompilationProblem>()
+                };
                 foreach (var problem in file.CompilationErrors) {
-                    output.Add(OeCompilationProblem.New(file.SourceFilePath, problem));
+                    compiledFile.CompilationProblems.Add(OeCompilationProblem.New(problem));
                 }
+                output.Add(compiledFile);
             }
+            
             return output;
         }
 
@@ -244,16 +253,15 @@ namespace Oetools.Builder {
             var outputDirectory = BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath;
             
             foreach (var fileBuilt in BuildStepExecutors
-                .Where(te => te is BuildStepExecutorWithFileListAndCompilation)
-                .Cast<BuildStepExecutorWithFileListAndCompilation>()
-                .SelectMany(exec => (exec?.Tasks).ToNonNullList())
+                .Where(te => te is BuildStepExecutorBuildSource)
+                .SelectMany(exec => exec.Tasks.ToNonNullList())
                 .Where(t => t is IOeTaskFileBuilder)
                 .Cast<IOeTaskFileBuilder>()
                 .SelectMany(t => t.GetFilesBuilt().ToNonNullList())) {
                 
                 // keep only the targets that are in the output directory, we won't be able to "undo" the others so it would be useless to keep them
                 var targetsOutputDirectory = fileBuilt.Targets
-                    .Where(t => t.GetTargetPath().StartsWith(outputDirectory, StringComparison.CurrentCultureIgnoreCase))
+                    .Where(t => t.GetTargetPath().StartsWith(outputDirectory, StringComparison.Ordinal))
                     .ToList();
                 
                 if (!builtFiles.Contains(fileBuilt)) {

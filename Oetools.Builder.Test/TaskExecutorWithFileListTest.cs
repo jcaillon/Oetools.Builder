@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Test {
     
@@ -34,10 +35,10 @@ namespace Oetools.Builder.Test {
         public void TaskExecutorWithFileListTest_Test_task_files() {
             var baseDir = TestHelper.GetTestFolder(nameof(TaskExecutorWithFileListTest));
             var taskExecutor = new BuildStepExecutorWithFileList {
-                TaskFiles = new List<OeFile> {
-                    new OeFile { SourceFilePath = @"C:\sourcedir\file1.ext" },
-                    new OeFile { SourceFilePath = @"C:\sourcedir\file2.ext" },
-                    new OeFile { SourceFilePath = @"C:\sourcedir\file3.ext" }
+                TaskFiles = new FileList<OeFile> {
+                    new OeFile { FilePath = @"C:\sourcedir\file1.ext" },
+                    new OeFile { FilePath = @"C:\sourcedir\file2.ext" },
+                    new OeFile { FilePath = @"C:\sourcedir\file3.ext" }
                 },
                 Properties = new OeProperties {
                     BuildOptions = new OeBuildOptions {

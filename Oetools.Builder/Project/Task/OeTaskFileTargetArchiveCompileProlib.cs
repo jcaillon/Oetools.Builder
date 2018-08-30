@@ -19,11 +19,7 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Xml.Serialization;
-using Oetools.Builder.History;
-using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project.Task {
     

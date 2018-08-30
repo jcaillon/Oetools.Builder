@@ -19,7 +19,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -35,29 +34,16 @@ namespace Oetools.Builder.Project.Task {
     
     public static class OeTaskCompile {
 
-        public static FileList<OeFile> SetRcodeFilesAsTargetsInsteadOfSourceFiles(FileList<OeFile> originalFiles, FileList<UoeCompiledFile> compiledFiles) {
-            var filesToRemove = new List<OeFile>();
-            foreach (var file in originalFiles) {
-                var compiledFile = compiledFiles[file.SourceFilePath];
+        public static FileList<OeFile> SetRcodeFilesAsSourceInsteadOfSourceFiles(FileList<OeFile> originalFiles, FileList<UoeCompiledFile> compiledFiles) {
+            foreach (var file in originalFiles.ToList()) {
+                var compiledFile = compiledFiles[file.FilePath];
                 if (compiledFile != null && (compiledFile.CompiledCorrectly || compiledFile.CompiledWithWarnings)) {
-                    
                     // change the source file to copy from
                     file.SourcePathForTaskExecution = compiledFile.CompilationRcodeFilePath;
-                    
-                    // change the targets extentions
-                    foreach (var targetFile in file.TargetsFiles.ToNonNullList()) {
-                        targetFile.TargetFilePath = Path.ChangeExtension(targetFile.TargetFilePath, UoeConstants.ExtR);
-                    }
-                    foreach (var targetFile in file.TargetsArchives.ToNonNullList()) {
-                        targetFile.RelativeTargetFilePath = Path.ChangeExtension(targetFile.RelativeTargetFilePath, UoeConstants.ExtR);
-                    }
                 } else {
                     // the file didn't compile, we delete it from the list
-                    filesToRemove.Add(file);
+                    originalFiles.Remove(file);
                 }
-            }
-            foreach (var file in filesToRemove) {
-                originalFiles.Remove(file);
             }
             return originalFiles;
         }

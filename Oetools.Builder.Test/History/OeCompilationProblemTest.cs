@@ -29,33 +29,31 @@ namespace Oetools.Builder.Test.History {
 
         [TestMethod]
         public void OeCompilationProblem_Test_New() {
-            var new1 = OeCompilationProblem.New("compiled", new UoeCompilationWarning {
+            var new1 = OeCompilationProblem.New(new UoeCompilationWarning {
                 Message = "message",
                 Column = 2,
                 Line = 2,
                 ErrorNumber = 2,
-                SourceFilePath = "source"
+                FilePath = "source"
             });
             Assert.AreEqual(typeof(OeCompilationWarning), new1.GetType());
-            Assert.AreEqual("compiled", new1.CompiledSourceFilePath);
             Assert.AreEqual("message", new1.Message);
-            Assert.AreEqual("source", new1.SourceFilePath);
+            Assert.AreEqual("source", new1.FilePath);
             Assert.AreEqual(2, new1.Column);
             Assert.AreEqual(2, new1.Line);
             Assert.AreEqual(2, new1.ErrorNumber);
             
             
-            var new2 = OeCompilationProblem.New("compiled2", new UoeCompilationError {
+            var new2 = OeCompilationProblem.New(new UoeCompilationError {
                 Message = "message2",
                 Column = 3,
                 Line = 3,
                 ErrorNumber = 3,
-                SourceFilePath = "source2"
+                FilePath = "source2"
             });
             Assert.AreEqual(typeof(OeCompilationError), new2.GetType());
-            Assert.AreEqual("compiled2", new2.CompiledSourceFilePath);
             Assert.AreEqual("message2", new2.Message);
-            Assert.AreEqual("source2", new2.SourceFilePath);
+            Assert.AreEqual("source2", new2.FilePath);
             Assert.AreEqual(3, new2.Column);
             Assert.AreEqual(3, new2.Line);
             Assert.AreEqual(3, new2.ErrorNumber);

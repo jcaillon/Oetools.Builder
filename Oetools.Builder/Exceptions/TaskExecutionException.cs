@@ -19,7 +19,6 @@
 #endregion
 
 using System;
-using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
 
 namespace Oetools.Builder.Exceptions {

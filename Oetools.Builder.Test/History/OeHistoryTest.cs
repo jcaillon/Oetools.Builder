@@ -64,19 +64,30 @@ namespace Oetools.Builder.Test.History {
         [TestMethod]
         public void OeBuildHistory_Serialization_Test() {
             var history = new OeBuildHistory {
-                CompilationProblems = new List<OeCompilationProblem> {
-                    new OeCompilationError {
-                        CompiledSourceFilePath = @"C:\initialsource\compiled1",
-                        SourceFilePath = @"C:\initialsource\include1"
+                CompiledFiles = new List<OeCompiledFile> {
+                    new OeCompiledFile {
+                        FilePath = @"C:\initialsource\compiled1",
+                        CompilationProblems = new List<OeCompilationProblem> {
+                            new OeCompilationError {
+                                FilePath = @"C:\initialsource\include1"
+                            },
+                            new OeCompilationWarning {
+                                FilePath = @"C:\initialsource\include2"
+                            }
+                        }
                     },
-                    new OeCompilationWarning {
-                        CompiledSourceFilePath = @"C:\initialsource\compiled2",
-                        SourceFilePath = @"C:\initialsource\include2"
+                    new OeCompiledFile {
+                        FilePath = @"C:\initialsource\compiled2",
+                        CompilationProblems = new List<OeCompilationProblem> {
+                            new OeCompilationWarning {
+                                FilePath = @"C:\initialsource\include2"
+                            }
+                        }
                     }
                 },
                 BuiltFiles = new List<OeFileBuilt> {
                     new OeFileBuilt {
-                        SourceFilePath = @"C:\initialsource\source1",
+                        FilePath = @"C:\initialsource\source1",
                         Targets = new List<OeTarget> {
                             new OeTargetFileCopy {
                                 TargetFilePath = @"D:\initialtarget\target1"
@@ -108,11 +119,11 @@ namespace Oetools.Builder.Test.History {
 
             var loadedHistory = OeBuildHistory.Load(Path.Combine(TestFolder, "build.xml"), @"E:\newsource", @"F:\newtarget");
             
-            Assert.AreEqual(@"E:\newsource\compiled1", loadedHistory.CompilationProblems[0].CompiledSourceFilePath);
-            Assert.AreEqual(@"E:\newsource\include1", loadedHistory.CompilationProblems[0].SourceFilePath);
-            Assert.AreEqual(@"E:\newsource\compiled2", loadedHistory.CompilationProblems[1].CompiledSourceFilePath);
-            Assert.AreEqual(@"E:\newsource\include2", loadedHistory.CompilationProblems[1].SourceFilePath);
-            Assert.AreEqual(@"E:\newsource\source1", loadedHistory.BuiltFiles[0].SourceFilePath);
+            Assert.AreEqual(@"E:\newsource\compiled1", loadedHistory.CompiledFiles[0].FilePath);
+            Assert.AreEqual(@"E:\newsource\include1", loadedHistory.CompiledFiles[0].CompilationProblems[0].FilePath);
+            Assert.AreEqual(@"E:\newsource\compiled2", loadedHistory.CompiledFiles[1].FilePath);
+            Assert.AreEqual(@"E:\newsource\include2", loadedHistory.CompiledFiles[1].CompilationProblems[0].FilePath);
+            Assert.AreEqual(@"E:\newsource\source1", loadedHistory.BuiltFiles[0].FilePath);
             Assert.AreEqual(@"E:\newsource\include3", ((OeFileBuiltCompiled)loadedHistory.BuiltFiles[1]).RequiredFiles[0]);
             Assert.AreEqual(@"E:\newsource\include4", ((OeFileBuiltCompiled)loadedHistory.BuiltFiles[1]).RequiredFiles[1]);
             Assert.AreEqual(@"F:\newtarget\target1", loadedHistory.BuiltFiles[0].Targets[0].GetTargetPath());

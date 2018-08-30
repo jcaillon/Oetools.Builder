@@ -36,7 +36,7 @@ namespace Oetools.Builder.Project.Task {
         protected string GetSingleTargetPath(string targetPathWithPlaceholders, bool isDirectoryPath, Match match, string sourceFilePath, string baseTargetDirectory, bool mustBeRelativePath) {
             var sourceFileDirectory = Path.GetDirectoryName(sourceFilePath);
             var target = targetPathWithPlaceholders.ReplacePlaceHolders(s => {
-                if (s.Equals(OeBuilderConstants.OeVarNameFileSourceDirectory)) {
+                if (s.EqualsCi(OeBuilderConstants.OeVarNameFileSourceDirectory)) {
                     return sourceFileDirectory;
                 }
                 if (match.Groups[s].Success) {
@@ -113,7 +113,7 @@ namespace Oetools.Builder.Project.Task {
         public void SetCompiledFiles(FileList<UoeCompiledFile> compiledFile) => CompiledFiles = compiledFile;
         public FileList<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
         
-        protected sealed override void ExecuteForFilesInternal(List<OeFile> files) {
+        protected sealed override void ExecuteForFilesInternal(FileList<OeFile> files) {
             base.ExecuteForFilesInternal(files);
         }
     }

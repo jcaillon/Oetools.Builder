@@ -58,7 +58,7 @@ namespace Oetools.Builder.Utilities {
 
         public OeGitFilter SourcePathGitFilter { get; set; }
 
-        public FileList<OeFile> PreviousSourceFiles { get; set; }
+        public Func<string, OeFile> GetPreviousFileImage { get; set; }
         
         public CancellationTokenSource CancelSource { get; set; }
         
@@ -74,14 +74,14 @@ namespace Oetools.Builder.Utilities {
         }
 
         /// <summary>
-        /// Returns a list of existing files in the <see cref="SourceDirectory"/>, considering all the filter options in this class
+        /// Returns a list of existing and unique files in the <see cref="SourceDirectory"/>, considering all the filter options in this class
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         /// <exception cref="OperationCanceledException"></exception>
         public FileList<OeFile> GetFileList() {
             IEnumerable<string> listedFiles;
-            if (SourcePathGitFilter != null && ((SourcePathGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch ?? OeGitFilter.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch()) || (SourcePathGitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit ?? OeGitFilter.GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit()))) {
+            if (SourcePathGitFilter != null && SourcePathGitFilter.IsActive()) {
                 listedFiles = GetBaseFileListFromGit();
             } else {
                 listedFiles = GetBaseFileList();
@@ -90,6 +90,7 @@ namespace Oetools.Builder.Utilities {
             var output = new FileList<OeFile>();
             foreach (var file in listedFiles) {
                 CancelSource?.Token.ThrowIfCancellationRequested();
+                
                 if (output.Contains(file)) {
                     continue;
                 }
@@ -134,11 +135,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="oeFile"></param>
         /// <exception cref="Exception"></exception>
         private void SetFileState(OeFile oeFile) {
-            if (PreviousSourceFiles == null) {
-                oeFile.State = OeFileState.Added;
-                return;
-            }
-            var previousFile = PreviousSourceFiles[oeFile];
+            var previousFile = GetPreviousFileImage?.Invoke(oeFile.FilePath);
             if (previousFile == null || previousFile.State == OeFileState.Deleted) {
                 oeFile.State = OeFileState.Added;
             } else {
@@ -181,9 +178,9 @@ namespace Oetools.Builder.Utilities {
                 return oeFile;
             }
             try {
-                oeFile.Hash = Utils.GetMd5FromFilePath(oeFile.SourceFilePath);
+                oeFile.Hash = Utils.GetMd5FromFilePath(oeFile.FilePath);
             } catch (Exception e) {
-                throw new Exception($"Error getting information on file {oeFile.SourceFilePath}, check permissions", e);
+                throw new Exception($"Error getting information on file {oeFile.FilePath}, check permissions", e);
             }
             return oeFile;
         }
@@ -198,11 +195,11 @@ namespace Oetools.Builder.Utilities {
                 return;
             }
             try {
-                var fileInfo = new FileInfo(oeFile.SourceFilePath);
+                var fileInfo = new FileInfo(oeFile.FilePath);
                 oeFile.Size = fileInfo.Length;
                 oeFile.LastWriteTime = fileInfo.LastWriteTime;
             } catch (Exception e) {
-                throw new Exception($"Error getting information on file {oeFile.SourceFilePath}, check permissions", e);
+                throw new Exception($"Error getting information on file {oeFile.FilePath}, check permissions", e);
             }
         }
 
@@ -249,7 +246,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="files"></param>
         /// <returns></returns>
         public IEnumerable<OeFile> FilterSourceFiles(IEnumerable<OeFile> files) {
-            return files.Where(f => IsFilePassingDefaultFilters(f.SourceFilePath) && IsFilePassingSourcePathFilters(f.SourceFilePath));
+            return files.Where(f => IsFilePassingDefaultFilters(f.FilePath) && IsFilePassingSourcePathFilters(f.FilePath));
         }
         
         /// <summary>

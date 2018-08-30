@@ -18,7 +18,6 @@
 // ========================================================================
 #endregion
 using System;
-using System.Runtime.CompilerServices;
 using System.Xml.Serialization;
 
 namespace Oetools.Builder.Project {

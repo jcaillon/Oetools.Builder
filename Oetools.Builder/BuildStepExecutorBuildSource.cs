@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Oetools.Builder.History;
@@ -7,14 +6,13 @@ using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder {
     public class BuildStepExecutorBuildSource : BuildStepExecutorWithFileListAndCompilation, IBuildStepExecutorBuildSource {
         
         public FileList<OeFileBuilt> PreviouslyBuiltFiles { get; set; }
         
-        public IEnumerable<OeTask> AllTasksOfAllSteps { get; set; }
+        public IEnumerable<IOeTask> AllTasksOfAllSteps { get; set; }
         
         public bool IsLastBuildStepExecutor { get; set; }
 
@@ -36,15 +34,15 @@ namespace Oetools.Builder {
             
             var sourceLister = GetSourceDirectoryFilesLister();
             var unfilteredSourceFilesList = sourceLister.GetFileList();
-            var completeSourceFilesList = Properties.SourceToBuildGitFilter == null ? unfilteredSourceFilesList : null;
-
+            var completeSourceFilesList = Properties.SourceToBuildGitFilter == null || !Properties.SourceToBuildGitFilter.IsActive() ? unfilteredSourceFilesList : null;
+            
             if (!UseIncrementalBuild || PreviouslyBuiltFiles == null) {
                 TaskFiles = unfilteredSourceFilesList;
                 return;
             }
             
             // in incremental mode, we are not interested in the files that didn't change, we don't need to rebuild them
-            var filesToRebuild = FullRebuild ? unfilteredSourceFilesList : unfilteredSourceFilesList.Where(f => f.State != OeFileState.Unchanged).ToList();
+            var filesToRebuild = FullRebuild ? unfilteredSourceFilesList : unfilteredSourceFilesList.CopyWhere(f => f.State != OeFileState.Unchanged);
 
             if (!FullRebuild) {
                 var previouslyBuiltCompiled = PreviouslyBuiltFiles.Where(f => f is OeFileBuiltCompiled).Cast<OeFileBuiltCompiled>().ToList();
@@ -66,22 +64,21 @@ namespace Oetools.Builder {
                 }
 
                 Log?.Debug("Computing all the targets of all the files in the source directory");
-                foreach (var task in Tasks) {
-                    SetFilesTargets(task, unfilteredSourceFilesList, Properties.BuildOptions.OutputDirectoryPath);
+                foreach (var task in Tasks.Where(t => t is IOeTaskFile).Cast<IOeTaskFile>()) {
+                    SetFilesTargets(task, completeSourceFilesList?.CopyWhere(f => task.IsFilePassingFilter(f.FilePath)), Properties.BuildOptions.OutputDirectoryPath, true);
                 }
 
                 if (!FullRebuild && RebuildFilesWithNewTargets) {
                     Log?.Info("Adding files with new targets to the build list");
-                    filesToRebuild.AddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseTheyHaveNewTargets(unfilteredSourceFilesList, PreviouslyBuiltFiles));
+                    filesToRebuild.AddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseTheyHaveNewTargets(completeSourceFilesList, PreviouslyBuiltFiles));
                 }
             }
             
             // add files to rebuild
-            TaskFiles = new List<OeFile>();
+            TaskFiles = new FileList<OeFile>();
             foreach (var file in sourceLister.FilterSourceFiles(filesToRebuild)) {
-                if (!TaskFiles.Exists(f => f.SourceFilePath.Equals(file.SourceFilePath, StringComparison.CurrentCultureIgnoreCase)) && 
-                    File.Exists(file.SourceFilePath)) {
-                    TaskFiles.Add(file);
+                if (File.Exists(file.FilePath)) {
+                    TaskFiles.TryAdd(file);
                 }
             }
 
@@ -92,7 +89,7 @@ namespace Oetools.Builder {
                 if (MirrorDeletedSourceFileToOutput || MirrorDeletedTargetsToOutput) {
                     Log?.Info("Mirroring deleted files in source to the output directory");
                     Log?.Debug("Making a list of all the files that were deleted since the previous build (the targets of those files must be deleted");
-                    var filesToDelete = IncrementalBuildHelper.GetBuiltFilesDeletedSincePreviousBuild(PreviouslyBuiltFiles).ToNonNullList();
+                    var filesToDelete = IncrementalBuildHelper.GetBuiltFilesDeletedSincePreviousBuild(PreviouslyBuiltFiles).ToFileList();
                     if (filesToDelete.Any()) {
                         newTasks.Add(new OeTaskTargetsRemover {
                             Label = "Deleting files missing from the previous build",
@@ -102,14 +99,15 @@ namespace Oetools.Builder {
                 }
 
                 if (MirrorDeletedTargetsToOutput) {
+                    
                     Log?.Debug("Computing all the targets for all the tasks of all the files in the source directory");
-                    foreach (var task in AllTasksOfAllSteps) {
-                        SetFilesTargets(task, completeSourceFilesList, Properties.BuildOptions.OutputDirectoryPath);
+                    foreach (var task in AllTasksOfAllSteps.Where(t => t is IOeTaskFile).Cast<IOeTaskFile>()) {
+                        SetFilesTargets(task, completeSourceFilesList?.CopyWhere(f => task.IsFilePassingFilter(f.FilePath)), Properties.BuildOptions.OutputDirectoryPath, true);
                     }
-
+                    
                     Log?.Info("Mirroring deleted targets to the output directory");
                     Log?.Debug("Making a list of all source files that had targets existing in the previous build which don't existing anymore (those targets must be deleted)");
-                    var filesToDelete = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(completeSourceFilesList, PreviouslyBuiltFiles).ToNonNullList();
+                    var filesToDelete = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(completeSourceFilesList, PreviouslyBuiltFiles).ToFileList();
                     if (filesToDelete.Any()) {
                         newTasks.Add(new OeTaskTargetsRemover {
                             Label = "Deleting previous targets that no longer exist", 
@@ -136,11 +134,15 @@ namespace Oetools.Builder {
             };
             if (UseIncrementalBuild) {
                 sourceLister.SetFileInfoAndState = true;
-                sourceLister.PreviousSourceFiles = PreviouslyBuiltFiles;
+                sourceLister.GetPreviousFileImage = GetPreviousFileImage;
                 sourceLister.UseHashComparison = StoreSourceHash;
                 sourceLister.UseLastWriteDateComparison = true;
             }
             return sourceLister;
+        }
+
+        private OeFile GetPreviousFileImage(string filePath) {
+            return PreviouslyBuiltFiles?[filePath];
         }
     }
 }

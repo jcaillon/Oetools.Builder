@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using Oetools.Builder.History;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {
     
@@ -132,7 +133,7 @@ namespace Oetools.Builder.Project.Task {
             /// <summary>
             ///     List of all the files that were deployed in the clientNWK since this VersionToUpdateFrom
             /// </summary>
-            internal List<OeFileBuilt> FilesDeployedInNwkSincePreviousVersion { get; set; }
+            internal FileList<OeFileBuilt> FilesDeployedInNwkSincePreviousVersion { get; set; }
 
         }
     }

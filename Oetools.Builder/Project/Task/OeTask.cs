@@ -66,7 +66,9 @@ namespace Oetools.Builder.Project.Task {
         public void Execute() {
             Log?.Debug($"Executing {this}");
             try {
-                if (!TestMode) {
+                if (TestMode) {
+                    Log?.Debug("Test mode");
+                } else {
                     ExecuteInternal();
                 }
             } catch (OperationCanceledException) {

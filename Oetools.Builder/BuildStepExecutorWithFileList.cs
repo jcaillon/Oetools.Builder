@@ -18,12 +18,9 @@
 // ========================================================================
 #endregion
 
-using System.Collections.Generic;
-using System.Linq;
 using Oetools.Builder.History;
 using Oetools.Builder.Project.Task;
 using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder {
     
@@ -36,9 +33,9 @@ namespace Oetools.Builder {
 
         protected override string BaseTargetDirectory => Properties?.BuildOptions?.OutputDirectoryPath;
 
-        protected override List<OeFile> GetTaskFiles(IOeTaskFile task) {
+        protected override FileList<OeFile> GetTaskFiles(IOeTaskFile task) {
             Log?.Debug("Gets the list of files on which to apply this task from input files list");
-            return (TaskFiles?.Where(f => task.IsFilePassingFilter(f.SourceFilePath))).ToNonNullList();
+            return TaskFiles?.CopyWhere(f => task.IsFilePassingFilter(f.FilePath));
         }
        
     }

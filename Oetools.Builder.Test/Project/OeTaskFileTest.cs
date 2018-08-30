@@ -18,8 +18,8 @@
 // ========================================================================
 #endregion
 using System.IO;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
 using Oetools.Utilities.Lib;
 
@@ -62,7 +62,7 @@ namespace Oetools.Builder.Test.Project {
             task.Include = Path.Combine(TestFolder, "folder", "**");
             
             Assert.AreEqual(1, task.GetIncludedFiles().Count, "we match the only file there is");
-            Assert.IsTrue(task.GetIncludedFiles().Exists(s => s.SourceFilePath.ToCleanPath().Equals(Path.Combine(TestFolder, "folder", "sub", "file").ToCleanPath())));
+            Assert.IsTrue(task.GetIncludedFiles().ToList().Exists(s => s.FilePath.ToCleanPath().Equals(Path.Combine(TestFolder, "folder", "sub", "file").ToCleanPath())));
 
             task.Include = $"{task.Include};{Path.Combine(TestFolder, "folder", "sub", "file")}";
             

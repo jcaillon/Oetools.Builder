@@ -18,9 +18,6 @@
 // ========================================================================
 #endregion
 using System;
-using System.IO;
-using System.Xml.Serialization;
-using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.History {
     [Serializable]

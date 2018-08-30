@@ -20,13 +20,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
+using Oetools.Utilities.Lib;
+using Oetools.Utilities.Openedge;
 
 namespace Oetools.Builder {
     
@@ -47,6 +49,8 @@ namespace Oetools.Builder {
         public CancellationTokenSource CancelSource { protected get; set; }
         
         protected bool ThrowIfWarning => Properties?.BuildOptions?.TreatWarningsAsErrors ?? OeBuildOptions.GetDefaultTreatWarningsAsErrors();
+        
+        protected bool TestMode => Properties?.BuildOptions?.TestMode ?? OeBuildOptions.GetDefaultTestMode();
 
         /// <summary>
         /// Executes all the tasks
@@ -102,7 +106,7 @@ namespace Oetools.Builder {
         private void ExecuteTask(IOeTask task) {
             switch (task) {
                 case IOeTaskFile taskOnFiles:
-                    taskOnFiles.ExecuteForFiles(GetFilesReadyForTaskExecution(taskOnFiles, GetTaskFiles(taskOnFiles)));
+                    taskOnFiles.ExecuteForFiles(GetFilesReadyForTaskExecution(taskOnFiles, GetTaskFiles(taskOnFiles) ?? new FileList<OeFile>()));
                     break;
                 default:
                     task.Execute();
@@ -116,7 +120,7 @@ namespace Oetools.Builder {
         /// <param name="task"></param>
         protected virtual void InjectPropertiesInTask(IOeTask task) {
             task.SetLog(Log);
-            task.SetTestMode(Properties?.BuildOptions?.TestMode ?? OeBuildOptions.GetDefaultTestMode());
+            task.SetTestMode(TestMode);
             task.SetCancelSource(CancelSource);
             if (task is IOeTaskCompile taskCompile) {
                 taskCompile.SetFileExtensionFilter(Properties?.CompilationOptions?.CompilableFileExtensionPattern ?? OeCompilationOptions.GetDefaultCompilableFileExtensionPattern());
@@ -130,22 +134,52 @@ namespace Oetools.Builder {
         /// <param name="task"></param>
         /// <param name="initialFiles"></param>
         /// <returns></returns>
-        protected virtual List<OeFile> GetFilesReadyForTaskExecution(IOeTaskFile task, List<OeFile> initialFiles) {
+        protected virtual FileList<OeFile> GetFilesReadyForTaskExecution(IOeTaskFile task, FileList<OeFile> initialFiles) {
             SetFilesTargets(task, initialFiles, BaseTargetDirectory);
             return initialFiles;
         }
 
-        internal static void SetFilesTargets(IOeTask task, IEnumerable<OeFile> initialFiles, string baseTargetDirectory) {
+        internal static void SetFilesTargets(IOeTask task, FileList<OeFile> initialFiles, string baseTargetDirectory, bool appendMode = false) {
+            var taskIsCompileTask = task is IOeTaskCompile;
             switch (task) {
                 case IOeTaskFileTargetFile taskWithTargetFiles:
-                    foreach (var file in initialFiles.Where(file => file.TargetsFiles == null)) {
-                        file.TargetsFiles = taskWithTargetFiles.GetFileTargets(file.SourceFilePath, baseTargetDirectory);
+                    foreach (var file in initialFiles) {
+                        var newTargets = taskWithTargetFiles.GetFileTargets(file.FilePath, baseTargetDirectory);
+                        
+                        // change the targets extension to .r for compiled files
+                        if (taskIsCompileTask && newTargets != null) {
+                            foreach (var targetFile in newTargets) {
+                                targetFile.TargetFilePath = Path.ChangeExtension(targetFile.TargetFilePath, UoeConstants.ExtR);
+                            }
+                        }
+                        
+                        if (appendMode && file.TargetsFiles != null) {
+                            if (newTargets != null) {
+                                file.TargetsFiles.AddRange(newTargets);
+                            }
+                        } else {
+                            file.TargetsFiles = newTargets;
+                        }
                     }
-
                     break;
                 case IOeTaskFileTargetArchive taskWithTargetArchives:
-                    foreach (var file in initialFiles.Where(file => file.TargetsArchives == null)) {
-                        file.TargetsArchives = taskWithTargetArchives.GetFileTargets(file.SourceFilePath, baseTargetDirectory);
+                    foreach (var file in initialFiles) {
+                        var newTargets = taskWithTargetArchives.GetFileTargets(file.FilePath, baseTargetDirectory);
+                        
+                        // change the targets extension to .r for compiled files
+                        if (taskIsCompileTask && newTargets != null) {
+                            foreach (var targetArchive in newTargets) {
+                                targetArchive.RelativeTargetFilePath = Path.ChangeExtension(targetArchive.RelativeTargetFilePath, UoeConstants.ExtR);
+                            }
+                        }
+                        
+                        if (appendMode && file.TargetsArchives != null) {
+                            if (newTargets != null) {
+                                file.TargetsArchives.AddRange(newTargets);
+                            }
+                        } else {
+                            file.TargetsArchives = newTargets;
+                        }
                     }
                     break;
             }
@@ -156,7 +190,7 @@ namespace Oetools.Builder {
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        protected virtual List<OeFile> GetTaskFiles(IOeTaskFile task) {
+        protected virtual FileList<OeFile> GetTaskFiles(IOeTaskFile task) {
             Log?.Debug("Gets the list of files on which to apply this task from path inclusion");
             return task.GetIncludedFiles();
         }

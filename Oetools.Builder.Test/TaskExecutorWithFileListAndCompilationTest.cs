@@ -60,10 +60,10 @@ namespace Oetools.Builder.Test {
             var sourceDir = Path.Combine(TestFolder, "source2");
             Utils.CreateDirectoryIfNeeded(sourceDir);
             
-            var taskFiles = new List<OeFile> {
-                new OeFile { SourceFilePath = Path.Combine(sourceDir, "file1.p") },
-                new OeFile { SourceFilePath = Path.Combine(sourceDir, "file2.w") },
-                new OeFile { SourceFilePath = Path.Combine(sourceDir, "file3.ext") }
+            var taskFiles = new FileList<OeFile> {
+                new OeFile { FilePath = Path.Combine(sourceDir, "file1.p") },
+                new OeFile { FilePath = Path.Combine(sourceDir, "file2.w") },
+                new OeFile { FilePath = Path.Combine(sourceDir, "file3.ext") }
             };
             var taskExecutor = new BuildStepExecutorWithFileListAndCompilation {
                 TaskFiles = taskFiles,
@@ -146,10 +146,10 @@ namespace Oetools.Builder.Test {
             Utils.CreateDirectoryIfNeeded(sourceDir);
             
             var taskExecutor = new BuildStepExecutorWithFileListAndCompilation {
-                TaskFiles = new List<OeFile> {
-                    new OeFile { SourceFilePath = Path.Combine(sourceDir, "file1.p") },
-                    new OeFile { SourceFilePath = Path.Combine(sourceDir, "file2.w") },
-                    new OeFile { SourceFilePath = Path.Combine(sourceDir, "file3.ext") }
+                TaskFiles = new FileList<OeFile> {
+                    new OeFile { FilePath = Path.Combine(sourceDir, "file1.p") },
+                    new OeFile { FilePath = Path.Combine(sourceDir, "file2.w") },
+                    new OeFile { FilePath = Path.Combine(sourceDir, "file3.ext") }
                 },
                 Properties = new OeProperties {
                     BuildOptions = new OeBuildOptions {
@@ -160,7 +160,7 @@ namespace Oetools.Builder.Test {
             };
 
             foreach (var taskFile in taskExecutor.TaskFiles) {
-                File.WriteAllText(taskFile.SourceFilePath, "Quit.");
+                File.WriteAllText(taskFile.FilePath, "Quit.");
             }
 
             var taskCompile = new TaskCompile {
@@ -211,7 +211,7 @@ namespace Oetools.Builder.Test {
                     Include = @"/new/file3.t"
                 }
             };
-            var files = new List<OeFile> {
+            var files = new FileList<OeFile> {
                 new OeFile(@"/folder/file1.p") { Size = 10 },
                 new OeFile(@"/folder/file2.cls"),
                 new OeFile(@"/new/file3.t"),
@@ -231,12 +231,12 @@ namespace Oetools.Builder.Test {
             var filesToCompile = BuildStepExecutorWithFileListAndCompilation.GetFilesToCompile(tasks, files);
             
             Assert.AreEqual(5, filesToCompile.Count);
-            Assert.IsTrue(filesToCompile.Exists(f => f.FileSize.Equals(10)), "should preserve file size");
-            Assert.IsTrue(filesToCompile.Exists(f => f.SourceFilePath.Equals(@"/folder/file1.p")));
-            Assert.IsTrue(filesToCompile.Exists(f => f.SourceFilePath.Equals(@"/folder/file2.cls")));
-            Assert.IsTrue(filesToCompile.Exists(f => f.SourceFilePath.Equals(@"/new/file3.t")));
-            Assert.IsTrue(filesToCompile.Exists(f => f.SourceFilePath.Equals(@"/new/file4.w")));
-            Assert.IsTrue(filesToCompile.Exists(f => f.SourceFilePath.Equals(@"/filtered/file4.w")));
+            Assert.IsTrue(filesToCompile.ToList().Exists(f => f.FileSize.Equals(10)), "should preserve file size");
+            Assert.IsTrue(filesToCompile.ToList().Exists(f => f.FilePath.Equals(@"/folder/file1.p")));
+            Assert.IsTrue(filesToCompile.ToList().Exists(f => f.FilePath.Equals(@"/folder/file2.cls")));
+            Assert.IsTrue(filesToCompile.ToList().Exists(f => f.FilePath.Equals(@"/new/file3.t")));
+            Assert.IsTrue(filesToCompile.ToList().Exists(f => f.FilePath.Equals(@"/new/file4.w")));
+            Assert.IsTrue(filesToCompile.ToList().Exists(f => f.FilePath.Equals(@"/filtered/file4.w")));
         }
 
         [TestMethod]

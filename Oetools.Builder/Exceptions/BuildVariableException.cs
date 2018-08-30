@@ -19,7 +19,6 @@
 #endregion
 using System;
 using Oetools.Builder.Project;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Exceptions {
     public class BuildVariableException : BuilderException {

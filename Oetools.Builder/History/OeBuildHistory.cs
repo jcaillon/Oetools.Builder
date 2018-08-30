@@ -21,7 +21,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
-using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib;
 
@@ -65,9 +64,8 @@ namespace Oetools.Builder.History {
         public List<OeFileBuilt> BuiltFiles { get; set; }
         
         [XmlArray("CompilationProblems")]
-        [XmlArrayItem("Error", typeof(OeCompilationError))]
-        [XmlArrayItem("Warning", typeof(OeCompilationWarning))]
-        public List<OeCompilationProblem> CompilationProblems { get; set; }
+        [XmlArrayItem("File", typeof(OeCompiledFile))]
+        public List<OeCompiledFile> CompiledFiles { get; set; }
         
         /// <summary>
         /// Converts certain public string property (representing path) into relative path

@@ -33,19 +33,6 @@ using Oetools.Utilities.Openedge.Execution;
 namespace Oetools.Builder.Utilities {
     
     internal static class IncrementalBuildHelper {
-        
-        internal static IEnumerable<OeFile> GetSourceFilesToRebuildBecauseTheyHaveNewTargets(List<OeFile> allExistingSourceFilesWithSetTargets, List<OeFileBuilt> previousFilesBuilt) {
-            foreach (var newFile in allExistingSourceFilesWithSetTargets.Where(file => file.State == OeFileState.Unchanged)) {
-                var previousFile = previousFilesBuilt.First(prevFile => prevFile.SourceFilePath.Equals(newFile.SourceFilePath, StringComparison.CurrentCultureIgnoreCase));
-                var previouslyCreatedTargets = previousFile.Targets.ToNonNullList().Where(target => !target.IsDeletionMode()).Select(t => t.GetTargetPath()).ToList();
-                foreach (var targetPath in newFile.GetAllTargets().Select(t => t.GetTargetPath())) {
-                    if (!previouslyCreatedTargets.Exists(prevTarget => prevTarget.Equals(targetPath, StringComparison.CurrentCultureIgnoreCase))) {
-                        yield return newFile;
-                        break;
-                    }
-                }
-            }
-        }
 
         /// <summary>
         /// Returns a raw list of files that need to be rebuilt because one of their dependencies (source file, include) has been modified (modified/deleted)
@@ -54,13 +41,16 @@ namespace Oetools.Builder.Utilities {
         /// <param name="filesModified"></param>
         /// <param name="previousFilesBuilt"></param>
         /// <returns></returns>
-        internal static IEnumerable<OeFile> GetSourceFilesToRebuildBecauseOfDependenciesModification(List<OeFile> filesModified, List<OeFileBuiltCompiled> previousFilesBuilt) {
-            for (int i = 0; i < filesModified.Count; i++) {
+        internal static IEnumerable<OeFile> GetSourceFilesToRebuildBecauseOfDependenciesModification(FileList<OeFile> filesModified, List<OeFileBuiltCompiled> previousFilesBuilt) {
+            var filesModifiedList = filesModified.ToList();
+            for (int i = 0; i < filesModifiedList.Count; i++) {
+                var fileModified = filesModifiedList[i];
                 bool firstAdd = true;
-                foreach (var result in previousFilesBuilt.Where(prevf => prevf.RequiredFiles != null && 
-                    prevf.RequiredFiles.Any(prevFile => filesModified[i].SourceFilePath.Equals(prevFile, StringComparison.CurrentCultureIgnoreCase)))) {
+                foreach (var result in previousFilesBuilt
+                    .Where(prevf => prevf.RequiredFiles != null && prevf.RequiredFiles.Any(prevFile => fileModified.FilePath.PathEquals(prevFile)))) 
+                {
                     if (firstAdd) {
-                        filesModified.Add(result);
+                        filesModifiedList.Add(result);
                     }
                     firstAdd = false;
                     yield return result.GetDeepCopy();
@@ -75,7 +65,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="env"></param>
         /// <param name="previousFilesBuilt"></param>
         /// <returns></returns>
-        internal static IEnumerable<OeFile> GetSourceFilesToRebuildBecauseOfTableCrcChanges(UoeExecutionEnv env, List<OeFileBuiltCompiled> previousFilesBuilt) {
+        internal static IEnumerable<OeFile> GetSourceFilesToRebuildBecauseOfTableCrcChanges(UoeExecutionEnv env, IEnumerable<OeFileBuiltCompiled> previousFilesBuilt) {
             var sequences = env.Sequences;
             var tables = env.TablesCrc;
             
@@ -98,13 +88,32 @@ namespace Oetools.Builder.Utilities {
         }
         
         /// <summary>
+        /// List of the source file that are otherwise unchanged by need to be rebuild because they have new targets not present in the last build
+        /// </summary>
+        /// <param name="allExistingSourceFilesWithSetTargets"></param>
+        /// <param name="previousFilesBuilt"></param>
+        /// <returns></returns>
+        internal static IEnumerable<OeFile> GetSourceFilesToRebuildBecauseTheyHaveNewTargets(FileList<OeFile> allExistingSourceFilesWithSetTargets, FileList<OeFileBuilt> previousFilesBuilt) {
+            foreach (var newFile in allExistingSourceFilesWithSetTargets.Where(file => file.State == OeFileState.Unchanged)) {
+                var previousFile = previousFilesBuilt[newFile.FilePath];
+                var previouslyCreatedTargets = previousFile.Targets.ToNonNullList().Where(target => !target.IsDeletionMode()).Select(t => t.GetTargetPath()).ToList();
+                foreach (var targetPath in newFile.GetAllTargets().Select(t => t.GetTargetPath())) {
+                    if (!previouslyCreatedTargets.Exists(prevTarget => prevTarget.PathEquals(targetPath))) {
+                        yield return newFile;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
         /// Get a list of previously built files that are now deleted, their targets should be removed
         /// </summary>
         /// <param name="previousFilesBuilt"></param>
         /// <returns></returns>
-        internal static IEnumerable<OeFileBuilt> GetBuiltFilesDeletedSincePreviousBuild(List<OeFileBuilt> previousFilesBuilt) {
+        internal static IEnumerable<OeFileBuilt> GetBuiltFilesDeletedSincePreviousBuild(FileList<OeFileBuilt> previousFilesBuilt) {
             foreach (var previousFile in previousFilesBuilt.Where(f => f.State != OeFileState.Deleted)) {
-                if (!File.Exists(previousFile.SourceFilePath) && previousFile.Targets != null && previousFile.Targets.Count > 0) {
+                if (!File.Exists(previousFile.FilePath) && previousFile.Targets != null && previousFile.Targets.Count > 0) {
                     var previousFileCopy = previousFile.GetDeepCopy();
                     previousFileCopy.Targets.ForEach(target => target.SetDeletionMode(true));
                     previousFileCopy.State = OeFileState.Deleted;
@@ -119,19 +128,22 @@ namespace Oetools.Builder.Utilities {
         /// <param name="allExistingSourceFilesWithSetTargets"></param>
         /// <param name="previousFilesBuilt"></param>
         /// <returns></returns>
-        internal static IEnumerable<OeFileBuilt> GetBuiltFilesWithOldTargetsToRemove(List<OeFile> allExistingSourceFilesWithSetTargets, List<OeFileBuilt> previousFilesBuilt) {
+        internal static IEnumerable<OeFileBuilt> GetBuiltFilesWithOldTargetsToRemove(FileList<OeFile> allExistingSourceFilesWithSetTargets, FileList<OeFileBuilt> previousFilesBuilt) {
             var finalFileTargets = new List<OeTarget>();
             foreach (var newFile in allExistingSourceFilesWithSetTargets.Where(file => file.State == OeFileState.Unchanged || file.State == OeFileState.Modified)) {
-                var previousFile = previousFilesBuilt.FirstOrDefault(file => file.State != OeFileState.Deleted && file.SourceFilePath.Equals(newFile.SourceFilePath, StringComparison.CurrentCultureIgnoreCase));
+                var previousFile = previousFilesBuilt[newFile.FilePath];
                 if (previousFile == null) {
                     throw new Exception($"Could not find the history of a now unchanged or modified file, something is wrong! File : {newFile}");
+                }
+                if (previousFile.State == OeFileState.Deleted) {
+                    continue;
                 }
                 finalFileTargets.Clear();
                 bool isFileWithTargetsToDelete = false;
                 var newCreateTargets = newFile.GetAllTargets().Select(t => t.GetTargetPath()).ToList();
                 foreach (var previousTarget in previousFile.Targets.ToNonNullList().Where(target => !target.IsDeletionMode())) {
                     var previousTargetPath = previousTarget.GetTargetPath();
-                    if (!newCreateTargets.Exists(target => target.Equals(previousTargetPath, StringComparison.CurrentCultureIgnoreCase))) {
+                    if (!newCreateTargets.Exists(target => target.PathEquals(previousTargetPath))) {
                         // the old target doesn't exist anymore, add it in deletion mode this time
                         isFileWithTargetsToDelete = true;
                         finalFileTargets.Add(previousTarget);

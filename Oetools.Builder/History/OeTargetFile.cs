@@ -17,9 +17,8 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-using System;
+
 using System.Xml.Serialization;
-using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
 
 namespace Oetools.Builder.History {

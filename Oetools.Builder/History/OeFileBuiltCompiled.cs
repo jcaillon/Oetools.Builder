@@ -19,9 +19,7 @@
 #endregion
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Xml.Serialization;
-using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib;
 

@@ -25,21 +25,15 @@ using Oetools.Utilities.Lib;
 using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.History {
+    
     public abstract class OeCompilationProblem {
             
         /// <summary>
         /// Path of the file in which we found the error
         /// </summary>
-        [XmlAttribute(AttributeName ="SourceFilePath")]
+        [XmlAttribute(AttributeName ="FilePath")]
         [BaseDirectory(Type = BaseDirectoryType.SourceDirectory)]
-        public string SourceFilePath { get; set; }
-            
-        /// <summary>
-        /// The path to the file that was compiled to generate this error (you can compile a .p and have the error on a .i)
-        /// </summary>
-        [XmlAttribute(AttributeName = "CompiledSourceFilePath")]
-        [BaseDirectory(Type = BaseDirectoryType.SourceDirectory)]
-        public string CompiledSourceFilePath { get; set; }
+        public string FilePath { get; set; }
             
         [XmlAttribute(AttributeName ="Line")]
         public int Line { get; set; }
@@ -53,7 +47,7 @@ namespace Oetools.Builder.History {
         [XmlAttribute(AttributeName ="Message")]
         public string Message { get; set; }
         
-        internal static OeCompilationProblem New(string compiledSourceFilePath, UoeCompilationProblem  problem) {
+        internal static OeCompilationProblem New(UoeCompilationProblem  problem) {
             OeCompilationProblem output;
             switch (problem) {
                 case UoeCompilationError _:
@@ -66,7 +60,6 @@ namespace Oetools.Builder.History {
                     throw new ArgumentOutOfRangeException(nameof(UoeCompilationProblem), problem, "no matching type");
             }
             Utils.DeepCopyPublicProperties(problem, output.GetType(), output);
-            output.CompiledSourceFilePath = compiledSourceFilePath;
             return output;
         }
     }

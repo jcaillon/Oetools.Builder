@@ -147,51 +147,49 @@ namespace Oetools.Builder.Test.Utilities {
             var lister = new SourceFilesLister(repoDir) {
                 UseLastWriteDateComparison = true,
                 UseHashComparison = false,
-                PreviousSourceFiles = null,
                 SetFileInfoAndState = true
             };
             
-            var list = lister.GetFileList();
-            Assert.AreEqual(4, list.Count, "count all");
-            Assert.IsTrue(list.All(f => f.State == OeFileState.Added), "all added");
+            var list1 = lister.GetFileList();
+            Assert.AreEqual(4, list1.Count, "count all");
+            Assert.IsTrue(list1.All(f => f.State == OeFileState.Added), "all added");
 
-            lister.PreviousSourceFiles = list;
+            lister.GetPreviousFileImage = s => list1[s];
             
             File.Delete(Path.Combine(repoDir, "file4"));
             File.WriteAllText(Path.Combine(repoDir, "sub", "file2"), "content");
             
-            list = lister.GetFileList();
-            Assert.AreEqual(3, list.Count, "count all");
-            Assert.AreEqual(1, list.Count(f => f.State == OeFileState.Modified), "1 modified");
-            Assert.AreEqual(2, list.Count(f => f.State == OeFileState.Unchanged), "2 unchanged");
+            var list2 = lister.GetFileList();
+            Assert.AreEqual(3, list2.Count, "count all");
+            Assert.AreEqual(1, list2.Count(f => f.State == OeFileState.Modified), "1 modified");
+            Assert.AreEqual(2, list2.Count(f => f.State == OeFileState.Unchanged), "2 unchanged");
 
-            lister.PreviousSourceFiles = list;
+            lister.GetPreviousFileImage = s => list2[s];
             
             File.WriteAllText(Path.Combine(repoDir, "file4"), "");
             
-            list = lister.GetFileList();
-            Assert.AreEqual(4, list.Count, "count all");
-            Assert.AreEqual(1, list.Count(f => f.State == OeFileState.Added), "1 added");
-            Assert.AreEqual(3, list.Count(f => f.State == OeFileState.Unchanged), "3 unchanged");
+            var list3 = lister.GetFileList();
+            Assert.AreEqual(4,list3.Count, "count all");
+            Assert.AreEqual(1,list3.Count(f => f.State == OeFileState.Added), "1 added");
+            Assert.AreEqual(3,list3.Count(f => f.State == OeFileState.Unchanged), "3 unchanged");
 
-            lister.PreviousSourceFiles = list;
+            lister.GetPreviousFileImage = s => list3[s];
             
             File.Delete(Path.Combine(repoDir, "file4"));
             File.Delete(Path.Combine(repoDir, "sub", "file3"));
             
-            list = lister.GetFileList();
-            Assert.AreEqual(2, list.Count, "count all");
-            Assert.AreEqual(2, list.Count(f => f.State == OeFileState.Unchanged), "2 unchanged");
+            var list4 = lister.GetFileList();
+            Assert.AreEqual(2, list4.Count, "count all");
+            Assert.AreEqual(2, list4.Count(f => f.State == OeFileState.Unchanged), "2 unchanged");
             
-            lister.PreviousSourceFiles = list;
+            lister.GetPreviousFileImage = s => list4[s];
             
             File.WriteAllText(Path.Combine(repoDir, "file4"), "");
             
-            list = lister.GetFileList();
-            Assert.AreEqual(3, list.Count, "count all");
-            Assert.AreEqual(1, list.Count(f => f.State == OeFileState.Added), "1 added");
-            Assert.AreEqual(2, list.Count(f => f.State == OeFileState.Unchanged), "2 unchanged");
-            Assert.IsNotNull(list["file3"]);
+            var list5 = lister.GetFileList();
+            Assert.AreEqual(3, list5.Count, "count all");
+            Assert.AreEqual(1, list5.Count(f => f.State == OeFileState.Added), "1 added");
+            Assert.AreEqual(2, list5.Count(f => f.State == OeFileState.Unchanged), "2 unchanged");
         }
 
         [TestMethod]
@@ -206,81 +204,81 @@ namespace Oetools.Builder.Test.Utilities {
             var lister = new SourceFilesLister(repoDir) {
                 UseLastWriteDateComparison = false,
                 UseHashComparison = false,
-                PreviousSourceFiles = null,
                 SetFileInfoAndState = true
             };
 
-            var list = lister.GetFileList();
-            Assert.AreEqual(4, list.Count, "count all");
-            Assert.IsTrue(list.All(f => f.State == OeFileState.Added), "all added");
+            var list1 = lister.GetFileList();
+            Assert.AreEqual(4, list1.Count, "count all");
+            Assert.IsTrue(list1.All(f => f.State == OeFileState.Added), "all added");
 
-            lister.PreviousSourceFiles = list;
+            lister.GetPreviousFileImage = s => list1[s];
             
-            var newList = lister.GetFileList();
-            Assert.IsTrue(list.All(f => f.State == OeFileState.Added), "make sure we didn't modify previous objects");
-            Assert.AreEqual(4, newList.Count, "count all");
-            Assert.IsTrue(newList.All(f => f.State == OeFileState.Unchanged), "all unchanged");
+            var list2 = lister.GetFileList();
+            Assert.IsTrue(list1.All(f => f.State == OeFileState.Added), "make sure we didn't modify previous objects");
+            Assert.AreEqual(4, list2.Count, "count all");
+            Assert.IsTrue(list2.All(f => f.State == OeFileState.Unchanged), "all unchanged");
             
             // try modify
             File.WriteAllText(Path.Combine(repoDir, "file1"), "content");
             
-            newList = lister.GetFileList();
+            var list3 = lister.GetFileList();
             
-            Assert.AreEqual(4, newList.Count, "count all");
-            Assert.AreEqual(1, newList.Count(f => f.State == OeFileState.Modified), "1 modified");
-            Assert.AreEqual(3, newList.Count(f => f.State == OeFileState.Unchanged), "3 unchanged");
+            Assert.AreEqual(4, list3.Count, "count all");
+            Assert.AreEqual(1, list3.Count(f => f.State == OeFileState.Modified), "1 modified");
+            Assert.AreEqual(3, list3.Count(f => f.State == OeFileState.Unchanged), "3 unchanged");
             
-            lister.PreviousSourceFiles = newList;
+            lister.GetPreviousFileImage = s => list3[s];
             
             // try modify same size
             File.WriteAllText(Path.Combine(repoDir, "file1"), "conten1");
             
-            newList = lister.GetFileList();
+            var list4 = lister.GetFileList();
             
-            Assert.AreEqual(4, newList.Count, "count all");
-            Assert.IsTrue(newList.All(f => f.State == OeFileState.Unchanged), "all unchanged because the size is the same and that's our only cirteria");
+            Assert.AreEqual(4, list4.Count, "count all");
+            Assert.IsTrue(list4.All(f => f.State == OeFileState.Unchanged), "all unchanged because the size is the same and that's our only cirteria");
             
             // activate date comparison
             lister.UseLastWriteDateComparison = true;
             
-            newList = lister.GetFileList();
+            var list5 = lister.GetFileList();
             
-            Assert.AreEqual(4, newList.Count, "count all");
-            Assert.AreEqual(1, newList.Count(f => f.State == OeFileState.Modified), "1 modified");
-            Assert.AreEqual(3, newList.Count(f => f.State == OeFileState.Unchanged), "3 unchanged");
+            Assert.AreEqual(4, list5.Count, "count all");
+            Assert.AreEqual(1, list5.Count(f => f.State == OeFileState.Modified), "1 modified");
+            Assert.AreEqual(3, list5.Count(f => f.State == OeFileState.Unchanged), "3 unchanged");
 
-            lister.PreviousSourceFiles = newList;
+            lister.GetPreviousFileImage = s => list5[s];
             
-            newList = lister.GetFileList();
+            var list6 = lister.GetFileList();
             
-            Assert.AreEqual(4, newList.Count, "count all");
-            Assert.IsTrue(newList.All(f => f.State == OeFileState.Unchanged), "all unchanged");
+            Assert.AreEqual(4, list6.Count, "count all");
+            Assert.IsTrue(list6.All(f => f.State == OeFileState.Unchanged), "all unchanged");
             
             // try hash
             lister.UseHashComparison = true;
             
-            newList = lister.GetFileList();
+            var list7 = lister.GetFileList();
             
-            Assert.AreEqual(4, newList.Count, "count all");
-            Assert.IsTrue(newList.All(f => f.State == OeFileState.Modified), "all modified because the old HASH was null");
+            Assert.AreEqual(4, list7.Count, "count all");
+            Assert.IsTrue(list7.All(f => f.State == OeFileState.Modified), "all modified because the old HASH was null");
             
             // set up the hash for all files
-            newList.ToList().ForEach(f => SourceFilesLister.SetFileHash(f));
-            lister.PreviousSourceFiles = newList;
-                        
-            newList = lister.GetFileList();
+            list7.ToList().ForEach(f => SourceFilesLister.SetFileHash(f));
             
-            Assert.AreEqual(4, newList.Count, "count all");
-            Assert.IsTrue(newList.All(f => f.State == OeFileState.Unchanged), "all unchanged");
+            lister.GetPreviousFileImage = s => list7[s];
+                        
+            var list8 = lister.GetFileList();
+            
+            Assert.AreEqual(4, list8.Count, "count all");
+            Assert.IsTrue(list8.All(f => f.State == OeFileState.Unchanged), "all unchanged");
             
             // modify last HASH
-            lister.PreviousSourceFiles.ToList()[0].Hash = "fakehash";
+            list7.ElementAt(0).Hash = "fakehash";
             
-            newList = lister.GetFileList();
+            var list9 = lister.GetFileList();
             
-            Assert.AreEqual(4, newList.Count, "count all");
-            Assert.AreEqual(1, newList.Count(f => f.State == OeFileState.Modified), "1 modified");
-            Assert.AreEqual(3, newList.Count(f => f.State == OeFileState.Unchanged), "3 unchanged");
+            Assert.AreEqual(4, list9.Count, "count all");
+            Assert.AreEqual(1, list9.Count(f => f.State == OeFileState.Modified), "1 modified");
+            Assert.AreEqual(3, list9.Count(f => f.State == OeFileState.Unchanged), "3 unchanged");
             
             
         }
@@ -299,7 +297,7 @@ namespace Oetools.Builder.Test.Utilities {
             };
             
             Assert.AreEqual(1, lister.GetFileList().Count, "no .pls file");
-            Assert.AreEqual(Path.Combine(repoDir, "monfichier.txt"), lister.GetFileList().ElementAt(0).SourceFilePath, "check file path");
+            Assert.AreEqual(Path.Combine(repoDir, "monfichier.txt"), lister.GetFileList().ElementAt(0).FilePath, "check file path");
 
             lister.SourcePathFilter = null;
             
@@ -310,7 +308,7 @@ namespace Oetools.Builder.Test.Utilities {
             };
             
             Assert.AreEqual(1, lister.GetFileList().Count, "no .txt file");
-            Assert.AreEqual(Path.Combine(repoDir, "subfolder", "monfichier.pls"), lister.GetFileList().ElementAt(0).SourceFilePath, "check my pls file");
+            Assert.AreEqual(Path.Combine(repoDir, "subfolder", "monfichier.pls"), lister.GetFileList().ElementAt(0).FilePath, "check my pls file");
             
             lister.SourcePathFilter = new OeTaskFilter {
                 Include = "**"
@@ -331,7 +329,6 @@ namespace Oetools.Builder.Test.Utilities {
             var repoDir = Path.Combine(TestFolder, "local");
             var lister = new SourceFilesLister(repoDir) {
                 UseLastWriteDateComparison = true,
-                PreviousSourceFiles = null,
                 SourcePathFilter = null,
                 SourcePathGitFilter = null,
                 UseHashComparison = true
@@ -370,7 +367,7 @@ namespace Oetools.Builder.Test.Utilities {
             File.WriteAllText(Path.Combine(repoDir, "init file"), "");
             
             Assert.AreEqual(1, lister.GetFileList().Count, "now we get one file");
-            Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList().ElementAt(0).SourceFilePath, "check that we get what we expect");
+            Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList().ElementAt(0).FilePath, "check that we get what we expect");
             
             lister.SourcePathGitFilter = new OeGitFilter {
                 OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true,
@@ -389,7 +386,7 @@ namespace Oetools.Builder.Test.Utilities {
            
             
             Assert.AreEqual(1, lister.GetFileList().Count, "now it's committed so we can list it again");
-            Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList().ElementAt(0).SourceFilePath, "check that we get full path");
+            Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList().ElementAt(0).FilePath, "check that we get full path");
             
             // new branch v1/dev/issue1
             try {

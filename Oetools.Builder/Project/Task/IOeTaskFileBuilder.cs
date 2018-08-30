@@ -18,14 +18,14 @@
 // ========================================================================
 #endregion
 
-using System.Collections.Generic;
 using Oetools.Builder.History;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {
     
     public interface IOeTaskFileBuilder {
         
-        IEnumerable<OeFileBuilt> GetFilesBuilt();
+        FileList<OeFileBuilt> GetFilesBuilt();
         
     }
 }

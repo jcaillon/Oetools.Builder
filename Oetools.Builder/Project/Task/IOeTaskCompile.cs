@@ -18,7 +18,6 @@
 // ========================================================================
 #endregion
 
-using System.Collections.Generic;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Openedge.Execution;
 
