@@ -20,12 +20,12 @@
       <xs:element minOccurs="0" maxOccurs="1" name="PropathSourceDirectoriesFilter" type="OeTaskFilter" />
       <xs:element minOccurs="1" maxOccurs="1" name="AddDefaultOpenedgePropath" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="UseCharacterModeExecutable" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="ProgresCommandLineExtraParameters" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeCommandLineExtraParameters" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteBeforeAnyProgressExecution" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteAfterAnyProgressExecution" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeTemporaryDirectoryPath" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildPathFilter" type="OeTaskFilter" />
-      <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildGitFilter" type="OeGitFilter" />
+      <xs:element minOccurs="0" maxOccurs="1" name="GitFilterBuildOptions" type="OeGitFilterBuildOptions" />
       <xs:element minOccurs="0" maxOccurs="1" name="CompilationOptions" type="OeCompilationOptions" />
       <xs:element minOccurs="0" maxOccurs="1" name="IncrementalBuildOptions" type="OeIncrementalBuildOptions" />
       <xs:element minOccurs="0" maxOccurs="1" name="BuildOptions" type="OeBuildOptions" />
@@ -229,7 +229,7 @@
       <xs:extension base="OeTaskFileTargetFileCopy" />
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeGitFilter">
+  <xs:complexType name="OeGitFilterBuildOptions">
     <xs:sequence>
       <xs:element minOccurs="1" maxOccurs="1" name="OnlyIncludeSourceFilesModifiedSinceLastCommit" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch" nillable="true" type="xs:boolean" />
@@ -258,9 +258,11 @@
   <xs:complexType name="OeIncrementalBuildOptions">
     <xs:sequence>
       <xs:element minOccurs="1" maxOccurs="1" name="Enabled" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="FullRebuild" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="StoreSourceHash" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedSourceFileToOutput" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedAndNewTargetsToOutput" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedTargetsToOutput" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="RebuildFilesWithNewTargets" nillable="true" type="xs:boolean" />
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeBuildOptions">
@@ -274,7 +276,6 @@
       <xs:element minOccurs="1" maxOccurs="1" name="StopBuildOnCompilationError" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="StopBuildOnCompilationWarning" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="ShutdownCompilationDatabasesAfterBuild" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="FullRebuild" nillable="true" type="xs:boolean" />
       <xs:element minOccurs="1" maxOccurs="1" name="TestMode" nillable="true" type="xs:boolean" />
     </xs:sequence>
   </xs:complexType>

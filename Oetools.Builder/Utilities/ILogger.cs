@@ -24,8 +24,14 @@ namespace Oetools.Builder.Utilities {
         void Fatal(string message, Exception e = null);
         void Error(string message, Exception e = null);
         void Warn(string message, Exception e = null);
+        void Success(string message, Exception e = null);
         void Info(string message, Exception e = null);
         void Debug(string message, Exception e = null);
-        void Trace(string message, Exception e = null);
+        ITraceLogger Trace { get; }
+        void ReportProgress(int max, int current, string message);
+    }
+    public interface ITraceLogger {
+        void Write(string message, Exception e = null);
+        void ReportProgress(int max, int current, string message);
     }
 }
