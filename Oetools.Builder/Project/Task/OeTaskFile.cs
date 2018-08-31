@@ -33,10 +33,23 @@ namespace Oetools.Builder.Project.Task {
 
     public abstract class OeTaskFile : OeTaskFilter, IOeTaskFile {
         
+        private FileList<OeFile> _filesToBuild;
+        
+        private FileList<OeFileBuilt> _builtFiles;
+        
         /// <summary>
-        /// Validates that the task is correct (correct parameters and can execute)
+        /// Override this method to return the list of built files
         /// </summary>
-        /// <exception cref="TaskValidationException"></exception>
+        /// <returns></returns>
+        public virtual FileList<OeFileBuilt> GetFilesBuilt() => _builtFiles;
+        
+        public void SetFilesToBuild(FileList<OeFile> filesToBuild) {
+            _filesToBuild = filesToBuild;
+        }
+
+        public FileList<OeFile> GetFilesToBuild() => _filesToBuild;
+
+        /// <inheritdoc cref="IOeTask.Validate"/>
         public override void Validate() {
             if (string.IsNullOrEmpty(Include) && string.IsNullOrEmpty(IncludeRegex)) {
                 throw new TaskValidationException(this, $"This task needs the following properties to be defined or it will not do anything : {GetType().GetXmlName(nameof(Include))} and/or {GetType().GetXmlName(nameof(IncludeRegex))}");
@@ -58,10 +71,7 @@ namespace Oetools.Builder.Project.Task {
             }
         }
         
-        /// <summary>
-        /// Given the inclusion wildcard paths and exclusion patterns, returns a list of files on which to apply this task
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc cref="IOeTaskFile.GetIncludedFiles"/>
         public FileList<OeFile> GetIncludedFiles() {
             var output = new FileList<OeFile>();
             var i = 0;
@@ -92,58 +102,46 @@ namespace Oetools.Builder.Project.Task {
             return output;
         }
         
-        /// <summary>
-        /// Main entry for tasks that do operation on files
-        /// </summary>
-        /// <param name="files"></param>
-        /// <exception cref="TaskExecutionException"></exception>
-        public void ExecuteForFiles(FileList<OeFile> files) {
-            Log?.Debug($"Executing {this}");
-            try {
-                if (TestMode) {
-                    Log?.Debug("Test mode");
-                    _builtFiles = new FileList<OeFileBuilt>();
-                    foreach (var file in files) {
-                        var fileBuilt = GetNewFileBuilt(file);
-                        fileBuilt.Targets = file.GetAllTargets().ToList();
-                        _builtFiles.Add(fileBuilt);
+        /// <inheritdoc cref="OeTask.ExecuteInternal"/>
+        protected sealed override void ExecuteInternal() {
+            if (this is IOeTaskCompile thisOeTaskCompile) {
+                try {
+                    Log?.Debug("Is a compile task");
+                    var compiledFiles = thisOeTaskCompile.GetCompiledFiles();
+                    if (compiledFiles == null) {
+                        Log?.Debug("Start file compilation");
+                        compiledFiles = OeTaskCompile.CompileFiles(thisOeTaskCompile.GetProperties(), _filesToBuild.Select(f => new UoeFileToCompile(f.FilePath) {
+                            FileSize = f.Size
+                        }), CancelSource);
+                        thisOeTaskCompile.SetCompiledFiles(compiledFiles);
                     }
-                } else {
-                    if (this is IOeTaskCompile thisOeTaskCompile) {
-                        try {
-                            Log?.Debug("Is a compile task");
-                            var compiledFiles = thisOeTaskCompile.GetCompiledFiles();
-                            if (compiledFiles == null) {
-                                Log?.Debug("Start file compilation");
-                                compiledFiles = OeTaskCompile.CompileFiles(thisOeTaskCompile.GetProperties(), files.Select(f => new UoeFileToCompile(f.FilePath) {
-                                    FileSize = f.Size
-                                }), CancelSource);
-                                thisOeTaskCompile.SetCompiledFiles(compiledFiles);
-                            }
-                            Log?.Debug("Switching orignal source files for rcode files to build");
-                            files = OeTaskCompile.SetRcodeFilesAsSourceInsteadOfSourceFiles(files, compiledFiles);
-                        } catch(Exception e) {
-                            throw new TaskExecutionException(this, e.Message, e);
-                        }
-                    }
-                    switch (this) {
-                        case IOeTaskFileTargetFile oeTaskFileTargetFile:
-                            oeTaskFileTargetFile.ExecuteForFilesTargetFiles(files);
-                            break;
-                        case IOeTaskFileTargetArchive oeTaskFileTargetArchive:
-                            oeTaskFileTargetArchive.ExecuteForFilesTargetArchives(files);
-                            break;
-                        default:
-                            ExecuteForFilesInternal(files);
-                            break;
-                    }
+                    
+                    Log?.Debug("Switching orignal source files for rcode files to build");
+                    _filesToBuild = OeTaskCompile.SetRcodeFilesAsSourceInsteadOfSourceFiles(_filesToBuild, compiledFiles);
+                } catch(Exception e) {
+                    throw new TaskExecutionException(this, e.Message, e);
                 }
-            } catch (OperationCanceledException) {
-                throw;
-            } catch (TaskExecutionException) {
-                throw;
-            } catch (Exception e) {
-                AddExecutionErrorAndThrow(new TaskExecutionException(this, $"Unexpected error : {e.Message}", e));
+            }
+            switch (this) {
+                case IOeTaskFileTargetFile oeTaskFileTargetFile:
+                    oeTaskFileTargetFile.ExecuteForFilesTargetFiles(_filesToBuild);
+                    break;
+                case IOeTaskFileTargetArchive oeTaskFileTargetArchive:
+                    oeTaskFileTargetArchive.ExecuteForFilesTargetArchives(_filesToBuild);
+                    break;
+                default:
+                    ExecuteForFilesInternal(_filesToBuild);
+                    break;
+            }
+        }
+
+        /// <inheritdoc cref="OeTask.ExecuteTestModeInternal"/>
+        protected override void ExecuteTestModeInternal() {
+            _builtFiles = new FileList<OeFileBuilt>();
+            foreach (var file in _filesToBuild) {
+                var fileBuilt = GetNewFileBuilt(file);
+                fileBuilt.Targets = file.GetAllTargets().ToList();
+                _builtFiles.Add(fileBuilt);
             }
         }
 
@@ -160,21 +158,65 @@ namespace Oetools.Builder.Project.Task {
             return new OeFileBuilt(sourceFile);
         }
 
-        /// <inheritdoc cref="IOeTaskFile.ExecuteForFiles"/>
+        /// <summary>
+        /// Execute the task for a set of files
+        /// </summary>
+        /// <remarks>
+        /// - The task should create/add a list of files that it builds, list that is returned by <see cref="IOeTaskFileBuilder.GetFilesBuilt"/>
+        /// - This method should throw <see cref="TaskExecutionException"/> if needed
+        /// - This method can publish warnings using <see cref="OeTask.AddExecutionWarning"/>
+        /// </remarks>
+        /// <param name="files"></param>
+        /// <exception cref="TaskExecutionException"></exception>
         protected virtual void ExecuteForFilesInternal(FileList<OeFile> files) {
             throw new NotImplementedException();
+        }        
+
+        public void SetTargetForFiles(FileList<OeFile> files, string baseTargetDirectory, bool appendMode = false) {
+            var taskIsCompileTask = this is IOeTaskCompile;
+            switch (this) {
+                case IOeTaskFileTargetFile taskWithTargetFiles:
+                    foreach (var file in files) {
+                        var newTargets = taskWithTargetFiles.GetTargetsFiles(file.FilePath, baseTargetDirectory);
+                        
+                        // change the targets extension to .r for compiled files
+                        if (taskIsCompileTask && newTargets != null) {
+                            foreach (var targetFile in newTargets) {
+                                targetFile.TargetFilePath = Path.ChangeExtension(targetFile.TargetFilePath, UoeConstants.ExtR);
+                            }
+                        }
+                        
+                        if (appendMode && file.TargetsFiles != null) {
+                            if (newTargets != null) {
+                                file.TargetsFiles.AddRange(newTargets);
+                            }
+                        } else {
+                            file.TargetsFiles = newTargets;
+                        }
+                    }
+                    break;
+                case IOeTaskFileTargetArchive taskWithTargetArchives:
+                    foreach (var file in files) {
+                        var newTargets = taskWithTargetArchives.GetTargetsArchives(file.FilePath, baseTargetDirectory);
+                        
+                        // change the targets extension to .r for compiled files
+                        if (taskIsCompileTask && newTargets != null) {
+                            foreach (var targetArchive in newTargets) {
+                                targetArchive.RelativeTargetFilePath = Path.ChangeExtension(targetArchive.RelativeTargetFilePath, UoeConstants.ExtR);
+                            }
+                        }
+                        
+                        if (appendMode && file.TargetsArchives != null) {
+                            if (newTargets != null) {
+                                file.TargetsArchives.AddRange(newTargets);
+                            }
+                        } else {
+                            file.TargetsArchives = newTargets;
+                        }
+                    }
+                    break;
+            }
         }
 
-        protected sealed override void ExecuteInternal() {
-            throw new Exception($"This should never get called, class implementing {nameof(IOeTaskFile)} are using {nameof(ExecuteForFilesInternal)} instead");
-        }
-
-        /// <summary>
-        /// Override this method to return the list of built files
-        /// </summary>
-        /// <returns></returns>
-        public virtual FileList<OeFileBuilt> GetFilesBuilt() => _builtFiles;
-        
-        private FileList<OeFileBuilt> _builtFiles;
     }
 }

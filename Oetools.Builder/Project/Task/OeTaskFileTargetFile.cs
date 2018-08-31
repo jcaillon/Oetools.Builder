@@ -36,6 +36,7 @@ namespace Oetools.Builder.Project.Task {
         [ReplaceVariables(LeaveUnknownUntouched = true)]
         public string TargetDirectory { get; set; }
 
+        /// <inheritdoc cref="IOeTask.Validate"/>
         public override void Validate() {
             base.Validate();
             if (string.IsNullOrEmpty(TargetFilePath) && TargetDirectory == null) {
@@ -53,7 +54,7 @@ namespace Oetools.Builder.Project.Task {
         /// <param name="filePath"></param>
         /// <param name="baseTargetDirectory"></param>
         /// <returns></returns>
-        public List<OeTargetFile> GetFileTargets(string filePath, string baseTargetDirectory) {
+        public List<OeTargetFile> GetTargetsFiles(string filePath, string baseTargetDirectory) {
             var output = new List<OeTargetFile>();
             foreach (var regex in GetIncludeRegex()) {
                 
@@ -82,7 +83,7 @@ namespace Oetools.Builder.Project.Task {
             return output;
         }
 
-        /// <inheritdoc cref="IOeTaskFile.ExecuteForFiles"/>
+        /// <inheritdoc cref="OeTaskFile.ExecuteForFilesInternal"/>
         public virtual void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
             throw new System.NotImplementedException();
         }

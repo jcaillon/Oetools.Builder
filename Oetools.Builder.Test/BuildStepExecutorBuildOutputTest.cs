@@ -19,6 +19,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.History;
@@ -29,40 +30,67 @@ using Oetools.Utilities.Lib;
 namespace Oetools.Builder.Test {
     
     [TestClass]
-    public class TaskExecutorWithFileListTest {
+    public class BuildStepExecutorBuildOutputTest {
+        
+        private static string _testFolder;
+
+        private static string TestFolder => _testFolder ?? (_testFolder = TestHelper.GetTestFolder(nameof(BuildStepExecutorBuildOutputTest)));
+                     
+        [ClassInitialize]
+        public static void Init(TestContext context) {
+            Cleanup();
+            Utils.CreateDirectoryIfNeeded(TestFolder);
+        }
+
+
+        [ClassCleanup]
+        public static void Cleanup() {
+            Utils.DeleteDirectoryIfExists(TestFolder, true);
+        }
+
         
         [TestMethod]
-        public void TaskExecutorWithFileListTest_Test_task_files() {
-            var baseDir = TestHelper.GetTestFolder(nameof(TaskExecutorWithFileListTest));
-            var taskExecutor = new BuildStepExecutorWithFileList {
-                TaskFiles = new FileList<OeFile> {
-                    new OeFile { FilePath = @"C:\sourcedir\file1.ext" },
-                    new OeFile { FilePath = @"C:\sourcedir\file2.ext" },
-                    new OeFile { FilePath = @"C:\sourcedir\file3.ext" }
-                },
+        public void BuildStepExecutorBuildOutput_Test_FilesBuilt() {
+            
+            var outputDir = Path.Combine(TestFolder, "output1");
+
+            Utils.CreateDirectoryIfNeeded(Path.Combine(outputDir, "sourcedir"));
+            
+            File.WriteAllText(Path.Combine(outputDir, "sourcedir", "file1.ext"), "");
+            File.WriteAllText(Path.Combine(outputDir, "sourcedir", "file2.ext"), "");
+            File.WriteAllText(Path.Combine(outputDir, "sourcedir", "file3.ext"), "");
+            
+            var taskExecutor = new BuildStepExecutorBuildOutput {
                 Properties = new OeProperties {
                     BuildOptions = new OeBuildOptions {
-                        OutputDirectoryPath = @"C:\outputdir"
+                        OutputDirectoryPath = outputDir
                     }
                 }
             };
+            
             var task1 = new TaskOnFile {
-                Include = @"C:\sourcedir**",
+                Include = @"**sourcedir**",
                 Exclude = "**2.ext",
-                TargetFilePath = @"C:\newfile",
+                TargetFilePath = Path.Combine(outputDir, "newfile"),
                 TargetDirectory = "relative"
             };
+            
             taskExecutor.Tasks = new List<IOeTask> {
                 task1
             };
+            
             taskExecutor.Execute();
+            
             Assert.AreEqual(2, task1.Files.Count, "only file1.ext and file3 were included");
+            
             var taskTargets = task1.Files.SelectMany(f => f.TargetsFiles).ToList();
+            
             Assert.AreEqual(4, taskTargets.Count, "we expect 4 targets");
-            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(@"C:\outputdir\relative\file1.ext")));
-            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(@"C:\outputdir\relative\file3.ext")));
-            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(@"C:\newfile")));
-            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(@"C:\newfile")));
+            
+            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(outputDir, "relative", "file1.ext"))));
+            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(outputDir, "relative", "file3.ext"))));
+            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(outputDir, "newfile"))));
+            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(outputDir, "newfile"))));
         }
         
         private class TaskOnFile : OeTaskFileTargetFile {

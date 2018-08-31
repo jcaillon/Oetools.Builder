@@ -22,7 +22,7 @@ using Oetools.Utilities.Lib;
 using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project.Task {
-    public interface IOeTaskCompile : IOeTask {
+    public interface IOeTaskCompile : IOeTaskFile {
 
         /// <summary>
         /// Allows to set the extensions that represent compilable files

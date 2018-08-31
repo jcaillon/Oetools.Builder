@@ -73,10 +73,6 @@ namespace Oetools.Builder.Project {
         public bool? ShutdownCompilationDatabasesAfterBuild { get; set; }
         public static bool GetDefaultShutdownCompilationDatabasesAfterBuild() => true;
         
-        [XmlElement(ElementName = "FullRebuild")]
-        public bool? FullRebuild { get; set; }
-        public static bool GetDefaultFullRebuild() => false;
-        
         [XmlElement(ElementName = "TestMode")]
         public bool? TestMode { get; set; }
         public static bool GetDefaultTestMode() => false;

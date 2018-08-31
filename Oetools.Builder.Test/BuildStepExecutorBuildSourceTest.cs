@@ -33,11 +33,11 @@ using Oetools.Utilities.Openedge.Execution;
 namespace Oetools.Builder.Test {
     
     [TestClass]
-    public class TaskExecutorWithFileListAndCompilationTest {
+    public class BuildStepExecutorBuildSourceTest {
         
         private static string _testFolder;
 
-        private static string TestFolder => _testFolder ?? (_testFolder = TestHelper.GetTestFolder(nameof(TaskExecutorWithFileListAndCompilationTest)));
+        private static string TestFolder => _testFolder ?? (_testFolder = TestHelper.GetTestFolder(nameof(BuildStepExecutorBuildSourceTest)));
                      
         [ClassInitialize]
         public static void Init(TestContext context) {
@@ -57,26 +57,21 @@ namespace Oetools.Builder.Test {
                 return;
             }
 
-            var sourceDir = Path.Combine(TestFolder, "source2");
+            var sourceDir = Path.Combine(TestFolder, "source_compile_problems");
             Utils.CreateDirectoryIfNeeded(sourceDir);
             
-            var taskFiles = new FileList<OeFile> {
-                new OeFile { FilePath = Path.Combine(sourceDir, "file1.p") },
-                new OeFile { FilePath = Path.Combine(sourceDir, "file2.w") },
-                new OeFile { FilePath = Path.Combine(sourceDir, "file3.ext") }
-            };
-            var taskExecutor = new BuildStepExecutorWithFileListAndCompilation {
-                TaskFiles = taskFiles,
+            File.WriteAllText(Path.Combine(sourceDir, "file1.p"), "Quit.");
+            File.WriteAllText(Path.Combine(sourceDir, "file2.w"), "derp.");
+            File.WriteAllText(Path.Combine(sourceDir, "file3.ext"), "");
+            
+            var taskExecutor = new BuildStepExecutorBuildSource {
                 Properties = new OeProperties {
                     BuildOptions = new OeBuildOptions {
                         OutputDirectoryPath = Path.Combine(TestFolder, "source2", "bin"),
-                        SourceDirectoryPath = sourceDir,
+                        SourceDirectoryPath = sourceDir
                     }
                 }
             };
-
-            File.WriteAllText(Path.Combine(sourceDir, "file1.p"), "Quit.");
-            File.WriteAllText(Path.Combine(sourceDir, "file2.w"), "derp.");
 
             var taskCompile = new TaskCompile { Include = @"**", TargetDirectory = @"" };
             
@@ -142,15 +137,15 @@ namespace Oetools.Builder.Test {
                 return;
             }
 
-            var sourceDir = Path.Combine(TestFolder, "source");
+            var sourceDir = Path.Combine(TestFolder, "source_compile");
             Utils.CreateDirectoryIfNeeded(sourceDir);
             
-            var taskExecutor = new BuildStepExecutorWithFileListAndCompilation {
-                TaskFiles = new FileList<OeFile> {
-                    new OeFile { FilePath = Path.Combine(sourceDir, "file1.p") },
-                    new OeFile { FilePath = Path.Combine(sourceDir, "file2.w") },
-                    new OeFile { FilePath = Path.Combine(sourceDir, "file3.ext") }
-                },
+            File.WriteAllText(Path.Combine(sourceDir, "file1.p"), "Quit.");
+            File.WriteAllText(Path.Combine(sourceDir, "file2.w"), "Quit.");
+            File.WriteAllText(Path.Combine(sourceDir, "file3.ext"), "Quit.");
+            
+            var taskExecutor = new BuildStepExecutorBuildSource {
+
                 Properties = new OeProperties {
                     BuildOptions = new OeBuildOptions {
                         SourceDirectoryPath = sourceDir,
@@ -158,10 +153,6 @@ namespace Oetools.Builder.Test {
                     }
                 }
             };
-
-            foreach (var taskFile in taskExecutor.TaskFiles) {
-                File.WriteAllText(taskFile.FilePath, "Quit.");
-            }
 
             var taskCompile = new TaskCompile {
                 Include = @"**",
@@ -186,68 +177,6 @@ namespace Oetools.Builder.Test {
             public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
                 Files.AddRange(files);
             }
-        }
-
-        [TestMethod]
-        public void TaskExecutorWithFileListAndCompilation_Test_GetFilesToCompile_simple() {
-            var tasks = new List<IOeTask> {
-                new TaskFilterCompile {
-                    Include = @"**/folder/**",
-                    Exclude = @"**filtered**"
-                },
-                new TaskFilterCompile {
-                    Include = @"**/new/**",
-                    Exclude = @"**filtered**"
-                },
-                new TaskFilterCompile {
-                    Include = @"**.w"
-                },
-                // the filter below should be ignored
-                new OeTaskFilter {
-                    Include = @"**"
-                },
-                // the filter below should be ignored
-                new OeTaskFilter {
-                    Include = @"/new/file3.t"
-                }
-            };
-            var files = new FileList<OeFile> {
-                new OeFile(@"/folder/file1.p") { Size = 10 },
-                new OeFile(@"/folder/file2.cls"),
-                new OeFile(@"/new/file3.t"),
-                new OeFile(@"/new/file4.w"),
-                new OeFile(@"/new/file5.random"),
-                new OeFile(@"/new/file6.notoe"),
-                new OeFile(@"/filtered/file1.p"),
-                new OeFile(@"/filtered/file4.w"),
-                new OeFile(@"file7.p")
-            };
-
-            // equivalent to property injection done in the task executor
-            foreach (var task in tasks.Where(t => t is IOeTaskCompile).Cast<IOeTaskCompile>()) {
-                task.SetFileExtensionFilter(OeCompilationOptions.GetDefaultCompilableFileExtensionPattern());
-            }
-            
-            var filesToCompile = BuildStepExecutorWithFileListAndCompilation.GetFilesToCompile(tasks, files);
-            
-            Assert.AreEqual(5, filesToCompile.Count);
-            Assert.IsTrue(filesToCompile.ToList().Exists(f => f.FileSize.Equals(10)), "should preserve file size");
-            Assert.IsTrue(filesToCompile.ToList().Exists(f => f.FilePath.Equals(@"/folder/file1.p")));
-            Assert.IsTrue(filesToCompile.ToList().Exists(f => f.FilePath.Equals(@"/folder/file2.cls")));
-            Assert.IsTrue(filesToCompile.ToList().Exists(f => f.FilePath.Equals(@"/new/file3.t")));
-            Assert.IsTrue(filesToCompile.ToList().Exists(f => f.FilePath.Equals(@"/new/file4.w")));
-            Assert.IsTrue(filesToCompile.ToList().Exists(f => f.FilePath.Equals(@"/filtered/file4.w")));
-        }
-
-        [TestMethod]
-        public void TaskExecutorWithFileListAndCompilation_Test_GetFilesToCompile_complex() {
-            // TODO : test the second version of GetFilesToCompile
-        }
-
-        private class TaskFilterCompile : OeTaskFilter, IOeTaskCompile {
-            public void SetCompiledFiles(FileList<UoeCompiledFile> compiledFile) { CompiledFiles = compiledFile; }
-            public FileList<UoeCompiledFile> GetCompiledFiles() => CompiledFiles;
-            private FileList<UoeCompiledFile> CompiledFiles { get; set; }
         }
     }
 }

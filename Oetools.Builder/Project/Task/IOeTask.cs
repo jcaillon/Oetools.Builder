@@ -28,6 +28,12 @@ namespace Oetools.Builder.Project.Task {
     public interface IOeTask {
 
         /// <summary>
+        /// Validates that the task is correct (correct parameters and can execute)
+        /// </summary>
+        /// <exception cref="TaskValidationException"></exception>
+        void Validate();
+
+        /// <summary>
         /// Executes the task
         /// </summary>
         /// <remarks>

@@ -32,9 +32,9 @@ namespace Oetools.Builder.Project.Task {
         /// <param name="filePath"></param>
         /// <param name="baseTargetDirectory"></param>
         /// <returns></returns>
-        List<OeTargetFile> GetFileTargets(string filePath, string baseTargetDirectory = null);
+        List<OeTargetFile> GetTargetsFiles(string filePath, string baseTargetDirectory = null);
         
-        /// <inheritdoc cref="IOeTaskFile.ExecuteForFiles"/>
+        /// <inheritdoc cref="OeTaskFile.ExecuteForFilesInternal"/>
         void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files);
         
     }

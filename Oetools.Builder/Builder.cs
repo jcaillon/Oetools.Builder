@@ -20,6 +20,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
@@ -70,7 +71,7 @@ namespace Oetools.Builder {
 
         private bool StoreSourceHash => BuildConfiguration.Properties.IncrementalBuildOptions?.StoreSourceHash ?? OeIncrementalBuildOptions.GetDefaultStoreSourceHash();
 
-        protected string SourceDirectory => BuildConfiguration.Properties.BuildOptions?.SourceDirectoryPath;
+        protected string SourceDirectory => BuildConfiguration.Properties.BuildOptions?.SourceDirectoryPath;        
         
         private CancellationTokenSource CancelSource { get; } = new CancellationTokenSource();
         
@@ -170,32 +171,93 @@ namespace Oetools.Builder {
             
             Log?.Debug($"Starting {executionName}");
 
-            List<IOeTask> tasksDone = new List<IOeTask>();
-            if (steps != null) {
-                var stepsList = steps.ToList();
-                var i = 0;
-                foreach (var step in stepsList) {
-                    Log?.Debug($"Starting {executionName} - {step}");
-                    var executor = new T {
-                        Name = executionName,
-                        Id = i,
-                        Tasks = (step.GetTaskList()?.Cast<IOeTask>()).ToNonNullList(),
-                        Properties = BuildConfiguration.Properties,
-                        Log = Log,
-                        CancelSource = CancelSource
+            if (steps == null) {
+                return;
+            }
+
+            var stepsList = steps.ToList();
+            var i = 0;
+            foreach (var step in stepsList) {
+                Log?.Debug($"Starting {executionName} - {step}");
+                var executor = new T {
+                    Name = executionName,
+                    Id = i,
+                    Tasks = (step.GetTaskList()?.Cast<IOeTask>()).ToNonNullList(),
+                    Properties = BuildConfiguration.Properties,
+                    Log = Log,
+                    CancelSource = CancelSource
+                };
+                BuildStepExecutors.Add(executor);
+                ConfigureBuildSource(executor as BuildStepExecutorBuildSource, stepsList, i);
+                executor.Execute();
+                i++;
+            }
+        }
+
+        /// <summary>
+        /// Configure the source build
+        /// </summary>
+        /// <param name="buildSourceExecutor"></param>
+        /// <param name="stepsList"></param>
+        /// <param name="currentStep"></param>
+        private void ConfigureBuildSource(BuildStepExecutorBuildSource buildSourceExecutor, List<OeBuildStep> stepsList, int currentStep) {
+            if (buildSourceExecutor == null) {
+                return;
+            }
+
+            Log?.Debug("Is build source step");
+            
+            buildSourceExecutor.PreviouslyBuiltFiles = PreviouslyBuiltFiles;
+
+            if (currentStep <= stepsList.Count - 1) {
+                return;
+            }
+
+            Log?.Debug("Is the last step");
+
+            if (PreviouslyBuiltFiles == null) {
+                return;
+            }
+            
+            var mirrorDeletedSourceFileToOutput = BuildConfiguration.Properties.IncrementalBuildOptions?.MirrorDeletedSourceFileToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput();
+        
+            var mirrorDeletedTargetsToOutput = BuildConfiguration.Properties.IncrementalBuildOptions?.MirrorDeletedTargetsToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedTargetsToOutput();
+
+            if (mirrorDeletedSourceFileToOutput || mirrorDeletedTargetsToOutput) {
+                Log?.Info("Mirroring deleted files in source to the output directory");
+
+                Log?.Debug("Making a list of all the files that were deleted since the previous build (the targets of those files must be deleted");
+                var filesWithTargetsToRemove = IncrementalBuildHelper.GetBuiltFilesDeletedSincePreviousBuild(PreviouslyBuiltFiles).ToFileList();
+                if (filesWithTargetsToRemove != null && filesWithTargetsToRemove.Count > 0) {
+                    var newTask = new OeTaskTargetsRemover {
+                        Label = "Deleting files missing from the previous build"
                     };
-                    BuildStepExecutors.Add(executor);
-                    if (executor is IBuildStepExecutorBuildSource buildSourceExecutor) {
-                        buildSourceExecutor.PreviouslyBuiltFiles = PreviouslyBuiltFiles;
-                        buildSourceExecutor.IsLastBuildStepExecutor = i == stepsList.Count - 1;
-                        if (buildSourceExecutor.IsLastBuildStepExecutor) {
-                            buildSourceExecutor.AllTasksOfAllSteps = tasksDone;
-                        }
+                    newTask.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
+                    buildSourceExecutor.Tasks.Add(newTask);
+                }
+            }
+
+            if (mirrorDeletedTargetsToOutput) {
+                Log?.Info("Mirroring deleted targets to the output directory");
+
+                var unchangedOrModifiedFiles = buildSourceExecutor.SourceDirectoryCompleteFileList?.CopyWhere(f => f.State == OeFileState.Unchanged || f.State == OeFileState.Modified);
+
+                if (unchangedOrModifiedFiles != null && unchangedOrModifiedFiles.Count > 0) {
+                    Log?.Debug("For all the unchanged or modified files, set all the targets that should be built in this build");
+                    foreach (var task in stepsList.SelectMany(step1 => (step1.GetTaskList()?.Where(t => t is IOeTaskFile).Cast<IOeTaskFile>()).ToNonNullList())) {
+                        task.SetTargetForFiles(unchangedOrModifiedFiles, BuildConfiguration.Properties?.BuildOptions?.OutputDirectoryPath, true);
                     }
-                    executor.Configure();
-                    executor.Execute();
-                    tasksDone.AddRange(executor.Tasks);
-                    i++;
+
+                    Log?.Debug("Making a list of all source files that had targets existing in the previous build which don't existing anymore (those targets must be deleted)");
+                    var filesWithTargetsToRemove = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(unchangedOrModifiedFiles, PreviouslyBuiltFiles).ToFileList();
+
+                    if (filesWithTargetsToRemove != null && filesWithTargetsToRemove.Count > 0) {
+                        var newTask = new OeTaskTargetsRemover {
+                            Label = "Deleting previous targets that no longer exist"
+                        };
+                        newTask.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
+                        buildSourceExecutor.Tasks.Add(newTask);
+                    }
                 }
             }
         }
@@ -281,7 +343,7 @@ namespace Oetools.Builder {
                 foreach (var previousFile in PreviouslyBuiltFiles.Where(oldFile => oldFile.State != OeFileState.Deleted && !builtFiles.Contains(oldFile))) {
                     var previousFileCopy = previousFile.GetDeepCopy();
                     previousFileCopy.State = OeFileState.Unchanged;
-                    builtFiles.Add(previousFile);
+                    builtFiles.Add(previousFileCopy);
                 }
             }
             

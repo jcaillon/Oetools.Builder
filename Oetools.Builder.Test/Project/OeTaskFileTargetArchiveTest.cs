@@ -52,29 +52,29 @@ namespace Oetools.Builder.Test.Project {
                 Include = "**"
             };
             
-            Assert.AreEqual(0, task.GetFileTargets(@"C:\folder\source.txt", @"D:\").ToList().Count);
+            Assert.AreEqual(0, task.GetTargetsArchives(@"C:\folder\source.txt", @"D:\").ToList().Count);
 
             task.ArchivePath = "archive.pack";
             task.RelativeTargetDirectory = "dir";
             
-            Assert.AreEqual(1, task.GetFileTargets(@"C:\folder\source.txt", @"D:\").ToList().Count);
-            var list = task.GetFileTargets(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetPath()).ToList();
+            Assert.AreEqual(1, task.GetTargetsArchives(@"C:\folder\source.txt", @"D:\").ToList().Count);
+            var list = task.GetTargetsArchives(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetPath()).ToList();
             Assert.IsTrue(list.Exists(s => s.Equals(@"D:\archive.pack\dir\source.txt")));
             
             task.RelativeTargetFilePath = @"dir\newfilename";
             
-            Assert.AreEqual(2, task.GetFileTargets(@"C:\folder\source.txt", @"D:\").ToList().Count);
+            Assert.AreEqual(2, task.GetTargetsArchives(@"C:\folder\source.txt", @"D:\").ToList().Count);
             
             task.ArchivePath = "archive.pack;archive2.pack";
             
-            Assert.AreEqual(4, task.GetFileTargets(@"C:\folder\source.txt", @"D:\").ToList().Count);
+            Assert.AreEqual(4, task.GetTargetsArchives(@"C:\folder\source.txt", @"D:\").ToList().Count);
             
             task.Include = @"C:\((**))((*)).((*));**";
             task.ArchivePath = @"archive.pack;/arc.{{3}}";
             task.RelativeTargetFilePath = "{{1}}file.{{3}}";
             task.RelativeTargetDirectory = null;
 
-            list = task.GetFileTargets(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetPath()).ToList();
+            list = task.GetTargetsArchives(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetPath()).ToList();
             Assert.AreEqual(2, list.Count);
             Assert.IsTrue(list.Exists(s => s.Equals(@"D:\archive.pack\folder\file.txt")));
             Assert.IsTrue(list.Exists(s => s.Equals(@"C:\arc.txt\folder\file.txt")), "we expect to have /arc converted into C:\\");

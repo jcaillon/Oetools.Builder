@@ -32,6 +32,10 @@ namespace Oetools.Builder.Project {
         [XmlElement(ElementName = "Enabled")]
         public bool? Enabled { get; set; }
         public static bool GetDefaultEnabled() => true;
+        
+        [XmlElement(ElementName = "FullRebuild")]
+        public bool? FullRebuild { get; set; }
+        public static bool GetDefaultFullRebuild() => false;
                 
         /// <summary>
         /// True if the tool should use a checksum (md5) for each file to figure out if it has changed
@@ -64,5 +68,11 @@ namespace Oetools.Builder.Project {
         [XmlElement(ElementName = "RebuildFilesWithNewTargets")]
         public bool? RebuildFilesWithNewTargets { get; set; }
         public static bool GetDefaultRebuildFilesWithNewTargets() => false;
+        
+        /// <summary>
+        /// Is this incremental build active
+        /// </summary>
+        /// <returns></returns>
+        internal bool IsActive() => Enabled ?? GetDefaultEnabled();
     }
 }

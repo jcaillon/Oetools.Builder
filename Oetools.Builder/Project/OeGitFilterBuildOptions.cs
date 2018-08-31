@@ -22,7 +22,7 @@ using System.Xml.Serialization;
 
 namespace Oetools.Builder.Project {
     [Serializable]
-    public class OeGitFilter {
+    public class OeGitFilterBuildOptions {
             
         /// <summary>
         /// If true, only the files that were modified since the last commit will be elligible for the <see cref="OeBuildConfiguration.BuildSourceStepGroup"/>

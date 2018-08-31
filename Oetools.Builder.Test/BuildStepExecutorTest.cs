@@ -36,11 +36,11 @@ using Oetools.Utilities.Openedge.Execution;
 namespace Oetools.Builder.Test {
     
     [TestClass]
-    public class TaskExecutorTest {
+    public class BuildStepExecutorTest {
         
         private static string _testFolder;
 
-        private static string TestFolder => _testFolder ?? (_testFolder = TestHelper.GetTestFolder(nameof(TaskExecutorTest)));
+        private static string TestFolder => _testFolder ?? (_testFolder = TestHelper.GetTestFolder(nameof(BuildStepExecutorTest)));
                      
         [ClassInitialize]
         public static void Init(TestContext context) {
@@ -138,21 +138,41 @@ namespace Oetools.Builder.Test {
             var task = new TaskInjectionTest();
             Assert.IsFalse(task.IsCancelSourceSet);
             Assert.IsFalse(task.IsLogSet);
-            Assert.IsFalse(task.IsFileFilter);
             Assert.IsFalse(task.IsTestSet);
             Assert.IsFalse(task.IsFilesCompiledSet);
             Assert.IsFalse(task.IsPropertySet);
-            var taskExecutor = new BuildStepExecutor();
-            taskExecutor.Tasks = new List<IOeTask> {
-                task
+            var taskExecutor = new BuildStepExecutor {
+                Tasks = new List<IOeTask> {
+                    task
+                },
+                CancelSource = new CancellationTokenSource(),
+                Log = new Log2(),
+                Properties = new OeProperties {
+                    BuildOptions = new OeBuildOptions {
+                        TestMode = true
+                    }
+                }
             };
             taskExecutor.Execute();
             Assert.IsTrue(task.IsCancelSourceSet);
             Assert.IsTrue(task.IsLogSet);
-            Assert.IsTrue(task.IsFileFilter);
             Assert.IsTrue(task.IsTestSet);
             Assert.IsTrue(task.IsPropertySet);
             Assert.IsFalse(task.IsFilesCompiledSet);
+        }
+
+        private class Log2 : ILogger {
+            public void Fatal(string message, Exception e = null) {}
+
+            public void Error(string message, Exception e = null) {}
+
+            public void Warn(string message, Exception e = null) {}
+
+            public void Info(string message, Exception e = null) {}
+
+            public void Debug(string message, Exception e = null) {}
+
+            public void Trace(string message, Exception e = null) {}
         }
         
 
@@ -205,39 +225,16 @@ namespace Oetools.Builder.Test {
             protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
         }
         
-        private class TaskInjectionTest : IOeTaskCompile {
-            public bool IsLogSet { get; private set; }
-            public bool IsCancelSourceSet { get; private set; }
-            public bool IsFileFilter { get; private set; }
-            public bool IsTestSet { get; private set; }
+        private class TaskInjectionTest : OeTaskFile, IOeTaskCompile {
+            public bool IsLogSet => Log != null;
+            public bool IsCancelSourceSet => CancelSource != null;
+            public bool IsTestSet => TestMode;
             public bool IsFilesCompiledSet { get; private set; }
-            public bool IsPropertySet { get; private set; }
-            public void Execute() { }
-            public void SetLog(ILogger log) {
-                IsLogSet = true; 
-            }
-            public void SetProperties(OeProperties properties) {
-                IsPropertySet = true;
-            }
-
-            public OeProperties GetProperties() => null;
-
-            public void SetTestMode(bool testMode) {
-                IsTestSet = true;
-            }
-            public event EventHandler<TaskWarningEventArgs> PublishWarning;
-            public void SetCancelSource(CancellationTokenSource cancelSource) {
-                IsCancelSourceSet = true;
-            }
-            public void SetFileExtensionFilter(string filter) {
-                IsFileFilter = true;
-                PublishWarning?.Invoke(null, null);
-            }
+            public bool IsPropertySet => GetProperties() != null;
             public void SetCompiledFiles(FileList<UoeCompiledFile> compiledFile) {
                 IsFilesCompiledSet = true;
             }
             public FileList<UoeCompiledFile> GetCompiledFiles() => null;
-            public List<TaskExecutionException> GetExceptionList() => null;
         }
         
         private class TaskException : OeTask {
@@ -256,6 +253,8 @@ namespace Oetools.Builder.Test {
         
         private class TaskWaitForCancel : IOeTask {
             private CancellationTokenSource _cancelSource;
+            public void Validate() {}
+
             public void Execute() {
                 _cancelSource.Token.WaitHandle.WaitOne();
                 _cancelSource.Token.ThrowIfCancellationRequested();

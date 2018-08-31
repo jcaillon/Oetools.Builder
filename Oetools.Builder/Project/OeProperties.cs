@@ -106,9 +106,9 @@ namespace Oetools.Builder.Project {
         /// Use this to apply GIT filters to your <see cref="OeBuildConfiguration.BuildSourceStepGroup"/>
         /// Obviously, you need GIT installed and present in your OS path
         /// </summary>
-        [XmlElement(ElementName = "SourceToBuildGitFilter")]
-        public OeGitFilter SourceToBuildGitFilter { get; set; }    
-        public static OeGitFilter GetDefaultSourceToBuildGitFilter() => new OeGitFilter();
+        [XmlElement(ElementName = "GitFilterBuildOptions")]
+        public OeGitFilterBuildOptions GitFilterBuildOptions { get; set; }    
+        public static OeGitFilterBuildOptions GetDefaultGitFilterBuildOptions() => new OeGitFilterBuildOptions();
                   
         [XmlElement(ElementName = "CompilationOptions")]
         public OeCompilationOptions CompilationOptions { get; set; }
@@ -138,6 +138,13 @@ namespace Oetools.Builder.Project {
             ValidateFilters(SourceToBuildPathFilter, nameof(SourceToBuildPathFilter));
             if ((CompilationOptions?.NumberProcessPerCore ?? 0) > 10) {
                 throw new PropertiesException($"The property {typeof(OeCompilationOptions).GetXmlName(nameof(OeCompilationOptions.NumberProcessPerCore))} should not exceed 10");
+            }
+
+            if ((IncrementalBuildOptions?.IsActive() ?? false) && (GitFilterBuildOptions?.IsActive() ?? false)) {
+                throw new PropertiesException($"The {GetType().GetXmlName(nameof(IncrementalBuildOptions))} can not be active when the {GetType().GetXmlName(nameof(GitFilterBuildOptions))} is active because the two options serve contradictory purposes. {GetType().GetXmlName(nameof(IncrementalBuildOptions))} should be used when the goal is to build the latest modifications on top of a previous build. {GetType().GetXmlName(nameof(GitFilterBuildOptions))} should be used when the goal is to verify that recent commits to the git repo did not introduce bugs.");
+            }
+            if (!(IncrementalBuildOptions?.IsActive() ?? false) && (IncrementalBuildOptions?.FullRebuild ?? OeIncrementalBuildOptions.GetDefaultFullRebuild())) {
+                throw new PropertiesException($"In {GetType().GetXmlName(nameof(IncrementalBuildOptions))}, the property {typeof(OeBuildOptions).GetXmlName(nameof(OeIncrementalBuildOptions.FullRebuild))} can only be set to true if the property {typeof(OeIncrementalBuildOptions).GetXmlName(nameof(OeIncrementalBuildOptions.Enabled))} is set to true");
             }
         }
         

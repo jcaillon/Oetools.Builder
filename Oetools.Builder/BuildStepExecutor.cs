@@ -33,27 +33,27 @@ using Oetools.Utilities.Openedge;
 namespace Oetools.Builder {
     
     public class BuildStepExecutor {
-        
+ 
         internal string Name { get; set; }
-        
+
         internal int Id { get; set; }
-        
+
         public List<IOeTask> Tasks { get; set; }
 
         public ILogger Log { protected get; set; }
-        
+
         public OeProperties Properties { get; set; }
 
         protected virtual string BaseTargetDirectory => null;
 
         public CancellationTokenSource CancelSource { protected get; set; }
-        
+
         protected bool ThrowIfWarning => Properties?.BuildOptions?.TreatWarningsAsErrors ?? OeBuildOptions.GetDefaultTreatWarningsAsErrors();
-        
+
         protected bool TestMode => Properties?.BuildOptions?.TestMode ?? OeBuildOptions.GetDefaultTestMode();
 
         /// <summary>
-        /// Executes all the tasks
+        /// Setup the tasks and start their execution
         /// </summary>
         /// <exception cref="TaskExecutorException"></exception>
         public void Execute() {
@@ -65,6 +65,14 @@ namespace Oetools.Builder {
                 foreach (var task in Tasks) {
                     InjectPropertiesInTask(task);
                 }
+                Log?.Debug("Set the files to build for each task and their targets if needed");
+                foreach (var task in Tasks) {
+                    if (task is IOeTaskFile taskFile) {
+                        var filesToBuildForTask = GetFilesToBuildForSingleTask(taskFile).Select(f => f.GetDeepCopy());
+                        taskFile.SetTargetForFiles(filesToBuildForTask, BaseTargetDirectory);
+                        taskFile.SetFilesToBuild(filesToBuildForTask);
+                    }
+                }
                 ExecuteInternal();
             } catch (OperationCanceledException) {
                 throw;
@@ -75,17 +83,17 @@ namespace Oetools.Builder {
             }
         }
 
-        public virtual void Configure() {
-            
-        }
-
+        /// <summary>
+        /// Executes all the tasks
+        /// </summary>
+        /// <exception cref="TaskExecutorException"></exception>
         protected virtual void ExecuteInternal() {
             foreach (var task in Tasks) {
                 CancelSource?.Token.ThrowIfCancellationRequested();
                 try {
                     task.PublishWarning += TaskOnPublishException;
                     Log?.Info($"Starting task {task}");
-                    ExecuteTask(task);
+                    task.Execute();
                 } catch (OperationCanceledException) {
                     throw;
                 } catch (TaskExecutionException e) {
@@ -99,26 +107,10 @@ namespace Oetools.Builder {
         }
 
         /// <summary>
-        /// Executes a single task
-        /// </summary>
-        /// <param name="task"></param>
-        /// <exception cref="TaskExecutionException"></exception>
-        private void ExecuteTask(IOeTask task) {
-            switch (task) {
-                case IOeTaskFile taskOnFiles:
-                    taskOnFiles.ExecuteForFiles(GetFilesReadyForTaskExecution(taskOnFiles, GetTaskFiles(taskOnFiles) ?? new FileList<OeFile>()));
-                    break;
-                default:
-                    task.Execute();
-                    break;
-            }
-        }
-
-        /// <summary>
         /// Prepares a task, injecting properties if needed, depending on which interface it implements
         /// </summary>
         /// <param name="task"></param>
-        protected virtual void InjectPropertiesInTask(IOeTask task) {
+        private void InjectPropertiesInTask(IOeTask task) {
             task.SetLog(Log);
             task.SetTestMode(TestMode);
             task.SetCancelSource(CancelSource);
@@ -129,68 +121,11 @@ namespace Oetools.Builder {
         }
 
         /// <summary>
-        /// Returns the list of files to build for the given task
-        /// </summary>
-        /// <param name="task"></param>
-        /// <param name="initialFiles"></param>
-        /// <returns></returns>
-        protected virtual FileList<OeFile> GetFilesReadyForTaskExecution(IOeTaskFile task, FileList<OeFile> initialFiles) {
-            SetFilesTargets(task, initialFiles, BaseTargetDirectory);
-            return initialFiles;
-        }
-
-        internal static void SetFilesTargets(IOeTask task, FileList<OeFile> initialFiles, string baseTargetDirectory, bool appendMode = false) {
-            var taskIsCompileTask = task is IOeTaskCompile;
-            switch (task) {
-                case IOeTaskFileTargetFile taskWithTargetFiles:
-                    foreach (var file in initialFiles) {
-                        var newTargets = taskWithTargetFiles.GetFileTargets(file.FilePath, baseTargetDirectory);
-                        
-                        // change the targets extension to .r for compiled files
-                        if (taskIsCompileTask && newTargets != null) {
-                            foreach (var targetFile in newTargets) {
-                                targetFile.TargetFilePath = Path.ChangeExtension(targetFile.TargetFilePath, UoeConstants.ExtR);
-                            }
-                        }
-                        
-                        if (appendMode && file.TargetsFiles != null) {
-                            if (newTargets != null) {
-                                file.TargetsFiles.AddRange(newTargets);
-                            }
-                        } else {
-                            file.TargetsFiles = newTargets;
-                        }
-                    }
-                    break;
-                case IOeTaskFileTargetArchive taskWithTargetArchives:
-                    foreach (var file in initialFiles) {
-                        var newTargets = taskWithTargetArchives.GetFileTargets(file.FilePath, baseTargetDirectory);
-                        
-                        // change the targets extension to .r for compiled files
-                        if (taskIsCompileTask && newTargets != null) {
-                            foreach (var targetArchive in newTargets) {
-                                targetArchive.RelativeTargetFilePath = Path.ChangeExtension(targetArchive.RelativeTargetFilePath, UoeConstants.ExtR);
-                            }
-                        }
-                        
-                        if (appendMode && file.TargetsArchives != null) {
-                            if (newTargets != null) {
-                                file.TargetsArchives.AddRange(newTargets);
-                            }
-                        } else {
-                            file.TargetsArchives = newTargets;
-                        }
-                    }
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Given inclusion and exclusion, returns a list of initialFiles on which to apply the given task
+        /// Should return all the files that need to be built by the given <param name="task"></param>
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        protected virtual FileList<OeFile> GetTaskFiles(IOeTaskFile task) {
+        protected virtual FileList<OeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
             Log?.Debug("Gets the list of files on which to apply this task from path inclusion");
             return task.GetIncludedFiles();
         }

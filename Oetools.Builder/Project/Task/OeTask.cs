@@ -50,10 +50,7 @@ namespace Oetools.Builder.Project.Task {
         private List<TaskExecutionException> _exceptions;
         public List<TaskExecutionException> GetExceptionList() => _exceptions;
         
-        /// <summary>
-        /// Validates that the task is correct (correct parameters and can execute)
-        /// </summary>
-        /// <exception cref="TaskValidationException"></exception>
+        /// <inheritdoc cref="IOeTask.Validate"/>
         public virtual void Validate() { }
         
         private OeProperties ProjectProperties { get; set; }
@@ -68,6 +65,7 @@ namespace Oetools.Builder.Project.Task {
             try {
                 if (TestMode) {
                     Log?.Debug("Test mode");
+                    ExecuteTestModeInternal();
                 } else {
                     ExecuteInternal();
                 }
@@ -91,6 +89,8 @@ namespace Oetools.Builder.Project.Task {
         protected virtual void ExecuteInternal() {
             throw new NotImplementedException();
         }
+
+        protected virtual void ExecuteTestModeInternal() { }
 
         /// <summary>
         /// Don't use this method, directly throw an <see cref="TaskExecutionException"/> instead

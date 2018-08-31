@@ -24,6 +24,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
+using Oetools.Builder.History;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
@@ -116,14 +117,16 @@ namespace Oetools.Builder.Project.Task {
         public List<string> GetIncludeStrings() => (Include?.Split(';')).ToNonNullList();
         public List<string> GetExcludeStrings() => (Exclude?.Split(';')).ToNonNullList();
 
-        /// <summary>
-        /// Validates that the filter is correct and usable
-        /// </summary>
-        /// <exception cref="FilterValidationException"></exception>
+        /// <inheritdoc cref="IOeTask.Validate"/>
         public override void Validate() {
             CheckWildCards(GetIncludeStrings());
             CheckWildCards(GetExcludeStrings());
             InitRegex();
+        }
+        
+        /// <inheritdoc cref="IOeTaskFilter.FilterFiles"/>
+        public FileList<OeFile> FilterFiles(FileList<OeFile> originalListOfFiles) {
+            return originalListOfFiles?.CopyWhere(f => IsFilePassingFilter(f.FilePath));
         }
         
         /// <summary>

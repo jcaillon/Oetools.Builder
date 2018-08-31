@@ -56,26 +56,26 @@ namespace Oetools.Builder.Test.Project {
                 Include = "**"
             };
 
-            Assert.AreEqual(0, targetTask.GetFileTargets(@"C:\folder\source.txt", null).Count);
+            Assert.AreEqual(0, targetTask.GetTargetsFiles(@"C:\folder\source.txt", null).Count);
 
             targetTask.TargetDirectory = @"targetfolder";
 
-            Assert.ThrowsException<TaskExecutionException>(() => targetTask.GetFileTargets(@"C:\folder\source.txt", null), "This task is not allowed to target relative path because no base target directory is defined at this moment, the error occured for : <<targetfolder>>");
+            Assert.ThrowsException<TaskExecutionException>(() => targetTask.GetTargetsFiles(@"C:\folder\source.txt", null), "This task is not allowed to target relative path because no base target directory is defined at this moment, the error occured for : <<targetfolder>>");
             
             targetTask.TargetFilePath = @"targetfolder\newfilename.txt";
             
-            Assert.AreEqual(2, targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Count);
+            Assert.AreEqual(2, targetTask.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").Count);
             
             targetTask.TargetFilePath = @"targetfolder\newfilename.txt;secondtarget\filename.src";
             
-            Assert.AreEqual(3, targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Count);
+            Assert.AreEqual(3, targetTask.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").Count);
 
             targetTask.Include = "((**))((*)).((*));**";
             targetTask.TargetDirectory = null;
             targetTask.TargetFilePath = "{{1}}file.{{3}}";
 
-            Assert.AreEqual(1, targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Count);
-            Assert.IsTrue(targetTask.GetFileTargets(@"C:\folder\source.txt", @"D:\").Exists(s => s.GetTargetPath().Equals(@"C:\folder\file.txt")));
+            Assert.AreEqual(1, targetTask.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").Count);
+            Assert.IsTrue(targetTask.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").Exists(s => s.GetTargetPath().Equals(@"C:\folder\file.txt")));
 
         }
 

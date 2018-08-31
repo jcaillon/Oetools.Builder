@@ -23,12 +23,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.History;
+using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {
     
     /// <summary>
-    /// The job of this task is to delete al the targets present in <see cref="FilesWithTargetsToRemove"/> with <see cref="OeTarget.DeletionMode"/> = true, they are
+    /// The job of this task is to delete al the targets present in <see cref="_filesWithTargetsToRemove"/> with <see cref="OeTarget.DeletionMode"/> = true, they are
     /// targets that are no longer needed. Those targets were built in the previous build but the targets have changed (or the file itself has been deleted)
     /// </summary>
     [Serializable]
@@ -36,11 +37,24 @@ namespace Oetools.Builder.Project.Task {
     public class OeTaskTargetsRemover : OeTask, IOeTaskFileBuilder {
 
         private FileList<OeFileBuilt> _builtFiles;
+
+        /// <summary>
+        /// a list of files with targets to remove
+        /// </summary>
+        private FileList<OeFileBuilt> _filesWithTargetsToRemove;
+
+        public void SetFilesWithTargetsToRemove(FileList<OeFileBuilt> filesWithTargetsToRemove) {
+            _filesWithTargetsToRemove = filesWithTargetsToRemove;
+        }
         
         protected sealed override void ExecuteInternal() {
-            var targetsToRemove = FilesWithTargetsToRemove.SelectMany(f => f.Targets).Where(target => target.IsDeletionMode()).ToList();
+            var targetsToRemove = _filesWithTargetsToRemove.SelectMany(f => f.Targets).Where(target => target.IsDeletionMode()).ToList();
             ExecuteTargetsRemoval(targetsToRemove);
-            _builtFiles = FilesWithTargetsToRemove;
+            _builtFiles = _filesWithTargetsToRemove;
+        }
+
+        protected override void ExecuteTestModeInternal() {
+            _builtFiles = _filesWithTargetsToRemove;
         }
 
         private void ExecuteTargetsRemoval(List<OeTarget> targetsToRemove) {
@@ -50,15 +64,8 @@ namespace Oetools.Builder.Project.Task {
             var archiveTargets = targetsToRemove.Where(target => target is OeTargetArchive);
             Log?.Debug("Deleting all archive targets");
         }
-        
-        /// <summary>
-        /// a list of files with targets to remove
-        /// </summary>
-        [XmlIgnore]
-        internal FileList<OeFileBuilt> FilesWithTargetsToRemove { get; set; }
 
         public FileList<OeFileBuilt> GetFilesBuilt() => _builtFiles;
-
 
     }
 }

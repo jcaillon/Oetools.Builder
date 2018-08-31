@@ -56,7 +56,7 @@ namespace Oetools.Builder.Utilities {
         /// </remarks>
         public bool UseLastWriteDateComparison { get; set; } = true;
 
-        public OeGitFilter SourcePathGitFilter { get; set; }
+        public OeGitFilterBuildOptions SourcePathGitFilterBuildOptions { get; set; }
 
         public Func<string, OeFile> GetPreviousFileImage { get; set; }
         
@@ -81,7 +81,7 @@ namespace Oetools.Builder.Utilities {
         /// <exception cref="OperationCanceledException"></exception>
         public FileList<OeFile> GetFileList() {
             IEnumerable<string> listedFiles;
-            if (SourcePathGitFilter != null && SourcePathGitFilter.IsActive()) {
+            if (SourcePathGitFilterBuildOptions != null && SourcePathGitFilterBuildOptions.IsActive()) {
                 listedFiles = GetBaseFileListFromGit();
             } else {
                 listedFiles = GetBaseFileList();
@@ -215,13 +215,13 @@ namespace Oetools.Builder.Utilities {
             };
             gitManager.SetCurrentDirectory(SourceDirectory);
             
-            if (SourcePathGitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit ?? OeGitFilter.GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit()) {
+            if (SourcePathGitFilterBuildOptions.OnlyIncludeSourceFilesModifiedSinceLastCommit ?? OeGitFilterBuildOptions.GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit()) {
                 output.AddRange(gitManager.GetAllModifiedFilesSinceLastCommit());
             }
             
-            if (SourcePathGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch ?? OeGitFilter.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch()) {
+            if (SourcePathGitFilterBuildOptions.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch ?? OeGitFilterBuildOptions.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch()) {
                 try {
-                    output.AddRange(gitManager.GetAllCommittedFilesExclusiveToCurrentBranch(SourcePathGitFilter.CurrentBranchOriginCommit, SourcePathGitFilter.CurrentBranchName));
+                    output.AddRange(gitManager.GetAllCommittedFilesExclusiveToCurrentBranch(SourcePathGitFilterBuildOptions.CurrentBranchOriginCommit, SourcePathGitFilterBuildOptions.CurrentBranchName));
                 } catch (GitManagerCantFindMergeCommitException) {
                     // this exception means we can't find commits that exist only on that branch
                     // we list every file committed in the repo instead (= all files in repo minus all modified files)

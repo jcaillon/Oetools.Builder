@@ -88,25 +88,6 @@ namespace Oetools.Builder.Utilities {
         }
         
         /// <summary>
-        /// List of the source file that are otherwise unchanged by need to be rebuild because they have new targets not present in the last build
-        /// </summary>
-        /// <param name="allExistingSourceFilesWithSetTargets"></param>
-        /// <param name="previousFilesBuilt"></param>
-        /// <returns></returns>
-        internal static IEnumerable<OeFile> GetSourceFilesToRebuildBecauseTheyHaveNewTargets(FileList<OeFile> allExistingSourceFilesWithSetTargets, FileList<OeFileBuilt> previousFilesBuilt) {
-            foreach (var newFile in allExistingSourceFilesWithSetTargets.Where(file => file.State == OeFileState.Unchanged)) {
-                var previousFile = previousFilesBuilt[newFile.FilePath];
-                var previouslyCreatedTargets = previousFile.Targets.ToNonNullList().Where(target => !target.IsDeletionMode()).Select(t => t.GetTargetPath()).ToList();
-                foreach (var targetPath in newFile.GetAllTargets().Select(t => t.GetTargetPath())) {
-                    if (!previouslyCreatedTargets.Exists(prevTarget => prevTarget.PathEquals(targetPath))) {
-                        yield return newFile;
-                        break;
-                    }
-                }
-            }
-        }
-        
-        /// <summary>
         /// Get a list of previously built files that are now deleted, their targets should be removed
         /// </summary>
         /// <param name="previousFilesBuilt"></param>
@@ -121,16 +102,35 @@ namespace Oetools.Builder.Utilities {
                 }
             }
         }
-
+        
+        /// <summary>
+        /// List of the source file that are otherwise unchanged by need to be rebuild because they have new targets not present in the last build
+        /// </summary>
+        /// <param name="allUnchangedSourceFilesWithSetTargets"></param>
+        /// <param name="previousFilesBuilt"></param>
+        /// <returns></returns>
+        internal static IEnumerable<OeFile> GetSourceFilesToRebuildBecauseTheyHaveNewTargets(FileList<OeFile> allUnchangedSourceFilesWithSetTargets, FileList<OeFileBuilt> previousFilesBuilt) {
+            foreach (var newFile in allUnchangedSourceFilesWithSetTargets.Where(file => file.State == OeFileState.Unchanged)) {
+                var previousFile = previousFilesBuilt[newFile.FilePath];
+                var previouslyCreatedTargets = previousFile.Targets.ToNonNullList().Where(target => !target.IsDeletionMode()).Select(t => t.GetTargetPath()).ToList();
+                foreach (var targetPath in newFile.GetAllTargets().Select(t => t.GetTargetPath())) {
+                    if (!previouslyCreatedTargets.Exists(prevTarget => prevTarget.PathEquals(targetPath))) {
+                        yield return newFile;
+                        break;
+                    }
+                }
+            }
+        }
+        
         /// <summary>
         /// Get a list of previously built files, still existing, but with targets that no longer exist and should be removed
         /// </summary>
-        /// <param name="allExistingSourceFilesWithSetTargets"></param>
+        /// <param name="allUnchangedOrModifiedSourceFilesWithSetTargets"></param>
         /// <param name="previousFilesBuilt"></param>
         /// <returns></returns>
-        internal static IEnumerable<OeFileBuilt> GetBuiltFilesWithOldTargetsToRemove(FileList<OeFile> allExistingSourceFilesWithSetTargets, FileList<OeFileBuilt> previousFilesBuilt) {
+        internal static IEnumerable<OeFileBuilt> GetBuiltFilesWithOldTargetsToRemove(FileList<OeFile> allUnchangedOrModifiedSourceFilesWithSetTargets, FileList<OeFileBuilt> previousFilesBuilt) {
             var finalFileTargets = new List<OeTarget>();
-            foreach (var newFile in allExistingSourceFilesWithSetTargets.Where(file => file.State == OeFileState.Unchanged || file.State == OeFileState.Modified)) {
+            foreach (var newFile in allUnchangedOrModifiedSourceFilesWithSetTargets.Where(file => file.State == OeFileState.Unchanged || file.State == OeFileState.Modified)) {
                 var previousFile = previousFilesBuilt[newFile.FilePath];
                 if (previousFile == null) {
                     throw new Exception($"Could not find the history of a now unchanged or modified file, something is wrong! File : {newFile}");

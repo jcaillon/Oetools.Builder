@@ -19,6 +19,8 @@
 #endregion
 
 using System.Collections.Generic;
+using Oetools.Builder.History;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {
     public interface IOeTaskFilter : IOeTask {
@@ -27,6 +29,13 @@ namespace Oetools.Builder.Project.Task {
         List<string> GetRegexExcludeStrings();
         List<string> GetIncludeStrings();
         List<string> GetExcludeStrings();
+        
+        /// <summary>
+        /// Given the inclusion and exclusion patterns, filter the input list of files to only keep files that apply to this task
+        /// </summary>
+        /// <param name="originalListOfFiles"></param>
+        /// <returns></returns>
+        FileList<OeFile> FilterFiles(FileList<OeFile> originalListOfFiles);
 
         /// <summary>
         /// Returns true if the given file passes this filter

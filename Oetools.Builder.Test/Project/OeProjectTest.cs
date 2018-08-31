@@ -230,7 +230,7 @@ namespace Oetools.Builder.Test.Project {
                     Exclude = "**/derp",
                     ExcludeRegex = "\\\\[D][d]"
                 },
-                SourceToBuildGitFilter = new OeGitFilter {
+                GitFilterBuildOptions = new OeGitFilterBuildOptions {
                     CurrentBranchName = null,
                     CurrentBranchOriginCommit = null,
                     OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true,

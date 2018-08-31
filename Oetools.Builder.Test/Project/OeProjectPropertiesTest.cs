@@ -53,7 +53,7 @@ namespace Oetools.Builder.Test.Project {
             var prop = new OeProperties();
             prop.SetDefaultValues();
             Assert.AreEqual(OeProperties.GetDefaultDlcDirectoryPath(), prop.DlcDirectoryPath);
-            Assert.AreEqual(OeGitFilter.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch(), prop.SourceToBuildGitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch);
+            Assert.AreEqual(OeGitFilterBuildOptions.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch(), prop.GitFilterBuildOptions.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch);
             Assert.AreEqual(OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput(), prop.IncrementalBuildOptions.MirrorDeletedSourceFileToOutput);
             Assert.AreEqual(OeCompilationOptions.GetDefaultCompileWithDebugList(), prop.CompilationOptions.CompileWithDebugList);
             Assert.AreEqual(OeBuildOptions.GetDefaultTreatWarningsAsErrors(), prop.BuildOptions.TreatWarningsAsErrors);

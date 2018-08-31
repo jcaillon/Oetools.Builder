@@ -25,19 +25,11 @@ using Oetools.Utilities.Lib;
 namespace Oetools.Builder.Project.Task {
     
     public interface IOeTaskFile : IOeTaskFilter, IOeTaskFileBuilder {
-        
-        /// <summary>
-        /// Execute the task for a set of files
-        /// </summary>
-        /// <remarks>
-        /// - The task should create/add a list of files that it builds, list that is returned by <see cref="IOeTaskFileBuilder.GetFilesBuilt"/>
-        /// - This method should throw <see cref="TaskExecutionException"/> if needed
-        /// - This method can publish warnings using <see cref="OeTask.AddExecutionWarning"/>
-        /// </remarks>
-        /// <param name="files"></param>
-        /// <exception cref="TaskExecutionException"></exception>
-        void ExecuteForFiles(FileList<OeFile> files);
 
+        void SetFilesToBuild(FileList<OeFile> filesToBuild);
+        
+        FileList<OeFile> GetFilesToBuild();
+        
         /// <summary>
         /// Given the inclusion wildcard paths and exclusion patterns, returns a list of files on which to apply this task
         /// </summary>
@@ -50,5 +42,7 @@ namespace Oetools.Builder.Project.Task {
         /// </summary>
         /// <exception cref="TaskExecutionException"></exception>
         void ValidateCanIncludeFiles();
+
+        void SetTargetForFiles(FileList<OeFile> files, string baseTargetDirectory, bool appendMode = false);
     }
 }
