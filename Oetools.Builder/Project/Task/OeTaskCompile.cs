@@ -24,6 +24,7 @@ using System.Linq;
 using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
+using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge;
@@ -48,7 +49,7 @@ namespace Oetools.Builder.Project.Task {
             return originalFiles;
         }
 
-        public static FileList<UoeCompiledFile> CompileFiles(OeProperties properties, FileList<UoeFileToCompile> files, CancellationTokenSource cancelSource) {
+        public static FileList<UoeCompiledFile> CompileFiles(OeProperties properties, FileList<UoeFileToCompile> files, CancellationTokenSource cancelSource, ILogger log) {
             if (files == null || files.Count == 0) {
                 return new FileList<UoeCompiledFile>();
             }
@@ -57,9 +58,14 @@ namespace Oetools.Builder.Project.Task {
             }
             using (var compiler = properties.GetParallelCompiler(properties.BuildOptions?.SourceDirectoryPath)) {
                 compiler.FilesToCompile = files;
-
+                log?.ReportProgress(files.Count, 0, $"Compiling {files.Count} openedge files");
                 compiler.Start();
-                compiler.WaitForExecutionEnd(cancelSource: cancelSource);
+                bool exited;
+                do {
+                    exited = compiler.WaitForExecutionEnd(1000, cancelSource);
+                    int nbDone = compiler.NumberOfFilesTreated;
+                    log?.ReportProgress(compiler.NumberOfFilesToCompile, nbDone, $"Compiling openedge files {nbDone}/{compiler.NumberOfFilesToCompile} ({compiler.NumberOfProcessesRunning} process running)");
+                } while (!exited && !cancelSource.IsCancellationRequested);
                 if (cancelSource?.IsCancellationRequested ?? false) {
                     compiler.KillProcess();
                     compiler.WaitForExecutionEnd();

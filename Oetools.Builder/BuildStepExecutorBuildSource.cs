@@ -139,7 +139,7 @@ namespace Oetools.Builder {
                 throw new ArgumentNullException(nameof(Properties));
             }
             try {
-                _compiledFiles = OeTaskCompile.CompileFiles(Properties, filesToCompile, CancelSource);
+                _compiledFiles = OeTaskCompile.CompileFiles(Properties, filesToCompile, CancelSource, Log);
             } catch (Exception e) {
                 throw new TaskExecutorException(this, e.Message, e);
             }

@@ -18,6 +18,7 @@
 // ========================================================================
 #endregion
 
+using System;
 using Oetools.Builder.Project;
 using Oetools.Builder.Report.Html;
 using Oetools.Builder.Utilities;
@@ -34,6 +35,21 @@ namespace Oetools.Builder {
 //        public static string GetDefaultBuildHistoryOutputFilePath(string sourceDirectory) => Path.Combine(OeBuilderConstants.GetProjectDirectoryBuild(sourceDirectory), "latest.xml");
 //        public static string GetDefaultBuildHistoryInputFilePath(string sourceDirectory) => Path.Combine(OeBuilderConstants.GetProjectDirectoryBuild(sourceDirectory), "latest.xml");
 //        public static string GetDefaultReportHtmlFilePath(string sourceDirectory) => Path.Combine(OeBuilderConstants.GetProjectDirectoryBuild(sourceDirectory), "latest.html");
+        
+        public override void Dispose() {
+            base.Dispose();
+            try {
+                // stop the started databases
+                if (BuildConfiguration.Properties?.BuildOptions?.ShutdownCompilationDatabasesAfterBuild ?? OeBuildOptions.GetDefaultShutdownCompilationDatabasesAfterBuild()) {
+                    Log?.Debug("Shutting down database after the build [OPTION]");
+                    using (var dbAdmin = new ProjectDatabaseAdministrator(BuildConfiguration, SourceDirectory)) {
+                        dbAdmin.ShutdownAllDatabases();
+                    }
+                }
+            } catch (Exception e) {
+                Log?.Error($"Error while shutting down the project databases : {e.Message}", e);
+            }
+        }
 
         protected override void PreBuild() {
             base.PreBuild();
@@ -61,14 +77,6 @@ namespace Oetools.Builder {
             if (UseIncrementalBuild && !string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions?.BuildHistoryOutputFilePath)) {
                 Log?.Debug("Create the output history file [OPTION]");
                 OutputHistory(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath);
-            }
-            
-            // stop the started databases
-            if (BuildConfiguration.Properties?.BuildOptions?.ShutdownCompilationDatabasesAfterBuild ?? OeBuildOptions.GetDefaultShutdownCompilationDatabasesAfterBuild()) {
-                Log?.Debug("Shutting down database after the build [OPTION]");
-                using (var dbAdmin = new ProjectDatabaseAdministrator(BuildConfiguration, SourceDirectory)) {
-                    dbAdmin.ShutdownAllDatabases();
-                }
             }
         }
         

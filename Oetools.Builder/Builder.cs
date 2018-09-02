@@ -97,7 +97,7 @@ namespace Oetools.Builder {
             BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath = BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath ?? OeBuilderConstants.GetDefaultOutputDirectory(SourceDirectory);
         }
 
-        public void Dispose() {
+        public virtual void Dispose() {
             Utils.DeleteDirectoryIfExists(BuildTemporaryDirectory, true);
         }
         
@@ -178,7 +178,7 @@ namespace Oetools.Builder {
             var stepsList = steps.ToList();
             var i = 0;
             foreach (var step in stepsList) {
-                Log?.Debug($"Starting {executionName} - {step}");
+                Log?.Info($"Starting {executionName} - {step}");
                 var executor = new T {
                     Name = executionName,
                     Id = i,
@@ -209,7 +209,7 @@ namespace Oetools.Builder {
             
             buildSourceExecutor.PreviouslyBuiltFiles = PreviouslyBuiltFiles;
 
-            if (currentStep <= stepsList.Count - 1) {
+            if (currentStep < stepsList.Count - 1) {
                 return;
             }
 

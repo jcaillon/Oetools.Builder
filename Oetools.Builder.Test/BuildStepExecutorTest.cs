@@ -170,6 +170,9 @@ namespace Oetools.Builder.Test {
             public void Debug(string message, Exception e = null) {}
             public ITraceLogger Trace => null;
             public void ReportProgress(int max, int current, string message) {}
+            public void ReportGlobalProgress(int max, int current, string message) {
+                throw new NotImplementedException();
+            }
         }
         
 

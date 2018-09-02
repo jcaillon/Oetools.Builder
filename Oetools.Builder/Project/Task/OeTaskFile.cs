@@ -112,11 +112,11 @@ namespace Oetools.Builder.Project.Task {
                         Log?.Debug("Start file compilation");
                         compiledFiles = OeTaskCompile.CompileFiles(thisOeTaskCompile.GetProperties(), _filesToBuild.Select(f => new UoeFileToCompile(f.FilePath) {
                             FileSize = f.Size
-                        }), CancelSource);
+                        }), CancelSource, Log);
                         thisOeTaskCompile.SetCompiledFiles(compiledFiles);
                     }
                     
-                    Log?.Debug("Switching orignal source files for rcode files to build");
+                    Log?.Debug("Switching original source files for rcode files to build");
                     _filesToBuild = OeTaskCompile.SetRcodeFilesAsSourceInsteadOfSourceFiles(_filesToBuild, compiledFiles);
                 } catch(Exception e) {
                     throw new TaskExecutionException(this, e.Message, e);

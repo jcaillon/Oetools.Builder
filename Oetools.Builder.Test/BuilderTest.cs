@@ -153,7 +153,7 @@ namespace Oetools.Builder.Test {
             }) {
                 builder.Build();
                 
-                // we expect to have rebuild eveything here
+                // we expect to have rebuild everything here
                 CheckTasksWithBuildConfiguration1Targets(builder, builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath);
 
                 Assert.AreEqual(5, builder.BuildSourceHistory.BuiltFiles.Count, "5 unique files in history in total");
