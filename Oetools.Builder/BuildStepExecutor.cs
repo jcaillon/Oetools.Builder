@@ -47,6 +47,10 @@ namespace Oetools.Builder {
         protected virtual string BaseTargetDirectory => null;
 
         public CancellationTokenSource CancelSource { protected get; set; }
+        
+        public int NumberOfTasksDone { get; private set; }
+
+        public event EventHandler<StepExecutorProgressEventArgs> OnTaskStart;
 
         protected bool ThrowIfWarning => Properties?.BuildOptions?.TreatWarningsAsErrors ?? OeBuildOptions.GetDefaultTreatWarningsAsErrors();
 
@@ -92,7 +96,10 @@ namespace Oetools.Builder {
                 CancelSource?.Token.ThrowIfCancellationRequested();
                 try {
                     task.PublishWarning += TaskOnPublishException;
-                    Log?.Info($"Starting task {task}");
+                    OnTaskStart?.Invoke(this, new StepExecutorProgressEventArgs {
+                        NumberOfTasksDone = NumberOfTasksDone,
+                        CurrentTask = task.ToString()
+                    });
                     task.Execute();
                 } catch (OperationCanceledException) {
                     throw;
@@ -103,6 +110,7 @@ namespace Oetools.Builder {
                 } finally {
                     task.PublishWarning -= TaskOnPublishException;
                 }
+                NumberOfTasksDone++;
             }
         }
 

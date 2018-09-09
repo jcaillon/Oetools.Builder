@@ -55,6 +55,10 @@ namespace Oetools.Builder {
             .SelectMany(exec => (exec?.Tasks).ToNonNullList())
             .SelectMany(task => task.GetExceptionList().ToNonNullList())
             .ToList();
+        
+        private int TotalNumberOfTasks { get; set; }
+        
+        private int NumberOfTasksDone { get; set; }
 
         private string BuildTemporaryDirectory { get; set; }
 
@@ -157,6 +161,13 @@ namespace Oetools.Builder {
         /// Executes the build
         /// </summary>
         private void ExecuteBuildConfiguration() {
+            // compute the total number of tasks to execute
+            TotalNumberOfTasks += BuildConfiguration.PreBuildStepGroup.SelectMany(step => step.Tasks).Count();
+            TotalNumberOfTasks += BuildConfiguration.BuildSourceStepGroup.SelectMany(step => step.Tasks).Count();
+            TotalNumberOfTasks += BuildConfiguration.BuildOutputStepGroup.SelectMany(step => step.Tasks).Count();
+            TotalNumberOfTasks += BuildConfiguration.PostBuildStepGroup.SelectMany(step => step.Tasks).Count();
+            TotalNumberOfTasks += PreviouslyBuiltFiles != null ? 2 : 0; // potential extra tasks for removal
+            
             ExecuteBuildStep<BuildStepExecutor>(BuildConfiguration.PreBuildStepGroup, nameof(OeBuildConfiguration.PreBuildStepGroup));
             ExecuteBuildStep<BuildStepExecutorBuildSource>(BuildConfiguration.BuildSourceStepGroup, nameof(OeBuildConfiguration.BuildSourceStepGroup));
             ExecuteBuildStep<BuildStepExecutorBuildOutput>(BuildConfiguration.BuildOutputStepGroup, nameof(OeBuildConfiguration.BuildOutputStepGroup));
@@ -169,7 +180,7 @@ namespace Oetools.Builder {
         private void ExecuteBuildStep<T>(IEnumerable<OeBuildStep> steps, string oeBuildConfigurationPropertyName) where T : BuildStepExecutor, new() {
             var executionName = typeof(OeBuildConfiguration).GetXmlName(oeBuildConfigurationPropertyName);
             
-            Log?.Debug($"Starting {executionName}");
+            Log?.ReportGlobalProgress(TotalNumberOfTasks, NumberOfTasksDone, $"Executing {executionName}");
 
             if (steps == null) {
                 return;
@@ -187,11 +198,17 @@ namespace Oetools.Builder {
                     Log = Log,
                     CancelSource = CancelSource
                 };
+                executor.OnTaskStart += ExecutorOnOnTaskStart;
                 BuildStepExecutors.Add(executor);
                 ConfigureBuildSource(executor as BuildStepExecutorBuildSource, stepsList, i);
                 executor.Execute();
+                NumberOfTasksDone += executor.NumberOfTasksDone;
                 i++;
             }
+        }
+
+        private void ExecutorOnOnTaskStart(object sender, StepExecutorProgressEventArgs e) {
+            Log?.ReportGlobalProgress(TotalNumberOfTasks, TotalNumberOfTasks + e.NumberOfTasksDone, $"Starting task {e.CurrentTask}");
         }
 
         /// <summary>
@@ -218,6 +235,8 @@ namespace Oetools.Builder {
             if (PreviouslyBuiltFiles == null) {
                 return;
             }
+
+            var tasksAdded = 0;
             
             var mirrorDeletedSourceFileToOutput = BuildConfiguration.Properties.IncrementalBuildOptions?.MirrorDeletedSourceFileToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput();
         
@@ -234,6 +253,7 @@ namespace Oetools.Builder {
                     };
                     newTask.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
                     buildSourceExecutor.Tasks.Add(newTask);
+                    tasksAdded++;
                 }
             }
 
@@ -257,9 +277,12 @@ namespace Oetools.Builder {
                         };
                         newTask.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
                         buildSourceExecutor.Tasks.Add(newTask);
+                        tasksAdded++;
                     }
                 }
             }
+
+            TotalNumberOfTasks -= 2 - tasksAdded;
         }
         
         private OeBuildHistory GetBuildHistory() {
