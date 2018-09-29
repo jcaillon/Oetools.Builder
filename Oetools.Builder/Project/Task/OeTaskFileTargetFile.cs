@@ -26,6 +26,7 @@ using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
+    
     public abstract class OeTaskFileTargetFile : OeTaskFileTarget, IOeTaskFileTargetFile {
             
         [XmlAttribute("TargetFilePath")]
@@ -45,7 +46,7 @@ namespace Oetools.Builder.Project.Task {
             CheckTargetPath((TargetFilePath?.Split(';')).UnionHandleNull(TargetDirectory?.Split(';')));
         }
         
-        protected virtual OeTargetFile GetNewTargetFile() => new OeTargetFileCopy();
+        private OeTargetFile GetNewTargetFile() => new OeTargetFileCopy();
         
         /// <summary>
         /// Returns a list of target file path for the corresponding source <param name="filePath" />,

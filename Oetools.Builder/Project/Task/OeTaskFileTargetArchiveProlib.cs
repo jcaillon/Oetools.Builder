@@ -19,6 +19,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities.Attributes;
@@ -37,5 +38,7 @@ namespace Oetools.Builder.Project.Task {
         protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveProlib();
         
         public override string GetTargetArchivePropertyName() => nameof(TargetProlibFilePath);
+        
+        public override void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files) => throw new NotImplementedException();
     }
 }

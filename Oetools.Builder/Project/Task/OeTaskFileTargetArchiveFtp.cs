@@ -19,7 +19,9 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
+using Oetools.Builder.History;
 using Oetools.Builder.Utilities.Attributes;
 
 namespace Oetools.Builder.Project.Task {
@@ -37,5 +39,7 @@ namespace Oetools.Builder.Project.Task {
         public override string GetTargetArchive() => TargetFtpUri;
         
         public override string GetTargetArchivePropertyName() => nameof(TargetFtpUri);
+        
+        public override void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files) => throw new NotImplementedException();
     }
 }

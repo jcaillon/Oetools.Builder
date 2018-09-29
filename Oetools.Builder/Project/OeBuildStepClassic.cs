@@ -30,7 +30,7 @@ namespace Oetools.Builder.Project {
         [XmlArrayItem("Execute", typeof(OeTaskExec))]
         [XmlArrayItem("Copy", typeof(OeTaskFileTargetFileCopy))]
         [XmlArrayItem("Move", typeof(OeTaskFileTargetFileMove))]
-        [XmlArrayItem("RemoveDir", typeof(OeTaskRemoveDir))]
+        [XmlArrayItem("RemoveDirectory", typeof(OeTaskRemoveDirectory))]
         [XmlArrayItem("Delete", typeof(OeTaskFileDelete))]
         [XmlArrayItem("DeleteInProlib", typeof(OeTaskFileTargetArchiveDeleteInProlib))]
         [XmlArrayItem("Prolib", typeof(OeTaskFileTargetArchiveProlib))]

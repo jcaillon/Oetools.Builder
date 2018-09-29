@@ -36,6 +36,7 @@ namespace Oetools.Builder.Project.Task {
         [XmlAttribute("TargetProlibFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
         public string TargetProlibFilePath { get; set; }
-        
+
+        protected override void ExecuteInternal() => throw new NotImplementedException();
     }
 }

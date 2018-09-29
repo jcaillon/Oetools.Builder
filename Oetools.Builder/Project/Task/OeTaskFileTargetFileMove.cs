@@ -19,11 +19,15 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
+using Oetools.Builder.History;
 
 namespace Oetools.Builder.Project.Task {
     [Serializable]
     [XmlRoot("Move")]
     public class OeTaskFileTargetFileMove : OeTaskFileTargetFile {
+        
+        public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) => throw new NotImplementedException();
     }
 }
