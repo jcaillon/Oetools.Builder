@@ -443,7 +443,6 @@ namespace Oetools.Builder.Test {
         }
 
         private class OeTaskFileTargetArchiveCompileProlib2 : OeTaskFileTargetArchiveCompileProlib {
-            private FileList<OeFileBuilt> _builtFiles;
             public override void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files) {
                 _builtFiles = new FileList<OeFileBuilt>();
                 foreach (var file in files.Cast<OeFile>()) {
@@ -452,11 +451,9 @@ namespace Oetools.Builder.Test {
                     _builtFiles.Add(fileBuilt);
                 }
             }
-            public override FileList<OeFileBuilt> GetFilesBuilt() => _builtFiles;
         }
 
         private class OeTaskFileTargetFileCompile2 : OeTaskFileTargetFileCompile {
-            private FileList<OeFileBuilt> _builtFiles;
             public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
                 _builtFiles = new FileList<OeFileBuilt>();
                 foreach (var file in files.Cast<OeFile>()) {
@@ -465,11 +462,9 @@ namespace Oetools.Builder.Test {
                     _builtFiles.Add(fileBuilt);
                 }
             }
-            public override FileList<OeFileBuilt> GetFilesBuilt() => _builtFiles;
         }
         
         private class OeTaskFileTargetFileCopy2 : OeTaskFileTargetFileCopy {
-            private FileList<OeFileBuilt> _builtFiles;
             public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
                 _builtFiles = new FileList<OeFileBuilt>();
                 foreach (var file in files.Cast<OeFile>()) {
@@ -478,7 +473,6 @@ namespace Oetools.Builder.Test {
                     _builtFiles.Add(fileBuilt);
                 }
             }
-            public override FileList<OeFileBuilt> GetFilesBuilt() => _builtFiles;
         }
 
         [DataTestMethod]
@@ -497,7 +491,7 @@ namespace Oetools.Builder.Test {
         }
 
         /// <summary>
-        /// Tests that we get what we need in <see cref="Builder.BuildSourceHistory"/> for <see cref="OeBuildHistory.CompilationProblems"/>
+        /// Tests that we get what we need in <see cref="Builder.BuildStepExecutors"/>
         /// </summary>
         [TestMethod]
         public void Builder_Test_All_Task_build_steps() {

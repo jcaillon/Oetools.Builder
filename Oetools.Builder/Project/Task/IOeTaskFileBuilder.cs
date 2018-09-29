@@ -25,6 +25,10 @@ namespace Oetools.Builder.Project.Task {
     
     public interface IOeTaskFileBuilder {
         
+        /// <summary>
+        /// Returns the list of files built by this task
+        /// </summary>
+        /// <returns></returns>
         FileList<OeFileBuilt> GetFilesBuilt();
         
     }

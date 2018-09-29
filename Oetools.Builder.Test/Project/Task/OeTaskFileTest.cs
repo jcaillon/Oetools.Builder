@@ -17,13 +17,14 @@
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Project.Task;
 using Oetools.Utilities.Lib;
 
-namespace Oetools.Builder.Test.Project {
+namespace Oetools.Builder.Test.Project.Task {
     
     [TestClass]
     public class OeTaskFileTest {

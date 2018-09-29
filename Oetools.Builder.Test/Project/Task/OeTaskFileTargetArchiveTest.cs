@@ -24,7 +24,7 @@ using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project.Task;
 
-namespace Oetools.Builder.Test.Project {
+namespace Oetools.Builder.Test.Project.Task {
     
     [TestClass]
     public class OeTaskFileTargetArchiveTest {

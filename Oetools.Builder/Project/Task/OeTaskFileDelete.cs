@@ -19,13 +19,38 @@
 #endregion
 
 using System;
+using System.IO;
 using System.Xml.Serialization;
+using Oetools.Builder.Exceptions;
+using Oetools.Builder.History;
+using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
     
+    /// <summary>
+    /// This tasks simply delete file path (in a folder)
+    /// </summary>
     [Serializable]
     [XmlRoot("Delete")]
-    public class OeTaskFileDelete : OeTaskFile {
+    public class OeTaskFileDelete : OeTaskFile {   
         
+        protected override void ExecuteForFilesInternal(FileList<OeFile> files) {
+
+            foreach (var file in files) {
+                try {
+                    CancelSource?.Token.ThrowIfCancellationRequested();
+                    Log?.Trace?.Write($"Deleting file {file.SourcePathForTaskExecution.PrettyQuote()}");
+                    File.Delete(file.SourcePathForTaskExecution);
+                } catch (Exception e) {
+                    throw new TaskExecutionException(this, $"Could not delete {file.SourcePathForTaskExecution.PrettyQuote()}", e);
+                }
+            }
+            
+        }
+
+        protected override void ExecuteTestModeInternal() {
+            // this task doesn't actually build anything, it just deletes files
+        }
     }
 }

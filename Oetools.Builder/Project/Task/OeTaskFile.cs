@@ -35,13 +35,10 @@ namespace Oetools.Builder.Project.Task {
         
         private FileList<OeFile> _filesToBuild;
         
-        private FileList<OeFileBuilt> _builtFiles;
+        protected FileList<OeFileBuilt> _builtFiles;
         
-        /// <summary>
-        /// Override this method to return the list of built files
-        /// </summary>
-        /// <returns></returns>
-        public virtual FileList<OeFileBuilt> GetFilesBuilt() => _builtFiles;
+        /// <inheritdoc cref="IOeTaskFileBuilder.GetFilesBuilt"/>
+        public FileList<OeFileBuilt> GetFilesBuilt() => _builtFiles;
         
         public void SetFilesToBuild(FileList<OeFile> filesToBuild) {
             _filesToBuild = filesToBuild;
@@ -145,6 +142,12 @@ namespace Oetools.Builder.Project.Task {
             }
         }
 
+        /// <summary>
+        /// Returns a file built from a file to build, should be called when the action is done for the source file
+        /// In case of a compiled file, this also sets output properties to the file built (db references and required files)(
+        /// </summary>
+        /// <param name="sourceFile"></param>
+        /// <returns></returns>
         protected OeFileBuilt GetNewFileBuilt(OeFile sourceFile) {
             if (this is IOeTaskCompile thisOeTaskCompile) {
                 var newFileBuilt = new OeFileBuiltCompiled(sourceFile);
@@ -172,6 +175,12 @@ namespace Oetools.Builder.Project.Task {
             throw new NotImplementedException();
         }        
 
+        /// <summary>
+        /// For a given list of files, set the targets that will be needed from this task
+        /// </summary>
+        /// <param name="files"></param>
+        /// <param name="baseTargetDirectory"></param>
+        /// <param name="appendMode"></param>
         public void SetTargetForFiles(FileList<OeFile> files, string baseTargetDirectory, bool appendMode = false) {
             var taskIsCompileTask = this is IOeTaskCompile;
             switch (this) {

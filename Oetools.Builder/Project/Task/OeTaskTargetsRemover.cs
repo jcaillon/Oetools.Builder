@@ -65,6 +65,7 @@ namespace Oetools.Builder.Project.Task {
             Log?.Debug("Deleting all archive targets");
         }
 
+        /// <inheritdoc cref="IOeTaskFileBuilder.GetFilesBuilt"/>
         public FileList<OeFileBuilt> GetFilesBuilt() => _builtFiles;
 
     }

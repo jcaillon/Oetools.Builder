@@ -17,11 +17,12 @@
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project.Task;
 
-namespace Oetools.Builder.Test.Project {
+namespace Oetools.Builder.Test.Project.Task {
     
     [TestClass]
     public class OeTaskFilterTest {

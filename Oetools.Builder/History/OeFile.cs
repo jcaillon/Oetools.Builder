@@ -37,7 +37,7 @@ namespace Oetools.Builder.History {
         }
 
         /// <summary>
-        /// The relative path of the source file
+        /// The path of the source file (saved as relative path but absolute path during execution)
         /// </summary>
         [XmlAttribute(AttributeName = "SourceFilePath")]
         [BaseDirectory(Type = BaseDirectoryType.SourceDirectory)]
