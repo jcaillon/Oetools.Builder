@@ -132,7 +132,10 @@ namespace Oetools.Builder.Project.Task {
             }
         }
 
-        /// <inheritdoc cref="OeTask.ExecuteTestModeInternal"/>
+        /// <summary>
+        /// Adds all the files to build to the built files list,
+        /// this method is executed instead of <see cref="ExecuteInternal"/> when test mode is on
+        /// </summary>
         protected override void ExecuteTestModeInternal() {
             _builtFiles = new FileList<OeFileBuilt>();
             foreach (var file in _filesToBuild) {

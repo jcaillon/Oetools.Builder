@@ -267,7 +267,7 @@ namespace Oetools.Builder.Test.Project {
                             Tasks = new List<OeTask> {
                                 new OeTaskExec {
                                     Label = "exec1",
-                                    ExecuablePath = "exec",
+                                    ExecutablePath = "exec",
                                     Parameters = "params \"quotes\"",
                                     WorkingDirectory = "dir",
                                     HiddenExecution = false,

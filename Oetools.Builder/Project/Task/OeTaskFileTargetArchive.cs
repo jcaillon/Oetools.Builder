@@ -69,7 +69,7 @@ namespace Oetools.Builder.Project.Task {
                 throw new TaskValidationException(this, $"This task needs the following properties to be defined : {GetType().GetXmlName(nameof(RelativeTargetFilePath))} and/or {GetType().GetXmlName(nameof(RelativeTargetDirectory))}");
             }
             if (string.IsNullOrEmpty(GetTargetArchive())) {
-                throw new TaskValidationException(this, $"This task needs the following propertiy to be defined : {GetType().GetXmlName(GetTargetArchivePropertyName())}");
+                throw new TaskValidationException(this, $"This task needs the following property to be defined : {GetType().GetXmlName(GetTargetArchivePropertyName())}");
             }
             CheckTargetPath((RelativeTargetFilePath?.Split(';')).UnionHandleNull(RelativeTargetDirectory?.Split(';')));
             CheckTargetPath(GetTargetArchive()?.Split(';'));

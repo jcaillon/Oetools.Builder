@@ -41,10 +41,10 @@ namespace Oetools.Builder.Project.Task {
         }
 
         protected override void ExecuteInternal() {
+            CancelSource?.Token.ThrowIfCancellationRequested();
             if (Directory.Exists(DirectoryPath)) {
+                Log?.Trace?.Write($"Deleting directory {DirectoryPath.PrettyQuote()}");
                 try {
-                    CancelSource?.Token.ThrowIfCancellationRequested();
-                    Log?.Trace?.Write($"Deleting directory {DirectoryPath.PrettyQuote()}");
                     Directory.Delete(DirectoryPath, true);
                 } catch (Exception e) {
                     throw new TaskExecutionException(this, $"Could not delete directory {DirectoryPath.PrettyQuote()}", e);

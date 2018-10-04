@@ -28,7 +28,10 @@ namespace Oetools.Builder.Project.Task {
     [Serializable]
     [XmlRoot("Copy")]
     public class OeTaskFileTargetFileCopy : OeTaskFileTargetFile {
-        
-        public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) => throw new NotImplementedException();
+
+        public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
+            
+            
+        }
     }
 }

@@ -91,8 +91,7 @@ namespace Oetools.Builder.Project.Task {
         }
 
         /// <summary>
-        /// Adds all the files to build to the built files list,
-        /// this method is executed instead of <see cref="ExecuteInternal"/> when test mode is on
+        /// This method is executed instead of <see cref="ExecuteInternal"/> when test mode is on
         /// </summary>
         protected virtual void ExecuteTestModeInternal() { }
 

@@ -37,11 +37,18 @@ namespace Oetools.Builder.Project.Task {
         
         protected override void ExecuteForFilesInternal(FileList<OeFile> files) {
 
+            if (files.Count <= 0) {
+                return;
+            }
+
+            Log?.ReportProgress(files.Count, 0, $"Deleting {files.Count} files");
+
+            var nbDone = 0;
             foreach (var file in files) {
+                CancelSource?.Token.ThrowIfCancellationRequested();
                 if (File.Exists(file.SourcePathForTaskExecution)) {
+                    Log?.Trace?.Write($"Deleting file {file.SourcePathForTaskExecution.PrettyQuote()}");
                     try {
-                        CancelSource?.Token.ThrowIfCancellationRequested();
-                        Log?.Trace?.Write($"Deleting file {file.SourcePathForTaskExecution.PrettyQuote()}");
                         File.Delete(file.SourcePathForTaskExecution);
                     } catch (Exception e) {
                         throw new TaskExecutionException(this, $"Could not delete file {file.SourcePathForTaskExecution.PrettyQuote()}", e);
@@ -49,6 +56,8 @@ namespace Oetools.Builder.Project.Task {
                 } else {
                     Log?.Trace?.Write($"Deleting file not existing {file.SourcePathForTaskExecution.PrettyQuote()}");
                 }
+                nbDone++;
+                Log?.ReportProgress(files.Count, nbDone, $"Deleting files {nbDone}/{files.Count}");
             }
             
         }
