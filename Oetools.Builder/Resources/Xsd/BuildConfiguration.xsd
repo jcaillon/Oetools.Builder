@@ -119,19 +119,24 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTaskRemoveDir">
+  <xs:complexType name="OeTaskRemoveDirectory">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTask" />
+      <xs:extension base="OeTask">
+        <xs:attribute name="DirectoryPath" type="xs:string" />
+      </xs:extension>
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="OeTaskExec">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTask">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="ExecuablePath" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="1" name="ExecutablePath" type="xs:string" />
           <xs:element minOccurs="0" maxOccurs="1" name="Parameters" type="xs:string" />
           <xs:element minOccurs="1" maxOccurs="1" name="HiddenExecution" nillable="true" type="xs:boolean" />
+          <xs:element minOccurs="1" maxOccurs="1" name="MaxTimeOut" nillable="true" type="xs:int" />
+          <xs:element minOccurs="1" maxOccurs="1" name="DoNotRedirectOutput" nillable="true" type="xs:boolean" />
           <xs:element minOccurs="1" maxOccurs="1" name="IgnoreExitCode" nillable="true" type="xs:boolean" />
+          <xs:element minOccurs="1" maxOccurs="1" name="FailOnErrorOutput" nillable="true" type="xs:boolean" />
           <xs:element minOccurs="0" maxOccurs="1" name="WorkingDirectory" type="xs:string" />
         </xs:sequence>
       </xs:extension>
@@ -343,8 +348,8 @@
       <xs:element minOccurs="1" maxOccurs="1" name="DeleteInProlib" nillable="true" type="OeTaskFileTargetArchiveDeleteInProlib" />
       <xs:element minOccurs="1" maxOccurs="1" name="UploadFtp" nillable="true" type="OeTaskFileTargetArchiveFtp" />
       <xs:element minOccurs="1" maxOccurs="1" name="Zip" nillable="true" type="OeTaskFileTargetArchiveZip" />
-      <xs:element minOccurs="1" maxOccurs="1" name="RemoveDir" nillable="true" type="OeTaskRemoveDir" />
       <xs:element minOccurs="1" maxOccurs="1" name="Delete" nillable="true" type="OeTaskFileDelete" />
+      <xs:element minOccurs="1" maxOccurs="1" name="RemoveDirectory" nillable="true" type="OeTaskRemoveDirectory" />
       <xs:element minOccurs="1" maxOccurs="1" name="Cab" nillable="true" type="OeTaskFileTargetArchiveCab" />
     </xs:choice>
   </xs:complexType>
