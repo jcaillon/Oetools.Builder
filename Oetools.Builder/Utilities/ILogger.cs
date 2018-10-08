@@ -24,7 +24,7 @@ namespace Oetools.Builder.Utilities {
         void Fatal(string message, Exception e = null);
         void Error(string message, Exception e = null);
         void Warn(string message, Exception e = null);
-        void Success(string message, Exception e = null);
+        void Done(string message, Exception e = null);
         void Info(string message, Exception e = null);
         void Debug(string message, Exception e = null);
         ITraceLogger Trace { get; }

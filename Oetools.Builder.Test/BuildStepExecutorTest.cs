@@ -165,7 +165,7 @@ namespace Oetools.Builder.Test {
             public void Fatal(string message, Exception e = null) {}
             public void Error(string message, Exception e = null) {}
             public void Warn(string message, Exception e = null) {}
-            public void Success(string message, Exception e = null) {}
+            public void Done(string message, Exception e = null) {}
             public void Info(string message, Exception e = null) {}
             public void Debug(string message, Exception e = null) {}
             public ITraceLogger Trace => null;
