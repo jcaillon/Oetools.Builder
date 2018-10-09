@@ -68,6 +68,8 @@ namespace Oetools.Builder.Utilities {
         
         public bool SetFileInfoAndState { get; set; }
 
+        public bool RecursiveListing { get; set; } = true;
+
         public SourceFilesLister(string sourceDirectory, CancellationTokenSource cancelSource = null) {
             SourceDirectory = sourceDirectory.ToCleanPath();
             CancelSource = cancelSource;
@@ -115,7 +117,7 @@ namespace Oetools.Builder.Utilities {
         /// <exception cref="Exception"></exception>
         public IEnumerable<string> GetDirectoryList() {
             var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(SourcePathFilter);
-            return Utils.EnumerateAllFolders(SourceDirectory, SearchOption.AllDirectories, sourcePathExcludeRegexStrings, ExcludeHiddenFolders, CancelSource)
+            return Utils.EnumerateAllFolders(SourceDirectory, RecursiveListing ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly, sourcePathExcludeRegexStrings, ExcludeHiddenFolders, CancelSource)
                 .Where(IsFileIncludedBySourcePathFilters);
         }
 
@@ -125,7 +127,7 @@ namespace Oetools.Builder.Utilities {
         /// <returns></returns>
         private IEnumerable<string> GetBaseFileList() {
             var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(SourcePathFilter);
-            return Utils.EnumerateAllFiles(SourceDirectory, SearchOption.AllDirectories, sourcePathExcludeRegexStrings, ExcludeHiddenFolders, CancelSource)
+            return Utils.EnumerateAllFiles(SourceDirectory, RecursiveListing ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly, sourcePathExcludeRegexStrings, ExcludeHiddenFolders, CancelSource)
                 .Where(IsFileIncludedBySourcePathFilters);
         }
 
@@ -273,7 +275,7 @@ namespace Oetools.Builder.Utilities {
         
         private List<Regex> GetDefaultFilters() {
             if (_defaultFilters == null) {
-                _defaultFilters = GetDefaultFiltersRegexes().Select(s => new Regex(s)).ToList();
+                _defaultFilters = GetDefaultVcsFiltersRegexes().Select(s => new Regex(s)).ToList();
             }
             return _defaultFilters;
         }
@@ -282,8 +284,8 @@ namespace Oetools.Builder.Utilities {
         /// Get a list of regexes corresponding to default filters (.git/.svn folders)
         /// </summary>
         /// <returns></returns>
-        private IEnumerable<string> GetDefaultFiltersRegexes() {
-            return OeBuilderConstants.ExtraSourceDirectoryExclusions.Split(';').Select(s => Path.Combine(SourceDirectory, s).PathWildCardToRegex());
+        private IEnumerable<string> GetDefaultVcsFiltersRegexes() {
+            return OeBuilderConstants.VcsDirectoryExclusions.Split(';').Select(s => Path.Combine(SourceDirectory, s).PathWildCardToRegex());
         }
         
         /// <summary>
@@ -292,7 +294,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="filter"></param>
         /// <returns></returns>
         private List<string> GetExclusionRegexStringsFromFilters(IOeTaskFilter filter) {
-            var exclusionRegexStrings = GetDefaultFiltersRegexes().ToList();
+            var exclusionRegexStrings = GetDefaultVcsFiltersRegexes().ToList();
             if (filter != null) {
                 exclusionRegexStrings.AddRange(filter.GetRegexExcludeStrings());
             }

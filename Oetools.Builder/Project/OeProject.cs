@@ -19,6 +19,7 @@
 #endregion
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Xml.Schema;
@@ -69,6 +70,7 @@ namespace Oetools.Builder.Project {
 #endif
         
         [XmlElement("Properties")]
+        [Description("Properties of this project.")]
         public OeProperties GlobalProperties { get; set; }
         
         /// <summary>

@@ -20,12 +20,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Xml.Serialization;
 using Oetools.Builder.History;
 
 namespace Oetools.Builder.Project.Task {
     
     [Serializable]
+    [Description("This task copy files.")]
     [XmlRoot("Copy")]
     public class OeTaskFileTargetFileCopy : OeTaskFileTargetFile {
 

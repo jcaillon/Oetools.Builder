@@ -18,10 +18,13 @@
 // ========================================================================
 #endregion
 using System;
+using System.ComponentModel;
 using System.Xml.Serialization;
 
 namespace Oetools.Builder.Project {
+    
     [Serializable]
+    [Description("Represents a variable.")]
     public class OeVariable {
             
         [XmlAttribute("Name")]

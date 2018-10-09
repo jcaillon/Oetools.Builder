@@ -23,14 +23,14 @@ using System.IO;
 namespace Oetools.Builder.Utilities {
     public static class OeBuilderConstants {
 
-        public const string ExtraSourceDirectoryExclusions = ".git**;.svn**";
+        public const string VcsDirectoryExclusions = ".git**;.svn**";
         
         public const string CompilableExtensionsPattern = "*.p;*.w;*.t;*.cls";
         
         public const string OeProjectExtension = ".oeproj";
 
-        private const string OeProjectDirectory = ".oe";
-        private const string OeProjectLocalDirectory = "local";
+        public const string OeProjectDirectory = ".oe";
+        public const string OeProjectLocalDirectory = "local";
         private const string OeProjectOutput = "bin";
         
         public const string OeVarNameSourceDirectory = "SOURCE_DIRECTORY";

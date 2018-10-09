@@ -80,25 +80,6 @@ namespace Oetools.Builder.Project.Task {
         [XmlArray("Components")]
         [XmlArrayItem("Component", typeof(OeWebclientComponent))]
         public List<OeWebclientComponent> Components { get; set; }
-
-        [Serializable]
-        public class OeWebclientComponent {
-                
-            [XmlAttribute(AttributeName = "DownloadMode")]
-            public OeWebclientComponentDownloadMode DownloadMode { get; set; }
-                            
-            [XmlArray("IncludedFiles")]
-            [XmlArrayItem("IncludePathPattern", typeof(string))]
-            public List<string> IncludedFiles { get; set; }
-                
-            [Serializable]
-            public enum OeWebclientComponentDownloadMode {
-                [XmlEnum("Eager")] 
-                Eager,
-                [XmlEnum("Lazy")] 
-                Lazy
-            }
-        }
         
         protected override void ExecuteInternal() => throw new NotImplementedException();
         
@@ -135,6 +116,25 @@ namespace Oetools.Builder.Project.Task {
             /// </summary>
             internal FileList<OeFileBuilt> FilesDeployedInNwkSincePreviousVersion { get; set; }
 
+        }
+    }
+    
+    [Serializable]
+    public class OeWebclientComponent {
+                
+        [XmlAttribute(AttributeName = "DownloadMode")]
+        public OeWebclientComponentDownloadMode DownloadMode { get; set; }
+                            
+        [XmlArray("IncludedFiles")]
+        [XmlArrayItem("IncludePathPattern", typeof(string))]
+        public List<string> IncludedFiles { get; set; }
+                
+        [Serializable]
+        public enum OeWebclientComponentDownloadMode {
+            [XmlEnum("Eager")] 
+            Eager,
+            [XmlEnum("Lazy")] 
+            Lazy
         }
     }
 }
