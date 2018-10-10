@@ -38,7 +38,7 @@ namespace Oetools.Builder.Project {
     /// </summary>
     /// <remarks>
     /// Every public property string not marked with the <see cref="ReplaceVariables"/> attribute is allowed
-    /// to use &lt;VARIABLE&gt; which will be replace at the beggining of the build by <see cref="Variables"/>
+    /// to use &lt;VARIABLE&gt; which will be replace at the beginning of the build by <see cref="Variables"/>
     /// </remarks>
     [Serializable]
     [XmlRoot("BuildConfiguration")]
@@ -60,13 +60,10 @@ namespace Oetools.Builder.Project {
         }
 
         public void Save(string path) {
-#if USESCHEMALOCATION
-            SchemaLocation = XsdName;
-#endif
             var serializer = new XmlSerializer(typeof(OeBuildConfiguration));
-            using (TextWriter writer = new StreamWriter(path, false)) {
-                serializer.Serialize(writer, this);
-            }
+            
+            XmlDocumentWriter.Save(path, serializer, this);
+            
             File.WriteAllBytes(Path.Combine(Path.GetDirectoryName(path) ?? "", XsdName), XsdResources.GetXsdFromResources(XsdName));
         }
 
@@ -77,7 +74,7 @@ namespace Oetools.Builder.Project {
         /// Only when not generating the build for xsd.exe which has a problem with this attribute
         /// </summary>
         [XmlAttribute("noNamespaceSchemaLocation", Namespace = XmlSchema.InstanceNamespace)]
-        public string SchemaLocation { get; set; }
+        public string SchemaLocation = XsdName;
 #endif
             
         [XmlAttribute("Name")]

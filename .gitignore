@@ -378,3 +378,4 @@ _ReSharper*
 /tools/XsdAnnotation/XsdAnnotator.exe
 /build/XsdAnnotation/XsdAnnotator.exe
 /build/XsdAnnotation/XsdAnnotator.sln
+/Oetools.Builder/Oetools.Builder.xml

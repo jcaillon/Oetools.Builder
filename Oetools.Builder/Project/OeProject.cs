@@ -22,10 +22,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using System.Xml.XPath;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Resources;
+using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project {
@@ -52,13 +57,10 @@ namespace Oetools.Builder.Project {
         }
 
         public void Save(string path) {
-            var namespaces = new XmlSerializerNamespaces();
-            namespaces.Add("xsi", XmlSchema.InstanceNamespace);
             var serializer = new XmlSerializer(typeof(OeProject));
+            
+            XmlDocumentWriter.Save(path, serializer, this);
 
-            using (TextWriter writer = new StreamWriter(path, false)) {
-                serializer.Serialize(writer, this, namespaces);
-            }
             File.WriteAllBytes(Path.Combine(Path.GetDirectoryName(path) ?? "", XsdName), XsdResources.GetXsdFromResources(XsdName));
         }
 
