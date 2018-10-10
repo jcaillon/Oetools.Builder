@@ -46,6 +46,24 @@ if not "!ERRORLEVEL!"=="0" (
 	GOTO ENDINERROR
 )
 
+echo.=========================
+echo.[%time:~0,8% INFO] BUILDING XSD ANNOTATION PROJECT
+
+set "PROJECT_PATH=tools\XsdAnnotation\XsdAnnotator.csproj"
+set "CHANGE_DEFAULT_TARGETFRAMEWORK=false"
+set "MSBUILD_DEFAULT_TARGET=Build"
+set "CI_COMMIT_SHA=no_commit_just_for_no_pause"
+set "CUSTOM_BUILD_PARAMS=/p:OutputPath=."
+
+call build.bat
+
+echo.=========================
+echo.[%time:~0,8% INFO] ANNOTATING GENERATED XSD WITH DOCUMENTATION
+
+"tools\XsdAnnotation\XsdAnnotator.exe" "Oetools.Builder\Resources\Xsd\Project.xsd" "Oetools.Builder\bin\Any Cpu\Release\net461"
+
+"tools\XsdAnnotation\XsdAnnotator.exe" "Oetools.Builder\Resources\Xsd\BuildConfiguration.xsd" "Oetools.Builder\bin\Any Cpu\Release\net461"
+
 :DONE
 echo.=========================
 echo.[%time:~0,8% INFO] BUILD DONE

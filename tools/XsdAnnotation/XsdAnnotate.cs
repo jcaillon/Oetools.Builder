@@ -1,90 +1,86 @@
-#region header
+﻿#region header
+
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (XsdAnnotationTest.cs) is part of Oetools.Builder.Test.
+// This file (Program.cs) is part of ConsoleApplication1.
 // 
-// Oetools.Builder.Test is a free software: you can redistribute it and/or modify
+// ConsoleApplication1 is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 // 
-// Oetools.Builder.Test is distributed in the hope that it will be useful,
+// ConsoleApplication1 is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 // 
 // You should have received a copy of the GNU General Public License
-// along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
+// along with ConsoleApplication1. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
+
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Oetools.Builder.Test {
+namespace XsdAnnotator {
     
-    /// <summary>
-    /// This class is not actually a test, it allows to annotate the automatically generated .xsd file
-    /// with description taken from the properties or classes
-    ///
-    /// Annotate a serialize field with the [Description] attribute
-    /// If a field is serialized as an array/list of objects, annotate the object class instead
-    /// </summary>
-    [TestClass]
-    public class XsdAnnotationTest {
+    internal class XsdAnnotate {
+        
+        private readonly List<Type> _existingTypes;
+        
+        public XsdAnnotate(List<Type> existingTypes) {
+            _existingTypes = existingTypes;
+        }
 
-        [TestMethod]
-        public void AnnotateXsd() {
-            var path = @"C:\Users\jcaillon\Desktop\try\.oe\Project.xsd";
-            if (!File.Exists(path)) {
-                return;
-            }
-
-            using (var reader = new StreamReader(path, false)) {
-                var schema = XmlSchema.Read(reader, (sender, args) => {
-                    Console.WriteLine(args.Message);
+        public void Annotate(string xsdPath, string outputXsdPath) {
+            XmlSchema schema;
+            using (var reader = new StreamReader(xsdPath, false)) {
+                schema = XmlSchema.Read(reader, (sender, args2) => {
+                    Console.Error.WriteLine(args2.Message);
                 });
                 foreach (var complexType in schema.Items.OfType<XmlSchemaComplexType>()) {
                     HandleComplexType(complexType);
                 }
-                using (var writer = new StreamWriter($"{path}2.xsd", false)) {
-                    schema.Write(writer);
-                }
+            }
+            using (var writer = new StreamWriter(outputXsdPath, false)) {
+                schema.Write(writer);
             }
         }
-
+        
         private void HandleComplexType(XmlSchemaComplexType complexType) {
 
             if (complexType.Name.StartsWith("ArrayOf")) {
                 if (complexType.Particle is XmlSchemaSequence seq) {
                     foreach (var element in seq.Items.OfType<XmlSchemaElement>()) {
-                        var description =  GetTypeFromTypeName(element.SchemaTypeName.Name)?.GetCustomAttributes(
-                            typeof(System.ComponentModel.DescriptionAttribute), true
-                        ).FirstOrDefault() as System.ComponentModel.DescriptionAttribute;
-                        if (description != null) {
+                        if (GetTypeFromTypeName(element.SchemaTypeName.Name)?.GetCustomAttributes(
+                            typeof(DescriptionAttribute), true
+                        ).FirstOrDefault() is DescriptionAttribute description) {
                             element.Annotation = GetAnnotation(description.Description);
                         } else {
-                           //Assert.Fail($"Can't find a description for the class : {element.SchemaType.Name}. Use the [Description] attribute!");
-                            element.Annotation = GetAnnotation($"Unavailable description for {element.Name}");
+                            if (!element.SchemaTypeName.Name.Equals("string")) {
+                                Console.Error.WriteLine($"Can't find a description for the class : {element.SchemaTypeName.Name}. Use the [Description] attribute! ({complexType.Name} / {element.Name})");
+                                element.Annotation = GetAnnotation($"Unavailable description for the class : {element.SchemaTypeName.Name}.");
+                            }
                         }
                     }
                 } else if (complexType.Particle is XmlSchemaChoice choice) {
                     foreach (var element in choice.Items.OfType<XmlSchemaElement>()) {
-                        var description =  GetTypeFromTypeName(element.SchemaTypeName.Name)?.GetCustomAttributes(
-                            typeof(System.ComponentModel.DescriptionAttribute), true
-                        ).FirstOrDefault() as System.ComponentModel.DescriptionAttribute;
-                        if (description != null) {
+                        if (GetTypeFromTypeName(element.SchemaTypeName.Name)?.GetCustomAttributes(
+                            typeof(DescriptionAttribute), true
+                        ).FirstOrDefault() is DescriptionAttribute description) {
                             element.Annotation = GetAnnotation(description.Description);
                         } else {
-                            //Assert.Fail($"Can't find a description for the class : {element.SchemaType.Name}. Use the [Description] attribute!");
-                            element.Annotation = GetAnnotation($"Unavailable description for {element.Name}");
+                            if (!element.SchemaTypeName.Name.Equals("string")) {
+                                Console.Error.WriteLine($"Can't find a description for the class : {element.SchemaTypeName.Name}. Use the [Description] attribute! ({complexType.Name} / {element.Name})");
+                                element.Annotation = GetAnnotation($"Unavailable description for the class : {element.SchemaTypeName.Name}.");
+                            }
                         }
                     }
                 }
@@ -132,13 +128,10 @@ namespace Oetools.Builder.Test {
                     }
                     return;
             }
-            
-
         }
 
         private Type GetTypeFromTypeName(string name) {
-            return TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}")
-                .FirstOrDefault(type => type.IsPublic && type.Name.Equals(name));
+            return _existingTypes.FirstOrDefault(type => type.Name.Equals(name));
         }
         
         private XmlSchemaAnnotation GetAnnotation(string propertyName) {      
@@ -149,11 +142,6 @@ namespace Oetools.Builder.Test {
             return output;
         }
         
-        private static XmlNode[] TextToNodeArray(string text) {
-            XmlDocument doc = new XmlDocument();
-            return new XmlNode[] { doc.CreateTextNode(text) };
-        }
-
         private string GetDescriptionFromProperty(string propertyName, Type correspondingType) {
             string descriptionFromProperty = null;
             
@@ -172,14 +160,20 @@ namespace Oetools.Builder.Test {
                         continue;
                     }
                 }
-                if (Attribute.GetCustomAttribute(propertyInfo, typeof(System.ComponentModel.DescriptionAttribute), true) is System.ComponentModel.DescriptionAttribute description) {
+                if (Attribute.GetCustomAttribute(propertyInfo, typeof(DescriptionAttribute), true) is DescriptionAttribute description) {
                     descriptionFromProperty = description.Description;
                 }
             }
             if (string.IsNullOrEmpty(descriptionFromProperty)) {
-                //Assert.Fail($"Can't find a description for the field : {correspondingType.Name}.{propertyName}. Use the [Description] attribute!");
+                Console.Error.WriteLine($"Can't find a description for the property : {correspondingType.Name}.{propertyName}. Use the [Description] attribute!");
             }
-            return descriptionFromProperty ?? $"Unavailable description for {propertyName}";
+            return descriptionFromProperty ?? $"Unavailable description for the property : {correspondingType.Name}.{propertyName}.";
         }
+        
+        private XmlNode[] TextToNodeArray(string text) {
+            XmlDocument doc = new XmlDocument();
+            return new XmlNode[] { doc.CreateTextNode(text) };
+        }
+        
     }
 }

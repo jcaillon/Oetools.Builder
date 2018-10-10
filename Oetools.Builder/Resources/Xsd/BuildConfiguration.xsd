@@ -1,57 +1,185 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:element name="BuildConfiguration" nillable="true" type="OeBuildConfiguration" />
   <xs:complexType name="OeBuildConfiguration">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="OverloadProperties" type="OeProperties" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildVariables" type="ArrayOfOeVariable" />
-      <xs:element minOccurs="0" maxOccurs="1" name="PreBuildTasks" type="ArrayOfOeBuildStepClassic" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildSourceTasks" type="ArrayOfOeBuildStepCompile" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildOutputTasks" type="ArrayOfOeBuildStepClassic" />
-      <xs:element minOccurs="0" maxOccurs="1" name="PostBuildTasks" type="ArrayOfOeBuildStepClassic" />
+      <xs:element minOccurs="0" maxOccurs="1" name="OverloadProperties" type="OeProperties">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildConfiguration.OverloadProperties.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildVariables" type="ArrayOfOeVariable">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildConfiguration.BuildVariables.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="PreBuildTasks" type="ArrayOfOeBuildStepClassic">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildConfiguration.PreBuildTasks.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildSourceTasks" type="ArrayOfOeBuildStepCompile">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildConfiguration.BuildSourceTasks.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildOutputTasks" type="ArrayOfOeBuildStepClassic">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildConfiguration.BuildOutputTasks.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="PostBuildTasks" type="ArrayOfOeBuildStepClassic">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildConfiguration.PostBuildTasks.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
-    <xs:attribute name="Name" type="xs:string" />
+    <xs:attribute name="Name" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>Unavailable description for the property : OeBuildConfiguration.Name.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <xs:complexType name="OeProperties">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="DlcDirectoryPath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="ProjectDatabases" type="ArrayOfOeProjectDatabase" />
-      <xs:element minOccurs="0" maxOccurs="1" name="DatabaseConnectionExtraParameters" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="DatabaseAliases" type="ArrayOfOeDatabaseAlias" />
-      <xs:element minOccurs="0" maxOccurs="1" name="IniFilePath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="PropathEntries" type="ArrayOfString" />
-      <xs:element minOccurs="1" maxOccurs="1" name="AddAllSourceDirectoriesToPropath" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="PropathSourceDirectoriesFilter" type="OeTaskFilter" />
-      <xs:element minOccurs="1" maxOccurs="1" name="AddDefaultOpenedgePropath" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="UseCharacterModeExecutable" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeCommandLineExtraParameters" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteBeforeAnyProgressExecution" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteAfterAnyProgressExecution" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeTemporaryDirectoryPath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildPathFilter" type="OeTaskFilter" />
-      <xs:element minOccurs="0" maxOccurs="1" name="GitFilterBuildOptions" type="OeGitFilterBuildOptions" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CompilationOptions" type="OeCompilationOptions" />
-      <xs:element minOccurs="0" maxOccurs="1" name="IncrementalBuildOptions" type="OeIncrementalBuildOptions" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildOptions" type="OeBuildOptions" />
+      <xs:element minOccurs="0" maxOccurs="1" name="DlcDirectoryPath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.DlcDirectoryPath.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="ProjectDatabases" type="ArrayOfOeProjectDatabase">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.ProjectDatabases.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="DatabaseConnectionExtraParameters" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.DatabaseConnectionExtraParameters.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="DatabaseAliases" type="ArrayOfOeDatabaseAlias">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.DatabaseAliases.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="IniFilePath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.IniFilePath.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="PropathEntries" type="ArrayOfString">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.PropathEntries.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="AddAllSourceDirectoriesToPropath" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.AddAllSourceDirectoriesToPropath.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="PropathSourceDirectoriesFilter" type="OeTaskFilter">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.PropathSourceDirectoriesFilter.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="AddDefaultOpenedgePropath" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.AddDefaultOpenedgePropath.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="UseCharacterModeExecutable" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.UseCharacterModeExecutable.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeCommandLineExtraParameters" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.OpenedgeCommandLineExtraParameters.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteBeforeAnyProgressExecution" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.ProcedurePathToExecuteBeforeAnyProgressExecution.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteAfterAnyProgressExecution" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.ProcedurePathToExecuteAfterAnyProgressExecution.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeTemporaryDirectoryPath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.OpenedgeTemporaryDirectoryPath.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildPathFilter" type="OeTaskFilter">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.SourceToBuildPathFilter.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="GitFilterBuildOptions" type="OeGitFilterBuildOptions">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.GitFilterBuildOptions.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="CompilationOptions" type="OeCompilationOptions">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.CompilationOptions.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="IncrementalBuildOptions" type="OeIncrementalBuildOptions">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.IncrementalBuildOptions.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildOptions" type="OeBuildOptions">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeProperties.BuildOptions.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeProjectDatabase">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="ProjectDatabase" nillable="true" type="OeProjectDatabase" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="ProjectDatabase" nillable="true" type="OeProjectDatabase">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeProjectDatabase.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeProjectDatabase">
-    <xs:attribute name="LogicalName" type="xs:string" />
-    <xs:attribute name="DataDefinitionFilePath" type="xs:string" />
+    <xs:attribute name="LogicalName" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>Unavailable description for the property : OeProjectDatabase.LogicalName.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="DataDefinitionFilePath" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>Unavailable description for the property : OeProjectDatabase.DataDefinitionFilePath.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeDatabaseAlias">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Alias" nillable="true" type="OeDatabaseAlias" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Alias" nillable="true" type="OeDatabaseAlias">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeDatabaseAlias.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeDatabaseAlias">
-    <xs:attribute name="DatabaseLogicalName" type="xs:string" />
-    <xs:attribute name="AliasLogicalName" type="xs:string" />
+    <xs:attribute name="DatabaseLogicalName" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>Unavailable description for the property : OeDatabaseAlias.DatabaseLogicalName.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="AliasLogicalName" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>Unavailable description for the property : OeDatabaseAlias.AliasLogicalName.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <xs:complexType name="ArrayOfString">
     <xs:sequence>
@@ -61,44 +189,116 @@
   <xs:complexType name="OeTaskFilter">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTask">
-        <xs:attribute name="Exclude" type="xs:string" />
-        <xs:attribute name="Include" type="xs:string" />
-        <xs:attribute name="IncludeRegex" type="xs:string" />
-        <xs:attribute name="ExcludeRegex" type="xs:string" />
+        <xs:attribute name="Exclude" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFilter.Exclude.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="Include" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFilter.Include.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="IncludeRegex" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFilter.IncludeRegex.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="ExcludeRegex" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFilter.ExcludeRegex.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="OeTask" abstract="true">
-    <xs:attribute name="Label" type="xs:string" />
+    <xs:attribute name="Label" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>Unavailable description for the property : OeTask.Label.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <xs:complexType name="OeTaskWebclient">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTask">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="VendorName" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="ApplicationName" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="ApplicationVersion" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="StartupParameters" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="LocatorUrl" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="WebClientVersion" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="WebclientRootDirectoryPath" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="WebclientOutputDirectory" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="ProwcappTemplateFilePath" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="Components" type="ArrayOfOeWebclientComponent" />
+          <xs:element minOccurs="0" maxOccurs="1" name="VendorName" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskWebclient.VendorName.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="ApplicationName" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskWebclient.ApplicationName.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="ApplicationVersion" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskWebclient.ApplicationVersion.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="StartupParameters" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskWebclient.StartupParameters.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="LocatorUrl" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskWebclient.LocatorUrl.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="WebClientVersion" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskWebclient.WebClientVersion.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="WebclientRootDirectoryPath" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskWebclient.WebclientRootDirectoryPath.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="WebclientOutputDirectory" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskWebclient.WebclientOutputDirectory.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="ProwcappTemplateFilePath" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskWebclient.ProwcappTemplateFilePath.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="Components" type="ArrayOfOeWebclientComponent">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskWebclient.Components.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeWebclientComponent">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Component" nillable="true" type="OeWebclientComponent" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Component" nillable="true" type="OeWebclientComponent">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeWebclientComponent.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeWebclientComponent">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="IncludedFiles" type="ArrayOfString1" />
+      <xs:element minOccurs="0" maxOccurs="1" name="IncludedFiles" type="ArrayOfString1">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeWebclientComponent.IncludedFiles.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
-    <xs:attribute name="DownloadMode" type="OeWebclientComponentDownloadMode" use="required" />
+    <xs:attribute name="DownloadMode" type="OeWebclientComponentDownloadMode" use="required">
+      <xs:annotation>
+        <xs:documentation>Unavailable description for the property : OeWebclientComponent.DownloadMode.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <xs:complexType name="ArrayOfString1">
     <xs:sequence>
@@ -114,15 +314,27 @@
   <xs:complexType name="OeTaskFileTargetArchiveDeleteInProlib">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTask">
-        <xs:attribute name="RelativeFilePatternToDelete" type="xs:string" />
-        <xs:attribute name="TargetProlibFilePath" type="xs:string" />
+        <xs:attribute name="RelativeFilePatternToDelete" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFileTargetArchiveDeleteInProlib.RelativeFilePatternToDelete.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="TargetProlibFilePath" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFileTargetArchiveDeleteInProlib.TargetProlibFilePath.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="OeTaskRemoveDirectory">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTask">
-        <xs:attribute name="DirectoryPath" type="xs:string" />
+        <xs:attribute name="DirectoryPath" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskRemoveDirectory.DirectoryPath.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -130,14 +342,46 @@
     <xs:complexContent mixed="false">
       <xs:extension base="OeTask">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="ExecutablePath" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="Parameters" type="xs:string" />
-          <xs:element minOccurs="1" maxOccurs="1" name="HiddenExecution" nillable="true" type="xs:boolean" />
-          <xs:element minOccurs="1" maxOccurs="1" name="MaxTimeOut" nillable="true" type="xs:int" />
-          <xs:element minOccurs="1" maxOccurs="1" name="DoNotRedirectOutput" nillable="true" type="xs:boolean" />
-          <xs:element minOccurs="1" maxOccurs="1" name="IgnoreExitCode" nillable="true" type="xs:boolean" />
-          <xs:element minOccurs="1" maxOccurs="1" name="FailOnErrorOutput" nillable="true" type="xs:boolean" />
-          <xs:element minOccurs="0" maxOccurs="1" name="WorkingDirectory" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="1" name="ExecutablePath" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskExec.ExecutablePath.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="Parameters" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskExec.Parameters.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="1" maxOccurs="1" name="HiddenExecution" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskExec.HiddenExecution.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="1" maxOccurs="1" name="MaxTimeOut" nillable="true" type="xs:int">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskExec.MaxTimeOut.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="1" maxOccurs="1" name="DoNotRedirectOutput" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskExec.DoNotRedirectOutput.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="1" maxOccurs="1" name="IgnoreExitCode" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskExec.IgnoreExitCode.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="1" maxOccurs="1" name="FailOnErrorOutput" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskExec.FailOnErrorOutput.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="WorkingDirectory" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeTaskExec.WorkingDirectory.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -160,15 +404,27 @@
   <xs:complexType name="OeTaskFileTargetArchive" abstract="true">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTaskFileTarget">
-        <xs:attribute name="RelativeTargetFilePath" type="xs:string" />
-        <xs:attribute name="RelativeTargetDirectory" type="xs:string" />
+        <xs:attribute name="RelativeTargetFilePath" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFileTargetArchive.RelativeTargetFilePath.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="RelativeTargetDirectory" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFileTargetArchive.RelativeTargetDirectory.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="OeTaskFileTargetArchiveFtp">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTaskFileTargetArchive">
-        <xs:attribute name="TargetFtpUri" type="xs:string" />
+        <xs:attribute name="TargetFtpUri" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFileTargetArchiveFtp.TargetFtpUri.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -180,8 +436,16 @@
   <xs:complexType name="OeTaskFileTargetArchiveCab">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTaskFileTargetArchive">
-        <xs:attribute name="TargetCabFilePath" type="xs:string" />
-        <xs:attribute name="ArchivesCompressionLevel" type="xs:string" />
+        <xs:attribute name="TargetCabFilePath" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFileTargetArchiveCab.TargetCabFilePath.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="ArchivesCompressionLevel" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFileTargetArchiveCab.ArchivesCompressionLevel.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -193,8 +457,16 @@
   <xs:complexType name="OeTaskFileTargetArchiveZip">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTaskFileTargetArchive">
-        <xs:attribute name="TargetZipFilePath" type="xs:string" />
-        <xs:attribute name="ArchivesCompressionLevel" type="xs:string" />
+        <xs:attribute name="TargetZipFilePath" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFileTargetArchiveZip.TargetZipFilePath.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="ArchivesCompressionLevel" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFileTargetArchiveZip.ArchivesCompressionLevel.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -206,7 +478,11 @@
   <xs:complexType name="OeTaskFileTargetArchiveProlib">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTaskFileTargetArchive">
-        <xs:attribute name="TargetProlibFilePath" type="xs:string" />
+        <xs:attribute name="TargetProlibFilePath" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFileTargetArchiveProlib.TargetProlibFilePath.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -218,8 +494,16 @@
   <xs:complexType name="OeTaskFileTargetFile" abstract="true">
     <xs:complexContent mixed="false">
       <xs:extension base="OeTaskFileTarget">
-        <xs:attribute name="TargetFilePath" type="xs:string" />
-        <xs:attribute name="TargetDirectory" type="xs:string" />
+        <xs:attribute name="TargetFilePath" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFileTargetFile.TargetFilePath.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="TargetDirectory" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Unavailable description for the property : OeTaskFileTargetFile.TargetDirectory.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -240,122 +524,378 @@
   </xs:complexType>
   <xs:complexType name="OeGitFilterBuildOptions">
     <xs:sequence>
-      <xs:element minOccurs="1" maxOccurs="1" name="OnlyIncludeSourceFilesModifiedSinceLastCommit" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchName" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchOriginCommit" type="xs:string" />
+      <xs:element minOccurs="1" maxOccurs="1" name="OnlyIncludeSourceFilesModifiedSinceLastCommit" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeGitFilterBuildOptions.OnlyIncludeSourceFilesModifiedSinceLastCommit.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeGitFilterBuildOptions.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchName" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeGitFilterBuildOptions.CurrentBranchName.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchOriginCommit" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeGitFilterBuildOptions.CurrentBranchOriginCommit.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeCompilationOptions">
     <xs:sequence>
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithDebugList" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithXmlXref" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithXref" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithListing" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithPreprocess" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="UseCompilerMultiCompile" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CompileOptions" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CompileStatementExtraOptions" type="xs:string" />
-      <xs:element minOccurs="1" maxOccurs="1" name="TryToOptimizeCompilationDirectory" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CompilableFileExtensionPattern" type="xs:string" />
-      <xs:element minOccurs="1" maxOccurs="1" name="ForceSingleProcess" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="NumberProcessPerCore" nillable="true" type="xs:unsignedByte" />
-      <xs:element minOccurs="1" maxOccurs="1" name="MinimumNumberOfFilesPerProcess" nillable="true" type="xs:int" />
-      <xs:element minOccurs="1" maxOccurs="1" name="UseSimplerAnalysisForDatabaseReference" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithDebugList" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeCompilationOptions.CompileWithDebugList.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithXmlXref" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeCompilationOptions.CompileWithXmlXref.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithXref" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeCompilationOptions.CompileWithXref.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithListing" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeCompilationOptions.CompileWithListing.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithPreprocess" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeCompilationOptions.CompileWithPreprocess.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="UseCompilerMultiCompile" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeCompilationOptions.UseCompilerMultiCompile.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="CompileOptions" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeCompilationOptions.CompileOptions.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="CompileStatementExtraOptions" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeCompilationOptions.CompileStatementExtraOptions.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="TryToOptimizeCompilationDirectory" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeCompilationOptions.TryToOptimizeCompilationDirectory.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="CompilableFileExtensionPattern" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeCompilationOptions.CompilableFileExtensionPattern.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="ForceSingleProcess" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeCompilationOptions.ForceSingleProcess.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="NumberProcessPerCore" nillable="true" type="xs:unsignedByte">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeCompilationOptions.NumberProcessPerCore.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="MinimumNumberOfFilesPerProcess" nillable="true" type="xs:int">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeCompilationOptions.MinimumNumberOfFilesPerProcess.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="UseSimplerAnalysisForDatabaseReference" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeCompilationOptions.UseSimplerAnalysisForDatabaseReference.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeIncrementalBuildOptions">
     <xs:sequence>
-      <xs:element minOccurs="1" maxOccurs="1" name="Enabled" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="FullRebuild" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="StoreSourceHash" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedSourceFileToOutput" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedTargetsToOutput" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="RebuildFilesWithNewTargets" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Enabled" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeIncrementalBuildOptions.Enabled.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="FullRebuild" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeIncrementalBuildOptions.FullRebuild.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="StoreSourceHash" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeIncrementalBuildOptions.StoreSourceHash.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedSourceFileToOutput" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeIncrementalBuildOptions.MirrorDeletedSourceFileToOutput.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedTargetsToOutput" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeIncrementalBuildOptions.MirrorDeletedTargetsToOutput.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="RebuildFilesWithNewTargets" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeIncrementalBuildOptions.RebuildFilesWithNewTargets.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeBuildOptions">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="SourceDirectoryPath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="OutputDirectoryPath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryOutputFilePath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryInputFilePath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="ReportHtmlFilePath" type="xs:string" />
-      <xs:element minOccurs="1" maxOccurs="1" name="TreatWarningsAsErrors" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="StopBuildOnCompilationError" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="StopBuildOnCompilationWarning" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="ShutdownCompilationDatabasesAfterBuild" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="TestMode" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="SourceDirectoryPath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildOptions.SourceDirectoryPath.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="OutputDirectoryPath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildOptions.OutputDirectoryPath.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryOutputFilePath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildOptions.BuildHistoryOutputFilePath.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryInputFilePath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildOptions.BuildHistoryInputFilePath.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="ReportHtmlFilePath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildOptions.ReportHtmlFilePath.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="TreatWarningsAsErrors" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildOptions.TreatWarningsAsErrors.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="StopBuildOnCompilationError" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildOptions.StopBuildOnCompilationError.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="StopBuildOnCompilationWarning" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildOptions.StopBuildOnCompilationWarning.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="ShutdownCompilationDatabasesAfterBuild" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildOptions.ShutdownCompilationDatabasesAfterBuild.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="TestMode" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the property : OeBuildOptions.TestMode.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeVariable">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Variable" nillable="true" type="OeVariable" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Variable" nillable="true" type="OeVariable">
+        <xs:annotation>
+          <xs:documentation>Represents a variable.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeVariable">
-    <xs:attribute name="Name" type="xs:string" />
-    <xs:attribute name="Value" type="xs:string" />
+    <xs:attribute name="Name" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>Unavailable description for the property : OeVariable.Name.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Value" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>Unavailable description for the property : OeVariable.Value.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeBuildStepClassic">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Step" nillable="true" type="OeBuildStepClassic" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Step" nillable="true" type="OeBuildStepClassic">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeBuildStepClassic.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeBuildStepClassic">
     <xs:complexContent mixed="false">
       <xs:extension base="OeBuildStep">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice1" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice1">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeBuildStepClassic.Tasks.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="OeBuildStep" abstract="true">
-    <xs:attribute name="Label" type="xs:string" />
+    <xs:attribute name="Label" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>Unavailable description for the property : OeBuildStep.Label.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <xs:complexType name="OeBuildStepCompile">
     <xs:complexContent mixed="false">
       <xs:extension base="OeBuildStep">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice2" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice2">
+            <xs:annotation>
+              <xs:documentation>Unavailable description for the property : OeBuildStepCompile.Tasks.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="ArrayOfChoice2">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element minOccurs="1" maxOccurs="1" name="Copy" nillable="true" type="OeTaskFileTargetFileCopy" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Prolib" nillable="true" type="OeTaskFileTargetArchiveProlib" />
-      <xs:element minOccurs="1" maxOccurs="1" name="UploadFtp" nillable="true" type="OeTaskFileTargetArchiveFtp" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Execute" nillable="true" type="OeTaskExec" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Zip" nillable="true" type="OeTaskFileTargetArchiveZip" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileInCab" nillable="true" type="OeTaskFileTargetArchiveCompileCab" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileInZip" nillable="true" type="OeTaskFileTargetArchiveCompileZip" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileUploadFtp" nillable="true" type="OeTaskFileTargetArchiveCompileUploadFtp" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Compile" nillable="true" type="OeTaskFileTargetFileCompile" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Cab" nillable="true" type="OeTaskFileTargetArchiveCab" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileInProlib" nillable="true" type="OeTaskFileTargetArchiveCompileProlib" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Copy" nillable="true" type="OeTaskFileTargetFileCopy">
+        <xs:annotation>
+          <xs:documentation>This task copy files.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Prolib" nillable="true" type="OeTaskFileTargetArchiveProlib">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileTargetArchiveProlib.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="UploadFtp" nillable="true" type="OeTaskFileTargetArchiveFtp">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileTargetArchiveFtp.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Execute" nillable="true" type="OeTaskExec">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskExec.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Zip" nillable="true" type="OeTaskFileTargetArchiveZip">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileTargetArchiveZip.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileInCab" nillable="true" type="OeTaskFileTargetArchiveCompileCab">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileTargetArchiveCompileCab.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileInZip" nillable="true" type="OeTaskFileTargetArchiveCompileZip">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileTargetArchiveCompileZip.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileUploadFtp" nillable="true" type="OeTaskFileTargetArchiveCompileUploadFtp">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileTargetArchiveCompileUploadFtp.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Compile" nillable="true" type="OeTaskFileTargetFileCompile">
+        <xs:annotation>
+          <xs:documentation>This task copy files.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Cab" nillable="true" type="OeTaskFileTargetArchiveCab">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileTargetArchiveCab.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileInProlib" nillable="true" type="OeTaskFileTargetArchiveCompileProlib">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileTargetArchiveCompileProlib.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:choice>
   </xs:complexType>
   <xs:complexType name="ArrayOfChoice1">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element minOccurs="1" maxOccurs="1" name="Copy" nillable="true" type="OeTaskFileTargetFileCopy" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Prolib" nillable="true" type="OeTaskFileTargetArchiveProlib" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Move" nillable="true" type="OeTaskFileTargetFileMove" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Webclient" nillable="true" type="OeTaskWebclient" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Execute" nillable="true" type="OeTaskExec" />
-      <xs:element minOccurs="1" maxOccurs="1" name="DeleteInProlib" nillable="true" type="OeTaskFileTargetArchiveDeleteInProlib" />
-      <xs:element minOccurs="1" maxOccurs="1" name="UploadFtp" nillable="true" type="OeTaskFileTargetArchiveFtp" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Zip" nillable="true" type="OeTaskFileTargetArchiveZip" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Delete" nillable="true" type="OeTaskFileDelete" />
-      <xs:element minOccurs="1" maxOccurs="1" name="RemoveDirectory" nillable="true" type="OeTaskRemoveDirectory" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Cab" nillable="true" type="OeTaskFileTargetArchiveCab" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Copy" nillable="true" type="OeTaskFileTargetFileCopy">
+        <xs:annotation>
+          <xs:documentation>This task copy files.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Prolib" nillable="true" type="OeTaskFileTargetArchiveProlib">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileTargetArchiveProlib.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Move" nillable="true" type="OeTaskFileTargetFileMove">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileTargetFileMove.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Webclient" nillable="true" type="OeTaskWebclient">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskWebclient.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Execute" nillable="true" type="OeTaskExec">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskExec.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="DeleteInProlib" nillable="true" type="OeTaskFileTargetArchiveDeleteInProlib">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileTargetArchiveDeleteInProlib.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="UploadFtp" nillable="true" type="OeTaskFileTargetArchiveFtp">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileTargetArchiveFtp.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Zip" nillable="true" type="OeTaskFileTargetArchiveZip">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileTargetArchiveZip.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Delete" nillable="true" type="OeTaskFileDelete">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileDelete.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="RemoveDirectory" nillable="true" type="OeTaskRemoveDirectory">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskRemoveDirectory.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Cab" nillable="true" type="OeTaskFileTargetArchiveCab">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeTaskFileTargetArchiveCab.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:choice>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeBuildStepCompile">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Step" nillable="true" type="OeBuildStepCompile" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Step" nillable="true" type="OeBuildStepCompile">
+        <xs:annotation>
+          <xs:documentation>Unavailable description for the class : OeBuildStepCompile.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
 </xs:schema>
