@@ -131,8 +131,15 @@ namespace Oetools.Builder.Project.Task {
                 
         [Serializable]
         public enum OeWebclientComponentDownloadMode {
+            /// <summary>
+            /// The component is downloaded at the application startup.
+            /// </summary>
             [XmlEnum("Eager")] 
             Eager,
+            
+            /// <summary>
+            /// The component is downloaded "as needed" during the application runtime.
+            /// </summary>
             [XmlEnum("Lazy")] 
             Lazy
         }

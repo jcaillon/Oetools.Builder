@@ -80,7 +80,7 @@ namespace Oetools.Builder.Project.Task {
         
         /// <summary>
         /// Returns a collection of archive path -> list of relative targets inside that archive which represents the targets
-        /// for this task and for the given <param name="filePath" />
+        /// for this task and for the given <paramref name="filePath" />
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="baseTargetDirectory"></param>

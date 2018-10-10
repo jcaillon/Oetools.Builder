@@ -129,7 +129,7 @@ namespace Oetools.Builder {
         }
 
         /// <summary>
-        /// Should return all the files that need to be built by the given <param name="task"></param>
+        /// Should return all the files that need to be built by the given <paramref name="task"></paramref>
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>

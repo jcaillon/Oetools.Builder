@@ -376,3 +376,5 @@ _ReSharper*
 ## END OF CORE LIST
 #####################################################################
 /tools/XsdAnnotation/XsdAnnotator.exe
+/build/XsdAnnotation/XsdAnnotator.exe
+/build/XsdAnnotation/XsdAnnotator.sln

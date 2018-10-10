@@ -19,6 +19,7 @@
 #endregion
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -36,19 +37,29 @@ namespace Oetools.Builder.Project {
     
     /// <remarks>
     /// Every public property string not marked with the <see cref="ReplaceVariables"/> attribute is allowed
-    /// to use &lt;VARIABLE&gt; which will be replace at the beggining of the build by <see cref="OeBuildConfiguration.Variables"/>
+    /// to use &lt;VARIABLE&gt; which will be replace at the beginning of the build by <see cref="OeBuildConfiguration.Variables"/>
     /// </remarks>
     [Serializable]
     public class OeProperties {
 
+        [Description(@"The path to the directory containing the installation of openedge. 
+Commonly known as the DLC directory.")]
         [XmlElement(ElementName = "DlcDirectoryPath")]
         public string DlcDirectoryPath { get; set; }
+        [Description("$DLC (openedge installation directory)")]
         public static string GetDefaultDlcDirectoryPath() => UoeUtilities.GetDlcPathFromEnv().ToCleanPath();
         
+        [Description(@"A list of all the openedge databases used by your project (logical name + data definition). 
+This list should contain all the databases necessary to compile your application.
+The databases specified within this option will be automatically generated during a build.
+The idea is to only have to version .df files (data definition files)")]
         [XmlArray("ProjectDatabases")]
         [XmlArrayItem("ProjectDatabase", typeof(OeProjectDatabase))]
         public List<OeProjectDatabase> ProjectDatabases { get; set; }
         
+        [Description(@"A database connection string that will be used to connect to extra databases before a build. 
+This obviously requires existing databases. 
+Most of the time, it is simpler to use the ProjectDatabase option instead of this one.")]
         [XmlElement(ElementName = "DatabaseConnectionExtraParameters")]
         public string DatabaseConnectionExtraParameters { get; set; }
 
@@ -93,6 +104,7 @@ namespace Oetools.Builder.Project {
 
         [XmlElement(ElementName = "OpenedgeTemporaryDirectoryPath")]
         public string OpenedgeTemporaryDirectoryPath { get; set; }
+        [Description("$TEMP/.oe_tmp-xxx (temporary folder)")]
         public static string GetDefaultOpenedgeTemporaryDirectoryPath() => Path.Combine(Path.GetTempPath(), $".oe_tmp-{Utils.GetRandomName()}");
         
         /// <summary>
@@ -108,18 +120,22 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlElement(ElementName = "GitFilterBuildOptions")]
         public OeGitFilterBuildOptions GitFilterBuildOptions { get; set; }    
+        [Description("")]
         public static OeGitFilterBuildOptions GetDefaultGitFilterBuildOptions() => new OeGitFilterBuildOptions();
                   
         [XmlElement(ElementName = "CompilationOptions")]
         public OeCompilationOptions CompilationOptions { get; set; }
+        [Description("")]
         public static OeCompilationOptions GetDefaultCompilationOptions() => new OeCompilationOptions();
             
         [XmlElement(ElementName = "IncrementalBuildOptions")]
         public OeIncrementalBuildOptions IncrementalBuildOptions { get; set; }
+        [Description("")]
         public static OeIncrementalBuildOptions GetDefaultIncrementalBuildOptions() => new OeIncrementalBuildOptions();
         
         [XmlElement(ElementName = "BuildOptions")]
         public OeBuildOptions BuildOptions { get; set; }
+        [Description("")]
         public static OeBuildOptions GetDefaultBuildOptions() => new OeBuildOptions();
 
         /// <summary>

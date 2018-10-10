@@ -151,7 +151,7 @@ namespace Oetools.Builder.Utilities {
         }
 
         /// <summary>
-        /// Has the file changed since <param name="previous" /> version to <param name="now" /> version
+        /// Has the file changed since <paramref name="previous" /> version to <paramref name="now" /> version
         /// </summary>
         /// <param name="previous"></param>
         /// <param name="now"></param>

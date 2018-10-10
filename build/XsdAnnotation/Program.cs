@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 
 namespace XsdAnnotator {
     public class Program {
@@ -35,7 +36,7 @@ namespace XsdAnnotator {
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver;
             
             if (args == null || args.Length < 2) {
-                Console.Error.WriteLine("Expected 2 arguments! [XsdPath] [AssemblyFolder]");
+                Console.Error.WriteLine("Expected 2 arguments! <XsdPath> <AssemblyFolder>");
                 return 1;
             }
 
@@ -54,7 +55,6 @@ namespace XsdAnnotator {
             }
             Console.WriteLine($"The xsd to annotate is : {xsdPath}");
 
-            var existingTypes = new List<Type>();
 
             _loadedAssemblies = new List<Assembly>();
             foreach (var dllPath in Directory.EnumerateFiles(assemblyFolderPath, "*.dll", SearchOption.TopDirectoryOnly)) {
@@ -62,13 +62,20 @@ namespace XsdAnnotator {
                 Console.WriteLine($"Loaded assembly into memory : {_loadedAssemblies.Last().GetName().FullName}");
             }
 
+            var xmlElementsList = new List<XElement>();
+            foreach (var xmlDocPath in Directory.EnumerateFiles(assemblyFolderPath, "*.xml", SearchOption.TopDirectoryOnly)) {
+                var doc = XDocument.Load(xmlDocPath);
+                xmlElementsList.AddRange(doc.Root?.Element("members")?.Elements("member") ?? new List<XElement>());
+            }
+
+            var existingTypes = new List<Type>();
             foreach (var assembly in _loadedAssemblies) {
                 existingTypes.AddRange(assembly.GetExportedTypes());
             }
 
-            var annotator = new XsdAnnotate(existingTypes);
+            var annotator = new XsdAnnotate(existingTypes, xmlElementsList);
             try {
-                annotator.Annotate(xsdPath, xsdPath);
+                annotator.Annotate(xsdPath, $"{xsdPath}2");
             } catch (Exception e) {
                 Console.Error.WriteLine(e);
                 return 1;

@@ -23,8 +23,10 @@ using System.Xml.Serialization;
 
 namespace Oetools.Builder.Project {
     
+    /// <summary>
+    /// Represents a variable.
+    /// </summary>
     [Serializable]
-    [Description("Represents a variable.")]
     public class OeVariable {
             
         [XmlAttribute("Name")]

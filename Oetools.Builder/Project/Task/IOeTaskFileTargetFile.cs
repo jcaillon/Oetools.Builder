@@ -26,8 +26,8 @@ namespace Oetools.Builder.Project.Task {
     public interface IOeTaskFileTargetFile : IOeTaskFile {
 
         /// <summary>
-        /// Returns a list of target file path for the corresponding source <param name="filePath" />,
-        /// relative path are turned into absolute path preprending <param name="baseTargetDirectory" />
+        /// Returns a list of target file path for the corresponding source <paramref name="filePath" />,
+        /// relative path are turned into absolute path preprending <paramref name="baseTargetDirectory" />
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="baseTargetDirectory"></param>

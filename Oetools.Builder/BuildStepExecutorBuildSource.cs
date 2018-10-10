@@ -146,7 +146,7 @@ namespace Oetools.Builder {
         }
 
         /// <summary>
-        /// Returns a list of all files that need to be compiled for all the <param name="tasks" />
+        /// Returns a list of all files that need to be compiled for all the <paramref name="tasks" />
         /// </summary>
         /// <remarks>
         /// The main thing that makes this method "complicated" is that we try to an appropriate UoeFileToCompile.PreferedTargetDirectory

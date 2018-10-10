@@ -30,6 +30,9 @@ using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project {
     
+    /// <summary>
+    /// Represents an openedge project (i.e. an application).
+    /// </summary>
     [Serializable]
     [XmlRoot("Project")]
     public class OeProject {
@@ -69,23 +72,28 @@ namespace Oetools.Builder.Project {
         public string SchemaLocation = XsdName;
 #endif
         
-        [XmlElement("Properties")]
-        [Description("Properties of this project.")]
+        /// <summary>
+        /// Global properties for this project, shared by all the build configurations.
+        /// </summary>
+        [XmlElement("GlobalProperties")]
         public OeProperties GlobalProperties { get; set; }
         
         /// <summary>
-        /// Global variables applicable to all build
+        /// Global variables shared by all the build configurations.
         /// </summary>
         [XmlArray("GlobalVariables")]
         [XmlArrayItem("Variable", typeof(OeVariable))]
         public List<OeVariable> GlobalVariables { get; set; }
         
+        /// <summary>
+        /// A list of build configurations.
+        /// </summary>
         [XmlArray("BuildConfigurations")]
         [XmlArrayItem("Build", typeof(OeBuildConfiguration))]
         public List<OeBuildConfiguration> BuildConfigurations { get; set; }
 
         /// <summary>
-        /// Returns an initialized project with default properties
+        /// Returns an initialized project with some initialized properties.
         /// </summary>
         /// <returns></returns>
         public static OeProject GetStandardProject() {

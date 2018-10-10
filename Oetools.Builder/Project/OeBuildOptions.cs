@@ -18,6 +18,7 @@
 // ========================================================================
 #endregion
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Xml.Serialization;
 using Oetools.Utilities.Lib;
@@ -34,6 +35,7 @@ namespace Oetools.Builder.Project {
             get => _sourceDirectoryPath;
             set => _sourceDirectoryPath = value.ToCleanPath();
         }
+        [Description("$PWD (current directory)")]
         public static string GetDefaultSourceDirectoryPath() => Directory.GetCurrentDirectory();
         
         [XmlElement(ElementName = "OutputDirectoryPath")]

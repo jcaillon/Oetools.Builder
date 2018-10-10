@@ -91,4 +91,9 @@
     <EmbeddedResource Include="Resources\Xsd\BuildConfiguration.xsd" />
     <EmbeddedResource Include="Resources\Xsd\Project.xsd" />
   </ItemGroup>
+  <PropertyGroup>
+    <!-- don't fail the build on comment no present -->
+    <NoWarn>$(NoWarn),1591</NoWarn>
+    <DocumentationFile>$(OutDir)$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
 </Project>
