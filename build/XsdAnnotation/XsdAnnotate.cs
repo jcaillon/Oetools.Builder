@@ -49,16 +49,19 @@ namespace XsdAnnotator {
             var doc = XDocument.Load(xsdPath);
             _xsNs = ((XElement) doc.FirstNode).GetNamespaceOfPrefix("xs");
 
-            foreach (var element in doc.Descendants(_xsNs + "enumeration").Concat(doc.Descendants(_xsNs + "attribute")).Concat(doc.Descendants(_xsNs + "element"))) {
+            foreach (var element in doc.Descendants(_xsNs + "element").Concat(doc.Descendants(_xsNs + "attribute")).Concat(doc.Descendants(_xsNs + "enumeration"))) {
                 string documentationStr;
 
                 var parentTypeName = GetParentTypeName(element);
                 if (!string.IsNullOrEmpty(parentTypeName) && !parentTypeName.StartsWith("ArrayOf")) {
                     // case of a property
                     Type correspondingType = GetTypeFromTypeName(parentTypeName);
-                    var methodName = GetTypePropertyNameFromXmlMemberName(correspondingType, element.Attribute("name")?.Value ?? element.Attribute("value")?.Value);
-                    methodName = $"{parentTypeName}.{methodName}";
-                    documentationStr = GetDocumentationFromXmlCommentAndDefaultValue(methodName, correspondingType);
+                    var propertyName = GetTypePropertyNameFromXmlMemberName(correspondingType, element.Attribute("name")?.Value ?? element.Attribute("value")?.Value);
+                    documentationStr = GetDocumentationFromXmlComment($"{parentTypeName}.{propertyName}");
+                    var defaultValue = GetDocumentationFromXmlCommentAndDefaultValue(propertyName, correspondingType);
+                    if (!string.IsNullOrEmpty(defaultValue)) {
+                        documentationStr = $"{documentationStr} Defaults to \"{defaultValue}\".";
+                    }
                 } else {
                     // case of a type
                     documentationStr = GetDocumentationFromXmlComment(element.Attribute("type")?.Value);
@@ -120,15 +123,17 @@ namespace XsdAnnotator {
             if (!string.IsNullOrEmpty(summary)) {
                 summary = CliCompactWhitespaces(new StringBuilder(summary)).ToString();
             }
+
+            if (string.IsNullOrEmpty(summary)) {
+                Console.Error.WriteLine($"Can't find a description for : {qualifiedMemberName}.");
+            }
             return summary ?? $"Can't find a description for : {qualifiedMemberName}.";
         } 
         
-        private string GetDocumentationFromXmlCommentAndDefaultValue(string qualifiedMemberName, Type correspondingType) {
-            string descriptionFromProperty = GetDocumentationFromXmlComment(qualifiedMemberName);
-
+        private string GetDocumentationFromXmlCommentAndDefaultValue(string propertyName, Type correspondingType) {
             if (correspondingType != null) {
                 // get default value
-                var defaultMethod = correspondingType.GetMethods().FirstOrDefault(m => m.IsStatic && m.Name.Equals($"{DefaultMethodPrefix}{qualifiedMemberName}"));
+                var defaultMethod = correspondingType.GetMethods().FirstOrDefault(m => m.IsStatic && m.Name.Equals($"{DefaultMethodPrefix}{propertyName}"));
                 if (defaultMethod != null) {
                     string defaultValue;
                     if (Attribute.GetCustomAttribute(defaultMethod, typeof(DescriptionAttribute), true) is DescriptionAttribute description) {
@@ -136,14 +141,10 @@ namespace XsdAnnotator {
                     } else {
                         defaultValue = defaultMethod.Invoke(null, null).ToString();
                     }
-
-                    if (!string.IsNullOrEmpty(defaultValue)) {
-                        descriptionFromProperty = $"{descriptionFromProperty} Defaults to \"{defaultValue}\".";
-                    }
+                    return defaultValue;
                 }
             }
-
-            return descriptionFromProperty;
+            return null;
         }
         
         private Type GetTypeFromTypeName(string name) {
@@ -189,13 +190,9 @@ namespace XsdAnnotator {
 
             // compact string
             int dest = 0;
-            bool inQuote = false;
             bool previousIsWhitespace = false;
             for (int i = start; i <= end; i++) {
-                if (sb[i] == '"' || sb[i] == '\'') {
-                    inQuote = !inQuote;
-                }
-                if (!inQuote && char.IsWhiteSpace(sb[i])) {
+                if (char.IsWhiteSpace(sb[i]) && sb[i] != '\n') {
                     if (!previousIsWhitespace) {
                         previousIsWhitespace = true;
                         sb[dest] = ' ';
@@ -207,7 +204,7 @@ namespace XsdAnnotator {
                     dest++;
                 }
             }
-
+            
             sb.Length = dest;
             return sb;
         }

@@ -31,8 +31,4 @@ namespace Oetools.Builder.Utilities {
         void ReportProgress(int max, int current, string message);
         void ReportGlobalProgress(int max, int current, string message);
     }
-    public interface ITraceLogger {
-        void Write(string message, Exception e = null);
-        void ReportProgress(int max, int current, string message);
-    }
 }
