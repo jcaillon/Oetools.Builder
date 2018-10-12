@@ -46,7 +46,7 @@ namespace Oetools.Builder {
 
         protected virtual string BaseTargetDirectory => null;
 
-        public CancellationTokenSource CancelSource { protected get; set; }
+        public CancellationToken? CancelToken { protected get; set; }
         
         public int NumberOfTasksDone { get; private set; }
 
@@ -93,7 +93,7 @@ namespace Oetools.Builder {
         /// <exception cref="TaskExecutorException"></exception>
         protected virtual void ExecuteInternal() {
             foreach (var task in Tasks) {
-                CancelSource?.Token.ThrowIfCancellationRequested();
+                CancelToken?.ThrowIfCancellationRequested();
                 try {
                     task.PublishWarning += TaskOnPublishException;
                     OnTaskStart?.Invoke(this, new StepExecutorProgressEventArgs {
@@ -121,7 +121,7 @@ namespace Oetools.Builder {
         private void InjectPropertiesInTask(IOeTask task) {
             task.SetLog(Log);
             task.SetTestMode(TestMode);
-            task.SetCancelSource(CancelSource);
+            task.SetCancelToken(CancelToken);
             if (task is IOeTaskCompile taskCompile) {
                 taskCompile.SetFileExtensionFilter(Properties?.CompilationOptions?.CompilableFileExtensionPattern ?? OeCompilationOptions.GetDefaultCompilableFileExtensionPattern());
                 taskCompile.SetProperties(Properties);

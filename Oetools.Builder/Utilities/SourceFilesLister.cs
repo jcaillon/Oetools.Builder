@@ -60,7 +60,7 @@ namespace Oetools.Builder.Utilities {
 
         public Func<string, OeFile> GetPreviousFileImage { get; set; }
         
-        public CancellationTokenSource CancelSource { get; set; }
+        public CancellationToken? CancelToken { get; }
         
         private List<Regex> _defaultFilters;
 
@@ -70,9 +70,9 @@ namespace Oetools.Builder.Utilities {
 
         public bool RecursiveListing { get; set; } = true;
 
-        public SourceFilesLister(string sourceDirectory, CancellationTokenSource cancelSource = null) {
+        public SourceFilesLister(string sourceDirectory, CancellationToken? cancelToken = null) {
             SourceDirectory = sourceDirectory.ToCleanPath();
-            CancelSource = cancelSource;
+            CancelToken = cancelToken;
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace Oetools.Builder.Utilities {
 
             var output = new FileList<OeFile>();
             foreach (var file in listedFiles) {
-                CancelSource?.Token.ThrowIfCancellationRequested();
+                CancelToken?.ThrowIfCancellationRequested();
                 
                 if (output.Contains(file)) {
                     continue;
@@ -117,7 +117,7 @@ namespace Oetools.Builder.Utilities {
         /// <exception cref="Exception"></exception>
         public IEnumerable<string> GetDirectoryList() {
             var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(SourcePathFilter);
-            return Utils.EnumerateAllFolders(SourceDirectory, RecursiveListing ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly, sourcePathExcludeRegexStrings, ExcludeHiddenFolders, CancelSource)
+            return Utils.EnumerateAllFolders(SourceDirectory, RecursiveListing ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly, sourcePathExcludeRegexStrings, ExcludeHiddenFolders, CancelToken)
                 .Where(IsFileIncludedBySourcePathFilters);
         }
 
@@ -127,7 +127,7 @@ namespace Oetools.Builder.Utilities {
         /// <returns></returns>
         private IEnumerable<string> GetBaseFileList() {
             var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(SourcePathFilter);
-            return Utils.EnumerateAllFiles(SourceDirectory, RecursiveListing ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly, sourcePathExcludeRegexStrings, ExcludeHiddenFolders, CancelSource)
+            return Utils.EnumerateAllFiles(SourceDirectory, RecursiveListing ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly, sourcePathExcludeRegexStrings, ExcludeHiddenFolders, CancelToken)
                 .Where(IsFileIncludedBySourcePathFilters);
         }
 

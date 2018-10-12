@@ -49,7 +49,7 @@ namespace Oetools.Builder.Project.Task {
             return originalFiles;
         }
 
-        public static FileList<UoeCompiledFile> CompileFiles(OeProperties properties, FileList<UoeFileToCompile> files, CancellationTokenSource cancelSource, ILogger log) {
+        public static FileList<UoeCompiledFile> CompileFiles(OeProperties properties, FileList<UoeFileToCompile> files, CancellationToken? cancelToken, ILogger log) {
             if (files == null || files.Count == 0) {
                 return new FileList<UoeCompiledFile>();
             }
@@ -62,11 +62,11 @@ namespace Oetools.Builder.Project.Task {
                 compiler.Start();
                 bool exited;
                 do {
-                    exited = compiler.WaitForExecutionEnd(1000, cancelSource);
+                    exited = compiler.WaitForExecutionEnd(1000, cancelToken);
                     int nbDone = compiler.NumberOfFilesTreated;
                     log?.ReportProgress(compiler.NumberOfFilesToCompile, nbDone, $"Compiling openedge files {nbDone}/{compiler.NumberOfFilesToCompile} ({compiler.NumberOfProcessesRunning} process running)");
-                } while (!exited && !cancelSource.IsCancellationRequested);
-                if (cancelSource?.IsCancellationRequested ?? false) {
+                } while (!exited && !(cancelToken?.IsCancellationRequested ?? false));
+                if (cancelToken?.IsCancellationRequested ?? false) {
                     compiler.KillProcess();
                     compiler.WaitForExecutionEnd();
                 }

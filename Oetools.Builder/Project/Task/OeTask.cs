@@ -38,8 +38,8 @@ namespace Oetools.Builder.Project.Task {
         
         public event EventHandler<TaskWarningEventArgs> PublishWarning;
         
-        protected CancellationTokenSource CancelSource { get; set; }
-        public void SetCancelSource(CancellationTokenSource cancelSource) => CancelSource = cancelSource;
+        protected CancellationToken? CancelToken { get; set; }
+        public void SetCancelToken(CancellationToken? cancelToken) => CancelToken = cancelToken;
 
         protected bool TestMode { get; set; }
         public void SetTestMode(bool testMode) => TestMode = testMode;

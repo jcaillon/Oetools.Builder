@@ -139,7 +139,7 @@ namespace Oetools.Builder {
                 throw new ArgumentNullException(nameof(Properties));
             }
             try {
-                _compiledFiles = OeTaskCompile.CompileFiles(Properties, filesToCompile, CancelSource, Log);
+                _compiledFiles = OeTaskCompile.CompileFiles(Properties, filesToCompile, CancelToken, Log);
             } catch (Exception e) {
                 throw new TaskExecutorException(this, e.Message, e);
             }
@@ -221,7 +221,7 @@ namespace Oetools.Builder {
         /// </summary>
         /// <returns></returns>
         private SourceFilesLister GetSourceDirectoryFilesLister() {
-            var sourceLister = new SourceFilesLister(SourceDirectory, CancelSource) {
+            var sourceLister = new SourceFilesLister(SourceDirectory, CancelToken) {
                 SourcePathFilter = Properties.SourceToBuildPathFilter,
                 SourcePathGitFilterBuildOptions = Properties.GitFilterBuildOptions,
                 Log = Log

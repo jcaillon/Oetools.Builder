@@ -226,7 +226,7 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
                 }
             }
             if (AddAllSourceDirectoriesToPropath ?? GetDefaultAddAllSourceDirectoriesToPropath() && Directory.Exists(sourceDirectory)) {
-                var lister = new SourceFilesLister(sourceDirectory, _cancelSource) {
+                var lister = new SourceFilesLister(sourceDirectory, _cancelToken) {
                     SourcePathFilter = PropathSourceDirectoriesFilter
                 };
                 foreach (var directory in lister.GetDirectoryList()) {
@@ -250,13 +250,13 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
         }
 
 
-        private CancellationTokenSource _cancelSource;
+        private CancellationToken? _cancelToken;
 
         /// <summary>
         /// Sets the cancellation source used in this class for long operations (like <see cref="GetPropath"/>)
         /// </summary>
         /// <param name="source"></param>
-        public void SetCancellationSource(CancellationTokenSource source) => _cancelSource = source;
+        public void SetCancellationSource(CancellationToken? source) => _cancelToken = source;
 
         private UoeExecutionEnv _env;
 

@@ -41,7 +41,7 @@ namespace Oetools.Builder.Project.Task {
         }
 
         protected override void ExecuteInternal() {
-            CancelSource?.Token.ThrowIfCancellationRequested();
+            CancelToken?.ThrowIfCancellationRequested();
             if (Directory.Exists(DirectoryPath)) {
                 Log?.Trace?.Write($"Deleting directory {DirectoryPath.PrettyQuote()}");
                 try {

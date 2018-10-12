@@ -55,7 +55,7 @@ namespace Oetools.Builder.Project.Task {
         
         void SetTestMode(bool testMode);
 
-        void SetCancelSource(CancellationTokenSource cancelSource);
+        void SetCancelToken(CancellationToken? cancelToken);
 
     }
 }

@@ -19,7 +19,7 @@ namespace Oetools.Builder {
             if (_outputDirectoryCompleteFileList == null) {
                 Log?.Debug($"List all the files in output directory {BaseTargetDirectory.PrettyQuote()}");
                 if (Directory.Exists(Properties.BuildOptions.OutputDirectoryPath)) {
-                    var sourceLister = new SourceFilesLister(Properties.BuildOptions.OutputDirectoryPath, CancelSource) {
+                    var sourceLister = new SourceFilesLister(Properties.BuildOptions.OutputDirectoryPath, CancelToken) {
                         Log = Log
                     };
                     _outputDirectoryCompleteFileList = sourceLister.GetFileList();

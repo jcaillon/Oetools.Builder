@@ -74,9 +74,9 @@ namespace Oetools.Builder {
 
         private bool StoreSourceHash => BuildConfiguration.Properties.IncrementalBuildOptions?.StoreSourceHash ?? OeIncrementalBuildOptions.GetDefaultStoreSourceHash();
 
-        protected string SourceDirectory => BuildConfiguration.Properties.BuildOptions?.SourceDirectoryPath;        
-        
-        private CancellationTokenSource CancelSource { get; } = new CancellationTokenSource();
+        protected string SourceDirectory => BuildConfiguration.Properties.BuildOptions?.SourceDirectoryPath;
+
+        public CancellationToken? CancelToken { get; set; } = null;
         
         /// <summary>
         /// Initialize the build
@@ -124,13 +124,13 @@ namespace Oetools.Builder {
             }
         }
 
-        protected virtual void PreBuild() {           
-            CancelSource.Token.Register(() => {
+        protected virtual void PreBuild() {    
+            CancelToken?.Register(() => {
                 Log?.Debug("Build cancel requested");
             });
             
             Log?.Debug($"Initializing build with {BuildConfiguration}");
-            BuildConfiguration.Properties.SetCancellationSource(CancelSource);
+            BuildConfiguration.Properties.SetCancellationSource(CancelToken);
             BuildTemporaryDirectory = BuildConfiguration.Properties.GetEnv().TempDirectory;
             
             Log?.Debug("Validating build configuration");
@@ -150,21 +150,14 @@ namespace Oetools.Builder {
         }
         
         /// <summary>
-        /// Call this method to cancel the whole build
-        /// </summary>
-        public void Cancel() {
-            CancelSource.Cancel();
-        }
-        
-        /// <summary>
         /// Executes the build
         /// </summary>
         private void ExecuteBuildConfiguration() {
             // compute the total number of tasks to execute
-            TotalNumberOfTasks += BuildConfiguration.PreBuildStepGroup.SelectMany(step => step.Tasks).Count();
-            TotalNumberOfTasks += BuildConfiguration.BuildSourceStepGroup.SelectMany(step => step.Tasks).Count();
-            TotalNumberOfTasks += BuildConfiguration.BuildOutputStepGroup.SelectMany(step => step.Tasks).Count();
-            TotalNumberOfTasks += BuildConfiguration.PostBuildStepGroup.SelectMany(step => step.Tasks).Count();
+            TotalNumberOfTasks += BuildConfiguration.PreBuildStepGroup?.SelectMany(step => step.Tasks).Count() ?? 0;
+            TotalNumberOfTasks += BuildConfiguration.BuildSourceStepGroup?.SelectMany(step => step.Tasks).Count() ?? 0;
+            TotalNumberOfTasks += BuildConfiguration.BuildOutputStepGroup?.SelectMany(step => step.Tasks).Count() ?? 0;
+            TotalNumberOfTasks += BuildConfiguration.PostBuildStepGroup?.SelectMany(step => step.Tasks).Count() ?? 0;
             TotalNumberOfTasks += PreviouslyBuiltFiles != null ? 2 : 0; // potential extra tasks for removal
             
             ExecuteBuildStep<BuildStepExecutor>(BuildConfiguration.PreBuildStepGroup, nameof(OeBuildConfiguration.PreBuildStepGroup));
@@ -195,7 +188,7 @@ namespace Oetools.Builder {
                     Tasks = (step.GetTaskList()?.Cast<IOeTask>()).ToNonNullList(),
                     Properties = BuildConfiguration.Properties,
                     Log = Log,
-                    CancelSource = CancelSource
+                    CancelToken = CancelToken
                 };
                 executor.OnTaskStart += ExecutorOnOnTaskStart;
                 BuildStepExecutors.Add(executor);

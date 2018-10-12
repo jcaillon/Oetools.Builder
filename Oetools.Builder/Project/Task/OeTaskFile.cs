@@ -84,7 +84,7 @@ namespace Oetools.Builder.Project.Task {
                     if (!string.IsNullOrEmpty(validDir)) {
                         Log?.Info($"Listing directory : {validDir.PrettyQuote()}");
                         var regexCorrespondingToPath = GetIncludeRegex()[i];
-                        foreach (var file in new SourceFilesLister(validDir, CancelSource) { SourcePathFilter = this, Log = Log } .GetFileList()) {
+                        foreach (var file in new SourceFilesLister(validDir, CancelToken) { SourcePathFilter = this, Log = Log } .GetFileList()) {
                             if (regexCorrespondingToPath.IsMatch(file.FilePath)) {
                                 output.TryAdd(file);
                             }
@@ -109,7 +109,7 @@ namespace Oetools.Builder.Project.Task {
                         Log?.Debug("Start file compilation");
                         compiledFiles = OeTaskCompile.CompileFiles(thisOeTaskCompile.GetProperties(), _filesToBuild.Select(f => new UoeFileToCompile(f.FilePath) {
                             FileSize = f.Size
-                        }), CancelSource, Log);
+                        }), CancelToken, Log);
                         thisOeTaskCompile.SetCompiledFiles(compiledFiles);
                     }
                     

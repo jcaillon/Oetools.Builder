@@ -45,7 +45,7 @@ namespace Oetools.Builder.Project.Task {
 
             var nbDone = 0;
             foreach (var file in files) {
-                CancelSource?.Token.ThrowIfCancellationRequested();
+                CancelToken?.ThrowIfCancellationRequested();
                 if (File.Exists(file.SourcePathForTaskExecution)) {
                     Log?.Trace?.Write($"Deleting file {file.SourcePathForTaskExecution.PrettyQuote()}");
                     try {

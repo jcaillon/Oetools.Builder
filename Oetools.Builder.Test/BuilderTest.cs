@@ -55,6 +55,9 @@ namespace Oetools.Builder.Test {
         
         [TestMethod]
         public void Builder_Test_TestMode_FullRebuild_TargetRemover() {
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
             
             var sourceDirectory = Path.Combine(TestFolder, "source_build");
             Utils.CreateDirectoryIfNeeded(Path.Combine(sourceDirectory, "subfolder"));
@@ -241,6 +244,10 @@ namespace Oetools.Builder.Test {
         
         [TestMethod]
         public void Builder_Test_Build_Pre_post_tasks() {
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
+            
             var sourceDirectory = Path.Combine(TestFolder, "source_test_pre_post");
             Utils.CreateDirectoryIfNeeded(sourceDirectory);
             File.WriteAllText(Path.Combine(sourceDirectory, "file1.p"), "");
@@ -289,6 +296,10 @@ namespace Oetools.Builder.Test {
 
         [TestMethod]
         public void Builder_Test_Build_output() {
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
+            
             var sourceDirectory = Path.Combine(TestFolder, "source_test_build_output");
             Utils.CreateDirectoryIfNeeded(sourceDirectory);
             File.WriteAllText(Path.Combine(sourceDirectory, "file1.p"), "");
@@ -333,6 +344,10 @@ namespace Oetools.Builder.Test {
 
         [TestMethod]
         public void Builder_Test_Source_History() {
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
+            
             var sourceDirectory = Path.Combine(TestFolder, "source_test_history");
             Utils.CreateDirectoryIfNeeded(sourceDirectory);
             File.WriteAllText(Path.Combine(sourceDirectory, "file1.p"), "quit."); // compile ok
@@ -401,6 +416,10 @@ namespace Oetools.Builder.Test {
 
         [TestMethod]
         public void Builder_Test_Compilation_problems() {
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
+            
             var sourceDirectory = Path.Combine(TestFolder, "source_test_compilation_problems");
             Utils.CreateDirectoryIfNeeded(sourceDirectory);
             File.WriteAllText(Path.Combine(sourceDirectory, "file1.p"), "quit."); // compile ok
@@ -495,7 +514,10 @@ namespace Oetools.Builder.Test {
         /// </summary>
         [TestMethod]
         public void Builder_Test_All_Task_build_steps() {
-
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
+            
             var builder = new Builder(new OeBuildConfiguration {
                 PreBuildStepGroup = new List<OeBuildStepClassic> {
                     new OeBuildStepClassic {
@@ -566,6 +588,11 @@ namespace Oetools.Builder.Test {
         
         [TestMethod]
         public void Builder_Test_Cancel() {
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
+            
+            var cancel = new CancellationTokenSource();
             var builder = new Builder(new OeBuildConfiguration {
                 PreBuildStepGroup = new List<OeBuildStepClassic> {
                     new OeBuildStepClassic {
@@ -574,11 +601,13 @@ namespace Oetools.Builder.Test {
                         }
                     }
                 }
-            });
+            }) {
+                CancelToken = cancel.Token
+            };
             
             Task.Factory.StartNew(() => {
                 Thread.Sleep(1000);
-                builder.Cancel();
+                cancel.Cancel();
             });
 
             Exception ex = null;
@@ -594,8 +623,8 @@ namespace Oetools.Builder.Test {
         private class TaskWaitForCancel : OeTask {
             protected override void ExecuteInternal() {
                 Log?.Debug("");
-                CancelSource.Token.WaitHandle.WaitOne();
-                CancelSource.Token.ThrowIfCancellationRequested();
+                CancelToken?.WaitHandle.WaitOne();
+                CancelToken?.ThrowIfCancellationRequested();
             }
         }
     }

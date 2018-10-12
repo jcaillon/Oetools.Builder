@@ -329,10 +329,10 @@ namespace Oetools.Builder.Test.Project {
 
             string xmlContent = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
-  <Properties>
+  <GlobalProperties>
     <DlcDirectoryPath></DlcDirectoryPath>
     <ProcedurePathToExecuteBeforeAnyProgressExecution />
-  </Properties>
+  </GlobalProperties>
 </Project>
 ";
             File.WriteAllText(Path.Combine(TestFolder, "input_test.xml"), xmlContent);

@@ -66,7 +66,7 @@ namespace Oetools.Builder.Test {
         public void TaskExecutor_Test_cancel() {
             var taskExecutor = new BuildStepExecutor();
             CancellationTokenSource cancelSource = new CancellationTokenSource();
-            taskExecutor.CancelSource = cancelSource;
+            taskExecutor.CancelToken = cancelSource.Token;
             taskExecutor.Tasks = new List<IOeTask> {
                 new TaskWaitForCancel()
             };
@@ -145,7 +145,7 @@ namespace Oetools.Builder.Test {
                 Tasks = new List<IOeTask> {
                     task
                 },
-                CancelSource = new CancellationTokenSource(),
+                CancelToken = new CancellationTokenSource().Token,
                 Log = new Log2(),
                 Properties = new OeProperties {
                     BuildOptions = new OeBuildOptions {
@@ -227,7 +227,7 @@ namespace Oetools.Builder.Test {
         
         private class TaskInjectionTest : OeTaskFile, IOeTaskCompile {
             public bool IsLogSet => Log != null;
-            public bool IsCancelSourceSet => CancelSource != null;
+            public bool IsCancelSourceSet => CancelToken != null;
             public bool IsTestSet => TestMode;
             public bool IsFilesCompiledSet { get; private set; }
             public bool IsPropertySet => GetProperties() != null;
@@ -252,18 +252,18 @@ namespace Oetools.Builder.Test {
         }
         
         private class TaskWaitForCancel : IOeTask {
-            private CancellationTokenSource _cancelSource;
+            private CancellationToken? _cancelToken;
             public void Validate() {}
 
             public void Execute() {
-                _cancelSource.Token.WaitHandle.WaitOne();
-                _cancelSource.Token.ThrowIfCancellationRequested();
+                _cancelToken?.WaitHandle.WaitOne();
+                _cancelToken?.ThrowIfCancellationRequested();
             }
             public void SetLog(ILogger log) {}
             public void SetTestMode(bool testMode) { }
             public event EventHandler<TaskWarningEventArgs> PublishWarning;
-            public void SetCancelSource(CancellationTokenSource cancelSource) {
-                _cancelSource = cancelSource;
+            public void SetCancelToken(CancellationToken? cancelToken) {
+                _cancelToken = cancelToken;
                 PublishWarning?.Invoke(null, null);
             }
             public List<TaskExecutionException> GetExceptionList() => null;
