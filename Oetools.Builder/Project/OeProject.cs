@@ -19,15 +19,10 @@
 #endregion
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Xml;
-using System.Xml.Linq;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using System.Xml.XPath;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Resources;
 using Oetools.Builder.Utilities;

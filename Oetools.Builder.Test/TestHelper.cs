@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Oetools.Utilities.Openedge;
+using Oetools.Utilities.Openedge.Exceptions;
 
 namespace Oetools.Builder.Test {
     public static class TestHelper {
@@ -30,7 +31,13 @@ namespace Oetools.Builder.Test {
         private static readonly string TestFolder = Path.Combine(AppContext.BaseDirectory, "Tests");
 
         public static bool GetDlcPath(out string dlcPath) {
-            dlcPath = UoeUtilities.GetDlcPathFromEnv();
+            try {
+                dlcPath = UoeUtilities.GetDlcPathFromEnv();
+            } catch (UoeDlcNotFoundException) {
+                Console.WriteLine("Cancelling test, DLC environment variable not found!");
+                dlcPath = null;
+                return false;
+            }
             if (string.IsNullOrEmpty(dlcPath)) {
                 Console.WriteLine("Cancelling test, DLC environment variable not found!");
                 return false;

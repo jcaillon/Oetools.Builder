@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
@@ -28,7 +27,6 @@ using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
-using Oetools.Utilities.Openedge;
 
 namespace Oetools.Builder {
     

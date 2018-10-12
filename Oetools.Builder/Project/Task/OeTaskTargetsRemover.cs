@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.History;
-using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {

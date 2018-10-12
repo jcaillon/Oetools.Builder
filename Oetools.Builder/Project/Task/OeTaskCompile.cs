@@ -19,15 +19,12 @@
 #endregion
 
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
-using Oetools.Utilities.Openedge;
 using Oetools.Utilities.Openedge.Execution;
 using Oetools.Utilities.Openedge.Execution.Exceptions;
 
