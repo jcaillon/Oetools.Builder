@@ -27,14 +27,14 @@ using Oetools.Utilities.Lib;
 namespace Oetools.Builder.History {
     
     [Serializable]
-    public class OeCompiledFile : IFileListItem {
+    public class OeCompiledFile : IPathListItem {
             
         /// <summary>
         /// Path of the file compiled
         /// </summary>
         [XmlAttribute(AttributeName ="SourceFilePath")]
         [BaseDirectory(Type = BaseDirectoryType.SourceDirectory)]
-        public string FilePath { get; set; }
+        public string Path { get; set; }
             
         [XmlArray("CompilationProblems")]
         [XmlArrayItem("Error", typeof(OeCompilationError))]

@@ -67,7 +67,6 @@ namespace Oetools.Builder.Project.Task {
             if (string.IsNullOrEmpty(ExecutablePath)) {
                 throw new TaskValidationException(this, $"This task needs the following property to be defined : {GetType().GetXmlName(nameof(ExecutablePath))}");
             }
-            base.Validate();
         }
 
         protected override void ExecuteInternal() {
@@ -103,5 +102,9 @@ namespace Oetools.Builder.Project.Task {
             }
         }
 
+        /// <inheritdoc cref="OeTask.ExecuteTestModeInternal"/>
+        protected override void ExecuteTestModeInternal() {
+            // does nothing in test mode
+        }
     }
 }

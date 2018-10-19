@@ -28,32 +28,39 @@ using Oetools.Utilities.Lib;
 namespace Oetools.Builder.Project.Task {
     
     /// <summary>
-    /// The job of this task is to delete al the targets present in <see cref="_filesWithTargetsToRemove"/> with <see cref="OeTarget.DeletionMode"/> = true, they are
+    /// The job of this task is to delete al the targets present in <see cref="_pathsWithTargetsToRemove"/> with <see cref="OeTarget.DeletionMode"/> = true, they are
     /// targets that are no longer needed. Those targets were built in the previous build but the targets have changed (or the file itself has been deleted)
     /// </summary>
     [Serializable]
     [XmlRoot("TargetsRemover")]
-    public class OeTaskTargetsRemover : OeTask, IOeTaskFileBuilder {
+    public class OeTaskTargetsDeleter : OeTask, IOeTaskFileBuilder {
 
-        private FileList<OeFileBuilt> _builtFiles;
+        private PathList<OeFileBuilt> _builtPaths;
 
         /// <summary>
         /// a list of files with targets to remove
         /// </summary>
-        private FileList<OeFileBuilt> _filesWithTargetsToRemove;
+        private PathList<OeFileBuilt> _pathsWithTargetsToRemove;
 
-        public void SetFilesWithTargetsToRemove(FileList<OeFileBuilt> filesWithTargetsToRemove) {
-            _filesWithTargetsToRemove = filesWithTargetsToRemove;
+        public void SetFilesWithTargetsToRemove(PathList<OeFileBuilt> pathsWithTargetsToRemove) {
+            _pathsWithTargetsToRemove = pathsWithTargetsToRemove;
         }
-        
+
+        /// <inheritdoc cref="OeTask.Validate"/>
+        public override void Validate() {
+            // nothing to validate
+        }
+
+        /// <inheritdoc cref="OeTask.ExecuteInternal"/>
         protected sealed override void ExecuteInternal() {
-            var targetsToRemove = _filesWithTargetsToRemove.SelectMany(f => f.Targets).Where(target => target.IsDeletionMode()).ToList();
+            var targetsToRemove = _pathsWithTargetsToRemove.SelectMany(f => f.Targets).Where(target => target.IsDeletionMode()).ToList();
             ExecuteTargetsRemoval(targetsToRemove);
-            _builtFiles = _filesWithTargetsToRemove;
+            _builtPaths = _pathsWithTargetsToRemove;
         }
 
+        /// <inheritdoc cref="OeTask.ExecuteTestModeInternal"/>
         protected override void ExecuteTestModeInternal() {
-            _builtFiles = _filesWithTargetsToRemove;
+            _builtPaths = _pathsWithTargetsToRemove;
         }
 
         private void ExecuteTargetsRemoval(List<OeTarget> targetsToRemove) {
@@ -65,7 +72,7 @@ namespace Oetools.Builder.Project.Task {
         }
 
         /// <inheritdoc cref="IOeTaskFileBuilder.GetFilesBuilt"/>
-        public FileList<OeFileBuilt> GetFilesBuilt() => _builtFiles;
+        public PathList<OeFileBuilt> GetFilesBuilt() => _builtPaths;
 
     }
 }

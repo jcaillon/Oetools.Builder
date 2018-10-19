@@ -24,25 +24,52 @@ using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {
     
+    /// <summary>
+    /// A task that operates on files.
+    /// </summary>
     public interface IOeTaskFile : IOeTaskFilter, IOeTaskFileBuilder {
 
-        void SetFilesToBuild(FileList<OeFile> filesToBuild);
-        
-        FileList<OeFile> GetFilesToBuild();
+        /// <summary>
+        /// Sets the list of files to be built by this task.
+        /// </summary>
+        /// <param name="pathsToBuild"></param>
+        void SetFilesToBuild(PathList<OeFile> pathsToBuild);
         
         /// <summary>
-        /// Given the inclusion wildcard paths and exclusion patterns, returns a list of files on which to apply this task
+        /// Gets a list of files to be built by this task.
         /// </summary>
         /// <returns></returns>
-        FileList<OeFile> GetIncludedFiles();
+        PathList<OeFile> GetFilesToBuild();
+        
+        /// <summary>
+        /// Given the inclusion wildcard paths and exclusion patterns, returns a list of files on which to apply this task.
+        /// This is when the pattern can describe a file or files.
+        /// </summary>
+        /// <example>
+        /// If the include pattern is directly a file path.
+        /// Of if the include pattern is something like C:\windows\exe*
+        /// </example>
+        /// <returns></returns>
+        PathList<OeFile> GetIncludedFiles();
 
         /// <summary>
         /// Validates that the task can be applied on files without having a base directory to list; for that,
-        /// the task must have an included path (and should not use regex inclusion)
+        /// the task must have an included path (and should not use regex inclusion).
         /// </summary>
+        /// <example>
+        /// See the examples in <see cref="GetIncludedFiles"/>
+        /// </example>
         /// <exception cref="TaskExecutionException"></exception>
         void ValidateCanIncludeFiles();
 
-        void SetTargetForFiles(FileList<OeFile> files, string baseTargetDirectory, bool appendMode = false);
+        /// <summary>
+        /// For a given list of files, set the targets that will be needed from this task.
+        /// Relative path are transformed into absolute path using <paramref name="baseTargetDirectory"/>.
+        /// </summary>
+        /// <param name="paths"></param>
+        /// <param name="baseTargetDirectory"></param>
+        /// <param name="appendMode">Either add new targets to existing ones, or resets them.</param>
+        void SetTargetForFiles(PathList<OeFile> paths, string baseTargetDirectory, bool appendMode = false);
+        
     }
 }

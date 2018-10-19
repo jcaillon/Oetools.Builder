@@ -33,18 +33,18 @@ namespace Oetools.Builder.Project.Task {
 
     public abstract class OeTaskFile : OeTaskFilter, IOeTaskFile {
         
-        private FileList<OeFile> _filesToBuild;
+        private PathList<OeFile> _pathsToBuild;
         
-        protected FileList<OeFileBuilt> _builtFiles;
+        protected PathList<OeFileBuilt> _builtPaths;
         
         /// <inheritdoc cref="IOeTaskFileBuilder.GetFilesBuilt"/>
-        public FileList<OeFileBuilt> GetFilesBuilt() => _builtFiles;
+        public PathList<OeFileBuilt> GetFilesBuilt() => _builtPaths;
         
-        public void SetFilesToBuild(FileList<OeFile> filesToBuild) {
-            _filesToBuild = filesToBuild;
+        public void SetFilesToBuild(PathList<OeFile> pathsToBuild) {
+            _pathsToBuild = pathsToBuild;
         }
 
-        public FileList<OeFile> GetFilesToBuild() => _filesToBuild;
+        public PathList<OeFile> GetFilesToBuild() => _pathsToBuild;
 
         /// <inheritdoc cref="IOeTask.Validate"/>
         public override void Validate() {
@@ -69,14 +69,14 @@ namespace Oetools.Builder.Project.Task {
         }
         
         /// <inheritdoc cref="IOeTaskFile.GetIncludedFiles"/>
-        public FileList<OeFile> GetIncludedFiles() {
-            var output = new FileList<OeFile>();
+        public PathList<OeFile> GetIncludedFiles() {
+            var output = new PathList<OeFile>();
             var i = 0;
             foreach (var path in GetIncludeStrings()) {
                 if (File.Exists(path)) {
                     // the include directly designate a file
                     if (!IsFileExcluded(path)) {
-                        output.TryAdd(new OeFile { FilePath = Path.GetFullPath(path) });
+                        output.TryAdd(new OeFile { Path = Path.GetFullPath(path) });
                     }
                 } else {
                     // the include is a wildcard path, we try to get the "root" folder to list to get all the files
@@ -84,8 +84,8 @@ namespace Oetools.Builder.Project.Task {
                     if (!string.IsNullOrEmpty(validDir)) {
                         Log?.Info($"Listing directory : {validDir.PrettyQuote()}");
                         var regexCorrespondingToPath = GetIncludeRegex()[i];
-                        foreach (var file in new SourceFilesLister(validDir, CancelToken) { SourcePathFilter = this, Log = Log } .GetFileList()) {
-                            if (regexCorrespondingToPath.IsMatch(file.FilePath)) {
+                        foreach (var file in new PathLister(validDir, CancelToken) { PathFilter = this, Log = Log } .GetFileList()) {
+                            if (regexCorrespondingToPath.IsMatch(file.Path)) {
                                 output.TryAdd(file);
                             }
                         }
@@ -107,27 +107,27 @@ namespace Oetools.Builder.Project.Task {
                     var compiledFiles = thisOeTaskCompile.GetCompiledFiles();
                     if (compiledFiles == null) {
                         Log?.Debug("Start file compilation");
-                        compiledFiles = OeTaskCompile.CompileFiles(thisOeTaskCompile.GetProperties(), _filesToBuild.Select(f => new UoeFileToCompile(f.FilePath) {
+                        compiledFiles = OeFilesCompiler.CompileFiles(thisOeTaskCompile.GetProperties(), _pathsToBuild.Select(f => new UoeFileToCompile(f.Path) {
                             FileSize = f.Size
                         }), CancelToken, Log);
                         thisOeTaskCompile.SetCompiledFiles(compiledFiles);
                     }
                     
                     Log?.Debug("Switching original source files for rcode files to build");
-                    _filesToBuild = OeTaskCompile.SetRcodeFilesAsSourceInsteadOfSourceFiles(_filesToBuild, compiledFiles);
+                    _pathsToBuild = OeFilesCompiler.SetRcodeFilesAsSourceInsteadOfSourceFiles(_pathsToBuild, compiledFiles);
                 } catch(Exception e) {
                     throw new TaskExecutionException(this, e.Message, e);
                 }
             }
             switch (this) {
                 case IOeTaskFileTargetFile oeTaskFileTargetFile:
-                    oeTaskFileTargetFile.ExecuteForFilesTargetFiles(_filesToBuild);
+                    oeTaskFileTargetFile.ExecuteForFilesTargetFiles(_pathsToBuild);
                     break;
                 case IOeTaskFileTargetArchive oeTaskFileTargetArchive:
-                    oeTaskFileTargetArchive.ExecuteForFilesTargetArchives(_filesToBuild);
+                    oeTaskFileTargetArchive.ExecuteForFilesTargetArchives(_pathsToBuild);
                     break;
                 default:
-                    ExecuteForFilesInternal(_filesToBuild);
+                    ExecuteForFilesInternal(_pathsToBuild);
                     break;
             }
         }
@@ -137,11 +137,11 @@ namespace Oetools.Builder.Project.Task {
         /// this method is executed instead of <see cref="ExecuteInternal"/> when test mode is on
         /// </summary>
         protected override void ExecuteTestModeInternal() {
-            _builtFiles = new FileList<OeFileBuilt>();
-            foreach (var file in _filesToBuild) {
+            _builtPaths = new PathList<OeFileBuilt>();
+            foreach (var file in _pathsToBuild) {
                 var fileBuilt = GetNewFileBuilt(file);
                 fileBuilt.Targets = file.GetAllTargets().ToList();
-                _builtFiles.Add(fileBuilt);
+                _builtPaths.Add(fileBuilt);
             }
         }
 
@@ -154,7 +154,7 @@ namespace Oetools.Builder.Project.Task {
         protected OeFileBuilt GetNewFileBuilt(OeFile sourceFile) {
             if (this is IOeTaskCompile thisOeTaskCompile) {
                 var newFileBuilt = new OeFileBuiltCompiled(sourceFile);
-                var compiledFile = thisOeTaskCompile.GetCompiledFiles()?[sourceFile.FilePath];
+                var compiledFile = thisOeTaskCompile.GetCompiledFiles()?[sourceFile.Path];
                 if (compiledFile != null) {
                     newFileBuilt.RequiredFiles = compiledFile.RequiredFiles?.ToList();
                     newFileBuilt.RequiredDatabaseReferences = compiledFile.RequiredDatabaseReferences?.Select(OeDatabaseReference.New).ToList();
@@ -165,31 +165,26 @@ namespace Oetools.Builder.Project.Task {
         }
 
         /// <summary>
-        /// Execute the task for a set of files
+        /// Execute the task for a set of files.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// - The task should create/add a list of files that it builds, list that is returned by <see cref="IOeTaskFileBuilder.GetFilesBuilt"/>
         /// - This method should throw <see cref="TaskExecutionException"/> if needed
         /// - This method can publish warnings using <see cref="OeTask.AddExecutionWarning"/>
+        /// </para>
         /// </remarks>
-        /// <param name="files"></param>
+        /// <param name="paths"></param>
         /// <exception cref="TaskExecutionException"></exception>
-        protected virtual void ExecuteForFilesInternal(FileList<OeFile> files) {
-            throw new NotImplementedException();
-        }        
+        protected abstract void ExecuteForFilesInternal(PathList<OeFile> paths);
 
-        /// <summary>
-        /// For a given list of files, set the targets that will be needed from this task
-        /// </summary>
-        /// <param name="files"></param>
-        /// <param name="baseTargetDirectory"></param>
-        /// <param name="appendMode"></param>
-        public void SetTargetForFiles(FileList<OeFile> files, string baseTargetDirectory, bool appendMode = false) {
+        /// <inheritdoc cref="IOeTaskFile.SetTargetForFiles"/>
+        public void SetTargetForFiles(PathList<OeFile> paths, string baseTargetDirectory, bool appendMode = false) {
             var taskIsCompileTask = this is IOeTaskCompile;
             switch (this) {
                 case IOeTaskFileTargetFile taskWithTargetFiles:
-                    foreach (var file in files) {
-                        var newTargets = taskWithTargetFiles.GetTargetsFiles(file.FilePath, baseTargetDirectory);
+                    foreach (var file in paths) {
+                        var newTargets = taskWithTargetFiles.GetTargetsFiles(file.Path, baseTargetDirectory);
                         
                         // change the targets extension to .r for compiled files
                         if (taskIsCompileTask && newTargets != null) {
@@ -208,8 +203,8 @@ namespace Oetools.Builder.Project.Task {
                     }
                     break;
                 case IOeTaskFileTargetArchive taskWithTargetArchives:
-                    foreach (var file in files) {
-                        var newTargets = taskWithTargetArchives.GetTargetsArchives(file.FilePath, baseTargetDirectory);
+                    foreach (var file in paths) {
+                        var newTargets = taskWithTargetArchives.GetTargetsArchives(file.Path, baseTargetDirectory);
                         
                         // change the targets extension to .r for compiled files
                         if (taskIsCompileTask && newTargets != null) {

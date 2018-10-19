@@ -80,9 +80,11 @@ namespace Oetools.Builder.Project.Task {
         [XmlArray("Components")]
         [XmlArrayItem("Component", typeof(OeWebclientComponent))]
         public List<OeWebclientComponent> Components { get; set; }
-        
+
+        public override void Validate() => throw new NotImplementedException();
         protected override void ExecuteInternal() => throw new NotImplementedException();
-        
+        protected override void ExecuteTestModeInternal() => throw new NotImplementedException();
+
         public OeWebclientPackage GetWebclientPackageResult() => throw new NotImplementedException();
             
         internal class DiffCab {
@@ -114,7 +116,7 @@ namespace Oetools.Builder.Project.Task {
             /// <summary>
             ///     List of all the files that were deployed in the clientNWK since this VersionToUpdateFrom
             /// </summary>
-            internal FileList<OeFileBuilt> FilesDeployedInNwkSincePreviousVersion { get; set; }
+            internal PathList<OeFileBuilt> PathsDeployedInNwkSincePreviousVersion { get; set; }
 
         }
     }

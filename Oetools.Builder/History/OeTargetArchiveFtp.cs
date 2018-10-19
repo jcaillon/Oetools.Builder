@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (OeTaskFileTargetArchiveCompileProlib.cs) is part of Oetools.Builder.
+// This file (OeTargetArchiveZip.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,15 +17,9 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-
 using System;
-using System.Xml.Serialization;
 
-namespace Oetools.Builder.Project.Task {
-    
+namespace Oetools.Builder.History {
     [Serializable]
-    [XmlRoot("CompileProlib")]
-    public class OeTaskFileTargetArchiveCompileProlib : OeTaskFileTargetArchiveProlib, IOeTaskCompile {
-
-    }
+    public class OeTargetArchiveFtp : OeTargetArchive { }
 }

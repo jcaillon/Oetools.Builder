@@ -122,7 +122,9 @@ namespace Oetools.Builder {
             task.SetCancelToken(CancelToken);
             if (task is IOeTaskCompile taskCompile) {
                 taskCompile.SetFileExtensionFilter(Properties?.CompilationOptions?.CompilableFileExtensionPattern ?? OeCompilationOptions.GetDefaultCompilableFileExtensionPattern());
-                taskCompile.SetProperties(Properties);
+            }
+            if (task is IOeTaskNeedingProperties taskNeedingProperties) {
+                taskNeedingProperties.SetProperties(Properties);
             }
         }
 
@@ -131,7 +133,7 @@ namespace Oetools.Builder {
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        protected virtual FileList<OeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
+        protected virtual PathList<OeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
             Log?.Debug("Gets the list of files on which to apply this task from path inclusion");
             return task.GetIncludedFiles();
         }

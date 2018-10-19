@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (IOeTaskFileTargetFile.cs) is part of Oetools.Builder.
+// This file (IOeTaskFile.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,34 +18,37 @@
 // ========================================================================
 #endregion
 
-using System.Collections.Generic;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {
     
-    public interface IOeTaskFileTargetFile : IOeTaskFile {
+    /// <summary>
+    /// A task that operates on directories.
+    /// </summary>
+    public interface IOeTaskDirectory : IOeTaskFilter {
 
         /// <summary>
-        /// Returns a list of target file path for the corresponding source <paramref name="filePath" />,
-        /// relative path are turned into absolute path preprending <paramref name="baseTargetDirectory" />
+        /// Given the inclusion wildcard paths and exclusion patterns, returns a list of directories on which to apply this task.
+        /// This is when the pattern can describe a directory or directories.
         /// </summary>
-        /// <param name="filePath"></param>
-        /// <param name="baseTargetDirectory"></param>
+        /// <example>
+        /// If the include pattern is directly a file path.
+        /// Of if the include pattern is something like C:\windows\exe*
+        /// </example>
         /// <returns></returns>
-        List<OeTargetFile> GetTargetsFiles(string filePath, string baseTargetDirectory = null);
-        
+        PathList<OeDirectory> GetIncludedDirectories();
+
         /// <summary>
-        /// Execute the task for a set of files
+        /// Validates that the task can be applied on directories without having a base directory to list; for that,
+        /// the task must have an included path (and should not use regex inclusion).
         /// </summary>
-        /// <remarks>
-        /// - The task should create/add a list of files that it builds, list that is returned by <see cref="IOeTaskFileBuilder.GetFilesBuilt"/>
-        /// - This method should throw <see cref="TaskExecutionException"/> if needed
-        /// - This method can publish warnings using <see cref="OeTask.AddExecutionWarning"/>
-        /// </remarks>
-        /// <param name="files"></param>
+        /// <example>
+        /// See the examples in <see cref="GetIncludedDirectories"/>
+        /// </example>
         /// <exception cref="TaskExecutionException"></exception>
-        void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files);
+        void ValidateCanIncludeDirectories();
         
     }
 }

@@ -1,7 +1,7 @@
-﻿#region header
+#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (IOeTaskCompile.cs) is part of Oetools.Builder.
+// This file (OeDirectory.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,26 +19,17 @@
 #endregion
 
 using Oetools.Utilities.Lib;
-using Oetools.Utilities.Openedge.Execution;
 
-namespace Oetools.Builder.Project.Task {
-    
-    /// <summary>
-    /// A task that allows to compile files.
-    /// </summary>
-    public interface IOeTaskCompile : IOeTaskFile, IOeTaskNeedingProperties {
-
-        /// <summary>
-        /// Sets a list of files to be compiled.
-        /// </summary>
-        /// <param name="compiledPath"></param>
-        void SetCompiledFiles(PathList<UoeCompiledFile> compiledPath);
+namespace Oetools.Builder.History {
+    public class OeDirectory : IPathListItem {
         
         /// <summary>
-        /// Gets a list of files to be compiled.
+        /// The path of the directory.
         /// </summary>
-        /// <returns></returns>
-        PathList<UoeCompiledFile> GetCompiledFiles();
+        public string Path { get; set; }
 
+        public OeDirectory(string path) {
+            Path = path;
+        }
     }
 }

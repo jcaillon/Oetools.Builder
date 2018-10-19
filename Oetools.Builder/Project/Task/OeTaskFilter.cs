@@ -20,11 +20,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
+using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
@@ -37,6 +39,7 @@ namespace Oetools.Builder.Project.Task {
         /// ; are authorized
         /// </summary>
         /// <remarks>
+        /// <para>
         ///     Allows to tranform a matching string using **, * and ? (wildcards) into a valid regex expression
         ///     it escapes regex special char so it will work as you expect!
         ///     Ex: foo*.xls? will become ^foo.*\.xls.$
@@ -46,6 +49,7 @@ namespace Oetools.Builder.Project.Task {
         ///     - (( will be transformed into open capturing parenthesis
         ///     - )) will be transformed into close capturing parenthesis
         ///     - || will be transformed into |
+        /// </para>
         /// </remarks>
         [XmlAttribute(AttributeName = "Exclude")]
         public string Exclude {
@@ -123,26 +127,18 @@ namespace Oetools.Builder.Project.Task {
             CheckWildCards(GetExcludeStrings());
             InitRegex();
         }
-        
+
         /// <inheritdoc cref="IOeTaskFilter.FilterFiles"/>
-        public FileList<OeFile> FilterFiles(FileList<OeFile> originalListOfFiles) {
-            return originalListOfFiles?.CopyWhere(f => IsFilePassingFilter(f.FilePath));
+        public PathList<OeFile> FilterFiles(PathList<OeFile> originalListOfPaths) {
+            return originalListOfPaths?.CopyWhere(f => IsFilePassingFilter(f.Path));
         }
         
-        /// <summary>
-        /// Returns true if the given file passes this filter
-        /// </summary>
-        /// <param name="filePath"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="IOeTaskFilter.IsFilePassingFilter"/>
         public bool IsFilePassingFilter(string filePath) {
             return IsFileIncluded(filePath) && !IsFileExcluded(filePath);
         }
         
-        /// <summary>
-        /// Returns true of the given path is included with this filter
-        /// </summary>
-        /// <param name="filePath"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="IOeTaskFilter.IsFileIncluded"/>
         public bool IsFileIncluded(string filePath) {
             if (!string.IsNullOrEmpty(_fileExtensionsFilter)) {
                 if (!filePath.TestFileNameAgainstListOfPatterns(_fileExtensionsFilter)) {
@@ -153,20 +149,12 @@ namespace Oetools.Builder.Project.Task {
             return includeRegexes.Count == 0 || includeRegexes.Any(regex => regex.IsMatch(filePath));
         }
         
-        /// <summary>
-        /// Returns true of the given path is excluded with this filter
-        /// </summary>
-        /// <param name="filePath"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="IOeTaskFilter.IsFileExcluded"/>
         public bool IsFileExcluded(string filePath) {
             return GetExcludeRegex().Any(regex => regex.IsMatch(filePath));
         }
 
-        /// <summary>
-        /// Allows to define another filter on the file extension; only the files with thoses extensions will be
-        /// allowed
-        /// </summary>
-        /// <param name="fileExtensionFiler"></param>
+        /// <inheritdoc cref="IOeTaskFilter.SetFileExtensionFilter"/>
         public void SetFileExtensionFilter(string fileExtensionFiler) {
             if (string.IsNullOrEmpty(_fileExtensionsFilter)) {
                 _fileExtensionsFilter = fileExtensionFiler;
@@ -241,5 +229,104 @@ namespace Oetools.Builder.Project.Task {
                 i++;
             }
         }
+
+        /// <inheritdoc cref="OeTask.ExecuteInternal"/>
+        protected override void ExecuteInternal() {
+            // does nothing
+        }
+        
+        /// <inheritdoc cref="OeTask.ExecuteTestModeInternal"/>
+        protected override void ExecuteTestModeInternal() {
+            // does nothing
+        }
+        
+        /// <summary>
+        /// Computes a single target file for the given <paramref name="sourceFilePath"/>.
+        /// </summary>
+        /// <param name="targetPathWithPlaceholders">target path that can contain placeholders.</param>
+        /// <param name="isDirectoryPath">Is the target path a directory.</param>
+        /// <param name="match">The match result of the source path with the include regex.</param>
+        /// <param name="sourceFilePath">The source path.</param>
+        /// <param name="baseTargetDirectory">The base target directory</param>
+        /// <param name="mustBeRelativePath">Indicates if the resulting target should be a relative path or not.</param>
+        /// <returns></returns>
+        /// <exception cref="TaskExecutionException"></exception>
+        protected string GetSingleTargetPath(string targetPathWithPlaceholders, bool isDirectoryPath, Match match, string sourceFilePath, string baseTargetDirectory, bool mustBeRelativePath) {
+            var sourceFileDirectory = Path.GetDirectoryName(sourceFilePath);
+            var target = targetPathWithPlaceholders.ReplacePlaceHolders(s => {
+                if (s.EqualsCi(OeBuilderConstants.OeVarNameFileSourceDirectory)) {
+                    return sourceFileDirectory;
+                }
+                if (match.Groups[s].Success) {
+                    return match.Groups[s].Value;
+                }
+                return string.Empty;
+            });
+
+            // if we target a directory, append the source filename
+            if (isDirectoryPath) {
+                target = Path.Combine(target, Path.GetFileName(sourceFilePath ?? ""));
+            } else {
+                target = target.TrimEndDirectorySeparator();
+            }
+
+            target = target.ToCleanPath();
+
+            bool isPathRooted = Utils.IsPathRooted(target);
+            
+            // take care of relative target path
+            if (!isPathRooted) {
+                if (!string.IsNullOrEmpty(baseTargetDirectory)) {
+                    target = Path.Combine(baseTargetDirectory, target);
+                    isPathRooted = true;
+                } else if (!mustBeRelativePath) {
+                    throw new TaskExecutionException(this, $"This task is not allowed to target a relative path because no base target directory is defined for this task, the error occured for : {targetPathWithPlaceholders.PrettyQuote()}");
+                }
+            } else if (mustBeRelativePath) {
+                throw new TaskExecutionException(this, $"The following path should resolve to a relative path : {targetPathWithPlaceholders.PrettyQuote()}");
+            }
+            
+            // get the real full path name of the target
+            if (isPathRooted) {
+                try {
+                    target = Path.GetFullPath(target);
+                } catch (Exception e) {
+                    throw new TaskExecutionException(this, $"Could not convert the target path to an absolute path, the original path pattern was {targetPathWithPlaceholders.PrettyQuote()}, it was resolved into the target {target.PrettyQuote()} but failed with the exception : {e.Message}", e);
+                }
+            }
+
+            return target;
+        }
+
+        /// <summary>
+        /// Checks that a list of strings are valid path with placeholders.
+        /// </summary>
+        /// <param name="originalStrings"></param>
+        /// <returns></returns>
+        /// <exception cref="TaskValidationException"></exception>
+        protected void CheckTargetPath(IEnumerable<string> originalStrings) {
+            if (originalStrings == null) {
+                return;
+            }
+            var i = 0;
+            foreach (var originalString in originalStrings) {
+                try {
+                    foreach (char c in Path.GetInvalidPathChars()) {
+                        if (originalString.IndexOf(c) >= 0) {
+                            throw new Exception($"Illegal character path {c} at column {originalString.IndexOf(c)}");
+                        }
+                    }
+                    originalString.ValidatePlaceHolders();
+                } catch (Exception e) {
+                    var ex = new TargetValidationException( $"Invalid path expression {originalString.PrettyQuote()}, reason : {e.Message}", e) {
+                        TargetNumber = i
+                    };
+                    throw ex;
+                }
+                i++;
+            }
+        }
+        
+        
     }
 }

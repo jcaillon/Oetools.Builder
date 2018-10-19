@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities.Attributes;
+using Oetools.Utilities.Archive;
 
 namespace Oetools.Builder.Project.Task {
     
@@ -44,12 +45,12 @@ namespace Oetools.Builder.Project.Task {
             return OeCompressionLevel.None;
         }
 
-        public override string GetTargetArchive() => TargetCabFilePath;
+        protected override IArchiver GetArchiver() => Archiver.New(ArchiverType.Cab);
+
+        protected override string GetTargetArchive() => TargetCabFilePath;
         
-        public override string GetTargetArchivePropertyName() => nameof(TargetCabFilePath);
+        protected override string GetTargetArchivePropertyName() => nameof(TargetCabFilePath);
 
         protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveCab();
-
-        public override void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files) => throw new NotImplementedException();
     }
 }

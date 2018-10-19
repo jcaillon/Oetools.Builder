@@ -25,37 +25,62 @@ using Oetools.Utilities.Lib;
 namespace Oetools.Builder.Project.Task {
     public interface IOeTaskFilter : IOeTask {
         
+        /// <summary>
+        /// Returns a list of include strings as regular expressions.
+        /// </summary>
+        /// <returns></returns>
         List<string> GetRegexIncludeStrings();
+        
+        /// <summary>
+        /// Returns a list of exclude strings as regular expressions.
+        /// </summary>
+        /// <returns></returns>
         List<string> GetRegexExcludeStrings();
+        
+        /// <summary>
+        /// Returns the raw list of include strings.
+        /// </summary>
+        /// <returns></returns>
         List<string> GetIncludeStrings();
+        
+        /// <summary>
+        /// Returns the raw list of exclude strings.
+        /// </summary>
+        /// <returns></returns>
         List<string> GetExcludeStrings();
         
         /// <summary>
-        /// Given the inclusion and exclusion patterns, filter the input list of files to only keep files that apply to this task
+        /// Given the inclusion and exclusion patterns, filter the input list of files to only keep files that apply to this task.
         /// </summary>
-        /// <param name="originalListOfFiles"></param>
+        /// <param name="originalListOfPaths"></param>
         /// <returns></returns>
-        FileList<OeFile> FilterFiles(FileList<OeFile> originalListOfFiles);
+        PathList<OeFile> FilterFiles(PathList<OeFile> originalListOfPaths);
 
         /// <summary>
-        /// Returns true if the given file passes this filter
+        /// Returns true if the given file passes this filter.
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
         bool IsFilePassingFilter(string filePath);
 
         /// <summary>
-        /// Returns true of the given path is included with this filter
+        /// Returns true of the given path is included with this filter.
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
         bool IsFileIncluded(string filePath);
 
         /// <summary>
-        /// Returns true of the given path is excluded with this filter
+        /// Returns true of the given path is excluded with this filter.
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
         bool IsFileExcluded(string filePath);
+
+        /// <summary>
+        /// Allows to define another filter on the file extension; only the files with theses extensions will be allowed.
+        /// </summary>
+        /// <param name="fileExtensionFiler"></param>
+        void SetFileExtensionFilter(string fileExtensionFiler);
     }
 }

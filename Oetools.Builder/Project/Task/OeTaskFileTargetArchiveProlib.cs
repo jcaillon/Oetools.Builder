@@ -23,22 +23,24 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities.Attributes;
+using Oetools.Utilities.Archive;
 
 namespace Oetools.Builder.Project.Task {
     
     [Serializable]
-    public class OeTaskFileTargetArchiveProlib : OeTaskFileTargetArchive {
+    public class OeTaskFileTargetArchiveProlib : OeTaskFileTargetArchive, IOeTaskNeedingProperties {
         
         [XmlAttribute("TargetProlibFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
         public string TargetProlibFilePath { get; set; }
-        
-        public override string GetTargetArchive() => TargetProlibFilePath;
+
+        protected override IArchiver GetArchiver() => Archiver.NewProlibArchiver(GetProperties().DlcDirectoryPath);
+
+        protected override string GetTargetArchive() => TargetProlibFilePath;
         
         protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveProlib();
         
-        public override string GetTargetArchivePropertyName() => nameof(TargetProlibFilePath);
+        protected override string GetTargetArchivePropertyName() => nameof(TargetProlibFilePath);
         
-        public override void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files) => throw new NotImplementedException();
     }
 }

@@ -11,21 +11,22 @@ namespace Oetools.Builder {
         
         protected override string BaseTargetDirectory => Properties?.BuildOptions?.OutputDirectoryPath;
 
-        private FileList<OeFile> _outputDirectoryCompleteFileList;
+        private PathList<OeFile> _outputDirectoryCompletePathList;
 
-        protected override FileList<OeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
+        protected override PathList<OeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
             Log?.Debug("Gets the list of files on which to apply this task from the output directory");
             
-            if (_outputDirectoryCompleteFileList == null) {
+            if (_outputDirectoryCompletePathList == null) {
                 Log?.Debug($"List all the files in output directory {BaseTargetDirectory.PrettyQuote()}");
                 if (Directory.Exists(Properties.BuildOptions.OutputDirectoryPath)) {
-                    var sourceLister = new SourceFilesLister(Properties.BuildOptions.OutputDirectoryPath, CancelToken) {
+                    var sourceLister = new PathLister(Properties.BuildOptions.OutputDirectoryPath, CancelToken) {
                         Log = Log
                     };
-                    _outputDirectoryCompleteFileList = sourceLister.GetFileList();
+                    _outputDirectoryCompletePathList = sourceLister.GetFileList();
                 }
             }
-            return task.FilterFiles(_outputDirectoryCompleteFileList ?? new FileList<OeFile>());
+            
+            return task.FilterFiles(_outputDirectoryCompletePathList ?? new PathList<OeFile>());
         }
     }
 }

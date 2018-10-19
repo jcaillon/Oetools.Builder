@@ -23,17 +23,23 @@ using Oetools.Builder.History;
 
 namespace Oetools.Builder.Project.Task {
     
+    /// <summary>
+    /// A task that operates on archives
+    /// </summary>
     internal interface IOeTaskFileTargetArchive : IOeTaskFile {
 
         /// <summary>
         /// Returns a list of target file path for the corresponding source <paramref name="filePath" />,
-        /// relative path are turned into absolute path preprending <paramref name="baseTargetDirectory" />
+        /// relative path are turned into absolute path preprending <paramref name="baseTargetDirectory" />.
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="baseTargetDirectory"></param>
         /// <returns></returns>
         List<OeTargetArchive> GetTargetsArchives(string filePath, string baseTargetDirectory = null);
 
+        /// <summary>
+        /// Execute the task for a set of files in archives.
+        /// </summary>
         /// <inheritdoc cref="OeTaskFile.ExecuteForFilesInternal"/>
         void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files);
     }

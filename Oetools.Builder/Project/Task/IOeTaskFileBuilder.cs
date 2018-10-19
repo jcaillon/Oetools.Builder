@@ -23,13 +23,16 @@ using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {
     
+    /// <summary>
+    /// A task that can build files. A file is "built" when its source path is located in the source directory.
+    /// </summary>
     public interface IOeTaskFileBuilder {
         
         /// <summary>
-        /// Returns the list of files built by this task
+        /// Returns the list of files built by this task.
         /// </summary>
         /// <returns></returns>
-        FileList<OeFileBuilt> GetFilesBuilt();
+        PathList<OeFileBuilt> GetFilesBuilt();
         
     }
 }

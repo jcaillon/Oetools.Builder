@@ -28,38 +28,52 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
     
+    /// <summary>
+    /// A base task.
+    /// </summary>
     public abstract class OeTask : IOeTask {
         
+        /// <summary>
+        /// The label of this task. A custom string that allows to identify this task in the logs.
+        /// </summary>
         [XmlAttribute("Label")]
         public string Label { get; set; }
         
         [XmlIgnore]
         internal int Id { get; set; }   
         
-        public event EventHandler<TaskWarningEventArgs> PublishWarning;
-        
-        protected CancellationToken? CancelToken { get; set; }
-        public void SetCancelToken(CancellationToken? cancelToken) => CancelToken = cancelToken;
-
-        protected bool TestMode { get; set; }
-        public void SetTestMode(bool testMode) => TestMode = testMode;
-        
         protected ILogger Log { get; set; }
-        public void SetLog(ILogger log) => Log = log;
+        protected CancellationToken? CancelToken { get; set; }
+        protected bool TestMode { get; set; }
 
         private List<TaskExecutionException> _exceptions;
-        public List<TaskExecutionException> GetExceptionList() => _exceptions;
-        
-        /// <inheritdoc cref="IOeTask.Validate"/>
-        public virtual void Validate() { }
-        
         private OeProperties ProjectProperties { get; set; }
+        
+        /// <inheritdoc cref="IOeTask.PublishWarning"/>
+        public event EventHandler<TaskWarningEventArgs> PublishWarning;
+        
+        /// <inheritdoc cref="IOeTask.SetCancelToken"/>
+        public void SetCancelToken(CancellationToken? cancelToken) => CancelToken = cancelToken;       
+        
+        /// <inheritdoc cref="IOeTask.SetTestMode"/>
+        public void SetTestMode(bool testMode) => TestMode = testMode;
+        
+        /// <inheritdoc cref="IOeTask.SetLog"/>
+        public void SetLog(ILogger log) => Log = log;
+        
+        /// <inheritdoc cref="IOeTask.GetRuntimeExceptionList"/>
+        public List<TaskExecutionException> GetRuntimeExceptionList() => _exceptions;
+
+        /// <inheritdoc cref="IOeTask.Validate"/>
+        public abstract void Validate();
+        
+        /// <inheritdoc cref="IOeTaskNeedingProperties.SetProperties"/>
         public void SetProperties(OeProperties properties) => ProjectProperties = properties;
+        
+        /// <inheritdoc cref="IOeTaskNeedingProperties.GetProperties"/>
         public OeProperties GetProperties() => ProjectProperties;
 
-        /// <summary>
-        /// Main entry point for simple execution tasks
-        /// </summary>
+        /// <inheritdoc cref="IOeTask.Execute"/>
         public void Execute() {
             Log?.Debug($"Executing {this}");
             try {
@@ -79,24 +93,22 @@ namespace Oetools.Builder.Project.Task {
         }
 
         /// <summary>
-        /// Executes the task
+        /// Executes the task.
         /// </summary>
         /// <remarks>
-        /// - This method should throw <see cref="TaskExecutionException"/> if needed
-        /// - This method can publish warnings using <see cref="OeTask.AddExecutionWarning"/>
+        /// - This method should throw <see cref="TaskExecutionException"/> if needed.
+        /// - This method can publish warnings using <see cref="OeTask.AddExecutionWarning"/>.
         /// </remarks>
         /// <exception cref="TaskExecutionException"></exception>
-        protected virtual void ExecuteInternal() {
-            throw new NotImplementedException();
-        }
+        protected abstract void ExecuteInternal();
 
         /// <summary>
-        /// This method is executed instead of <see cref="ExecuteInternal"/> when test mode is on
+        /// This method is executed instead of <see cref="ExecuteInternal"/> when test mode is ON.
         /// </summary>
-        protected virtual void ExecuteTestModeInternal() { }
+        protected abstract void ExecuteTestModeInternal();
 
         /// <summary>
-        /// Don't use this method, directly throw an <see cref="TaskExecutionException"/> instead
+        /// Don't use this method, directly throw an <see cref="TaskExecutionException"/> instead.
         /// </summary>
         /// <param name="exception"></param>
         /// <exception cref="TaskExecutionException"></exception>
@@ -106,7 +118,7 @@ namespace Oetools.Builder.Project.Task {
         }
 
         /// <summary>
-        /// Call this method to publish a warning in the task
+        /// Call this method to publish a warning in the task.
         /// </summary>
         /// <param name="exception"></param>
         protected void AddExecutionWarning(TaskExecutionException exception) {
@@ -114,6 +126,10 @@ namespace Oetools.Builder.Project.Task {
             PublishWarning?.Invoke(this, new TaskWarningEventArgs(exception));
         }
         
+        /// <summary>
+        /// String representation of this task.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString() => $"Task [{Id}]{(string.IsNullOrEmpty(Label) ? "" : $" {Label}")} of type {GetType().GetXmlName()}";
     }
 }

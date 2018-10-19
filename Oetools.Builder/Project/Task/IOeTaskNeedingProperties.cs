@@ -1,7 +1,7 @@
-﻿#region header
+#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (OeTaskFileTargetArchiveCompileZip.cs) is part of Oetools.Builder.
+// This file (IOeTaskNeedingProperties.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,14 +18,23 @@
 // ========================================================================
 #endregion
 
-using System;
-using System.Xml.Serialization;
-
 namespace Oetools.Builder.Project.Task {
     
-    [Serializable]
-    [XmlRoot("CompileZip")]
-    public class OeTaskFileTargetArchiveCompileZip : OeTaskFileTargetArchiveZip, IOeTaskCompile {
-
+    /// <summary>
+    /// A task that requires <see cref="OeProperties"/> to be set.
+    /// </summary>
+    public interface IOeTaskNeedingProperties {
+        
+        /// <summary>
+        /// Set the properties for this task.
+        /// </summary>
+        /// <param name="properties"></param>
+        void SetProperties(OeProperties properties);
+        
+        /// <summary>
+        /// Get the properties for this task.
+        /// </summary>
+        /// <returns></returns>
+        OeProperties GetProperties();
     }
 }

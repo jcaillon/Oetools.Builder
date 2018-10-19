@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (OeTaskFileTarget.cs) is part of Oetools.Builder.
+// This file (OeTaskRemoveDir.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,30 +19,37 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
+using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
-using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
-using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project.Task {
     
     /// <summary>
-    /// Base task class for tasks that operates on files and that have targets for aforementioned files.
+    /// This task allows to delete directories.
     /// </summary>
-    public abstract class OeTaskFileTarget : OeTaskFile {
-        
-        private PathList<UoeCompiledFile> CompiledPaths { get; set; }
-        
-        /// <inheritdoc cref="IOeTaskCompile.SetCompiledFiles"/>
-        public void SetCompiledFiles(PathList<UoeCompiledFile> compiledPath) => CompiledPaths = compiledPath;
-        
-        /// <inheritdoc cref="IOeTaskCompile.GetCompiledFiles"/>
-        public PathList<UoeCompiledFile> GetCompiledFiles() => CompiledPaths;
+    [Serializable]
+    [XmlRoot("DeleteDirectory")]
+    public class OeTaskDirectoryDelete : OeTaskDirectory {
+
+        protected override void ExecuteForDirectoriesInternal(PathList<OeDirectory> directories) {
+            throw new NotImplementedException();
+            
+            //CancelToken?.ThrowIfCancellationRequested();
+            //if (Directory.Exists(DirectoryPath)) {
+            //    Log?.Trace?.Write($"Deleting directory {DirectoryPath.PrettyQuote()}");
+            //    try {
+            //        Directory.Delete(DirectoryPath, true);
+            //    } catch (Exception e) {
+            //        throw new TaskExecutionException(this, $"Could not delete directory {DirectoryPath.PrettyQuote()}", e);
+            //    }
+            //} else {
+            //    Log?.Trace?.Write($"Deleting directory not existing {DirectoryPath}");
+            //}
+        }
         
     }
 }

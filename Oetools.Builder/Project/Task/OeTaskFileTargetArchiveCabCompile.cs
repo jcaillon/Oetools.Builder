@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (OeTaskFileTargetArchiveFtp.cs) is part of Oetools.Builder.
+// This file (OeTaskFileTargetArchiveCompileCab.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,30 +19,12 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Xml.Serialization;
-using Oetools.Builder.History;
-using Oetools.Builder.Utilities.Attributes;
-using Oetools.Utilities.Archive;
 
 namespace Oetools.Builder.Project.Task {
-    
     [Serializable]
-    [XmlRoot("Ftp")]
-    public class OeTaskFileTargetArchiveFtp : OeTaskFileTargetArchive {
-        
-        [XmlAttribute("TargetFtpUri")]
-        [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public string TargetFtpUri { get; set; }
+    [XmlRoot("CompileInCab")]
+    public class OeTaskFileTargetArchiveCabCompile : OeTaskFileTargetArchiveCab, IOeTaskCompile {
 
-        public override OeCompressionLevel GetArchivesCompressionLevel() => OeCompressionLevel.None;
-        
-        protected override IArchiver GetArchiver() => Archiver.New(ArchiverType.Cab);
-
-        protected override string GetTargetArchive() => TargetFtpUri;
-        
-        protected override string GetTargetArchivePropertyName() => nameof(TargetFtpUri);
-
-        protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveFtp();
     }
 }

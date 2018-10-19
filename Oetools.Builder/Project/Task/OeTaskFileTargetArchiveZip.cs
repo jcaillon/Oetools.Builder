@@ -23,8 +23,10 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities.Attributes;
+using Oetools.Utilities.Archive;
 
 namespace Oetools.Builder.Project.Task {
+    
     [Serializable]
     public class OeTaskFileTargetArchiveZip : OeTaskFileTargetArchive {
         
@@ -41,13 +43,13 @@ namespace Oetools.Builder.Project.Task {
             }
             return OeCompressionLevel.None;
         }
-        
-        public override string GetTargetArchive() => TargetZipFilePath;
+
+        protected override IArchiver GetArchiver() => Archiver.New(ArchiverType.Zip);
+
+        protected override string GetTargetArchive() => TargetZipFilePath;
         
         protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
         
-        public override string GetTargetArchivePropertyName() => nameof(TargetZipFilePath);
-        
-        public override void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files) => throw new NotImplementedException();
+        protected override string GetTargetArchivePropertyName() => nameof(TargetZipFilePath);
     }
 }

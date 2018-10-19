@@ -25,16 +25,20 @@ using Oetools.Builder.Exceptions;
 using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.Project.Task {
+    
+    /// <summary>
+    /// A task to execute.
+    /// </summary>
     public interface IOeTask {
 
         /// <summary>
-        /// Validates that the task is correct (correct parameters and can execute)
+        /// Validates that the task is correct (correct parameters and can execute).
         /// </summary>
         /// <exception cref="TaskValidationException"></exception>
         void Validate();
 
         /// <summary>
-        /// Executes the task
+        /// Executes the task.
         /// </summary>
         /// <remarks>
         /// - This method should throw <see cref="TaskExecutionException"/> if needed
@@ -43,18 +47,34 @@ namespace Oetools.Builder.Project.Task {
         /// <exception cref="TaskExecutionException"></exception>
         void Execute();
 
-        List<TaskExecutionException> GetExceptionList();
+        /// <summary>
+        /// Returns a list of exceptions thrown during the execution of this task.
+        /// </summary>
+        /// <returns></returns>
+        List<TaskExecutionException> GetRuntimeExceptionList();
 
         /// <summary>
         /// Event published when an exception happens in a task, should be used to display those errors to the user
-        /// (in case of warnings, the user might have chose to no stop the build on them, but we still want to show them to him immediatly)
+        /// (in case of warnings, the user might have chose to no stop the build on them, but we still want to show them to him immediately).
         /// </summary>
         event EventHandler<TaskWarningEventArgs> PublishWarning;
         
+        /// <summary>
+        /// Sets a logger instance.
+        /// </summary>
+        /// <param name="log"></param>
         void SetLog(ILogger log);
         
+        /// <summary>
+        /// Sets whether or not this task should execute in test mode.
+        /// </summary>
+        /// <param name="testMode"></param>
         void SetTestMode(bool testMode);
 
+        /// <summary>
+        /// Sets the <see cref="CancellationToken"/> that will allow this task to be cancelled.
+        /// </summary>
+        /// <param name="cancelToken"></param>
         void SetCancelToken(CancellationToken? cancelToken);
 
     }

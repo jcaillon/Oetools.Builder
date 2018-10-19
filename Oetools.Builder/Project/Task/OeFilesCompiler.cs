@@ -30,32 +30,52 @@ using Oetools.Utilities.Openedge.Execution.Exceptions;
 
 namespace Oetools.Builder.Project.Task {
     
-    public static class OeTaskCompile {
+    /// <summary>
+    /// This class allows to compile files.
+    /// </summary>
+    public static class OeFilesCompiler {
 
-        public static FileList<OeFile> SetRcodeFilesAsSourceInsteadOfSourceFiles(FileList<OeFile> originalFiles, FileList<UoeCompiledFile> compiledFiles) {
-            foreach (var file in originalFiles.ToList()) {
-                var compiledFile = compiledFiles[file.FilePath];
+        /// <summary>
+        /// Sets <see cref="OeFile._sourcePathForTaskExecution"/> to equal to <see cref="UoeCompiledFile.CompilationRcodeFilePath"/>.
+        /// This allows the rcode to be handled by a task instead of the original source path.
+        /// </summary>
+        /// <param name="originalPaths"></param>
+        /// <param name="compiledPaths"></param>
+        /// <returns></returns>
+        public static PathList<OeFile> SetRcodeFilesAsSourceInsteadOfSourceFiles(PathList<OeFile> originalPaths, PathList<UoeCompiledFile> compiledPaths) {
+            foreach (var file in originalPaths.ToList()) {
+                var compiledFile = compiledPaths[file.Path];
                 if (compiledFile != null && (compiledFile.CompiledCorrectly || compiledFile.CompiledWithWarnings)) {
                     // change the source file to copy from
                     file.SourcePathForTaskExecution = compiledFile.CompilationRcodeFilePath;
                 } else {
                     // the file didn't compile, we delete it from the list
-                    originalFiles.Remove(file);
+                    originalPaths.Remove(file);
                 }
             }
-            return originalFiles;
+            return originalPaths;
         }
 
-        public static FileList<UoeCompiledFile> CompileFiles(OeProperties properties, FileList<UoeFileToCompile> files, CancellationToken? cancelToken, ILogger log) {
-            if (files == null || files.Count == 0) {
-                return new FileList<UoeCompiledFile>();
+        /// <summary>
+        /// Compile a list of files, handling cancellation and log progression.
+        /// </summary>
+        /// <param name="properties"></param>
+        /// <param name="paths"></param>
+        /// <param name="cancelToken"></param>
+        /// <param name="log"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="CompilerException"></exception>
+        public static PathList<UoeCompiledFile> CompileFiles(OeProperties properties, PathList<UoeFileToCompile> paths, CancellationToken? cancelToken, ILogger log) {
+            if (paths == null || paths.Count == 0) {
+                return new PathList<UoeCompiledFile>();
             }
             if (properties == null) {
                 throw new ArgumentNullException(nameof(properties));
             }
             using (var compiler = properties.GetParallelCompiler(properties.BuildOptions?.SourceDirectoryPath)) {
-                compiler.FilesToCompile = files;
-                log?.ReportProgress(files.Count, 0, $"Compiling {files.Count} openedge files");
+                compiler.FilesToCompile = paths;
+                log?.ReportProgress(paths.Count, 0, $"Compiling {paths.Count} openedge files");
                 compiler.Start();
                 bool exited;
                 do {

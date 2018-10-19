@@ -1,40 +1,41 @@
-﻿#region header
-// ========================================================================
-// Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (OeTaskFileDelete.cs) is part of Oetools.Builder.
-// 
-// Oetools.Builder is a free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// Oetools.Builder is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
-// ========================================================================
-#endregion
-
-using System;
+﻿using System;
 using System.IO;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
+using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
     
     /// <summary>
-    /// This tasks allows to delete files path.
+    /// Base task class that allows to delete files within archives.
     /// </summary>
-    [Serializable]
-    [XmlRoot("Delete")]
-    public class OeTaskFileDelete : OeTaskFile {
+    public abstract class OeTaskFileTargetDeleteInArchive : OeTaskFileTarget {
         
+        /// <summary>
+        /// The relative file path pattern to delete inside the matched archive.
+        /// </summary>
+        /// <remarks>
+        /// This string can contain ; to separate several values.
+        /// Each value can contain placeholders.
+        /// </remarks>
+        /// <returns></returns>
+        protected abstract string GetRelativeFilePatternToDelete();
+        
+        /// <summary>
+        /// Returns the property name of the property which holds the value <see cref="GetRelativeFilePatternToDelete"/>.
+        /// </summary>
+        /// <returns></returns>
+        protected abstract string GetRelativeFilePatternToDeletePropertyName();
+
+        /// <summary>
+        /// Returns an instance of an archiver.
+        /// </summary>
+        /// <returns></returns>
+        protected abstract IArchiver GetArchiver();
+
         /// <inheritdoc cref="OeTaskFile.ExecuteForFilesInternal"/>
         protected override void ExecuteForFilesInternal(PathList<OeFile> paths) {
 
@@ -50,7 +51,7 @@ namespace Oetools.Builder.Project.Task {
                 if (File.Exists(file.SourcePathForTaskExecution)) {
                     Log?.Trace?.Write($"Deleting file {file.SourcePathForTaskExecution.PrettyQuote()}");
                     try {
-                        File.Delete(file.SourcePathForTaskExecution);
+                        // TODO :dzerfezrf
                     } catch (Exception e) {
                         throw new TaskExecutionException(this, $"Could not delete file {file.SourcePathForTaskExecution.PrettyQuote()}", e);
                     }

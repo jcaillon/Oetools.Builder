@@ -25,6 +25,7 @@ using System.Linq;
 using System.Threading;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
+using Oetools.Builder.History;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
@@ -194,8 +195,8 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
         /// <param name="simplifyPathWithWorkingDirectory"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public List<string> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory) {
-            var output = new HashSet<string>();
+        public PathList<OeDirectory> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory) {
+            var output = new PathList<OeDirectory>();
             if (PropathEntries != null) {
                 foreach (var propathEntry in PropathEntries) {
                     var entry = propathEntry.ToCleanPath();
@@ -212,41 +213,34 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
                         continue;
                     }
 
-                    if (!output.Contains(entry)) {
-                        output.Add(entry);
-                    }
+                    output.TryAdd(new OeDirectory(entry));
                 }
             }
             // read from ini
             if (!string.IsNullOrEmpty(IniFilePath)) {
                 foreach (var entry in UoeUtilities.GetProPathFromIniFile(IniFilePath, sourceDirectory)) {
-                    if (!output.Contains(entry)) {
-                        output.Add(entry);
-                    }
+                    output.TryAdd(new OeDirectory(entry));
                 }
             }
             if (AddAllSourceDirectoriesToPropath ?? GetDefaultAddAllSourceDirectoriesToPropath() && Directory.Exists(sourceDirectory)) {
-                var lister = new SourceFilesLister(sourceDirectory, _cancelToken) {
-                    SourcePathFilter = PropathSourceDirectoriesFilter
+                var lister = new PathLister(sourceDirectory, _cancelToken) {
+                    PathFilter = PropathSourceDirectoriesFilter
                 };
-                foreach (var directory in lister.GetDirectoryList()) {
-                    if (!output.Contains(directory)) {
-                        output.Add(directory);
-                    }
-                }
+                output.TryAddRange(lister.GetDirectoryList());
             }
             if (AddDefaultOpenedgePropath ?? GetDefaultAddDefaultOpenedgePropath()) {
                 // %DLC%/tty or %DLC%/gui + %DLC% + %DLC%/bin
                 foreach (var file in UoeUtilities.GetProgressSessionDefaultPropath(DlcDirectoryPath.TakeDefaultIfNeeded(GetDefaultDlcDirectoryPath()), UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable())) {
-                    if (!output.Contains(file)) {
-                        output.Add(file);
-                    }
+                    output.TryAdd(new OeDirectory(file));
                 }
             }
             if (simplifyPathWithWorkingDirectory) {
-                return output.ToList().Select(s => s.FromAbsolutePathToRelativePath(sourceDirectory)).ToList();
+                output.ApplyPathTransformation(d => {
+                    d.Path = d.Path.FromAbsolutePathToRelativePath(sourceDirectory);
+                    return d;
+                });
             }
-            return output.ToList();
+            return output;
         }
 
 
@@ -276,7 +270,7 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
                     PostExecutionProgramPath = ProcedurePathToExecuteAfterAnyProgressExecution,
                     PreExecutionProgramPath = ProcedurePathToExecuteBeforeAnyProgressExecution,
                     ProExeCommandLineParameters = OpenedgeCommandLineExtraParameters,
-                    ProPathList = GetPropath((BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()), true)
+                    ProPathList = ((IEnumerable<OeDirectory>) GetPropath((BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()), true)).Select(d => d.Path).ToList()
                 };
             }
             return _env;

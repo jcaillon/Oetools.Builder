@@ -24,41 +24,70 @@ using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities.Attributes;
+using Oetools.Utilities.Archive;
+using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
     
+    /// <summary>
+    /// Base task class for tasks that operates on files.
+    /// Each files can have targets in archive files.
+    /// </summary>
     public abstract class OeTaskFileTargetArchive : OeTaskFileTarget, IOeTaskFileTargetArchive {
             
         /// <summary>
-        /// Relative path inside the archive
+        /// Relative path inside the archive.
         /// </summary>
         [XmlAttribute("RelativeTargetFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
         public string RelativeTargetFilePath { get; set; }
         
         /// <summary>
-        /// Relative path inside the archive
+        /// Relative path inside the archive.
         /// </summary>
         [XmlAttribute("RelativeTargetDirectory")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
         public string RelativeTargetDirectory { get; set; }
 
         /// <summary>
-        /// Compression level for this archive task
+        /// Compression level for this archive task.
         /// </summary>
         /// <returns></returns>
         public virtual OeCompressionLevel GetArchivesCompressionLevel() => OeCompressionLevel.None;
         
         /// <summary>
-        /// The pack target path for this archive task
+        /// Returns an instance of an archiver.
         /// </summary>
         /// <returns></returns>
-        public virtual string GetTargetArchive() => throw new NotImplementedException();
+        protected abstract IArchiver GetArchiver();
         
-        public virtual string GetTargetArchivePropertyName() => throw new NotImplementedException();
+        /// <summary>
+        /// The path to the target archive for this archive task.
+        /// </summary>
+        /// <remarks>
+        /// This string can contain ; to separate several values.
+        /// Each value can contain placeholders.
+        /// </remarks>
+        /// <returns></returns>
+        protected abstract string GetTargetArchive();
+        
+        /// <summary>
+        /// Returns the property name of the property which holds the value <see cref="GetTargetArchive"/>.
+        /// </summary>
+        /// <returns></returns>
+        protected abstract string GetTargetArchivePropertyName();
+
+        /// <summary>
+        /// Returns a new instance of <see cref="OeTargetArchive"/>.
+        /// </summary>
+        /// <returns></returns>
+        protected abstract OeTargetArchive GetNewTargetArchive();
 
         /// <inheritdoc cref="OeTaskFile.ExecuteForFilesInternal"/>
+        protected sealed override void ExecuteForFilesInternal(PathList<OeFile> paths) { }
+
+        /// <inheritdoc cref="IOeTaskFileTargetArchive.ExecuteForFilesTargetArchives"/>
         public virtual void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files) {
             throw new NotImplementedException();
         }
@@ -75,12 +104,10 @@ namespace Oetools.Builder.Project.Task {
             CheckTargetPath(GetTargetArchive()?.Split(';'));
             base.Validate();
         }
-
-        protected virtual OeTargetArchive GetNewTargetArchive() => throw new NotImplementedException();
         
         /// <summary>
         /// Returns a collection of archive path -> list of relative targets inside that archive which represents the targets
-        /// for this task and for the given <paramref name="filePath" />
+        /// for this task and for the given <paramref name="filePath" />.
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="baseTargetDirectory"></param>

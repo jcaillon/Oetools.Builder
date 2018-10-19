@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (OeTaskFileTargetArchiveDeleteInProlib.cs) is part of Oetools.Builder.
+// This file (OeTaskFileTargetArchiveCompileUploadFtp.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,23 +20,11 @@
 
 using System;
 using System.Xml.Serialization;
-using Oetools.Builder.Utilities.Attributes;
 
 namespace Oetools.Builder.Project.Task {
     [Serializable]
-    [XmlRoot("DeleteInProlib")]
-    public class OeTaskFileTargetArchiveDeleteInProlib : OeTask {
-            
-        /// <summary>
-        /// The relative file path pattern to delete inside the matched prolib file
-        /// </summary>
-        [XmlAttribute("RelativeFilePatternToDelete")]
-        public string RelativeFilePatternToDelete { get; set; }
-        
-        [XmlAttribute("TargetProlibFilePath")]
-        [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public string TargetProlibFilePath { get; set; }
+    [XmlRoot("CompileUploadFtp")]
+    public class OeTaskFileTargetArchiveFtpCompile : OeTaskFileTargetArchiveFtp, IOeTaskCompile {
 
-        protected override void ExecuteInternal() => throw new NotImplementedException();
     }
 }

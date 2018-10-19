@@ -23,10 +23,14 @@ using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities.Attributes;
+using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
     
+    /// <summary>
+    /// A base task class for tasks that operates on files and use those files to target other file paths.
+    /// </summary>
     public abstract class OeTaskFileTargetFile : OeTaskFileTarget, IOeTaskFileTargetFile {
             
         [XmlAttribute("TargetFilePath")]
@@ -85,9 +89,10 @@ namespace Oetools.Builder.Project.Task {
         }
 
         /// <inheritdoc cref="OeTaskFile.ExecuteForFilesInternal"/>
-        public virtual void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
-            throw new System.NotImplementedException();
-        }
+        protected sealed override void ExecuteForFilesInternal(PathList<OeFile> paths) { }
         
+        /// <inheritdoc cref="IOeTaskFileTargetFile.ExecuteForFilesTargetFiles"/>
+        public abstract void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files);
+
     }
 }

@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (OeTaskFileTargetArchiveCompileCab.cs) is part of Oetools.Builder.
+// This file (OeTaskFileTargetArchiveCompileProlib.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,9 +22,10 @@ using System;
 using System.Xml.Serialization;
 
 namespace Oetools.Builder.Project.Task {
+    
     [Serializable]
-    [XmlRoot("CompileInCab")]
-    public class OeTaskFileTargetArchiveCompileCab : OeTaskFileTargetArchiveCab, IOeTaskCompile {
+    [XmlRoot("CompileProlib")]
+    public class OeTaskFileTargetArchiveProlibCompile : OeTaskFileTargetArchiveProlib, IOeTaskCompile {
 
     }
 }
