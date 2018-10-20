@@ -93,13 +93,13 @@ namespace Oetools.Builder.Test.Project {
 
             var list = prop.GetPropath(TestFolder, false);
             Assert.AreEqual(2 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
-            Assert.IsTrue(list.Exists(s => s.Equals(Environment.GetEnvironmentVariable("dlc").ToCleanPath())));
+            Assert.IsTrue(list.Contains(Environment.GetEnvironmentVariable("dlc").ToCleanPath()));
 
             prop.AddAllSourceDirectoriesToPropath = true;
             
             list = prop.GetPropath(TestFolder, false);
             Assert.AreEqual(6 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
-            Assert.IsTrue(list.Exists(s => s.Equals(Path.Combine(TestFolder, "test3", "subtest3"))));
+            Assert.IsTrue(list.Contains(Path.Combine(TestFolder, "test3", "subtest3")));
             
             prop.PropathSourceDirectoriesFilter = new OeTaskFilter {
                 Exclude = "**sub**",
@@ -111,7 +111,7 @@ namespace Oetools.Builder.Test.Project {
             
             list = prop.GetPropath(TestFolder, true);
             Assert.AreEqual(4 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
-            Assert.IsTrue(list.Exists(s => s.Equals("test3")));
+            Assert.IsTrue(list.Contains("test3"));
             
             if (!TestHelper.GetDlcPath(out string dlcPath)) {
                 return;

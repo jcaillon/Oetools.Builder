@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project.Task;
+using Oetools.Utilities.Archive;
 
 namespace Oetools.Builder.Test.Project.Task {
     
@@ -81,10 +82,12 @@ namespace Oetools.Builder.Test.Project.Task {
         }
 
         private class OeTaskOnFilesTargetsArchives2 : OeTaskFileTargetArchive {
-            public override string GetTargetArchive() => ArchivePath;
+            public IArchiver Archiver { get; set; }
+            protected override IArchiver GetArchiver() => Archiver;
             public string ArchivePath { get; set; }
+            protected override string GetTargetArchive() => ArchivePath;
             protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
-            public override string GetTargetArchivePropertyName() => nameof(ArchivePath);
+            protected override string GetTargetArchivePropertyName() => nameof(ArchivePath);
         }
         
     }

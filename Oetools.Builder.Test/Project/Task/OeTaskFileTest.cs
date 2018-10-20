@@ -21,6 +21,7 @@
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Oetools.Builder.History;
 using Oetools.Builder.Project.Task;
 using Oetools.Utilities.Lib;
 
@@ -63,7 +64,7 @@ namespace Oetools.Builder.Test.Project.Task {
             task.Include = Path.Combine(TestFolder, "folder", "**");
             
             Assert.AreEqual(1, task.GetIncludedFiles().Count, "we match the only file there is");
-            Assert.IsTrue(task.GetIncludedFiles().ToList().Exists(s => s.FilePath.ToCleanPath().Equals(Path.Combine(TestFolder, "folder", "sub", "file").ToCleanPath())));
+            Assert.IsTrue(task.GetIncludedFiles().ToList().Exists(s => s.Path.ToCleanPath().Equals(Path.Combine(TestFolder, "folder", "sub", "file").ToCleanPath())));
 
             task.Include = $"{task.Include};{Path.Combine(TestFolder, "folder", "sub", "file")}";
             
@@ -74,7 +75,11 @@ namespace Oetools.Builder.Test.Project.Task {
             Assert.AreEqual(1, task.GetIncludedFiles().Count, "should be good alone");
         }
 
-        private class OeTaskOnFile2 : OeTaskFile { }
+        private class OeTaskOnFile2 : OeTaskFile {
+            protected override void ExecuteForFilesInternal(PathList<OeFile> paths) {
+                
+            }
+        }
 
     }
 }

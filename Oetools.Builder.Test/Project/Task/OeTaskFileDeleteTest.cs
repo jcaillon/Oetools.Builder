@@ -54,7 +54,7 @@ namespace Oetools.Builder.Test.Project.Task {
             File.WriteAllText(filePath2, "");
             
             var task = new OeTaskFileDelete();
-            task.SetFilesToBuild(new FileList<OeFile> {
+            task.SetFilesToBuild(new PathList<OeFile> {
                 new OeFile(filePath),   
                 new OeFile(filePath2)   
             });

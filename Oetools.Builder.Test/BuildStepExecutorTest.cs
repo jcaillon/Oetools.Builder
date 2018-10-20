@@ -30,6 +30,7 @@ using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
+using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Openedge.Execution;
 
@@ -99,8 +100,8 @@ namespace Oetools.Builder.Test {
                 e = ex;
             }
             Assert.IsNull(e);
-            Assert.IsNotNull(taskExecutor.Tasks.ToList()[0].GetExceptionList());
-            Assert.AreEqual(1, taskExecutor.Tasks.ToList()[0].GetExceptionList().Count);
+            Assert.IsNotNull(taskExecutor.Tasks.ToList()[0].GetRuntimeExceptionList());
+            Assert.AreEqual(1, taskExecutor.Tasks.ToList()[0].GetRuntimeExceptionList().Count);
 
             // TreatWarningsAsErrors
             
@@ -220,7 +221,9 @@ namespace Oetools.Builder.Test {
             public override void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files) {
                 Files.AddRange(files);
             }
-            public override string GetTargetArchive() => Archive;
+            protected override IArchiver GetArchiver() => null;
+            protected override string GetTargetArchive() => Archive;
+            protected override string GetTargetArchivePropertyName() => nameof(Archive);
             public string Archive { get; set; }
             protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
         }
@@ -231,10 +234,11 @@ namespace Oetools.Builder.Test {
             public bool IsTestSet => TestMode;
             public bool IsFilesCompiledSet { get; private set; }
             public bool IsPropertySet => GetProperties() != null;
-            public void SetCompiledFiles(FileList<UoeCompiledFile> compiledFile) {
+            public void SetCompiledFiles(PathList<UoeCompiledFile> compiledPath) {
                 IsFilesCompiledSet = true;
             }
-            public FileList<UoeCompiledFile> GetCompiledFiles() => null;
+            public PathList<UoeCompiledFile> GetCompiledFiles() => null;
+            protected override void ExecuteForFilesInternal(PathList<OeFile> paths) {}
         }
         
         private class TaskException : OeTask {
@@ -242,12 +246,18 @@ namespace Oetools.Builder.Test {
             protected override void ExecuteInternal() {
                 AddExecutionErrorAndThrow(new TaskExecutionException(this, "oups!"));
             }
+            protected override void ExecuteTestModeInternal() {
+                // nothing to do
+            }
         }
         
         private class TaskWarning : OeTask {
             public override void Validate() { }
             protected override void ExecuteInternal() {
                 AddExecutionWarning(new TaskExecutionException(this, "oups warning!"));
+            }
+            protected override void ExecuteTestModeInternal() {
+                // nothing to do
             }
         }
         
@@ -266,7 +276,7 @@ namespace Oetools.Builder.Test {
                 _cancelToken = cancelToken;
                 PublishWarning?.Invoke(null, null);
             }
-            public List<TaskExecutionException> GetExceptionList() => null;
+            public List<TaskExecutionException> GetRuntimeExceptionList() => null;
         }
 
     }

@@ -278,27 +278,27 @@ namespace Oetools.Builder.Test.Project {
                                     Include = "{{**}}",
                                     TargetDirectory = "mydir"
                                 },
-                                new OeTaskFileTargetArchiveCompileProlib {
+                                new OeTaskFileTargetArchiveProlibCompile {
                                     ExcludeRegex = "regex",
                                     IncludeRegex = "regex",
                                     TargetProlibFilePath = "myprolib.pl",
                                     RelativeTargetDirectory = "insdide/directory"
                                 },
-                                new OeTaskFileTargetArchiveCompileZip {
+                                new OeTaskFileTargetArchiveZipCompile {
                                     ExcludeRegex = "regex",
                                     IncludeRegex = "regex",
                                     TargetZipFilePath = "path.zip",
                                     RelativeTargetDirectory = "insdide/directory",
                                     ArchivesCompressionLevel = "None"
                                 },
-                                new OeTaskFileTargetArchiveCompileCab() {
+                                new OeTaskFileTargetArchiveCabCompile() {
                                     ExcludeRegex = "regex",
                                     IncludeRegex = "regex",
                                     TargetCabFilePath = "path.cab",
                                     RelativeTargetFilePath = "insdide/file.p",
                                     ArchivesCompressionLevel = "Max"
                                 },
-                                new OeTaskFileTargetArchiveCompileUploadFtp(),
+                                new OeTaskFileTargetArchiveFtpCompile(),
                                 new OeTaskFileTargetFileCopy(),
                                 new OeTaskFileTargetArchiveProlib(),
                                 new OeTaskFileTargetArchiveZip(),

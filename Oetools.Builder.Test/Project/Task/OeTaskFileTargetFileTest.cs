@@ -18,8 +18,10 @@
 // ========================================================================
 #endregion
 
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
+using Oetools.Builder.History;
 using Oetools.Builder.Project.Task;
 
 namespace Oetools.Builder.Test.Project.Task {
@@ -81,7 +83,9 @@ namespace Oetools.Builder.Test.Project.Task {
         }
 
         private class OeTaskOnFilesWithTarget2 : OeTaskFileTargetFile {
-            
+            public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
+                
+            }
         }
     }
 }

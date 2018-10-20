@@ -51,10 +51,10 @@ namespace Oetools.Builder.Test.Utilities {
         
         [TestMethod]
         public void GetTaskTargetsRemover_Test() {
-            var prevBuilt = new FileList<OeFileBuilt> {
+            var prevBuilt = new PathList<OeFileBuilt> {
                 new OeFileBuilt {
                     State = OeFileState.Modified,
-                    FilePath = "source1",
+                    Path = "source1",
                     Targets = new List<OeTarget> {
                         new OeTargetFileCopy {
                             TargetFilePath = "target1"
@@ -66,7 +66,7 @@ namespace Oetools.Builder.Test.Utilities {
                 },
                 new OeFileBuilt {
                     State = OeFileState.Deleted,
-                    FilePath = "source2",
+                    Path = "source2",
                     Targets = new List<OeTarget> {
                         new OeTargetFileCopy {
                             TargetFilePath = "target1"
@@ -75,7 +75,7 @@ namespace Oetools.Builder.Test.Utilities {
                 },
                 new OeFileBuilt {
                     State = OeFileState.Modified,
-                    FilePath = "source3",
+                    Path = "source3",
                     Targets = new List<OeTarget> {
                         new OeTargetFileCopy {
                             TargetFilePath = "target1"
@@ -84,7 +84,7 @@ namespace Oetools.Builder.Test.Utilities {
                 },
                 new OeFileBuilt {
                     State = OeFileState.Added,
-                    FilePath = "source4",
+                    Path = "source4",
                     Targets = new List<OeTarget> {
                         new OeTargetFileCopy {
                             TargetFilePath = "target1"
@@ -99,10 +99,10 @@ namespace Oetools.Builder.Test.Utilities {
                     }
                 }
             };
-            var allSourceFiles = new FileList<OeFile> {
+            var allSourceFiles = new PathList<OeFile> {
                 new OeFile {
                     State = OeFileState.Unchanged,
-                    FilePath = "source1",
+                    Path = "source1",
                     TargetsFiles = new List<OeTargetFile> {
                         new OeTargetFileCopy {
                             TargetFilePath = "target2"
@@ -114,7 +114,7 @@ namespace Oetools.Builder.Test.Utilities {
                 },
                 new OeFile {
                     State = OeFileState.Modified,
-                    FilePath = "source3",
+                    Path = "source3",
                     TargetsFiles = new List<OeTargetFile> {
                         new OeTargetFileCopy {
                             TargetFilePath = "target2"
@@ -126,7 +126,7 @@ namespace Oetools.Builder.Test.Utilities {
                 },
                 new OeFile {
                     State = OeFileState.Modified,
-                    FilePath = "source4",
+                    Path = "source4",
                     TargetsFiles = new List<OeTargetFile> {
                         new OeTargetFileCopy {
                             TargetFilePath = "target1"
@@ -141,7 +141,7 @@ namespace Oetools.Builder.Test.Utilities {
             var output = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(allSourceFiles, prevBuilt).ToList();
             
             // ensure unmodified prevBuilt list
-            Assert.AreEqual("source1", prevBuilt.ElementAt(0).FilePath);
+            Assert.AreEqual("source1", prevBuilt.ElementAt(0).Path);
             Assert.AreEqual(OeFileState.Modified, prevBuilt.ElementAt(0).State);
             Assert.AreEqual("target1", prevBuilt.ElementAt(0).Targets[0].GetTargetPath());
             Assert.AreEqual(false, prevBuilt.ElementAt(0).Targets[0].IsDeletionMode());
@@ -152,7 +152,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(2, output.Count);
             
             // for unchanged files, we also have the new targets
-            Assert.AreEqual("source1", output[0].FilePath);
+            Assert.AreEqual("source1", output[0].Path);
             Assert.AreEqual(OeFileState.Unchanged, output[0].State);
             Assert.AreEqual("target1", output[0].Targets[0].GetTargetPath());
             Assert.AreEqual(true, output[0].Targets[0].IsDeletionMode());
@@ -162,7 +162,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(false, output[0].Targets[2].IsDeletionMode());
             
             // for modified files, we don't because they will be rebuild
-            Assert.AreEqual("source3", output[1].FilePath);
+            Assert.AreEqual("source3", output[1].Path);
             Assert.AreEqual(OeFileState.Modified, output[1].State);
             Assert.AreEqual("target1", output[1].Targets[0].GetTargetPath());
             Assert.AreEqual(true, output[1].Targets[0].IsDeletionMode());
@@ -174,10 +174,10 @@ namespace Oetools.Builder.Test.Utilities {
             
             File.WriteAllText(Path.Combine(TestFolder, "source2"), "");
             
-            var prevBuilt = new FileList<OeFileBuilt> {
+            var prevBuilt = new PathList<OeFileBuilt> {
                 new OeFileBuilt {
                     State = OeFileState.Modified,
-                    FilePath = "/random/source1",
+                    Path = "/random/source1",
                     Targets = new List<OeTarget> {
                         new OeTargetFileCopy {
                             TargetFilePath = "target1"
@@ -189,7 +189,7 @@ namespace Oetools.Builder.Test.Utilities {
                 },
                 new OeFileBuilt {
                     State = OeFileState.Unchanged,
-                    FilePath = Path.Combine(TestFolder, "source2"),
+                    Path = Path.Combine(TestFolder, "source2"),
                     Targets = new List<OeTarget> {
                         new OeTargetArchiveZip {
                             TargetPackFilePath = "target1",
@@ -199,7 +199,7 @@ namespace Oetools.Builder.Test.Utilities {
                 },
                 new OeFileBuilt {
                     State = OeFileState.Added,
-                    FilePath = "/random/source3",
+                    Path = "/random/source3",
                     Targets = new List<OeTarget> {
                         new OeTargetArchiveZip {
                             TargetPackFilePath = "target1",
@@ -212,7 +212,7 @@ namespace Oetools.Builder.Test.Utilities {
             var output = IncrementalBuildHelper.GetBuiltFilesDeletedSincePreviousBuild(prevBuilt).ToList();
             
             // ensure unmodified prevBuilt list
-            Assert.AreEqual("/random/source1", prevBuilt.ElementAt(0).FilePath);
+            Assert.AreEqual("/random/source1", prevBuilt.ElementAt(0).Path);
             Assert.AreEqual(OeFileState.Modified, prevBuilt.ElementAt(0).State);
             Assert.AreEqual("target1", prevBuilt.ElementAt(0).Targets[0].GetTargetPath());
             Assert.AreEqual(false, prevBuilt.ElementAt(0).Targets[0].IsDeletionMode());
@@ -222,14 +222,14 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.IsNotNull(output);
             Assert.AreEqual(2, output.Count);
             
-            Assert.AreEqual("/random/source1", output[0].FilePath);
+            Assert.AreEqual("/random/source1", output[0].Path);
             Assert.AreEqual(OeFileState.Deleted, output[0].State);
             Assert.AreEqual("target1", output[0].Targets[0].GetTargetPath());
             Assert.AreEqual(true, output[0].Targets[0].IsDeletionMode());
             Assert.AreEqual("target2", output[0].Targets[1].GetTargetPath());
             Assert.AreEqual(true, output[0].Targets[1].IsDeletionMode());
             
-            Assert.AreEqual("/random/source3", output[1].FilePath);
+            Assert.AreEqual("/random/source3", output[1].Path);
             Assert.AreEqual(OeFileState.Deleted, output[1].State);
             Assert.AreEqual("target1", output[1].Targets[0].GetTargetPath());
             Assert.AreEqual(true, output[1].Targets[0].IsDeletionMode());
@@ -237,10 +237,10 @@ namespace Oetools.Builder.Test.Utilities {
 
         [TestMethod]
         public void GetSourceFilesToRebuildBecauseTheyHaveNewTargets_Test() {
-            var allSourceFiles = new FileList<OeFile> {
+            var allSourceFiles = new PathList<OeFile> {
                 new OeFile {
                     State = OeFileState.Unchanged,
-                    FilePath = "source1",
+                    Path = "source1",
                     TargetsFiles = new List<OeTargetFile> {
                         new OeTargetFileCopy {
                             TargetFilePath = "target1"
@@ -249,7 +249,7 @@ namespace Oetools.Builder.Test.Utilities {
                 },
                 new OeFile {
                     State = OeFileState.Unchanged,
-                    FilePath = "source2",
+                    Path = "source2",
                     TargetsFiles = new List<OeTargetFile> {
                         new OeTargetFileCopy {
                             TargetFilePath = "target2"
@@ -264,7 +264,7 @@ namespace Oetools.Builder.Test.Utilities {
                 },
                 new OeFile {
                     State = OeFileState.Modified,
-                    FilePath = "source3",
+                    Path = "source3",
                     TargetsFiles = new List<OeTargetFile> {
                         new OeTargetFileCopy {
                             TargetFilePath = "target4"
@@ -272,9 +272,9 @@ namespace Oetools.Builder.Test.Utilities {
                     }
                 }
             };
-            var prevBuilt = new FileList<OeFileBuilt> {
+            var prevBuilt = new PathList<OeFileBuilt> {
                 new OeFileBuilt {
-                    FilePath = "source1",
+                    Path = "source1",
                     Targets = new List<OeTarget> {
                         new OeTargetFileCopy {
                             TargetFilePath = "target1"
@@ -282,7 +282,7 @@ namespace Oetools.Builder.Test.Utilities {
                     }
                 },
                 new OeFileBuilt {
-                    FilePath = "source2",
+                    Path = "source2",
                     Targets = new List<OeTarget> {
                         new OeTargetFileCopy {
                             TargetFilePath = "target2"
@@ -294,7 +294,7 @@ namespace Oetools.Builder.Test.Utilities {
             var output = IncrementalBuildHelper.GetSourceFilesToRebuildBecauseTheyHaveNewTargets(allSourceFiles, prevBuilt).ToList();
             
             Assert.AreEqual(1, output.Count);
-            Assert.AreEqual("source2", output[0].FilePath);
+            Assert.AreEqual("source2", output[0].Path);
 
         }
 
@@ -329,8 +329,8 @@ namespace Oetools.Builder.Test.Utilities {
             output = IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfTableCrcChanges(env, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(2, output.Count);
-            Assert.IsTrue(output.Exists(f => f.FilePath.Equals("source1")));
-            Assert.IsTrue(output.Exists(f => f.FilePath.Equals("source3")));
+            Assert.IsTrue(output.Exists(f => f.Path.Equals("source1")));
+            Assert.IsTrue(output.Exists(f => f.Path.Equals("source3")));
 
             env.SequencesSet = new HashSet<string> {
                 "sequence1"
@@ -353,7 +353,7 @@ namespace Oetools.Builder.Test.Utilities {
             output = IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfTableCrcChanges(env, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(1, output.Count, "we should have source 3 now because the table CRC has changed");
-            Assert.IsTrue(output.Exists(f => f.FilePath.Equals("source3")));
+            Assert.IsTrue(output.Exists(f => f.Path.Equals("source3")));
 
         }
         
@@ -368,14 +368,14 @@ namespace Oetools.Builder.Test.Utilities {
         
         [TestMethod]
         public void GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification_Test() {
-            var modifiedFiles = new FileList<OeFile>();
+            var modifiedFiles = new PathList<OeFile>();
             var previouslyBuiltFiles = new List<OeFileBuiltCompiled>();
 
             var output = IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(modifiedFiles, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(0, output.Count, "empty for now");
 
-            modifiedFiles = new FileList<OeFile> {
+            modifiedFiles = new PathList<OeFile> {
                 new OeFile("file1"),
                 new OeFile("file2"),
                 new OeFile("file3"),
@@ -408,8 +408,8 @@ namespace Oetools.Builder.Test.Utilities {
             output = IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(modifiedFiles, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(2, output.Count, "source2 and source3 should be included");
-            Assert.AreEqual("source3", output[0].FilePath, "source2 should be included since it requires source3 which is now also rebuilt");
-            Assert.AreEqual("source2", output[1].FilePath, "source3 should be included since it requires file1 which need to be rebuilt");
+            Assert.AreEqual("source3", output[0].Path, "source2 should be included since it requires source3 which is now also rebuilt");
+            Assert.AreEqual("source2", output[1].Path, "source3 should be included since it requires file1 which need to be rebuilt");
         }
     }
 }

@@ -66,7 +66,7 @@ namespace Oetools.Builder.Test.History {
             var history = new OeBuildHistory {
                 CompiledFiles = new List<OeCompiledFile> {
                     new OeCompiledFile {
-                        FilePath = @"C:\initialsource\compiled1",
+                        Path = @"C:\initialsource\compiled1",
                         CompilationProblems = new List<OeCompilationProblem> {
                             new OeCompilationError {
                                 FilePath = @"C:\initialsource\include1"
@@ -77,7 +77,7 @@ namespace Oetools.Builder.Test.History {
                         }
                     },
                     new OeCompiledFile {
-                        FilePath = @"C:\initialsource\compiled2",
+                        Path = @"C:\initialsource\compiled2",
                         CompilationProblems = new List<OeCompilationProblem> {
                             new OeCompilationWarning {
                                 FilePath = @"C:\initialsource\include2"
@@ -87,7 +87,7 @@ namespace Oetools.Builder.Test.History {
                 },
                 BuiltFiles = new List<OeFileBuilt> {
                     new OeFileBuilt {
-                        FilePath = @"C:\initialsource\source1",
+                        Path = @"C:\initialsource\source1",
                         Targets = new List<OeTarget> {
                             new OeTargetFileCopy {
                                 TargetFilePath = @"D:\initialtarget\target1"
@@ -119,11 +119,11 @@ namespace Oetools.Builder.Test.History {
 
             var loadedHistory = OeBuildHistory.Load(Path.Combine(TestFolder, "build.xml"), @"E:\newsource", @"F:\newtarget");
             
-            Assert.AreEqual(@"E:\newsource\compiled1", loadedHistory.CompiledFiles[0].FilePath);
+            Assert.AreEqual(@"E:\newsource\compiled1", loadedHistory.CompiledFiles[0].Path);
             Assert.AreEqual(@"E:\newsource\include1", loadedHistory.CompiledFiles[0].CompilationProblems[0].FilePath);
-            Assert.AreEqual(@"E:\newsource\compiled2", loadedHistory.CompiledFiles[1].FilePath);
+            Assert.AreEqual(@"E:\newsource\compiled2", loadedHistory.CompiledFiles[1].Path);
             Assert.AreEqual(@"E:\newsource\include2", loadedHistory.CompiledFiles[1].CompilationProblems[0].FilePath);
-            Assert.AreEqual(@"E:\newsource\source1", loadedHistory.BuiltFiles[0].FilePath);
+            Assert.AreEqual(@"E:\newsource\source1", loadedHistory.BuiltFiles[0].Path);
             Assert.AreEqual(@"E:\newsource\include3", ((OeFileBuiltCompiled)loadedHistory.BuiltFiles[1]).RequiredFiles[0]);
             Assert.AreEqual(@"E:\newsource\include4", ((OeFileBuiltCompiled)loadedHistory.BuiltFiles[1]).RequiredFiles[1]);
             Assert.AreEqual(@"F:\newtarget\target1", loadedHistory.BuiltFiles[0].Targets[0].GetTargetPath());
