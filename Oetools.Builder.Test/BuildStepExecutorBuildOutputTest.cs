@@ -50,11 +50,12 @@ namespace Oetools.Builder.Test {
 
         
         [TestMethod]
-        public void BuildStepExecutorBuildOutput_Test_FilesBuilt() {
+        public void BuildStepExecutorBuildOutput_Test_FilesDirectoriesBuilt() {
             
             var outputDir = Path.Combine(TestFolder, "output1");
 
             Utils.CreateDirectoryIfNeeded(Path.Combine(outputDir, "sourcedir"));
+            Utils.CreateDirectoryIfNeeded(Path.Combine(outputDir, "seconddir"));
             
             File.WriteAllText(Path.Combine(outputDir, "sourcedir", "file1.ext"), "");
             File.WriteAllText(Path.Combine(outputDir, "sourcedir", "file2.ext"), "");
@@ -74,9 +75,14 @@ namespace Oetools.Builder.Test {
                 TargetFilePath = Path.Combine(outputDir, "newfile"),
                 TargetDirectory = "relative"
             };
+
+            var task2 = new TaskOnDirectory {
+                Include = "**"
+            };
             
             taskExecutor.Tasks = new List<IOeTask> {
-                task1
+                task1,
+                task2
             };
             
             taskExecutor.Execute();
@@ -91,12 +97,25 @@ namespace Oetools.Builder.Test {
             Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(outputDir, "relative", "file3.ext"))));
             Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(outputDir, "newfile"))));
             Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(outputDir, "newfile"))));
+            
+            
+            Assert.AreEqual(2, task2.Directories.Count, "we expect 2 directories to have been built");
         }
         
         private class TaskOnFile : OeTaskFileTargetFile {
             public List<IOeFileToBuildTargetFile> Files { get; set; } = new List<IOeFileToBuildTargetFile>();
             public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
                 Files.AddRange(files);
+            }
+        }
+        
+        private class TaskOnDirectory : OeTaskDirectory {
+            public List<OeDirectory> Directories { get; set; } = new List<OeDirectory>();
+            protected override void ExecuteTestModeInternal() {
+                throw new System.NotImplementedException();
+            }
+            protected override void ExecuteForDirectoriesInternal(PathList<OeDirectory> directories) {
+                Directories.AddRange(directories);
             }
         }
     }

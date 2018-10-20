@@ -28,7 +28,6 @@ namespace Oetools.Builder.Project {
     public class OeBuildStepCompile : OeBuildStep {
                 
         [XmlArray("Tasks")]
-        [XmlArrayItem("Execute", typeof(OeTaskExec))]
         [XmlArrayItem("Compile", typeof(OeTaskFileTargetFileCompile))]
         [XmlArrayItem("CompileInProlib", typeof(OeTaskFileTargetArchiveProlibCompile))]
         [XmlArrayItem("CompileInZip", typeof(OeTaskFileTargetArchiveZipCompile))]

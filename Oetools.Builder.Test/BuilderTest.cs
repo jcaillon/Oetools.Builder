@@ -133,8 +133,7 @@ namespace Oetools.Builder.Test {
                 
                 Assert.AreEqual(0, builder.BuildStepExecutors
                     .SelectMany(te => te.Tasks)
-                    .Where(t => t is IOeTaskFileBuilder)
-                    .Cast<IOeTaskFileBuilder>()
+                    .OfType<IOeTaskFileBuilder>()
                     .SelectMany(t => t.GetFilesBuilt().ToNonNullList())
                     .Count(), "we expect to have 0 files built this time, nothing has changed");
                 
@@ -283,8 +282,7 @@ namespace Oetools.Builder.Test {
             
             var filesBuilt = builder.BuildStepExecutors
                 .SelectMany(exec => exec?.Tasks)
-                .Where(t => t is IOeTaskFileBuilder)
-                .Cast<IOeTaskFileBuilder>()
+                .OfType<IOeTaskFileBuilder>()
                 .SelectMany(t => t.GetFilesBuilt().ToNonNullList())
                 .ToList();
             
@@ -332,8 +330,7 @@ namespace Oetools.Builder.Test {
             
             var filesBuilt = builder.BuildStepExecutors
                 .SelectMany(exec => exec?.Tasks)
-                .Where(t => t is IOeTaskFileBuilder)
-                .Cast<IOeTaskFileBuilder>()
+                .OfType<IOeTaskFileBuilder>()
                 .SelectMany(t => t.GetFilesBuilt().ToNonNullList())
                 .ToList();
             

@@ -11,22 +11,40 @@ namespace Oetools.Builder {
         
         protected override string BaseTargetDirectory => Properties?.BuildOptions?.OutputDirectoryPath;
 
-        private PathList<OeFile> _outputDirectoryCompletePathList;
+        private PathList<OeFile> _outputFilesCompleteList;
+        
+        private PathList<OeDirectory> _outputDirectoriesCompleteList;
 
         protected override PathList<OeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
-            Log?.Debug("Gets the list of files on which to apply this task from the output directory");
+            Log?.Debug("Gets the list of files on which to apply this task from the output directory.");
             
-            if (_outputDirectoryCompletePathList == null) {
-                Log?.Debug($"List all the files in output directory {BaseTargetDirectory.PrettyQuote()}");
+            if (_outputFilesCompleteList == null) {
+                Log?.Debug($"List all the files in output directory: {BaseTargetDirectory.PrettyQuote()}.");
                 if (Directory.Exists(Properties.BuildOptions.OutputDirectoryPath)) {
                     var sourceLister = new PathLister(Properties.BuildOptions.OutputDirectoryPath, CancelToken) {
                         Log = Log
                     };
-                    _outputDirectoryCompletePathList = sourceLister.GetFileList();
+                    _outputFilesCompleteList = sourceLister.GetFileList();
                 }
             }
             
-            return task.FilterFiles(_outputDirectoryCompletePathList ?? new PathList<OeFile>());
+            return task.FilterFiles(_outputFilesCompleteList ?? new PathList<OeFile>());
+        }
+
+        protected override PathList<OeDirectory> GetDirectoriesToBuildForSingleTask(IOeTaskDirectory task) {
+            Log?.Debug("Gets the list of directories on which to apply this task from the output directory.");
+            
+            if (_outputDirectoriesCompleteList == null) {
+                Log?.Debug($"List all the directories in output directory: {BaseTargetDirectory.PrettyQuote()}.");
+                if (Directory.Exists(Properties.BuildOptions.OutputDirectoryPath)) {
+                    var sourceLister = new PathLister(Properties.BuildOptions.OutputDirectoryPath, CancelToken) {
+                        Log = Log
+                    };
+                    _outputDirectoriesCompleteList = sourceLister.GetDirectoryList();
+                }
+            }
+            
+            return task.FilterDirectories(_outputDirectoriesCompleteList ?? new PathList<OeDirectory>());
         }
     }
 }

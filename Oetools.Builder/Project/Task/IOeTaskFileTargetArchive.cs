@@ -26,7 +26,7 @@ namespace Oetools.Builder.Project.Task {
     /// <summary>
     /// A task that operates on archives
     /// </summary>
-    internal interface IOeTaskFileTargetArchive : IOeTaskFile {
+    internal interface IOeTaskFileTargetArchive : IOeTaskFileTarget {
 
         /// <summary>
         /// Returns a list of target file path for the corresponding source <paramref name="filePath" />,

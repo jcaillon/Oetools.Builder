@@ -33,8 +33,8 @@ using Oetools.Utilities.Lib.Extension;
 namespace Oetools.Builder.Project.Task {
  
     [Serializable]
-    public class OeTaskFilter : OeTask, IOeTaskFilter {
-        
+    public abstract class OeTaskFilter : OeTask, IOeTaskFilter {
+
         /// <summary>
         /// ; are authorized
         /// </summary>
@@ -130,28 +130,33 @@ namespace Oetools.Builder.Project.Task {
 
         /// <inheritdoc cref="IOeTaskFilter.FilterFiles"/>
         public PathList<OeFile> FilterFiles(PathList<OeFile> originalListOfPaths) {
-            return originalListOfPaths?.CopyWhere(f => IsFilePassingFilter(f.Path));
+            return originalListOfPaths?.CopyWhere(f => IsPathPassingFilter(f.Path));
+        }
+
+        /// <inheritdoc cref="IOeTaskFilter.FilterDirectories"/>
+        public PathList<OeDirectory> FilterDirectories(PathList<OeDirectory> originalListOfPaths) {
+            return originalListOfPaths?.CopyWhere(f => IsPathPassingFilter(f.Path));
         }
         
-        /// <inheritdoc cref="IOeTaskFilter.IsFilePassingFilter"/>
-        public bool IsFilePassingFilter(string filePath) {
-            return IsFileIncluded(filePath) && !IsFileExcluded(filePath);
+        /// <inheritdoc cref="IOeTaskFilter.IsPathPassingFilter"/>
+        public bool IsPathPassingFilter(string path) {
+            return IsPathIncluded(path) && !IsPathExcluded(path);
         }
         
-        /// <inheritdoc cref="IOeTaskFilter.IsFileIncluded"/>
-        public bool IsFileIncluded(string filePath) {
+        /// <inheritdoc cref="IOeTaskFilter.IsPathIncluded"/>
+        public bool IsPathIncluded(string path) {
             if (!string.IsNullOrEmpty(_fileExtensionsFilter)) {
-                if (!filePath.TestFileNameAgainstListOfPatterns(_fileExtensionsFilter)) {
+                if (!path.TestFileNameAgainstListOfPatterns(_fileExtensionsFilter)) {
                     return false;
                 }
             }
             var includeRegexes = GetIncludeRegex();
-            return includeRegexes.Count == 0 || includeRegexes.Any(regex => regex.IsMatch(filePath));
+            return includeRegexes.Count == 0 || includeRegexes.Any(regex => regex.IsMatch(path));
         }
         
-        /// <inheritdoc cref="IOeTaskFilter.IsFileExcluded"/>
-        public bool IsFileExcluded(string filePath) {
-            return GetExcludeRegex().Any(regex => regex.IsMatch(filePath));
+        /// <inheritdoc cref="IOeTaskFilter.IsPathExcluded"/>
+        public bool IsPathExcluded(string path) {
+            return GetExcludeRegex().Any(regex => regex.IsMatch(path));
         }
 
         /// <inheritdoc cref="IOeTaskFilter.SetFileExtensionFilter"/>
@@ -228,16 +233,6 @@ namespace Oetools.Builder.Project.Task {
                 }
                 i++;
             }
-        }
-
-        /// <inheritdoc cref="OeTask.ExecuteInternal"/>
-        protected override void ExecuteInternal() {
-            // does nothing
-        }
-        
-        /// <inheritdoc cref="OeTask.ExecuteTestModeInternal"/>
-        protected override void ExecuteTestModeInternal() {
-            // does nothing
         }
         
         /// <summary>

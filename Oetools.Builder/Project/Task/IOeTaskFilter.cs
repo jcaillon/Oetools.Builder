@@ -55,27 +55,34 @@ namespace Oetools.Builder.Project.Task {
         /// <param name="originalListOfPaths"></param>
         /// <returns></returns>
         PathList<OeFile> FilterFiles(PathList<OeFile> originalListOfPaths);
+        
+        /// <summary>
+        /// Given the inclusion and exclusion patterns, filter the input list of files to only keep files that apply to this task.
+        /// </summary>
+        /// <param name="originalListOfPaths"></param>
+        /// <returns></returns>
+        PathList<OeDirectory> FilterDirectories(PathList<OeDirectory> originalListOfPaths);
 
         /// <summary>
         /// Returns true if the given file passes this filter.
         /// </summary>
-        /// <param name="filePath"></param>
+        /// <param name="path"></param>
         /// <returns></returns>
-        bool IsFilePassingFilter(string filePath);
+        bool IsPathPassingFilter(string path);
 
         /// <summary>
         /// Returns true of the given path is included with this filter.
         /// </summary>
-        /// <param name="filePath"></param>
+        /// <param name="path"></param>
         /// <returns></returns>
-        bool IsFileIncluded(string filePath);
+        bool IsPathIncluded(string path);
 
         /// <summary>
         /// Returns true of the given path is excluded with this filter.
         /// </summary>
-        /// <param name="filePath"></param>
+        /// <param name="path"></param>
         /// <returns></returns>
-        bool IsFileExcluded(string filePath);
+        bool IsPathExcluded(string path);
 
         /// <summary>
         /// Allows to define another filter on the file extension; only the files with theses extensions will be allowed.

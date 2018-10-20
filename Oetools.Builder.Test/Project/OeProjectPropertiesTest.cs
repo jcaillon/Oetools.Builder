@@ -53,7 +53,7 @@ namespace Oetools.Builder.Test.Project {
             var prop = new OeProperties();
             prop.SetDefaultValues();
             Assert.AreEqual(OeProperties.GetDefaultDlcDirectoryPath(), prop.DlcDirectoryPath);
-            Assert.AreEqual(OeGitFilterBuildOptions.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch(), prop.GitFilterBuildOptions.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch);
+            Assert.AreEqual(OeGitFilterOptions.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch(), prop.SourceToBuildGitFilterOptions.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch);
             Assert.AreEqual(OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput(), prop.IncrementalBuildOptions.MirrorDeletedSourceFileToOutput);
             Assert.AreEqual(OeCompilationOptions.GetDefaultCompileWithDebugList(), prop.CompilationOptions.CompileWithDebugList);
             Assert.AreEqual(OeBuildOptions.GetDefaultTreatWarningsAsErrors(), prop.BuildOptions.TreatWarningsAsErrors);
@@ -101,7 +101,7 @@ namespace Oetools.Builder.Test.Project {
             Assert.AreEqual(6 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
             Assert.IsTrue(list.Contains(Path.Combine(TestFolder, "test3", "subtest3")));
             
-            prop.PropathSourceDirectoriesFilter = new OeTaskFilter {
+            prop.PropathSourceDirectoriesFilter = new OeFilterOptions {
                 Exclude = "**sub**",
                 ExcludeRegex = "[hH][Ii][Dd]"
             };

@@ -64,13 +64,13 @@ namespace Oetools.Builder.Test.Utilities {
             
             Assert.AreEqual(5, lister.GetDirectoryList().Count(), "the default filters should catch .git and .svn");
 
-            lister.PathFilter = new OeTaskFilter {
+            lister.FilterOptions = new OeFilterOptions {
                 Include = @"**sub**"
             };
 
             Assert.AreEqual(2, lister.GetDirectoryList().Count(), "2 included");
             
-            lister.PathFilter = new OeTaskFilter {
+            lister.FilterOptions = new OeFilterOptions {
                 Include = @"**sub**",
                 Exclude = @"**special**"
             };
@@ -78,25 +78,27 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(1, lister.GetDirectoryList().Count(), "1 included");
             
             
-            lister.PathFilter = new OeTaskFilter {
+            lister.FilterOptions = new OeFilterOptions {
                 Exclude = @"**special**"
             };
             
             Assert.AreEqual(3, lister.GetDirectoryList().Count(), "2");
 
-            lister.PathFilter = null;
+            lister.FilterOptions = null;
             
             Assert.AreEqual(5, lister.GetDirectoryList().Count(), "list all but .git");
 
-            lister.DefaultVcsPatternExclusion = null;
-            
+            lister.FilterOptions = new OeFilterOptions {
+                ExtraVcsPatternExclusion = ""
+            };
+
             Assert.AreEqual(7, lister.GetDirectoryList().Count(), "list all");
 
-            lister.ExcludeHiddenDirectories = true;
+            lister.FilterOptions.ExcludeHiddenDirectories = true;
 
             Assert.AreEqual(6, lister.GetDirectoryList().Count(), "list all but hidden");
 
-            lister.RecursiveListing = false;
+            lister.FilterOptions.RecursiveListing = false;
             
             Assert.AreEqual(3, lister.GetDirectoryList().Count(), "list only top dir");
 
@@ -116,33 +118,33 @@ namespace Oetools.Builder.Test.Utilities {
             
             Assert.AreEqual(2, lister.FilterSourceFiles(files).Count(), "the default filters should catch .git and .svn");
 
-            lister.PathFilter = new OeTaskFilter {
+            lister.FilterOptions = new OeFilterOptions {
                 Exclude = @"**\legit*1"
             };
             
             Assert.AreEqual(1, lister.FilterSourceFiles(files).Count(), "filter file1");
 
-            lister.PathFilter = new OeTaskFilter {
+            lister.FilterOptions = new OeFilterOptions {
                 ExcludeRegex = ".*[fF](ile)?2"
             };
             
             
             Assert.AreEqual(1, lister.FilterSourceFiles(files).Count(), "file2");
 
-            lister.PathFilter = new OeTaskFilter {
+            lister.FilterOptions = new OeFilterOptions {
                 Exclude = @"**\legit*1",
                 ExcludeRegex = ".*[fF](ile)?2"
             };
             
             Assert.AreEqual(0, lister.FilterSourceFiles(files).Count(), "all filtered");
             
-            lister.PathFilter = new OeTaskFilter {
+            lister.FilterOptions = new OeFilterOptions {
                 Include = @"**sub**"
             };
 
             Assert.AreEqual(1, lister.FilterSourceFiles(files).Count(), "1 file included");
             
-            lister.PathFilter = new OeTaskFilter {
+            lister.FilterOptions = new OeFilterOptions {
                 IncludeRegex = @".*",
                 ExcludeRegex = ".*[fF](ile)?2"
             };
@@ -161,7 +163,7 @@ namespace Oetools.Builder.Test.Utilities {
             File.WriteAllText(Path.Combine(repoDir, "file4"), "");
 
             var lister = new PathLister(repoDir) {
-                FileInfoOptions = new PathListerFileInfoOptions {
+                OutputOptions = new PathListerOutputOptions {
                     UseLastWriteDateComparison = true,
                     UseHashComparison = false
                 }
@@ -171,7 +173,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(4, list1.Count, "count all");
             Assert.IsTrue(list1.All(f => f.State == OeFileState.Added), "all added");
 
-            lister.FileInfoOptions.GetPreviousFileImage = s => list1[s];
+            lister.OutputOptions.GetPreviousFileImage = s => list1[s];
             
             File.Delete(Path.Combine(repoDir, "file4"));
             File.WriteAllText(Path.Combine(repoDir, "sub", "file2"), "content");
@@ -181,7 +183,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(1, list2.Count(f => f.State == OeFileState.Modified), "1 modified");
             Assert.AreEqual(2, list2.Count(f => f.State == OeFileState.Unchanged), "2 unchanged");
 
-            lister.FileInfoOptions.GetPreviousFileImage = s => list2[s];
+            lister.OutputOptions.GetPreviousFileImage = s => list2[s];
             
             File.WriteAllText(Path.Combine(repoDir, "file4"), "");
             
@@ -190,7 +192,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(1,list3.Count(f => f.State == OeFileState.Added), "1 added");
             Assert.AreEqual(3,list3.Count(f => f.State == OeFileState.Unchanged), "3 unchanged");
 
-            lister.FileInfoOptions.GetPreviousFileImage = s => list3[s];
+            lister.OutputOptions.GetPreviousFileImage = s => list3[s];
             
             File.Delete(Path.Combine(repoDir, "file4"));
             File.Delete(Path.Combine(repoDir, "sub", "file3"));
@@ -199,7 +201,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(2, list4.Count, "count all");
             Assert.AreEqual(2, list4.Count(f => f.State == OeFileState.Unchanged), "2 unchanged");
             
-            lister.FileInfoOptions.GetPreviousFileImage = s => list4[s];
+            lister.OutputOptions.GetPreviousFileImage = s => list4[s];
             
             File.WriteAllText(Path.Combine(repoDir, "file4"), "");
             
@@ -219,7 +221,7 @@ namespace Oetools.Builder.Test.Utilities {
             File.WriteAllText(Path.Combine(repoDir, "file4"), "");
 
             var lister = new PathLister(repoDir) {
-                FileInfoOptions = new PathListerFileInfoOptions {
+                OutputOptions = new PathListerOutputOptions {
                     UseLastWriteDateComparison = false,
                     UseHashComparison = false
                 }
@@ -229,7 +231,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(4, list1.Count, "count all");
             Assert.IsTrue(list1.All(f => f.State == OeFileState.Added), "all added");
 
-            lister.FileInfoOptions.GetPreviousFileImage = s => list1[s];
+            lister.OutputOptions.GetPreviousFileImage = s => list1[s];
             
             var list2 = lister.GetFileList();
             Assert.IsTrue(list1.All(f => f.State == OeFileState.Added), "make sure we didn't modify previous objects");
@@ -245,18 +247,19 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(1, list3.Count(f => f.State == OeFileState.Modified), "1 modified");
             Assert.AreEqual(3, list3.Count(f => f.State == OeFileState.Unchanged), "3 unchanged");
             
-            lister.FileInfoOptions.GetPreviousFileImage = s => list3[s];
+            lister.OutputOptions.GetPreviousFileImage = s => list3[s];
             
             // try modify same size
             File.WriteAllText(Path.Combine(repoDir, "file1"), "conten1");
+            File.SetLastWriteTime(Path.Combine(repoDir, "file1"), DateTime.Now.AddHours(1));
             
             var list4 = lister.GetFileList();
             
             Assert.AreEqual(4, list4.Count, "count all");
-            Assert.IsTrue(list4.All(f => f.State == OeFileState.Unchanged), "all unchanged because the size is the same and that's our only cirteria");
+            Assert.IsTrue(list4.All(f => f.State == OeFileState.Unchanged), "all unchanged because the size is the same and that's our only criteria");
             
             // activate date comparison
-            lister.FileInfoOptions.UseLastWriteDateComparison = true;
+            lister.OutputOptions.UseLastWriteDateComparison = true;
             
             var list5 = lister.GetFileList();
             
@@ -264,7 +267,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(1, list5.Count(f => f.State == OeFileState.Modified), "1 modified");
             Assert.AreEqual(3, list5.Count(f => f.State == OeFileState.Unchanged), "3 unchanged");
 
-            lister.FileInfoOptions.GetPreviousFileImage = s => list5[s];
+            lister.OutputOptions.GetPreviousFileImage = s => list5[s];
             
             var list6 = lister.GetFileList();
             
@@ -272,7 +275,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.IsTrue(list6.All(f => f.State == OeFileState.Unchanged), "all unchanged");
             
             // try hash
-            lister.FileInfoOptions.UseHashComparison = true;
+            lister.OutputOptions.UseHashComparison = true;
             
             var list7 = lister.GetFileList();
             
@@ -282,7 +285,7 @@ namespace Oetools.Builder.Test.Utilities {
             // set up the hash for all files
             list7.ToList().ForEach(f => PathLister.SetFileHash(f));
             
-            lister.FileInfoOptions.GetPreviousFileImage = s => list7[s];
+            lister.OutputOptions.GetPreviousFileImage = s => list7[s];
                         
             var list8 = lister.GetFileList();
             
@@ -315,7 +318,7 @@ namespace Oetools.Builder.Test.Utilities {
             File.WriteAllText(Path.Combine(repoDir, ".svn", "testsvn.txt"), "");
             
             var lister = new PathLister(repoDir) {
-                PathFilter = new OeTaskFilter {
+                FilterOptions = new OeFilterOptions {
                     Exclude = "**((*)).pls"
                 }
             };
@@ -323,46 +326,48 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(1, lister.GetFileList().Count, "no .pls file");
             Assert.AreEqual(Path.Combine(repoDir, "monfichier.txt"), lister.GetFileList().ElementAt(0).Path, "check file path");
 
-            lister.PathFilter = null;
+            lister.FilterOptions = null;
             
             Assert.AreEqual(2, lister.GetFileList().Count, "all files now");
 
-            lister.PathFilter = new OeTaskFilter {
+            lister.FilterOptions = new OeFilterOptions {
                 ExcludeRegex = "\\.[tT][xX][tT]"
             };
             
             Assert.AreEqual(1, lister.GetFileList().Count, "no .txt file");
             Assert.AreEqual(Path.Combine(repoDir, "subfolder", "monfichier.pls"), lister.GetFileList().ElementAt(0).Path, "check my pls file");
             
-            lister.PathFilter = new OeTaskFilter {
+            lister.FilterOptions = new OeFilterOptions {
                 Include = "**"
             };
             
             Assert.AreEqual(2, lister.GetFileList().Count, "all files again");
             
-            lister.PathFilter = new OeTaskFilter {
+            lister.FilterOptions = new OeFilterOptions {
                 Include = "**.txt"
             };
             
             Assert.AreEqual(1, lister.GetFileList().Count, "only include .txt file");
 
-            lister.DefaultVcsPatternExclusion = null;
+            lister.FilterOptions.ExtraVcsPatternExclusion = "";
 
             Assert.AreEqual(3, lister.GetFileList().Count, "all .txt even in .git and .svn");
-            
-            lister.PathFilter = null;
-            
+
+            lister.FilterOptions = new OeFilterOptions {
+                ExtraVcsPatternExclusion = ""
+            };
+
             Assert.AreEqual(4, lister.GetFileList().Count(), "list all");
 
-            lister.ExcludeHiddenDirectories = true;
+            lister.FilterOptions.ExcludeHiddenDirectories = true;
 
             Assert.AreEqual(3, lister.GetFileList().Count(), "list all but hidden");
 
-            lister.ExcludeHiddenDirectories = false;
+            lister.FilterOptions.ExcludeHiddenDirectories = false;
             
             Assert.AreEqual(4, lister.GetFileList().Count(), "list all again");
             
-            lister.RecursiveListing = false;
+            lister.FilterOptions.RecursiveListing = false;
             
             Assert.AreEqual(1, lister.GetFileList().Count(), "list only top dir");
         }
@@ -372,9 +377,9 @@ namespace Oetools.Builder.Test.Utilities {
         public void Listing_Test_Git_Filter() {
             var repoDir = Path.Combine(TestFolder, "local");
             var lister = new PathLister(repoDir) {
-                PathFilter = null,
+                FilterOptions = null,
                 GitFilter = null,
-                FileInfoOptions = new PathListerFileInfoOptions {
+                OutputOptions = new PathListerOutputOptions {
                     UseLastWriteDateComparison = true,
                     UseHashComparison = true
                 }
@@ -415,7 +420,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(1, lister.GetFileList().Count, "now we get one file");
             Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList().ElementAt(0).Path, "check that we get what we expect");
             
-            lister.GitFilter = new OeGitFilterBuildOptions {
+            lister.GitFilter = new OeGitFilterOptions {
                 OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true,
                 OnlyIncludeSourceFilesModifiedSinceLastCommit = true
             };
@@ -469,7 +474,7 @@ namespace Oetools.Builder.Test.Utilities {
             
             lister.GitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true;
 
-            Assert.AreEqual(2, lister.GetFileList().Count, "but now they are commmitted so we should see them with the other filter");
+            Assert.AreEqual(2, lister.GetFileList().Count, "but now they are committed so we should see them with the other filter");
             
             // add some files
             File.WriteAllText(Path.Combine(repoDir, "newfile3"), "");
@@ -485,19 +490,19 @@ namespace Oetools.Builder.Test.Utilities {
             
             Assert.AreEqual(5, lister.GetFileList().Count, "with both filter, we should see 5 files");
             
-            lister.PathFilter = new OeTaskFilter {
+            lister.FilterOptions = new OeFilterOptions {
                 Exclude = "**file5"
             };
             
             Assert.AreEqual(4, lister.GetFileList().Count, "we applied a source path filter");
             
-            lister.PathFilter = new OeTaskFilter {
+            lister.FilterOptions = new OeFilterOptions {
                 Include = "**file5"
             };
             
             Assert.AreEqual(1, lister.GetFileList().Count, "we applied an include source path filter");
 
-            lister.PathFilter = null;
+            lister.FilterOptions = null;
             
             // push branch
             try {

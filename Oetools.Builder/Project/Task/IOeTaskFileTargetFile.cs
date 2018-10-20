@@ -24,7 +24,7 @@ using Oetools.Builder.History;
 
 namespace Oetools.Builder.Project.Task {
     
-    public interface IOeTaskFileTargetFile : IOeTaskFile {
+    public interface IOeTaskFileTargetFile : IOeTaskFileTarget {
 
         /// <summary>
         /// Returns a list of target file path for the corresponding source <paramref name="filePath" />,

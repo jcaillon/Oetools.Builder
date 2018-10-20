@@ -22,10 +22,10 @@ using System.Xml.Serialization;
 
 namespace Oetools.Builder.Project {
     [Serializable]
-    public class OeGitFilterBuildOptions {
+    public class OeGitFilterOptions {
             
         /// <summary>
-        /// If true, only the files that were modified since the last commit will be elligible for the <see cref="OeBuildConfiguration.BuildSourceStepGroup"/>
+        /// If true, only the files that were modified since the last commit will be eligible for the <see cref="OeBuildConfiguration.BuildSourceStepGroup"/>
         /// (this include files in staging area and untracked files in the working directory)
         /// </summary>
         [XmlElement(ElementName = "OnlyIncludeSourceFilesModifiedSinceLastCommit")]
@@ -33,7 +33,7 @@ namespace Oetools.Builder.Project {
         public static bool GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit() => false;
             
         /// <summary>
-        /// If true, only the committed files that were committed exclusively on the current branch will be elligible for the <see cref="OeBuildConfiguration.BuildSourceStepGroup"/>
+        /// If true, only the committed files that were committed exclusively on the current branch will be eligible for the <see cref="OeBuildConfiguration.BuildSourceStepGroup"/>
         /// We consider that a commit belongs only to the current branch if we can't find a reference different than CURRENT_BRANCH_NAME and ANY_REMOTE/CURRENT_BRANCH_NAME
         /// which points to said commit
         /// </summary>

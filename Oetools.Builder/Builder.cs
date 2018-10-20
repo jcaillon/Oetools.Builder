@@ -256,7 +256,7 @@ namespace Oetools.Builder {
 
                 if (unchangedOrModifiedFiles != null && unchangedOrModifiedFiles.Count > 0) {
                     Log?.Debug("For all the unchanged or modified files, set all the targets that should be built in this build");
-                    foreach (var task in stepsList.SelectMany(step1 => (step1.GetTaskList()?.Where(t => t is IOeTaskFile).Cast<IOeTaskFile>()).ToNonNullList())) {
+                    foreach (var task in stepsList.SelectMany(step1 => (step1.GetTaskList()?.OfType<IOeTaskFileTarget>()).ToNonNullList())) {
                         task.SetTargetForFiles(unchangedOrModifiedFiles, BuildConfiguration.Properties?.BuildOptions?.OutputDirectoryPath, true);
                     }
 
@@ -297,8 +297,7 @@ namespace Oetools.Builder {
             foreach (var file in BuildStepExecutors
                 .Where(te => te is BuildStepExecutorBuildSource)
                 .SelectMany(exec => exec.Tasks.ToNonNullList())
-                .Where(task => task is IOeTaskCompile)
-                .Cast<IOeTaskCompile>()
+                .OfType<IOeTaskCompile>()
                 .SelectMany(task => task.GetCompiledFiles().ToNonNullList())) {
                 if (file.CompilationErrors == null || file.CompilationErrors.Count == 0) {
                     continue;
@@ -332,8 +331,7 @@ namespace Oetools.Builder {
             foreach (var fileBuilt in BuildStepExecutors
                 .Where(te => te is BuildStepExecutorBuildSource)
                 .SelectMany(exec => exec.Tasks.ToNonNullList())
-                .Where(t => t is IOeTaskFileBuilder)
-                .Cast<IOeTaskFileBuilder>()
+                .OfType<IOeTaskFileBuilder>()
                 .SelectMany(t => t.GetFilesBuilt().ToNonNullList())) {
                 
                 // keep only the targets that are in the output directory, we won't be able to "undo" the others so it would be useless to keep them

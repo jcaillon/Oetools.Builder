@@ -21,6 +21,7 @@
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project.Task;
 using Oetools.Utilities.Lib;
@@ -48,36 +49,47 @@ namespace Oetools.Builder.Test.Project.Task {
 
         [TestMethod]
         public void OeTaskOnFile_Test_() {
-            var task = new OeTaskOnFile2 {
-                IncludeRegex = ".*"
-            };
+            var task = new OeTaskOnFile2();
+
+            task.Validate();
+            Assert.ThrowsException<TaskValidationException>(() => task.ValidateCanGetFilesToBuildFromIncludes());
             
-            Assert.AreEqual(0, task.GetIncludedFiles().Count);
+            task.IncludeRegex = ".*";
+            
+            Assert.ThrowsException<TaskValidationException>(() => task.ValidateCanGetFilesToBuildFromIncludes());
+            
+            Assert.AreEqual(0, task.GetFilesToBuildFromIncludes().Count);
 
             Utils.CreateDirectoryIfNeeded(Path.Combine(TestFolder, "folder", "sub"));
             File.WriteAllText(Path.Combine(TestFolder, "folder", "sub", "file"), "");
 
             task.Include = "**";
             
-            Assert.AreEqual(0, task.GetIncludedFiles().Count, "we can't match any existing file or folder with this");
+            Assert.AreEqual(0, task.GetFilesToBuildFromIncludes().Count, "we can't match any existing file or folder with this");
+            
+            Assert.AreEqual(1, task.GetRuntimeExceptionList().Count, "the task should have published 1 warning");
 
             task.Include = Path.Combine(TestFolder, "folder", "**");
+            task.IncludeRegex = null;
+
+            task.ValidateCanGetFilesToBuildFromIncludes();
             
-            Assert.AreEqual(1, task.GetIncludedFiles().Count, "we match the only file there is");
-            Assert.IsTrue(task.GetIncludedFiles().ToList().Exists(s => s.Path.ToCleanPath().Equals(Path.Combine(TestFolder, "folder", "sub", "file").ToCleanPath())));
+            Assert.AreEqual(1, task.GetFilesToBuildFromIncludes().Count, "we match the only file there is");
+            Assert.IsTrue(task.GetFilesToBuildFromIncludes().ToList().Exists(s => s.Path.ToCleanPath().Equals(Path.Combine(TestFolder, "folder", "sub", "file").ToCleanPath())));
 
             task.Include = $"{task.Include};{Path.Combine(TestFolder, "folder", "sub", "file")}";
             
-            Assert.AreEqual(1, task.GetIncludedFiles().Count, "we added a direct file path. However, this method only returns unique files");
+            Assert.AreEqual(1, task.GetFilesToBuildFromIncludes().Count, "we added a direct file path. However, this method only returns unique files");
 
             task.Include = Path.Combine(TestFolder, "folder", "sub", "file");
             
-            Assert.AreEqual(1, task.GetIncludedFiles().Count, "should be good alone");
+            Assert.AreEqual(1, task.GetFilesToBuildFromIncludes().Count, "should be good alone");
         }
 
         private class OeTaskOnFile2 : OeTaskFile {
-            protected override void ExecuteForFilesInternal(PathList<OeFile> paths) {
-                
+            protected override void ExecuteForFilesInternal(PathList<OeFile> paths) {}
+            protected override void ExecuteTestModeInternal() {
+                throw new System.NotImplementedException();
             }
         }
 

@@ -50,6 +50,9 @@ namespace Oetools.Builder.Project.Task {
             //    Log?.Trace?.Write($"Deleting directory not existing {DirectoryPath}");
             //}
         }
-        
+
+        protected override void ExecuteTestModeInternal() {
+            throw new NotImplementedException();
+        }
     }
 }

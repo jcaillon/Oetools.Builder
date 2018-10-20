@@ -28,6 +28,18 @@ namespace Oetools.Builder.Project.Task {
     /// A task that operates on directories.
     /// </summary>
     public interface IOeTaskDirectory : IOeTaskFilter {
+        
+        /// <summary>
+        /// Sets the list of directories to be built by this task.
+        /// </summary>
+        /// <param name="pathsToBuild"></param>
+        void SetDirectoriesToBuild(PathList<OeDirectory> pathsToBuild);
+        
+        /// <summary>
+        /// Gets a list of directories to be built by this task.
+        /// </summary>
+        /// <returns></returns>
+        PathList<OeDirectory> GetDirectoriesToBuild();
 
         /// <summary>
         /// Given the inclusion wildcard paths and exclusion patterns, returns a list of directories on which to apply this task.
@@ -38,17 +50,17 @@ namespace Oetools.Builder.Project.Task {
         /// Of if the include pattern is something like C:\windows\exe*
         /// </example>
         /// <returns></returns>
-        PathList<OeDirectory> GetIncludedDirectories();
+        PathList<OeDirectory> GetDirectoriesToBuildFromIncludes();
 
         /// <summary>
         /// Validates that the task can be applied on directories without having a base directory to list; for that,
         /// the task must have an included path (and should not use regex inclusion).
         /// </summary>
         /// <example>
-        /// See the examples in <see cref="GetIncludedDirectories"/>
+        /// See the examples in <see cref="GetDirectoriesToBuildFromIncludes"/>
         /// </example>
         /// <exception cref="TaskExecutionException"></exception>
-        void ValidateCanIncludeDirectories();
+        void ValidateCanGetDirectoriesToBuildFromIncludes();
         
     }
 }

@@ -222,15 +222,15 @@ namespace Oetools.Builder.Test.Project {
                     "fezef/zef/zefzef",
                     "C:\\zefzefzef\\"
                 },
-                PropathSourceDirectoriesFilter = new OeTaskFilter {
+                PropathSourceDirectoriesFilter = new OeFilterOptions {
                     Exclude = "**/derp",
                     ExcludeRegex = "\\\\[D][d]"
                 },
-                SourceToBuildPathFilter =new OeTaskFilter {
+                SourceToBuildFilter =new OeFilterOptions {
                     Exclude = "**/derp",
                     ExcludeRegex = "\\\\[D][d]"
                 },
-                GitFilterBuildOptions = new OeGitFilterBuildOptions {
+                SourceToBuildGitFilterOptions = new OeGitFilterOptions {
                     CurrentBranchName = null,
                     CurrentBranchOriginCommit = null,
                     OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true,
@@ -265,14 +265,6 @@ namespace Oetools.Builder.Test.Project {
                         new OeBuildStepCompile {
                             Label = "step1",
                             Tasks = new List<OeTask> {
-                                new OeTaskExec {
-                                    Label = "exec1",
-                                    ExecutablePath = "exec",
-                                    Parameters = "params \"quotes\"",
-                                    WorkingDirectory = "dir",
-                                    HiddenExecution = false,
-                                    IgnoreExitCode = null
-                                },
                                 new OeTaskFileTargetFileCompile {
                                     Exclude = "**",
                                     Include = "{{**}}",
@@ -314,7 +306,16 @@ namespace Oetools.Builder.Test.Project {
                     BuildOutputStepGroup = new List<OeBuildStepClassic> {
                         new OeBuildStepClassic {
                             Label = "step output 1",
-                            Tasks = new List<OeTask>()
+                            Tasks = new List<OeTask> {
+                                new OeTaskExec {
+                                    Label = "exec1",
+                                    ExecutablePath = "exec",
+                                    Parameters = "params \"quotes\"",
+                                    WorkingDirectory = "dir",
+                                    HiddenExecution = false,
+                                    IgnoreExitCode = null
+                                }
+                            }
                         }
                     },
                     PostBuildStepGroup = null

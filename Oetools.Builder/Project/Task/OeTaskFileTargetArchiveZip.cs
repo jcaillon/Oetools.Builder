@@ -28,7 +28,7 @@ using Oetools.Utilities.Archive;
 namespace Oetools.Builder.Project.Task {
     
     [Serializable]
-    public class OeTaskFileTargetArchiveZip : OeTaskFileTargetArchive {
+    public class OeTaskFileTargetArchiveZip : OeTaskFileTargetArchive, IOeTaskFileBuilder {
         
         [XmlAttribute("TargetZipFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]

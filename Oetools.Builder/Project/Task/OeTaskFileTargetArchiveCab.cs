@@ -29,7 +29,7 @@ namespace Oetools.Builder.Project.Task {
     
     [Serializable]
     [XmlRoot("Cab")]
-    public class OeTaskFileTargetArchiveCab : OeTaskFileTargetArchive {
+    public class OeTaskFileTargetArchiveCab : OeTaskFileTargetArchive, IOeTaskFileBuilder {
         
         [XmlAttribute("TargetCabFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]

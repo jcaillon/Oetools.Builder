@@ -32,63 +32,58 @@ using Oetools.Utilities.Openedge.Execution;
 namespace Oetools.Builder.Project.Task {
 
     public abstract class OeTaskDirectory : OeTaskFilter, IOeTaskDirectory {
-        
-        /// <inheritdoc cref="IOeTask.Validate"/>
-        public override void Validate() {
-            if (string.IsNullOrEmpty(Include) && string.IsNullOrEmpty(IncludeRegex)) {
-                throw new TaskValidationException(this, $"This task needs the following properties to be defined or it will not do anything : {GetType().GetXmlName(nameof(Include))} and/or {GetType().GetXmlName(nameof(IncludeRegex))}");
-            }
-            base.Validate();
-        }
 
-        /// <inheritdoc cref="IOeTaskDirectory.ValidateCanIncludeDirectories"/>
-        public void ValidateCanIncludeDirectories() {
+        private PathList<OeDirectory> _directoriesToBuild;
+
+        /// <inheritdoc cref="IOeTaskDirectory.ValidateCanGetDirectoriesToBuildFromIncludes"/>
+        public void ValidateCanGetDirectoriesToBuildFromIncludes() {
             if (string.IsNullOrEmpty(Include)) {
-                throw new TaskValidationException(this, $"This task needs to have the property {GetType().GetXmlName(nameof(Include))} defined or it can not be applied on any file");
+                throw new TaskValidationException(this, $"This task needs to have the property {GetType().GetXmlName(nameof(Include))} defined or it can not be applied on any file.");
             }
             if (!string.IsNullOrEmpty(IncludeRegex)) {
-                throw new TaskValidationException(this, $"The property {GetType().GetXmlName(nameof(IncludeRegex))} is not allowed for this task because it would not allow to find files to include (it would require to list the entire content of all the discs on this computer to match this regular expression), use the property {GetType().GetXmlName(nameof(Include))} instead");
+                throw new TaskValidationException(this, $"The property {GetType().GetXmlName(nameof(IncludeRegex))} is not allowed in this task for that build step because it would not allow to find files to include (it would require to list the entire content of all the discs on this computer to match this regular expression), use the property {GetType().GetXmlName(nameof(Include))} exclusively.");
             }
         }
-        
-        /// <inheritdoc cref="IOeTaskFile.GetIncludedFiles"/>
-        public PathList<OeDirectory> GetIncludedDirectories() {
-            throw new NotImplementedException();
-            /*
-            var output = new FileList<OeFile>();
+
+        /// <inheritdoc cref="IOeTaskDirectory.SetDirectoriesToBuild"/>
+        public void SetDirectoriesToBuild(PathList<OeDirectory> pathsToBuild) => _directoriesToBuild = pathsToBuild;
+
+        /// <inheritdoc cref="IOeTaskDirectory.GetDirectoriesToBuild"/>
+        public PathList<OeDirectory> GetDirectoriesToBuild() => _directoriesToBuild;
+
+        /// <inheritdoc cref="IOeTaskFile.GetFilesToBuildFromIncludes"/>
+        public PathList<OeDirectory> GetDirectoriesToBuildFromIncludes() {
+            var output = new PathList<OeDirectory>();
             var i = 0;
             foreach (var path in GetIncludeStrings()) {
-                if (File.Exists(path)) {
-                    // the include directly designate a file
-                    if (!IsFileExcluded(path)) {
-                        output.TryAdd(new OeFile { FilePath = Path.GetFullPath(path) });
+                if (Directory.Exists(path)) {
+                    // the include directly designate a dir
+                    if (!IsPathExcluded(path)) {
+                        output.TryAdd(new OeDirectory(Path.GetFullPath(path).ToCleanPath()));
                     }
                 } else {
-                    // the include is a wildcard path, we try to get the "root" folder to list to get all the files
+                    // the include is a wildcard path, we try to get the "root" folder to list to get all the dir
                     var validDir = Utils.GetLongestValidDirectory(path);
                     if (!string.IsNullOrEmpty(validDir)) {
                         Log?.Info($"Listing directory : {validDir.PrettyQuote()}");
                         var regexCorrespondingToPath = GetIncludeRegex()[i];
-                        foreach (var file in new SourceFilesLister(validDir, CancelToken) { SourcePathFilter = this, Log = Log } .GetFileList()) {
-                            if (regexCorrespondingToPath.IsMatch(file.FilePath)) {
-                                output.TryAdd(file);
+                        foreach (var directory in new PathLister(validDir, CancelToken) { Filter = this, Log = Log } .GetDirectoryList()) {
+                            if (regexCorrespondingToPath.IsMatch(directory.Path)) {
+                                output.TryAdd(directory);
                             }
                         }
                     } else {
-                        AddExecutionWarning(new TaskExecutionException(this, $"The property {GetType().GetXmlName(nameof(Include))} part {i} does not designate a file (e.g. /dir/file.ext) nor does it allow to find a base directory to list (e.g. /dir/**), the path in error is : {path}"));
+                        AddExecutionWarning(new TaskExecutionException(this, $"The property {GetType().GetXmlName(nameof(Include))} part {i} does not designate a file (e.g. /dir/file.ext) nor does it allow to find a base directory to list (e.g. /dir/**), the path in error is : {path}."));
                     }
                 }
                 i++;
             }
-
             return output;
-            */
         }
         
         /// <inheritdoc cref="OeTask.ExecuteInternal"/>
         protected sealed override void ExecuteInternal() {
-            throw new NotImplementedException();
-            //ExecuteForDirectoriesInternal(_filesToBuild);
+            ExecuteForDirectoriesInternal(_directoriesToBuild);
         }
 
         /// <summary>
@@ -96,7 +91,6 @@ namespace Oetools.Builder.Project.Task {
         /// </summary>
         /// <remarks>
         /// <para>
-        /// - The task should create/add a list of files that it builds, list that is returned by <see cref="IOeTaskFileBuilder.GetFilesBuilt"/>
         /// - This method should throw <see cref="TaskExecutionException"/> if needed
         /// - This method can publish warnings using <see cref="OeTask.AddExecutionWarning"/>
         /// </para>

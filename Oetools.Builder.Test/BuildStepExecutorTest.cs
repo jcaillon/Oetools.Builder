@@ -135,6 +135,19 @@ namespace Oetools.Builder.Test {
         }
 
         [TestMethod]
+        public void TaskExecutor_Test_SetPathsAndTargets() {
+            var task = new TaskSetPathAndTargetTest();
+            Assert.AreEqual(0, task.Total);
+            var taskExecutor = new BuildStepExecutor {
+                Tasks = new List<IOeTask> {
+                    task
+                }
+            };
+            taskExecutor.Execute();
+            Assert.AreEqual(15, task.Total, "One of the following methods were not called : set files, set directories, get files to include, get directories to include.");
+        }
+
+        [TestMethod]
         public void TaskExecutor_Test_injection() {
             var task = new TaskInjectionTest();
             Assert.IsFalse(task.IsCancelSourceSet);
@@ -228,6 +241,29 @@ namespace Oetools.Builder.Test {
             protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
         }
         
+        private class TaskSetPathAndTargetTest : OeTaskFilter, IOeTaskFile, IOeTaskDirectory {
+            public int Total { get; set; }
+            protected override void ExecuteInternal() {
+                // does nothing
+            }
+            protected override void ExecuteTestModeInternal() => throw new NotImplementedException();
+            public void SetDirectoriesToBuild(PathList<OeDirectory> pathsToBuild) => Total += 1;
+
+            public PathList<OeDirectory> GetDirectoriesToBuildFromIncludes() {
+                Total += 2;
+                return new PathList<OeDirectory>();
+            }
+            public void SetFilesToBuild(PathList<OeFile> pathsToBuild) => Total += 4;
+            public PathList<OeFile> GetFilesToBuildFromIncludes() {
+                Total += 8;
+                return new PathList<OeFile>();
+            }
+            public PathList<OeFile> GetFilesToBuild() => throw new NotImplementedException();
+            public PathList<OeDirectory> GetDirectoriesToBuild() => throw new NotImplementedException();
+            public void ValidateCanGetDirectoriesToBuildFromIncludes() => throw new NotImplementedException();
+            public void ValidateCanGetFilesToBuildFromIncludes() => throw new NotImplementedException();
+        }
+        
         private class TaskInjectionTest : OeTaskFile, IOeTaskCompile {
             public bool IsLogSet => Log != null;
             public bool IsCancelSourceSet => CancelToken != null;
@@ -239,6 +275,9 @@ namespace Oetools.Builder.Test {
             }
             public PathList<UoeCompiledFile> GetCompiledFiles() => null;
             protected override void ExecuteForFilesInternal(PathList<OeFile> paths) {}
+            protected override void ExecuteTestModeInternal() {
+                throw new NotImplementedException();
+            }
         }
         
         private class TaskException : OeTask {

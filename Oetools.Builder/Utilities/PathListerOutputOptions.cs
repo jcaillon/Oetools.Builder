@@ -2,7 +2,7 @@
 using Oetools.Builder.History;
 
 namespace Oetools.Builder.Utilities {
-    public class PathListerFileInfoOptions {
+    public class PathListerOutputOptions {
 
         /// <summary>
         /// If true, we consider that 2 files are different if they have different hash results.

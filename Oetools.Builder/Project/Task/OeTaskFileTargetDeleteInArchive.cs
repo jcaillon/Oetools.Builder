@@ -64,7 +64,7 @@ namespace Oetools.Builder.Project.Task {
             
         }
 
-        /// <inheritdoc cref="OeTaskFile.ExecuteTestModeInternal"/>
+        /// <inheritdoc cref="OeTaskFileTarget.ExecuteTestModeInternal"/>
         protected override void ExecuteTestModeInternal() {
             // this task doesn't actually build anything, it just deletes files
         }

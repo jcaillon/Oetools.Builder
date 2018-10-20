@@ -20,6 +20,7 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
+using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
 
 namespace Oetools.Builder.Test.Project.Task {
@@ -29,60 +30,60 @@ namespace Oetools.Builder.Test.Project.Task {
         
         
         [TestMethod]
-        public void OeTaskFilter_Test_IsFileInccluded() {
-            var filter = new OeTaskFilter();
+        public void OeTaskFilter_Test_IsFileIncluded() {
+            var filter = new OeFilterOptions();
 
-            Assert.AreEqual(true, filter.IsFileIncluded("myderpfile"));
+            Assert.AreEqual(true, filter.IsPathIncluded("myderpfile"));
 
             filter.Include = "**";
             
-            Assert.AreEqual(true, filter.IsFileIncluded("ending.txt"));
+            Assert.AreEqual(true, filter.IsPathIncluded("ending.txt"));
             
             filter.Include = "**.derp";
             
-            Assert.AreEqual(false, filter.IsFileIncluded(@"C:\folder\fold\derp\file.cool"));
-            Assert.AreEqual(true, filter.IsFileIncluded(@"C:\folder\fold\derp\file.derp"));
+            Assert.AreEqual(false, filter.IsPathIncluded(@"C:\folder\fold\derp\file.cool"));
+            Assert.AreEqual(true, filter.IsPathIncluded(@"C:\folder\fold\derp\file.derp"));
             
             filter.Include = "**.nice";
             filter.IncludeRegex = ".*cool.*";
             
-            Assert.AreEqual(false, filter.IsFileIncluded(@"C:\folder\fold\derp\.nice.file"));
-            Assert.AreEqual(true, filter.IsFileIncluded(@"C:\folder\fold\derp\.nice"));
-            Assert.AreEqual(true, filter.IsFileIncluded(@"C:\folder\fold\cool\.nice.file"));
+            Assert.AreEqual(false, filter.IsPathIncluded(@"C:\folder\fold\derp\.nice.file"));
+            Assert.AreEqual(true, filter.IsPathIncluded(@"C:\folder\fold\derp\.nice"));
+            Assert.AreEqual(true, filter.IsPathIncluded(@"C:\folder\fold\cool\.nice.file"));
 
         }
         
         [TestMethod]
         public void OeTaskFilter_Test_IsFileExcluded() {
-            var filter = new OeTaskFilter {
+            var filter = new OeFilterOptions {
                 Exclude = "**.txt;**derp**"
             };
 
-            Assert.AreEqual(true, filter.IsFileExcluded("myderpfile"));
-            Assert.AreEqual(true, filter.IsFileExcluded("ending.txt"));
-            Assert.AreEqual(true, filter.IsFileExcluded(@"C:\folder\fold\derp\file.cool"));
-            Assert.AreEqual(false, filter.IsFileExcluded(@"C:\folder\fold\file.cool"));
+            Assert.AreEqual(true, filter.IsPathExcluded("myderpfile"));
+            Assert.AreEqual(true, filter.IsPathExcluded("ending.txt"));
+            Assert.AreEqual(true, filter.IsPathExcluded(@"C:\folder\fold\derp\file.cool"));
+            Assert.AreEqual(false, filter.IsPathExcluded(@"C:\folder\fold\file.cool"));
         }
         
         [TestMethod]
         public void OeTaskFilter_Test_IsFilePassingFilter() {
-            var filter = new OeTaskFilter {
+            var filter = new OeFilterOptions {
                 Include = "**/subfolder/**",
                 IncludeRegex = ".*cool.*",
                 Exclude = "**derp**",
                 ExcludeRegex = "^.*\\.txt$"
             };
 
-            Assert.AreEqual(true, filter.IsFilePassingFilter(@"C:\folder\fold\file.cool"));
-            Assert.AreEqual(false, filter.IsFilePassingFilter(@"C:\folder\derp\file.cool"));
-            Assert.AreEqual(false, filter.IsFilePassingFilter(@"C:\folder\fold\file.random"));
-            Assert.AreEqual(true, filter.IsFilePassingFilter(@"C:\folder\subfolder\file.random"));
-            Assert.AreEqual(false, filter.IsFilePassingFilter(@"C:\folder\subfolder\file.txt"));
+            Assert.AreEqual(true, filter.IsPathPassingFilter(@"C:\folder\fold\file.cool"));
+            Assert.AreEqual(false, filter.IsPathPassingFilter(@"C:\folder\derp\file.cool"));
+            Assert.AreEqual(false, filter.IsPathPassingFilter(@"C:\folder\fold\file.random"));
+            Assert.AreEqual(true, filter.IsPathPassingFilter(@"C:\folder\subfolder\file.random"));
+            Assert.AreEqual(false, filter.IsPathPassingFilter(@"C:\folder\subfolder\file.txt"));
         }
 
         [TestMethod]
         public void OeTaskFilter_Test_GetRegexIncludeStrings() {
-            var filter = new OeTaskFilter();
+            var filter = new OeFilterOptions();
             Assert.AreEqual(0, filter.GetRegexIncludeStrings().Count);
             Assert.AreEqual(0, filter.GetRegexExcludeStrings().Count);
             Assert.AreEqual(0, filter.GetIncludeStrings().Count);
@@ -111,7 +112,7 @@ namespace Oetools.Builder.Test.Project.Task {
         [DataRow(@"**||", false)]
         [DataRow("\nverg", true)]
         public void OeTaskFilter_Validate_pathWildCard_Test(string pathWildCard, bool throws) {
-            var filter = new OeTaskFilter {
+            var filter = new OeFilterOptions {
                 Exclude = pathWildCard
             };
             if (throws) {
@@ -126,7 +127,7 @@ namespace Oetools.Builder.Test.Project.Task {
         [DataRow(@"(derp", true)]
         [DataRow(@"invalidregex)", true)]
         public void OeTaskFilter_Validate_regex_Test(string regex, bool throws) {
-            var filter = new OeTaskFilter {
+            var filter = new OeFilterOptions {
                 ExcludeRegex = regex
             };
             if (throws) {

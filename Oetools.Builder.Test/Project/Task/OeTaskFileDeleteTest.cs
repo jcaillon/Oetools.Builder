@@ -63,8 +63,6 @@ namespace Oetools.Builder.Test.Project.Task {
             
             Assert.IsFalse(File.Exists(filePath));
             Assert.IsFalse(File.Exists(filePath2));
-            
-            Assert.AreEqual(0, task.GetFilesBuilt()?.Count ?? 0);
         }
 
 

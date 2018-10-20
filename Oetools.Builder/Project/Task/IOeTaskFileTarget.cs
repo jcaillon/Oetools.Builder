@@ -1,7 +1,7 @@
-﻿#region header
+#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (OeTaskFileTargetArchiveProlib.cs) is part of Oetools.Builder.
+// This file (IOeTaskFileTarget.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,29 +18,24 @@
 // ========================================================================
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Xml.Serialization;
 using Oetools.Builder.History;
-using Oetools.Builder.Utilities.Attributes;
-using Oetools.Utilities.Archive;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {
     
-    [Serializable]
-    public class OeTaskFileTargetArchiveProlib : OeTaskFileTargetArchive, IOeTaskNeedingProperties, IOeTaskFileBuilder {
+    /// <summary>
+    /// A task that operates on paths that need targets.
+    /// </summary>
+    public interface IOeTaskFileTarget : IOeTaskFile {
         
-        [XmlAttribute("TargetProlibFilePath")]
-        [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public string TargetProlibFilePath { get; set; }
-
-        protected override IArchiver GetArchiver() => Archiver.NewProlibArchiver(GetProperties().DlcDirectoryPath);
-
-        protected override string GetTargetArchive() => TargetProlibFilePath;
-        
-        protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveProlib();
-        
-        protected override string GetTargetArchivePropertyName() => nameof(TargetProlibFilePath);
+        /// <summary>
+        /// For a given list of files, set the targets that will be needed from this task.
+        /// Relative path are transformed into absolute path using <paramref name="baseTargetDirectory"/>.
+        /// </summary>
+        /// <param name="paths"></param>
+        /// <param name="baseTargetDirectory"></param>
+        /// <param name="appendMode">Either add new targets to existing ones, or resets them.</param>
+        void SetTargetForFiles(PathList<OeFile> paths, string baseTargetDirectory, bool appendMode = false);
         
     }
 }

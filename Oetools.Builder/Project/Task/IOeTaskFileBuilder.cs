@@ -25,6 +25,7 @@ namespace Oetools.Builder.Project.Task {
     
     /// <summary>
     /// A task that can build files. A file is "built" when its source path is located in the source directory.
+    /// The <see cref="GetFilesBuilt"/> method will return the files built that should be saved in the build history.
     /// </summary>
     public interface IOeTaskFileBuilder {
         

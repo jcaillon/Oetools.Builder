@@ -63,16 +63,22 @@ namespace Oetools.Builder {
                 return;
             }
             try {
-                Log?.Debug("Injecting task properties");
+                Log?.Debug("Injecting task properties.");
                 foreach (var task in Tasks) {
                     InjectPropertiesInTask(task);
                 }
-                Log?.Debug("Set the files to build for each task and their targets if needed");
+                Log?.Debug("Set the paths to build for each task and their targets if needed.");
                 foreach (var task in Tasks) {
                     if (task is IOeTaskFile taskFile) {
-                        var filesToBuildForTask = GetFilesToBuildForSingleTask(taskFile).Select(f => f.GetDeepCopy());
-                        taskFile.SetTargetForFiles(filesToBuildForTask, BaseTargetDirectory);
+                        var filesToBuildForTask = GetFilesToBuildForSingleTask(taskFile).CopySelect(f => f.GetDeepCopy());
+                        if (task is IOeTaskFileTarget taskTarget) {
+                            taskTarget.SetTargetForFiles(filesToBuildForTask, BaseTargetDirectory);
+                        }
                         taskFile.SetFilesToBuild(filesToBuildForTask);
+                    }
+                    if (task is IOeTaskDirectory taskDirectory) {
+                        var directoriesToBuildForTask = GetDirectoriesToBuildForSingleTask(taskDirectory).CopySelect(f => f.GetDeepCopy());
+                        taskDirectory.SetDirectoriesToBuild(directoriesToBuildForTask);
                     }
                 }
                 ExecuteInternal();
@@ -104,7 +110,7 @@ namespace Oetools.Builder {
                 } catch (TaskExecutionException e) {
                     throw new TaskExecutorException(this, e.Message, e);
                 } catch (Exception e) {
-                    throw new TaskExecutorException(this, $"Unexpected exception : {task} : {e.Message}", e);
+                    throw new TaskExecutorException(this, $"Unexpected exception for {task}: {e.Message}", e);
                 } finally {
                     task.PublishWarning -= TaskOnPublishException;
                 }
@@ -129,18 +135,28 @@ namespace Oetools.Builder {
         }
 
         /// <summary>
-        /// Should return all the files that need to be built by the given <paramref name="task"></paramref>
+        /// Should return all the files that need to be built by the given <paramref name="task" />.
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
         protected virtual PathList<OeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
-            Log?.Debug("Gets the list of files on which to apply this task from path inclusion");
-            return task.GetIncludedFiles();
+            Log?.Debug("Gets the list of files on which to apply this task from path inclusion.");
+            return task.GetFilesToBuildFromIncludes();
+        }
+
+        /// <summary>
+        /// Should return all the directories that need to be built by the given <paramref name="task" />.
+        /// </summary>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        protected virtual PathList<OeDirectory> GetDirectoriesToBuildForSingleTask(IOeTaskDirectory task) {
+            Log?.Debug("Gets the list of files on which to apply this task from path inclusion.");
+            return task.GetDirectoriesToBuildFromIncludes();
         }
         
         private void TaskOnPublishException(object sender, TaskWarningEventArgs e) {
             var publishedException = new TaskExecutorException(this, e.Exception.Message, e.Exception);
-            Log?.Warn($"Task warning : {publishedException.Message}", publishedException);
+            Log?.Warn($"Task warning: {publishedException.Message}", publishedException);
             if (ThrowIfWarning) {
                 throw e.Exception;
             }

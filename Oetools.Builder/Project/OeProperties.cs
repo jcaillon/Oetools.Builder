@@ -80,7 +80,7 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
         public static bool GetDefaultAddAllSourceDirectoriesToPropath() => true;
             
         [XmlElement(ElementName = "PropathSourceDirectoriesFilter")]
-        public OeTaskFilter PropathSourceDirectoriesFilter { get; set; }
+        public OeFilterOptions PropathSourceDirectoriesFilter { get; set; }
 
         /// <summary>
         /// Adds the gui or tty (depending on <see cref="UseCharacterModeExecutable"/>) folder as well as the contained .pl to the propath
@@ -112,17 +112,17 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
         /// Allows to exclude path from being treated by <see cref="OeBuildConfiguration.BuildSourceStepGroup"/>
         /// Specify what should not be considered as a source file in your source directory (for instance, the docs/ folder)
         /// </summary>
-        [XmlElement(ElementName = "SourceToBuildPathFilter")]
-        public OeTaskFilter SourceToBuildPathFilter { get; set; }
+        [XmlElement(ElementName = "SourceToBuildFilter")]
+        public OeFilterOptions SourceToBuildFilter { get; set; }
                 
         /// <summary>
         /// Use this to apply GIT filters to your <see cref="OeBuildConfiguration.BuildSourceStepGroup"/>
         /// Obviously, you need GIT installed and present in your OS path
         /// </summary>
-        [XmlElement(ElementName = "GitFilterBuildOptions")]
-        public OeGitFilterBuildOptions GitFilterBuildOptions { get; set; }    
+        [XmlElement(ElementName = "SourceToBuildGitFilterOptions")]
+        public OeGitFilterOptions SourceToBuildGitFilterOptions { get; set; }    
         [Description("")]
-        public static OeGitFilterBuildOptions GetDefaultGitFilterBuildOptions() => new OeGitFilterBuildOptions();
+        public static OeGitFilterOptions GetDefaultSourceToBuildGitFilterOptions() => new OeGitFilterOptions();
                   
         [XmlElement(ElementName = "CompilationOptions")]
         public OeCompilationOptions CompilationOptions { get; set; }
@@ -152,13 +152,13 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
         /// <exception cref="BuildConfigurationException"></exception>
         public void Validate() {
             ValidateFilters(PropathSourceDirectoriesFilter, nameof(PropathSourceDirectoriesFilter));
-            ValidateFilters(SourceToBuildPathFilter, nameof(SourceToBuildPathFilter));
+            ValidateFilters(SourceToBuildFilter, nameof(SourceToBuildFilter));
             if ((CompilationOptions?.NumberProcessPerCore ?? 0) > 10) {
                 throw new PropertiesException($"The property {typeof(OeCompilationOptions).GetXmlName(nameof(OeCompilationOptions.NumberProcessPerCore))} should not exceed 10");
             }
 
-            if ((IncrementalBuildOptions?.IsActive() ?? false) && (GitFilterBuildOptions?.IsActive() ?? false)) {
-                throw new PropertiesException($"The {GetType().GetXmlName(nameof(IncrementalBuildOptions))} can not be active when the {GetType().GetXmlName(nameof(GitFilterBuildOptions))} is active because the two options serve contradictory purposes. {GetType().GetXmlName(nameof(IncrementalBuildOptions))} should be used when the goal is to build the latest modifications on top of a previous build. {GetType().GetXmlName(nameof(GitFilterBuildOptions))} should be used when the goal is to verify that recent commits to the git repo did not introduce bugs.");
+            if ((IncrementalBuildOptions?.IsActive() ?? false) && (SourceToBuildGitFilterOptions?.IsActive() ?? false)) {
+                throw new PropertiesException($"The {GetType().GetXmlName(nameof(IncrementalBuildOptions))} can not be active when the {GetType().GetXmlName(nameof(SourceToBuildGitFilterOptions))} is active because the two options serve contradictory purposes. {GetType().GetXmlName(nameof(IncrementalBuildOptions))} should be used when the goal is to build the latest modifications on top of a previous build. {GetType().GetXmlName(nameof(SourceToBuildGitFilterOptions))} should be used when the goal is to verify that recent commits to the git repo did not introduce bugs.");
             }
             if (!(IncrementalBuildOptions?.IsActive() ?? false) && (IncrementalBuildOptions?.FullRebuild ?? OeIncrementalBuildOptions.GetDefaultFullRebuild())) {
                 throw new PropertiesException($"In {GetType().GetXmlName(nameof(IncrementalBuildOptions))}, the property {typeof(OeBuildOptions).GetXmlName(nameof(OeIncrementalBuildOptions.FullRebuild))} can only be set to true if the property {typeof(OeIncrementalBuildOptions).GetXmlName(nameof(OeIncrementalBuildOptions.Enabled))} is set to true");
@@ -224,7 +224,7 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
             }
             if (AddAllSourceDirectoriesToPropath ?? GetDefaultAddAllSourceDirectoriesToPropath() && Directory.Exists(sourceDirectory)) {
                 var lister = new PathLister(sourceDirectory, _cancelToken) {
-                    PathFilter = PropathSourceDirectoriesFilter
+                    FilterOptions = PropathSourceDirectoriesFilter
                 };
                 output.TryAddRange(lister.GetDirectoryList());
             }
@@ -270,7 +270,7 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
                     PostExecutionProgramPath = ProcedurePathToExecuteAfterAnyProgressExecution,
                     PreExecutionProgramPath = ProcedurePathToExecuteBeforeAnyProgressExecution,
                     ProExeCommandLineParameters = OpenedgeCommandLineExtraParameters,
-                    ProPathList = ((IEnumerable<OeDirectory>) GetPropath((BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()), true)).Select(d => d.Path).ToList()
+                    ProPathList = GetPropath((BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()), true).Select(d => d.Path).ToList()
                 };
             }
             return _env;
