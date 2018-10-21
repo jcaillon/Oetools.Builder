@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
@@ -165,58 +166,46 @@ namespace Oetools.Builder {
             // list all the tasks that need to compile files.
             var compileTasks = tasks.OfType<IOeTaskCompile>().ToList();
             
-            //if (!(Properties?.CompilationOptions?.TryToOptimizeCompilationDirectory ?? OeCompilationOptions.GetDefaultTryToOptimizeCompilationDirectory())) {
+            if (!(Properties?.CompilationOptions?.TryToOptimizeCompilationDirectory ?? OeCompilationOptions.GetDefaultTryToOptimizeCompilationDirectory())) {
                 return 
                     compileTasks
                     .SelectMany(t => t.GetFilesToBuild())
                     .ToFileList()
                     .CopySelect(f => new UoeFileToCompile(f.Path) { FileSize = f.Size });
-            //}
-            /*
-            var filesToCompile = new FileList<UoeFileToCompile>();
-            
-            foreach (var file in files) {
+            }
+
+            var filesToCompile = compileTasks.SelectMany(t => t.GetFilesToBuild());
+
+            var output = new PathList<UoeFileToCompile>();
+
+            foreach (var groupedBySourcePath in filesToCompile.GroupBy(f => f.Path)) {
+                string preferredTargetDirectory = null;
                 
-                // get all the compile tasks that handle this file
-                var compileTasksForThisFile = compileTasks.Where(t => t.IsFilePassingFilter(file.FilePath)).ToList();
-                if (compileTasksForThisFile.Count == 0) {
-                    continue;
-                }
-
-                // set all the targets (from all compile tasks) for this file, we need this to set UoeFileToCompile.PreferedTargetDirectory
-                foreach (var task in compileTasksForThisFile) {
-                    if (task is IOeTaskFileTargetFile taskWithTargetFiles) {
-                        (file.TargetsFiles ?? (file.TargetsFiles = new List<OeTargetFile>())).AddRange(taskWithTargetFiles.GetTargetsFiles(file.FilePath, baseTargetDirectory));
-                    }
-
-                    if (task is IOeTaskFileTargetArchive taskWithTargetArchives) {
-                        (file.TargetsArchives ?? (file.TargetsArchives = new List<OeTargetArchive>())).AddRange(taskWithTargetArchives.GetTargetsArchives(file.FilePath, baseTargetDirectory));
-                    }
-                }
-
-                string preferedTargetDirectory = null;
-                var allTargets = file.TargetsArchives?.Select(a => a.TargetPackFilePath).UnionHandleNull(file.TargetsFiles?.Select(f => f.TargetFilePath));
-                var firstTargetWithDifferentDiscDrive = allTargets?.FirstOrDefault(s => !Utils.ArePathOnSameDrive(s, file.FilePath));
-                if (firstTargetWithDifferentDiscDrive != null) {
-                    // basically, we found 1 file that targets a different disc drive
-                    if (allTargets.All(s => Utils.ArePathOnSameDrive(s, firstTargetWithDifferentDiscDrive))) {
-                        // and all targets are on the same disc drive, it is worth targetting this
-                        // TODO : maybe the first won't do, search for one that does
-                        if (Path.GetFileNameWithoutExtension(firstTargetWithDifferentDiscDrive).EqualsCi(Path.GetFileNameWithoutExtension(file.FilePath))) {
-                            preferedTargetDirectory = Path.GetDirectoryName(firstTargetWithDifferentDiscDrive);
+                var allTargets = groupedBySourcePath
+                    .Where(file => file.TargetsFiles != null)
+                    .SelectMany(file => file.TargetsFiles)
+                    .Select(target => target.TargetFilePath).ToList();
+                
+                var firstFileTarget = allTargets.FirstOrDefault();
+                
+                if (firstFileTarget != null) {
+                    // We found at least one target which is a file.
+                    // For this case, no need to compile in a temp folder and then copy it, just compile it directly there.
+                    // Except if this file is then copied on different disc drives because in that case, it might not be worth it.
+                    if (allTargets.All(s => Utils.ArePathOnSameDrive(s, groupedBySourcePath.Key))) {
+                        if (Path.GetFileNameWithoutExtension(firstFileTarget).PathEquals(Path.GetFileNameWithoutExtension(groupedBySourcePath.Key))) {
+                            preferredTargetDirectory = Path.GetDirectoryName(firstFileTarget);
                         }
                     }
                 }
                 
-                // at least one compile task takes care of this file, we need to compile it
-                filesToCompile.TryAdd(new UoeFileToCompile(file.FilePath) {
-                    FileSize = file.Size,
-                    PreferedTargetDirectory = preferedTargetDirectory
+                output.TryAdd(new UoeFileToCompile(groupedBySourcePath.Key) {
+                    FileSize = groupedBySourcePath.First().Size,
+                    PreferredTargetDirectory = preferredTargetDirectory
                 });
             }
 
-            return filesToCompile;
-            */
+            return output;
         }
         
         /// <summary>

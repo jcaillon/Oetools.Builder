@@ -27,6 +27,7 @@ using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
+using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Test {
@@ -51,7 +52,7 @@ namespace Oetools.Builder.Test {
         }
         
         [TestMethod]
-        public void TaskExecutorWithFileListAndCompilation_Test_compile_failed_or_warning() {
+        public void Test_compile_failed_or_warning() {
             if (!TestHelper.GetDlcPath(out string _)) {
                 return;
             }
@@ -131,7 +132,7 @@ namespace Oetools.Builder.Test {
         
                 
         [TestMethod]
-        public void TaskExecutorWithFileListAndCompilation_Test_compile() {
+        public void Test_compile() {
             if (!TestHelper.GetDlcPath(out string _)) {
                 return;
             }
@@ -170,12 +171,94 @@ namespace Oetools.Builder.Test {
             Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source", "bin", "file1.r"))));
             Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source", "bin", "file2.r"))));
         }
+                
+        [TestMethod]
+        public void Test_GetFilesToCompile_PreferredDir() {
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
+
+            var sourceDir = Path.Combine(TestFolder, "source_preferred_dir");
+            Utils.CreateDirectoryIfNeeded(sourceDir);
+            
+            File.WriteAllText(Path.Combine(sourceDir, "file1.p"), "Quit.");
+            File.WriteAllText(Path.Combine(sourceDir, "scre1.w"), "Quit.");
+            File.WriteAllText(Path.Combine(sourceDir, "file2.p"), "Quit.");
+            
+            var taskExecutor = new BuildStepExecutorBuildSource {
+
+                Properties = new OeProperties {
+                    BuildOptions = new OeBuildOptions {
+                        SourceDirectoryPath = sourceDir,
+                        OutputDirectoryPath = Path.Combine(TestFolder, "source_preferred_dir", "bin")
+                    },
+                    CompilationOptions = new OeCompilationOptions {
+                        TryToOptimizeCompilationDirectory = true
+                    }
+                }
+            };
+
+            var taskCompile = new TaskCompile {
+                Include = @"**.p",
+                TargetDirectory = @""
+            };
+            
+            var taskCompileArchive = new TaskCompileArchive {
+                Include = @"**1**",
+                Archive = @"test.zip",
+                RelativeTargetDirectory = @""
+            };
+            
+            taskExecutor.Tasks = new List<IOeTask> { taskCompile, taskCompileArchive };
+            
+            taskExecutor.Execute();
+            
+            Assert.AreEqual(2, taskExecutor.NumberOfTasksDone, "2 tasks done");
+            
+            Assert.AreEqual(2, taskCompile.GetCompiledFiles().Count, "2 files compiled");
+
+            Assert.AreEqual(2, taskCompile.Files.Count, "file1.p and file2.p were included");
+            var taskTargets = taskCompile.Files.SelectMany(f => f.TargetsFiles).ToList();
+            Assert.AreEqual(2, taskTargets.Count, "we expect 2 targets");
+            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file1.r"))));
+            Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file2.r"))));
+
+            Assert.IsTrue(taskCompile.Files.Exists(f => f.SourcePathForTaskExecution.Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file1.r"))));
+            Assert.IsTrue(taskCompile.Files.Exists(f => f.SourcePathForTaskExecution.Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file2.r"))));
+            
+            Assert.AreEqual(2, taskCompileArchive.GetCompiledFiles().Count, "2 files compiled for archiving");
+
+            Assert.AreEqual(2, taskCompileArchive.Files.Count, "file1.p and scre1.w were included");
+            var taskTargets2 = taskCompileArchive.Files.SelectMany(f => f.TargetsArchives).ToList();
+            Assert.AreEqual(2, taskTargets2.Count, "we expect 2 targets");
+            Assert.IsTrue(taskTargets2.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "test.zip", "file1.r"))));
+            Assert.IsTrue(taskTargets2.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "test.zip", "scre1.r"))));
+
+            Assert.IsTrue(taskCompileArchive.Files.Exists(f => f.SourcePathForTaskExecution.Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file1.r"))));
+            Assert.AreEqual(1, taskCompileArchive.Files.Count(f => f.SourcePathForTaskExecution.StartsWith(TestFolder)), "1 file compiled directly, file1.p, because we also need it there. The other is compiled in the temp dir.");
+        }
         
         private class TaskCompile : OeTaskFileTargetFile, IOeTaskCompile {
             public List<IOeFileToBuildTargetFile> Files { get; } = new List<IOeFileToBuildTargetFile>();
             public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
                 Files.AddRange(files);
             }
+        }
+        
+        private class TaskCompileArchive : OeTaskFileTargetArchive, IOeTaskCompile {
+            public List<IOeFileToBuildTargetArchive> Files { get; } = new List<IOeFileToBuildTargetArchive>();
+            public override void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files) {
+                Files.AddRange(files);
+            }
+            public string Archive { get; set; }
+            protected override IArchiver GetArchiver() {
+                throw new NotImplementedException();
+            }
+            protected override string GetTargetArchive() => Archive;
+            protected override string GetTargetArchivePropertyName() {
+                throw new NotImplementedException();
+            }
+            protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
         }
     }
 }

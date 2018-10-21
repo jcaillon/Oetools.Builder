@@ -29,13 +29,13 @@ namespace Oetools.Builder.Project.Task {
     public interface IOeTaskCompile : IOeTaskFile, IOeTaskNeedingProperties {
 
         /// <summary>
-        /// Sets a list of files to be compiled.
+        /// Sets a list of files that were compiled for this task.
         /// </summary>
         /// <param name="compiledPath"></param>
         void SetCompiledFiles(PathList<UoeCompiledFile> compiledPath);
         
         /// <summary>
-        /// Gets a list of files to be compiled.
+        /// Gets a list of files that were compiled for this task.
         /// </summary>
         /// <returns></returns>
         PathList<UoeCompiledFile> GetCompiledFiles();

@@ -79,7 +79,7 @@ namespace Oetools.Builder.Project.Task {
         protected abstract string GetTargetArchivePropertyName();
 
         /// <summary>
-        /// Returns a new instance of <see cref="OeTargetArchive"/>.
+        /// Returns a new instance of <see cref="OeTargetArchive"/>. This is used to compute the targets for each file to build.
         /// </summary>
         /// <returns></returns>
         protected abstract OeTargetArchive GetNewTargetArchive();

@@ -59,11 +59,11 @@ namespace Oetools.Builder.Project {
         public string CompileStatementExtraOptions { get; set; }
 
         /// <summary>
-        /// Force the usage of a temporary Directory to compile the .r code files
+        /// Do not always use temporary Directory to compile the .r code files
         /// </summary>
         [XmlElement(ElementName = "TryToOptimizeCompilationDirectory")]
         public bool? TryToOptimizeCompilationDirectory { get; set; }
-        public static bool GetDefaultTryToOptimizeCompilationDirectory() => false;
+        public static bool GetDefaultTryToOptimizeCompilationDirectory() => true;
 
         [XmlElement(ElementName = "CompilableFileExtensionPattern")]
         public string CompilableFileExtensionPattern { get; set; }
