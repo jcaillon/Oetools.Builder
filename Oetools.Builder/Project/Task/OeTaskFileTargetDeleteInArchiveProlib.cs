@@ -39,7 +39,7 @@ namespace Oetools.Builder.Project.Task {
 
         protected override string GetRelativeFilePatternToDeletePropertyName() => nameof(RelativeFilePatternToDelete);
 
-        protected override IArchiver GetArchiver() => Archiver.NewProlibArchiver(GetProperties()?.DlcDirectoryPath);
+        protected override IArchiver GetArchiver() => Archiver.New(ArchiverType.Prolib);
 
     }
 }

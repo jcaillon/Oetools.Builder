@@ -50,6 +50,12 @@ Commonly known as the DLC directory.")]
         [Description("$DLC (openedge installation directory)")]
         public static string GetDefaultDlcDirectoryPath() => UoeUtilities.GetDlcPathFromEnv().ToCleanPath();
         
+        [Description(@"The code page to use for input/output with openedge processes.
+This will default to value read for -cpstream or -cpinternal in the file $DLC/startup.pf.
+You most likely do not have to configure this property, except if you encounter wrong character in the console.")]
+        [XmlElement(ElementName = "OpenedgeCodePage")]
+        public string OpenedgeCodePage { get; set; }
+        
         [Description(@"A list of all the openedge databases used by your project (logical name + data definition). 
 This list should contain all the databases necessary to compile your application.
 The databases specified within this option will be automatically generated during a build.
@@ -272,6 +278,9 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
                     ProExeCommandLineParameters = OpenedgeCommandLineExtraParameters,
                     ProPathList = GetPropath((BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()), true).Select(d => d.Path).ToList()
                 };
+                if (!string.IsNullOrEmpty(OpenedgeCodePage)) {
+                    _env.CodePageName = OpenedgeCodePage;
+                }
             }
             return _env;
         }

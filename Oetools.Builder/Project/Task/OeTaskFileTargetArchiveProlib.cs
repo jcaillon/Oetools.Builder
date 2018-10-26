@@ -34,7 +34,7 @@ namespace Oetools.Builder.Project.Task {
         [ReplaceVariables(LeaveUnknownUntouched = true)]
         public string TargetProlibFilePath { get; set; }
 
-        protected override IArchiver GetArchiver() => Archiver.NewProlibArchiver(GetProperties().DlcDirectoryPath);
+        protected override IArchiver GetArchiver() => Archiver.New(ArchiverType.Prolib);
 
         protected override string GetTargetArchive() => TargetProlibFilePath;
         
