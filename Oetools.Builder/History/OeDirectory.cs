@@ -31,5 +31,7 @@ namespace Oetools.Builder.History {
         public OeDirectory(string path) {
             Path = path;
         }
+        
+        public OeDirectory() { }
     }
 }
