@@ -495,6 +495,10 @@ namespace Oetools.Builder.Test {
         [DataRow(true)]
         [DataRow(false)]
         public void Builder_Constructor_set_default_values(bool useProject) {
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
+            
             Builder builder;
             if (useProject) {
                 builder = new Builder(new OeProject());

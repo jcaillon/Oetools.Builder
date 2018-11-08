@@ -275,9 +275,7 @@ namespace Oetools.Builder.Test {
             }
             public PathList<UoeCompiledFile> GetCompiledFiles() => null;
             protected override void ExecuteForFilesInternal(PathList<OeFile> paths) {}
-            protected override void ExecuteTestModeInternal() {
-                throw new NotImplementedException();
-            }
+            protected override void ExecuteTestModeInternal() { }
         }
         
         private class TaskException : OeTask {
