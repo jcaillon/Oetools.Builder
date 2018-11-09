@@ -256,8 +256,8 @@ namespace Oetools.Builder {
 
                 if (unchangedOrModifiedFiles != null && unchangedOrModifiedFiles.Count > 0) {
                     Log?.Debug("For all the unchanged or modified files, set all the targets that should be built in this build");
-                    foreach (var task in stepsList.SelectMany(step1 => (step1.GetTaskList()?.OfType<IOeTaskFileTarget>()).ToNonNullList())) {
-                        task.SetTargetForFiles(unchangedOrModifiedFiles, BuildConfiguration.Properties?.BuildOptions?.OutputDirectoryPath, true);
+                    foreach (var task in stepsList.SelectMany(step1 => (step1.GetTaskList()?.OfType<IOeTaskFileWithTargets>()).ToNonNullList())) {
+                        task.SetTargets(unchangedOrModifiedFiles, BuildConfiguration.Properties?.BuildOptions?.OutputDirectoryPath, true);
                     }
 
                     Log?.Debug("Making a list of all source files that had targets existing in the previous build which don't existing anymore (those targets must be deleted)");
@@ -307,10 +307,10 @@ namespace Oetools.Builder {
                 }
                 var compiledFile = new OeCompiledFile {
                     Path = file.Path,
-                    CompilationProblems = new List<OeCompilationProblem>()
+                    CompilationProblems = new List<AOeCompilationProblem>()
                 };
                 foreach (var problem in file.CompilationErrors) {
-                    compiledFile.CompilationProblems.Add(OeCompilationProblem.New(problem));
+                    compiledFile.CompilationProblems.Add(AOeCompilationProblem.New(problem));
                 }
                 output.Add(compiledFile);
             }
@@ -319,7 +319,7 @@ namespace Oetools.Builder {
         }
 
         /// <summary>
-        /// Returns a list of all the files built; include files that were automatically deleted
+        /// Returns a list of all the files built; include files that were automatically deleted.
         /// </summary>
         /// <returns></returns>
         private PathList<OeFileBuilt> GetFilesBuiltHistory() {
@@ -331,8 +331,8 @@ namespace Oetools.Builder {
             foreach (var fileBuilt in BuildStepExecutors
                 .Where(te => te is BuildStepExecutorBuildSource)
                 .SelectMany(exec => exec.Tasks.ToNonNullList())
-                .OfType<IOeTaskFileBuilder>()
-                .SelectMany(t => t.GetFilesBuilt().ToNonNullList())) {
+                .OfType<IOeTaskWithBuiltFiles>()
+                .SelectMany(t => t.GetBuiltFiles().ToNonNullList())) {
                 
                 // keep only the targets that are in the output directory, we won't be able to "undo" the others so it would be useless to keep them
                 var targetsOutputDirectory = fileBuilt.Targets

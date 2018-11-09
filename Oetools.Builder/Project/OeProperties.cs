@@ -171,7 +171,7 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
             }
         }
         
-        private void ValidateFilters(OeTaskFilter filter, string propertyNameOf) {
+        private void ValidateFilters(AOeTaskFilter filter, string propertyNameOf) {
             try {
                 filter?.Validate();
             } catch (Exception e) {

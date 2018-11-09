@@ -111,8 +111,8 @@ namespace Oetools.Builder.Project {
         /// This list of tasks can only include files located in the source directory
         /// </summary>
         [XmlArray("BuildSourceTasks")]
-        [XmlArrayItem("Step", typeof(OeBuildStepCompile))]
-        public List<OeBuildStepCompile> BuildSourceStepGroup { get; set; }
+        [XmlArrayItem("Step", typeof(OeBuildStepBuildSource))]
+        public List<OeBuildStepBuildSource> BuildSourceStepGroup { get; set; }
             
         /// <summary>
         /// This list of tasks can only include files located in the output directory

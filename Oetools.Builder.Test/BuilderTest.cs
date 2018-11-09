@@ -69,17 +69,17 @@ namespace Oetools.Builder.Test {
             File.WriteAllText(Path.Combine(sourceDirectory, "subfolder", "resource.ext"), "ok");
             
             var buildConfiguration1 = new OeBuildConfiguration {
-                BuildSourceStepGroup = new List<OeBuildStepCompile> {
-                    new OeBuildStepCompile {
-                        Tasks = new List<OeTask> {
-                            new OeTaskFileTargetFileCompile { Include = "**/subfolder/**", TargetDirectory = "subfolder;copy_subfolder" },
-                            new OeTaskFileTargetArchiveProlibCompile { Include = "**.w", TargetProlibFilePath = "w.pl", RelativeTargetDirectory = ";screens" }
+                BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
+                    new OeBuildStepBuildSource {
+                        Tasks = new List<AOeTask> {
+                            new OeTaskFileCompile { Include = "**/subfolder/**", TargetDirectory = "subfolder;copy_subfolder" },
+                            new OeTaskFileArchiverArchiveProlibCompile { Include = "**.w", TargetProlibFilePath = "w.pl", RelativeTargetDirectory = ";screens" }
                         }
                     },
-                    new OeBuildStepCompile {
-                        Tasks = new List<OeTask> {
-                            new OeTaskFileTargetFileCompile { Include = "**((*)).p", TargetDirectory = "{{1}}" },
-                            new OeTaskFileTargetFileCopy { Include = "**.ext", TargetFilePath = "resources/file.new" }
+                    new OeBuildStepBuildSource {
+                        Tasks = new List<AOeTask> {
+                            new OeTaskFileCompile { Include = "**((*)).p", TargetDirectory = "{{1}}" },
+                            new OeTaskFileCopy { Include = "**.ext", TargetFilePath = "resources/file.new" }
                         }
                     }
                 },
@@ -133,8 +133,8 @@ namespace Oetools.Builder.Test {
                 
                 Assert.AreEqual(0, builder.BuildStepExecutors
                     .SelectMany(te => te.Tasks)
-                    .OfType<IOeTaskFileBuilder>()
-                    .SelectMany(t => t.GetFilesBuilt().ToNonNullList())
+                    .OfType<IOeTaskWithBuiltFiles>()
+                    .SelectMany(t => t.GetBuiltFiles().ToNonNullList())
                     .Count(), "we expect to have 0 files built this time, nothing has changed");
                 
                 Assert.AreEqual(5, builder.BuildSourceHistory.BuiltFiles.Count, "5 unique files in history in total");
@@ -170,10 +170,9 @@ namespace Oetools.Builder.Test {
             }
             buildConfiguration1.Properties.IncrementalBuildOptions.FullRebuild = false;
             
-            
             // delete a file, and delete some targets
             File.Delete(Path.Combine(sourceDirectory, "file2.w"));
-            ((OeTaskFileTargetFileCompile) buildConfiguration1.BuildSourceStepGroup[0].Tasks[0]).TargetDirectory = "subfolder";
+            ((OeTaskFileCompile) buildConfiguration1.BuildSourceStepGroup[0].Tasks[0]).TargetDirectory = "subfolder";
             
             using (var builder = new Builder(buildConfiguration1) {
                 BuildSourceHistory = firstBuildHistory
@@ -185,7 +184,7 @@ namespace Oetools.Builder.Test {
                 Assert.AreEqual(4, builder.BuildSourceHistory.BuiltFiles.Count(f => f.State == OeFileState.Unchanged));
                 
                 // should find 4 targets deleted (2 for file2.w, 1 each for file4/5)
-                Assert.AreEqual(4, builder.BuildSourceHistory.BuiltFiles.SelectMany(f => f.GetAllTargets()).Count(t => t.IsDeletionMode()));
+                Assert.AreEqual(4, builder.BuildSourceHistory.BuiltFiles.SelectMany(f => f.Targets).Count(t => t.IsDeletionMode()));
                 
                 Assert.AreEqual(10, builder.BuildSourceHistory.BuiltFiles.SelectMany(f => f.Targets).Count(), "still 10 targets in history in total");
                 
@@ -193,10 +192,10 @@ namespace Oetools.Builder.Test {
                 OeTaskTargetsDeleter remover1 = (OeTaskTargetsDeleter) builder.BuildStepExecutors[1].Tasks[2];
                 OeTaskTargetsDeleter remover2 = (OeTaskTargetsDeleter) builder.BuildStepExecutors[1].Tasks[3];
                 
-                Assert.AreEqual(Path.Combine(sourceDirectory, "file2.w"), remover1.GetFilesBuilt().ElementAt(0).Path);
+                Assert.AreEqual(Path.Combine(sourceDirectory, "file2.w"), remover1.GetBuiltFiles().ElementAt(0).Path);
                 
-                Assert.AreEqual(Path.Combine(sourceDirectory, "subfolder", "file4.p"), remover2.GetFilesBuilt().ElementAt(0).Path);
-                Assert.AreEqual(Path.Combine(sourceDirectory, "subfolder", "file5.p"), remover2.GetFilesBuilt().ElementAt(1).Path);
+                Assert.AreEqual(Path.Combine(sourceDirectory, "subfolder", "file4.p"), remover2.GetBuiltFiles().ElementAt(0).Path);
+                Assert.AreEqual(Path.Combine(sourceDirectory, "subfolder", "file5.p"), remover2.GetBuiltFiles().ElementAt(1).Path);
                 
                 
             }
@@ -205,40 +204,40 @@ namespace Oetools.Builder.Test {
 
         private void CheckTasksWithBuildConfiguration1Targets(Builder builder, string outputDirectory) {
             // check first task
-            IOeTaskFileBuilder task = (OeTaskFileTargetFileCompile) builder.BuildStepExecutors[0].Tasks[0];
-            var filesBuilt = task.GetFilesBuilt().ToList();
+            IOeTaskWithBuiltFiles task = (OeTaskFileCompile) builder.BuildStepExecutors[0].Tasks[0];
+            var filesBuilt = task.GetBuiltFiles().ToList();
             Assert.AreEqual(2, filesBuilt.Count, "2 files built on the first task");
             Assert.AreEqual(4, filesBuilt.SelectMany(f => f.Targets).Count(), "4 targets built on the first task");
-            Assert.AreEqual(Path.Combine(outputDirectory, "subfolder", "file4.r"), filesBuilt[0].GetAllTargets().ElementAt(0).GetTargetPath());
-            Assert.AreEqual(Path.Combine(outputDirectory, "copy_subfolder", "file4.r"), filesBuilt[0].GetAllTargets().ElementAt(1).GetTargetPath());
-            Assert.AreEqual(Path.Combine(outputDirectory, "subfolder", "file5.r"), filesBuilt[1].GetAllTargets().ElementAt(0).GetTargetPath());
-            Assert.AreEqual(Path.Combine(outputDirectory, "copy_subfolder", "file5.r"), filesBuilt[1].GetAllTargets().ElementAt(1).GetTargetPath());
+            Assert.AreEqual(Path.Combine(outputDirectory, "subfolder", "file4.r"), filesBuilt[0].Targets.ElementAt(0).GetTargetPath());
+            Assert.AreEqual(Path.Combine(outputDirectory, "copy_subfolder", "file4.r"), filesBuilt[0].Targets.ElementAt(1).GetTargetPath());
+            Assert.AreEqual(Path.Combine(outputDirectory, "subfolder", "file5.r"), filesBuilt[1].Targets.ElementAt(0).GetTargetPath());
+            Assert.AreEqual(Path.Combine(outputDirectory, "copy_subfolder", "file5.r"), filesBuilt[1].Targets.ElementAt(1).GetTargetPath());
 
             // check the second task
-            task = (OeTaskFileTargetArchiveProlibCompile) builder.BuildStepExecutors[0].Tasks[1];
-            filesBuilt = task.GetFilesBuilt().ToList();
+            task = (OeTaskFileArchiverArchiveProlib) builder.BuildStepExecutors[0].Tasks[1];
+            filesBuilt = task.GetBuiltFiles().ToList();
             Assert.AreEqual(1, filesBuilt.Count, "1 file built on the second task");
             Assert.AreEqual(2, filesBuilt.SelectMany(f => f.Targets).Count(), "2 targets built on the second task");
-            Assert.AreEqual(Path.Combine(outputDirectory, "w.pl"), ((OeTargetArchiveProlib) filesBuilt[0].Targets[0]).TargetPackFilePath);
-            Assert.AreEqual("file2.r", ((OeTargetArchiveProlib) filesBuilt[0].Targets[0]).RelativeTargetFilePath);
-            Assert.AreEqual(Path.Combine(outputDirectory, "w.pl"), ((OeTargetArchiveProlib) filesBuilt[0].Targets[1]).TargetPackFilePath);
-            Assert.AreEqual(Path.Combine("screens", "file2.r"), ((OeTargetArchiveProlib) filesBuilt[0].Targets[1]).RelativeTargetFilePath);
+            Assert.AreEqual(Path.Combine(outputDirectory, "w.pl"), ((OeTargetProlib) filesBuilt[0].Targets[0]).ArchiveFilePath);
+            Assert.AreEqual("file2.r", ((OeTargetProlib) filesBuilt[0].Targets[0]).FilePath);
+            Assert.AreEqual(Path.Combine(outputDirectory, "w.pl"), ((OeTargetProlib) filesBuilt[0].Targets[1]).ArchiveFilePath);
+            Assert.AreEqual(Path.Combine("screens", "file2.r"), ((OeTargetProlib) filesBuilt[0].Targets[1]).FilePath);
 
             // check the third task
-            task = (OeTaskFileTargetFileCompile) builder.BuildStepExecutors[1].Tasks[0];
-            filesBuilt = task.GetFilesBuilt().ToList();
+            task = (OeTaskFileCompile) builder.BuildStepExecutors[1].Tasks[0];
+            filesBuilt = task.GetBuiltFiles().ToList();
             Assert.AreEqual(3, filesBuilt.Count, "3 files built on the third task (1 didn't compile so it was not built)");
             Assert.AreEqual(3, filesBuilt.SelectMany(f => f.Targets).Count(), "3 targets built on the third task");
-            Assert.AreEqual(Path.Combine(outputDirectory, "file1", "file1.r"), ((OeTargetFileCopy) filesBuilt[0].Targets[0]).TargetFilePath);
-            Assert.AreEqual(Path.Combine(outputDirectory, "file4", "file4.r"), ((OeTargetFileCopy) filesBuilt[1].Targets[0]).TargetFilePath);
-            Assert.AreEqual(Path.Combine(outputDirectory, "file5", "file5.r"), ((OeTargetFileCopy) filesBuilt[2].Targets[0]).TargetFilePath);
+            Assert.AreEqual(Path.Combine(outputDirectory, "file1", "file1.r"), ((OeTargetFile) filesBuilt[0].Targets[0]).FilePath);
+            Assert.AreEqual(Path.Combine(outputDirectory, "file4", "file4.r"), ((OeTargetFile) filesBuilt[1].Targets[0]).FilePath);
+            Assert.AreEqual(Path.Combine(outputDirectory, "file5", "file5.r"), ((OeTargetFile) filesBuilt[2].Targets[0]).FilePath);
 
             // check the fourth task
-            task = (OeTaskFileTargetFileCopy) builder.BuildStepExecutors[1].Tasks[1];
-            filesBuilt = task.GetFilesBuilt().ToList();
+            task = (OeTaskFileCopy) builder.BuildStepExecutors[1].Tasks[1];
+            filesBuilt = task.GetBuiltFiles().ToList();
             Assert.AreEqual(1, filesBuilt.Count, "1 file built on the fourth task");
             Assert.AreEqual(1, filesBuilt.SelectMany(f => f.Targets).Count(), "1 target built on the fourth task");
-            Assert.AreEqual(Path.Combine(outputDirectory, "resources", "file.new"), ((OeTargetFileCopy) filesBuilt[0].Targets[0]).TargetFilePath);
+            Assert.AreEqual(Path.Combine(outputDirectory, "resources", "file.new"), ((OeTargetFile) filesBuilt[0].Targets[0]).FilePath);
         }
         
         [TestMethod]
@@ -256,7 +255,7 @@ namespace Oetools.Builder.Test {
             var builder = new Builder(new OeBuildConfiguration {
                 PreBuildStepGroup = new List<OeBuildStepClassic> {
                     new OeBuildStepClassic {
-                        Tasks = new List<OeTask> {
+                        Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCopy2 { Include = "{{SOURCE_DIRECTORY}}/**.w", TargetDirectory = "{{SOURCE_DIRECTORY}}/copied_w" },
                             new OeTaskFileTargetArchiveProlibCompileProlib2 { Include = "{{SOURCE_DIRECTORY}}/**file1**", TargetProlibFilePath = "{{SOURCE_DIRECTORY}}/my.pl", RelativeTargetDirectory = "" }
                         }
@@ -264,7 +263,7 @@ namespace Oetools.Builder.Test {
                 },
                 PostBuildStepGroup = new List<OeBuildStepClassic> {
                     new OeBuildStepClassic {
-                        Tasks = new List<OeTask> {
+                        Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCopy2 { Include = "{{SOURCE_DIRECTORY}}/**", Exclude = "**((.p||.w))", TargetDirectory = "{{SOURCE_DIRECTORY}}/copied_ext" }
                         }
                     }  
@@ -282,8 +281,8 @@ namespace Oetools.Builder.Test {
             
             var filesBuilt = builder.BuildStepExecutors
                 .SelectMany(exec => exec?.Tasks)
-                .OfType<IOeTaskFileBuilder>()
-                .SelectMany(t => t.GetFilesBuilt().ToNonNullList())
+                .OfType<IOeTaskWithBuiltFiles>()
+                .SelectMany(t => t.GetBuiltFiles().ToNonNullList())
                 .ToList();
             
             Assert.AreEqual(1, ((IOeTaskCompile) builder.BuildStepExecutors[0].Tasks.ToList()[1]).GetCompiledFiles().Count);
@@ -307,13 +306,13 @@ namespace Oetools.Builder.Test {
             var builder = new Builder(new OeBuildConfiguration {
                 BuildOutputStepGroup = new List<OeBuildStepClassic> {
                     new OeBuildStepClassic {
-                        Tasks = new List<OeTask> {
+                        Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCopy2 { Include = "**.w", TargetDirectory = "copied_w" },
                             new OeTaskFileTargetArchiveProlibCompileProlib2 { Include = "**file1**", TargetProlibFilePath = "my.pl", RelativeTargetDirectory = "" }
                         }
                     },
                     new OeBuildStepClassic {
-                        Tasks = new List<OeTask> {
+                        Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCopy2 { Include = "**", Exclude = "**((.p||.w))", TargetDirectory = "copied_ext" }
                         }
                     }
@@ -330,8 +329,8 @@ namespace Oetools.Builder.Test {
             
             var filesBuilt = builder.BuildStepExecutors
                 .SelectMany(exec => exec?.Tasks)
-                .OfType<IOeTaskFileBuilder>()
-                .SelectMany(t => t.GetFilesBuilt().ToNonNullList())
+                .OfType<IOeTaskWithBuiltFiles>()
+                .SelectMany(t => t.GetBuiltFiles().ToNonNullList())
                 .ToList();
             
             Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "copied_w", "file2.w"), filesBuilt[0].Targets[0].GetTargetPath());
@@ -353,15 +352,15 @@ namespace Oetools.Builder.Test {
 
 
             var builder = new Builder(new OeBuildConfiguration {
-                BuildSourceStepGroup = new List<OeBuildStepCompile> {
-                    new OeBuildStepCompile {
-                        Tasks = new List<OeTask> {
+                BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
+                    new OeBuildStepBuildSource {
+                        Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCompile2 { Include = "**file1**", TargetDirectory = "first;/random/folder" },
                             new OeTaskFileTargetArchiveProlibCompileProlib2 { Include = "**file((2||3))**", TargetProlibFilePath = "my.pl", RelativeTargetDirectory = "" }
                         }
                     },
-                    new OeBuildStepCompile {
-                        Tasks = new List<OeTask> {
+                    new OeBuildStepBuildSource {
+                        Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCompile2 { Include = "**file1**", TargetDirectory = "second" },
                         }
                     }
@@ -383,9 +382,9 @@ namespace Oetools.Builder.Test {
                             Path = "myfile.p",
                             Size = 2,
                             State = OeFileState.Modified,
-                            Targets = new List<OeTarget> {
-                                new OeTargetFileCopy {
-                                    TargetFilePath = "derp.out.p"
+                            Targets = new List<AOeTarget> {
+                                new OeTargetFile {
+                                    FilePath = "derp.out.p"
                                 }
                             },
                             Hash = "okay"
@@ -398,10 +397,10 @@ namespace Oetools.Builder.Test {
             builder.Build();
             
             Assert.AreEqual(3, builder.BuildSourceHistory.BuiltFiles.Count);
-            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "first", "file1.r"), builder.BuildSourceHistory.BuiltFiles[0].GetAllTargets().ToList()[0].GetTargetPath());
-            Assert.AreEqual(Path.Combine("C:\\random\\folder", "file1.r"), builder.BuildSourceHistory.BuiltFiles[0].GetAllTargets().ToList()[1].GetTargetPath());
-            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "my.pl", "file2.r"), builder.BuildSourceHistory.BuiltFiles[1].GetAllTargets().ToList()[0].GetTargetPath());
-            Assert.AreEqual("derp.out.p", builder.BuildSourceHistory.BuiltFiles[2].GetAllTargets().ToList()[0].GetTargetPath());
+            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "first", "file1.r"), builder.BuildSourceHistory.BuiltFiles[0].Targets.ToList()[0].GetTargetPath());
+            Assert.AreEqual(Path.Combine("C:\\random\\folder", "file1.r"), builder.BuildSourceHistory.BuiltFiles[0].Targets.ToList()[1].GetTargetPath());
+            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "my.pl", "file2.r"), builder.BuildSourceHistory.BuiltFiles[1].Targets.ToList()[0].GetTargetPath());
+            Assert.AreEqual("derp.out.p", builder.BuildSourceHistory.BuiltFiles[2].Targets.ToList()[0].GetTargetPath());
             
             // we asked for hash
             Assert.IsFalse(string.IsNullOrEmpty(builder.BuildSourceHistory.BuiltFiles[0].Hash));
@@ -424,15 +423,15 @@ namespace Oetools.Builder.Test {
             File.WriteAllText(Path.Combine(sourceDirectory, "file3.p"), "nof sense, will not compile"); // compile with errors
 
             var builder = new Builder(new OeBuildConfiguration {
-                BuildSourceStepGroup = new List<OeBuildStepCompile> {
-                    new OeBuildStepCompile {
-                        Tasks = new List<OeTask> {
+                BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
+                    new OeBuildStepBuildSource {
+                        Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCompile2 { Include = "**file1**", TargetDirectory = "first;/random/folder" },
                             new OeTaskFileTargetArchiveProlibCompileProlib2 { Include = "**file((2||3))**", TargetProlibFilePath = "my.pl", RelativeTargetDirectory = "" }
                         }
                     },
-                    new OeBuildStepCompile {
-                        Tasks = new List<OeTask> {
+                    new OeBuildStepBuildSource {
+                        Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCompile2 { Include = "**file1**", TargetDirectory = "second" },
                             new OeTaskFileTargetFileCompile2 { Include = "**file3**", TargetDirectory = "second" },
                         }
@@ -458,36 +457,21 @@ namespace Oetools.Builder.Test {
             
         }
 
-        private class OeTaskFileTargetArchiveProlibCompileProlib2 : OeTaskFileTargetArchiveProlibCompile {
-            public override void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files) {
-                _builtPaths = new PathList<OeFileBuilt>();
-                foreach (var file in files.Cast<OeFile>()) {
-                    var fileBuilt = GetNewFileBuilt(file);
-                    fileBuilt.Targets = file.GetAllTargets().ToList();
-                    _builtPaths.Add(fileBuilt);
-                }
+        private class OeTaskFileTargetArchiveProlibCompileProlib2 : OeTaskFileArchiverArchiveProlibCompile {
+            public override void ExecuteForFilesWithTargets(IEnumerable<IOeFileToBuild> files) {
+                ExecuteTestModeInternal();
             }
         }
 
-        private class OeTaskFileTargetFileCompile2 : OeTaskFileTargetFileCompile {
-            public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
-                _builtPaths = new PathList<OeFileBuilt>();
-                foreach (var file in files.Cast<OeFile>()) {
-                    var fileBuilt = GetNewFileBuilt(file);
-                    fileBuilt.Targets = file.GetAllTargets().ToList();
-                    _builtPaths.Add(fileBuilt);
-                }
+        private class OeTaskFileTargetFileCompile2 : OeTaskFileCompile {
+            public override void ExecuteForFilesWithTargets(IEnumerable<IOeFileToBuild> files) {
+                ExecuteTestModeInternal();
             }
         }
         
-        private class OeTaskFileTargetFileCopy2 : OeTaskFileTargetFileCopy {
-            public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
-                _builtPaths = new PathList<OeFileBuilt>();
-                foreach (var file in files.Cast<OeFile>()) {
-                    var fileBuilt = GetNewFileBuilt(file);
-                    fileBuilt.Targets = file.GetAllTargets().ToList();
-                    _builtPaths.Add(fileBuilt);
-                }
+        private class OeTaskFileTargetFileCopy2 : OeTaskFileCopy {
+            public override void ExecuteForFilesWithTargets(IEnumerable<IOeFileToBuild> files) {
+                ExecuteTestModeInternal();
             }
         }
 
@@ -522,48 +506,48 @@ namespace Oetools.Builder.Test {
             var builder = new Builder(new OeBuildConfiguration {
                 PreBuildStepGroup = new List<OeBuildStepClassic> {
                     new OeBuildStepClassic {
-                        Tasks = new List<OeTask> {
+                        Tasks = new List<AOeTask> {
                             new OeTaskExec2()
                         }
                     },
                     new OeBuildStepClassic {
-                        Tasks = new List<OeTask> {
+                        Tasks = new List<AOeTask> {
                             new OeTaskExec2()
                         }
                     }
                 },
-                BuildSourceStepGroup = new List<OeBuildStepCompile> {
-                    new OeBuildStepCompile {
-                        Tasks = new List<OeTask> {
+                BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
+                    new OeBuildStepBuildSource {
+                        Tasks = new List<AOeTask> {
                             new OeTaskExec2()
                         }
                     },
-                    new OeBuildStepCompile {
-                        Tasks = new List<OeTask> {
+                    new OeBuildStepBuildSource {
+                        Tasks = new List<AOeTask> {
                             new OeTaskExec2()
                         }
                     }
                 },
                 BuildOutputStepGroup = new List<OeBuildStepClassic> {
                     new OeBuildStepClassic {
-                        Tasks = new List<OeTask> {
+                        Tasks = new List<AOeTask> {
                             new OeTaskExec2()
                         }
                     },
                     new OeBuildStepClassic {
-                        Tasks = new List<OeTask> {
+                        Tasks = new List<AOeTask> {
                             new OeTaskExec2()
                         }
                     }
                 },
                 PostBuildStepGroup = new List<OeBuildStepClassic> {
                     new OeBuildStepClassic {
-                        Tasks = new List<OeTask> {
+                        Tasks = new List<AOeTask> {
                             new OeTaskExec2()
                         }
                     },
                     new OeBuildStepClassic {
-                        Tasks = new List<OeTask> {
+                        Tasks = new List<AOeTask> {
                             new OeTaskExec2()
                         }
                     }
@@ -597,7 +581,7 @@ namespace Oetools.Builder.Test {
             var builder = new Builder(new OeBuildConfiguration {
                 PreBuildStepGroup = new List<OeBuildStepClassic> {
                     new OeBuildStepClassic {
-                        Tasks = new List<OeTask> {
+                        Tasks = new List<AOeTask> {
                             new TaskWaitForCancel()
                         }
                     }
@@ -621,7 +605,7 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(typeof(OperationCanceledException), ex.InnerException.GetType());
         }
 
-        private class TaskWaitForCancel : OeTask {
+        private class TaskWaitForCancel : AOeTask {
             public override void Validate() {
                 // nothing to validate
             }

@@ -39,6 +39,6 @@ namespace Oetools.Builder.History {
         [XmlArray("CompilationProblems")]
         [XmlArrayItem("Error", typeof(OeCompilationError))]
         [XmlArrayItem("Warning", typeof(OeCompilationWarning))]
-        public List<OeCompilationProblem> CompilationProblems { get; set; }
+        public List<AOeCompilationProblem> CompilationProblems { get; set; }
     }
 }

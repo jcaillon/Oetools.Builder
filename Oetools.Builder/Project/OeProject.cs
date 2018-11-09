@@ -102,11 +102,11 @@ namespace Oetools.Builder.Project {
                 },
                 BuildConfigurations = new List<OeBuildConfiguration> {
                     new OeBuildConfiguration {
-                        BuildSourceStepGroup = new List<OeBuildStepCompile> {
-                            new OeBuildStepCompile {
+                        BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
+                            new OeBuildStepBuildSource {
                                 Label = "Compile all files next to their source",
-                                Tasks = new List<OeTask> {
-                                    new OeTaskFileTargetFileCompile {
+                                Tasks = new List<AOeTask> {
+                                    new OeTaskFileCompile {
                                         Include = "((**))*",
                                         TargetDirectory = "{{1}}"
                                     }

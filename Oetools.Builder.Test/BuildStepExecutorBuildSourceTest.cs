@@ -73,7 +73,7 @@ namespace Oetools.Builder.Test {
                 }
             };
 
-            var taskCompile = new TaskCompile { Include = @"**", TargetDirectory = @"" };
+            var taskCompile = new TaskCompileFile { Include = @"**", TargetDirectory = @"" };
             
             taskExecutor.Tasks = new List<IOeTask> { taskCompile };
 
@@ -98,7 +98,7 @@ namespace Oetools.Builder.Test {
             
             Assert.AreEqual(1, taskCompile.Files.Count, "only file1.r will be copied");
             Assert.AreEqual(1, taskCompile.GetCompiledFiles().Count(cf => cf.CompiledCorrectly), "we should have only one file compiled correctly");
-            var taskTargets = taskCompile.Files.SelectMany(f => f.TargetsFiles).ToList();
+            var taskTargets = taskCompile.Files.SelectMany(f => f.TargetsToBuild).ToList();
             Assert.AreEqual(1, taskTargets.Count, "we expect only 1 target because the file that didn't compile was no included");
             Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source2", "bin", @"file1.r"))));
             
@@ -114,7 +114,7 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(2, taskCompile.Files.Count, "both files will be copied");
             Assert.AreEqual(1, taskCompile.GetCompiledFiles().Count(cf => cf.CompiledCorrectly), "we should have only one file compiled correctly");
             Assert.AreEqual(1, taskCompile.GetCompiledFiles().Count(cf => cf.CompiledWithWarnings), "and one with warning");
-            taskTargets = taskCompile.Files.SelectMany(f => f.TargetsFiles).ToList();
+            taskTargets = taskCompile.Files.SelectMany(f => f.TargetsToBuild).ToList();
             Assert.AreEqual(2, taskTargets.Count, "we expect 2 targets here");
             
             taskExecutor.Properties.BuildOptions.StopBuildOnCompilationWarning = true;
@@ -154,7 +154,7 @@ namespace Oetools.Builder.Test {
                 }
             };
 
-            var taskCompile = new TaskCompile {
+            var taskCompile = new TaskCompileFile {
                 Include = @"**",
                 TargetDirectory = @""
             };
@@ -166,7 +166,7 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(2, taskCompile.GetCompiledFiles().Count, "2 files compiled");
 
             Assert.AreEqual(2, taskCompile.Files.Count, "file1.p and file2.w were included");
-            var taskTargets = taskCompile.Files.SelectMany(f => f.TargetsFiles).ToList();
+            var taskTargets = taskCompile.Files.SelectMany(f => f.TargetsToBuild).ToList();
             Assert.AreEqual(2, taskTargets.Count, "we expect 2 targets");
             Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source", "bin", "file1.r"))));
             Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source", "bin", "file2.r"))));
@@ -198,15 +198,15 @@ namespace Oetools.Builder.Test {
                 }
             };
 
-            var taskCompile = new TaskCompile {
+            var taskCompile = new TaskCompileFile {
                 Include = @"**.p",
                 TargetDirectory = @""
             };
             
             var taskCompileArchive = new TaskCompileArchive {
                 Include = @"**1**",
-                Archive = @"test.zip",
-                RelativeTargetDirectory = @""
+                ArchivePath = @"test.zip",
+                TargetDirectory = @""
             };
             
             taskExecutor.Tasks = new List<IOeTask> { taskCompile, taskCompileArchive };
@@ -218,7 +218,7 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(2, taskCompile.GetCompiledFiles().Count, "2 files compiled");
 
             Assert.AreEqual(2, taskCompile.Files.Count, "file1.p and file2.p were included");
-            var taskTargets = taskCompile.Files.SelectMany(f => f.TargetsFiles).ToList();
+            var taskTargets = taskCompile.Files.SelectMany(f => f.TargetsToBuild).ToList();
             Assert.AreEqual(2, taskTargets.Count, "we expect 2 targets");
             Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file1.r"))));
             Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file2.r"))));
@@ -229,7 +229,7 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(2, taskCompileArchive.GetCompiledFiles().Count, "2 files compiled for archiving");
 
             Assert.AreEqual(2, taskCompileArchive.Files.Count, "file1.p and scre1.w were included");
-            var taskTargets2 = taskCompileArchive.Files.SelectMany(f => f.TargetsArchives).ToList();
+            var taskTargets2 = taskCompileArchive.Files.SelectMany(f => f.TargetsToBuild).ToList();
             Assert.AreEqual(2, taskTargets2.Count, "we expect 2 targets");
             Assert.IsTrue(taskTargets2.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "test.zip", "file1.r"))));
             Assert.IsTrue(taskTargets2.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "test.zip", "scre1.r"))));
@@ -238,27 +238,48 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(1, taskCompileArchive.Files.Count(f => f.SourcePathForTaskExecution.StartsWith(TestFolder)), "1 file compiled directly, file1.p, because we also need it there. The other is compiled in the temp dir.");
         }
         
-        private class TaskCompile : OeTaskFileTargetFile, IOeTaskCompile {
-            public List<IOeFileToBuildTargetFile> Files { get; } = new List<IOeFileToBuildTargetFile>();
-            public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
+        private class TaskCompileFile : AOeTaskFileArchiverArchive, IOeTaskCompile {
+            
+            public IArchiver Archiver { get; set; }
+            
+            public string TargetFilePath { get; set; }
+        
+            public string TargetDirectory { get; set; }
+            
+            public override ArchiveCompressionLevel GetCompressionLevel() => ArchiveCompressionLevel.None;
+        
+            protected override IArchiver GetArchiver() => Archiver;
+        
+            protected override AOeTarget GetNewTarget() => new OeTargetFile();
+
+            protected override string GetArchivePath() => null;
+
+            protected override string GetArchivePathPropertyName() => null;
+
+            protected override string GetTargetFilePath() => TargetFilePath;
+
+            protected override string GetTargetFilePathPropertyName() => nameof(TargetFilePath);
+
+            protected override string GetTargetDirectory() => TargetDirectory;
+
+            protected override string GetTargetDirectoryPropertyName() => nameof(TargetDirectory);
+
+            public List<IOeFileToBuild> Files { get; set; } = new List<IOeFileToBuild>();
+            
+            public override void ExecuteForFilesWithTargets(IEnumerable<IOeFileToBuild> files) {
                 Files.AddRange(files);
             }
         }
         
-        private class TaskCompileArchive : OeTaskFileTargetArchive, IOeTaskCompile {
-            public List<IOeFileToBuildTargetArchive> Files { get; } = new List<IOeFileToBuildTargetArchive>();
-            public override void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files) {
-                Files.AddRange(files);
-            }
-            public string Archive { get; set; }
-            protected override IArchiver GetArchiver() {
-                throw new NotImplementedException();
-            }
-            protected override string GetTargetArchive() => Archive;
-            protected override string GetTargetArchivePropertyName() {
-                throw new NotImplementedException();
-            }
-            protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
+        private class TaskCompileArchive : TaskCompileFile {
+            
+            public string ArchivePath { get; set; }       
+
+            protected override string GetArchivePath() => ArchivePath;
+            
+            protected override AOeTarget GetNewTarget() => new OeTargetZip();
+
+            protected override string GetArchivePathPropertyName() => nameof(ArchivePath);
         }
     }
 }

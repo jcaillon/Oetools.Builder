@@ -29,6 +29,7 @@ using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
+using Oetools.Builder.Test.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
@@ -199,14 +200,14 @@ namespace Oetools.Builder.Test {
             File.WriteAllText(Path.Combine(baseDir, "file2.ext"), "");
             
             var taskExecutor = new BuildStepExecutor();
-            var task1 = new TaskOnFile {
+            var task1 = new TaskOnArchive {
                 Include = $"{baseDir}/**",
                 Exclude = "**2.ext"
             };
             var task2 = new TaskOnArchive {
                 Include = $"{baseDir}/((file1)).ext;{baseDir}/((**))",
-                Archive = $"{baseDir}\\archive.zip",
-                RelativeTargetFilePath = "new{{1}}"
+                ArchivePath = $"{baseDir}\\archive.zip",
+                TargetFilePath = "new{{1}}"
             };
             taskExecutor.Tasks = new List<IOeTask> {
                 task1,
@@ -214,34 +215,50 @@ namespace Oetools.Builder.Test {
             };
             taskExecutor.Execute();
             Assert.AreEqual(1, task1.Files.Count, "only file1.ext was included");
-            Assert.AreEqual(0, task1.Files[0].TargetsFiles.Count, "no files expected since we have no targets defined");
+            Assert.AreEqual(0, task1.Files[0].TargetsToBuild.Count, "no files expected since we have no targets defined");
             Assert.AreEqual(2, task2.Files.Count, "we expect 2 files here");
-            var task2Targets = task2.Files.SelectMany(f => f.TargetsArchives).ToList();
+            var task2Targets = task2.Files.SelectMany(f => f.TargetsToBuild).ToList();
             Assert.AreEqual(2, task2Targets.Count, "we expect 2 targets");
             Assert.IsTrue(task2Targets.Exists(t => t.GetTargetPath().Equals($"{baseDir}\\archive.zip\\newfile1")));
             Assert.IsTrue(task2Targets.Exists(t => t.GetTargetPath().Equals($"{baseDir}\\archive.zip\\newfile2.ext")));
         }
+        
+        private class TaskOnArchive : AOeTaskFileArchiverArchive {
+            
+            public IArchiver Archiver { get; set; }
+            
+            public string TargetFilePath { get; set; }
+        
+            public string TargetDirectory { get; set; }
+            
+            public string ArchivePath { get; set; }       
+        
+            public override ArchiveCompressionLevel GetCompressionLevel() => ArchiveCompressionLevel.None;
+        
+            protected override IArchiver GetArchiver() => Archiver;
+        
+            protected override AOeTarget GetNewTarget() => new OeTargetZip();
 
-        private class TaskOnFile : OeTaskFileTargetFile {
-            public List<IOeFileToBuildTargetFile> Files { get; set; } = new List<IOeFileToBuildTargetFile>();
-            public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
+            protected override string GetArchivePath() => ArchivePath;
+
+            protected override string GetArchivePathPropertyName() => nameof(ArchivePath);
+
+            protected override string GetTargetFilePath() => TargetFilePath;
+
+            protected override string GetTargetFilePathPropertyName() => nameof(TargetFilePath);
+
+            protected override string GetTargetDirectory() => TargetDirectory;
+
+            protected override string GetTargetDirectoryPropertyName() => nameof(TargetDirectory);
+
+            public List<IOeFileToBuild> Files { get; set; } = new List<IOeFileToBuild>();
+            
+            public override void ExecuteForFilesWithTargets(IEnumerable<IOeFileToBuild> files) {
                 Files.AddRange(files);
             }
         }
         
-        private class TaskOnArchive : OeTaskFileTargetArchive {
-            public List<IOeFileToBuildTargetArchive> Files { get; set; } = new List<IOeFileToBuildTargetArchive>();
-            public override void ExecuteForFilesTargetArchives(IEnumerable<IOeFileToBuildTargetArchive> files) {
-                Files.AddRange(files);
-            }
-            protected override IArchiver GetArchiver() => null;
-            protected override string GetTargetArchive() => Archive;
-            protected override string GetTargetArchivePropertyName() => nameof(Archive);
-            public string Archive { get; set; }
-            protected override OeTargetArchive GetNewTargetArchive() => new OeTargetArchiveZip();
-        }
-        
-        private class TaskSetPathAndTargetTest : OeTaskFilter, IOeTaskFile, IOeTaskDirectory {
+        private class TaskSetPathAndTargetTest : AOeTaskFilter, IOeTaskFile, IOeTaskDirectory {
             public int Total { get; set; }
             protected override void ExecuteInternal() {
                 // does nothing
@@ -264,7 +281,7 @@ namespace Oetools.Builder.Test {
             public void ValidateCanGetFilesToBuildFromIncludes() => throw new NotImplementedException();
         }
         
-        private class TaskInjectionTest : OeTaskFile, IOeTaskCompile {
+        private class TaskInjectionTest : AOeTaskFile, IOeTaskCompile {
             public bool IsLogSet => Log != null;
             public bool IsCancelSourceSet => CancelToken != null;
             public bool IsTestSet => TestMode;
@@ -274,11 +291,11 @@ namespace Oetools.Builder.Test {
                 IsFilesCompiledSet = true;
             }
             public PathList<UoeCompiledFile> GetCompiledFiles() => null;
-            protected override void ExecuteForFilesInternal(PathList<OeFile> paths) {}
+            protected override void ExecuteForFilesInternal(IEnumerable<IOeFile> paths) {}
             protected override void ExecuteTestModeInternal() { }
         }
         
-        private class TaskException : OeTask {
+        private class TaskException : AOeTask {
             public override void Validate() { }
             protected override void ExecuteInternal() {
                 AddExecutionErrorAndThrow(new TaskExecutionException(this, "oups!"));
@@ -288,7 +305,7 @@ namespace Oetools.Builder.Test {
             }
         }
         
-        private class TaskWarning : OeTask {
+        private class TaskWarning : AOeTask {
             public override void Validate() { }
             protected override void ExecuteInternal() {
                 AddExecutionWarning(new TaskExecutionException(this, "oups warning!"));

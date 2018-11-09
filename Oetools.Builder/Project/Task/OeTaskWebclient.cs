@@ -27,7 +27,7 @@ using Oetools.Utilities.Lib;
 namespace Oetools.Builder.Project.Task {
     
     [Serializable]
-    public class OeTaskWebclient : OeTask {
+    public class OeTaskWebclient : AOeTask {
         
         [XmlElement(ElementName = "VendorName")]
         public string VendorName { get; set; }

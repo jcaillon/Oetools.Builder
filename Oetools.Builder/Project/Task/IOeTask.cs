@@ -42,7 +42,7 @@ namespace Oetools.Builder.Project.Task {
         /// </summary>
         /// <remarks>
         /// - This method should throw <see cref="TaskExecutionException"/> if needed
-        /// - This method can publish warnings using <see cref="OeTask.AddExecutionWarning"/>
+        /// - This method can publish warnings using <see cref="AOeTask.AddExecutionWarning"/>
         /// </remarks>
         /// <exception cref="TaskExecutionException"></exception>
         void Execute();

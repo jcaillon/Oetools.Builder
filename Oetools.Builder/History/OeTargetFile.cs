@@ -22,16 +22,24 @@ using System.Xml.Serialization;
 using Oetools.Builder.Utilities.Attributes;
 
 namespace Oetools.Builder.History {
-    
-    public abstract class OeTargetFile : OeTarget {
+
+    public class OeTargetFile : AOeTarget {
         
         /// <summary>
-        /// Target file path
+        /// Not applicable
         /// </summary>
-        [XmlAttribute(AttributeName = "TargetFilePath")]
-        [BaseDirectory(Type = BaseDirectoryType.OutputDirectory)]
-        public string TargetFilePath { get; set; }
+        [XmlIgnore]
+        [BaseDirectory(SkipReplace = true)]
+        public override string ArchiveFilePath { get; set; }
         
-        public override string GetTargetPath() => TargetFilePath;
+        /// <summary>
+        /// The file path.
+        /// </summary>
+        [XmlAttribute("FilePath")]
+        [BaseDirectory(Type = BaseDirectoryType.OutputDirectory)]
+        public override string FilePath { get; set; }
+        
+        public override string GetTargetPath() => FilePath;
+
     }
 }

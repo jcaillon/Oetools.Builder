@@ -33,10 +33,8 @@ namespace Oetools.Builder.Test.Project {
             
             bc.PostBuildStepGroup = new List<OeBuildStepClassic> {
                 new OeBuildStepClassic {
-                    Tasks = new List<OeTask> {
-                        new OeTaskFileTargetArchiveProlib() {
-                            
-                        }
+                    Tasks = new List<AOeTask> {
+                        
                     }
                 }
             };
@@ -49,7 +47,6 @@ namespace Oetools.Builder.Test.Project {
             };
             
             bc.ApplyVariables("directory");
-            
 
         }
     }

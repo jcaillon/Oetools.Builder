@@ -67,7 +67,7 @@ namespace Oetools.Builder.Test.History {
                 CompiledFiles = new List<OeCompiledFile> {
                     new OeCompiledFile {
                         Path = @"C:\initialsource\compiled1",
-                        CompilationProblems = new List<OeCompilationProblem> {
+                        CompilationProblems = new List<AOeCompilationProblem> {
                             new OeCompilationError {
                                 FilePath = @"C:\initialsource\include1"
                             },
@@ -78,7 +78,7 @@ namespace Oetools.Builder.Test.History {
                     },
                     new OeCompiledFile {
                         Path = @"C:\initialsource\compiled2",
-                        CompilationProblems = new List<OeCompilationProblem> {
+                        CompilationProblems = new List<AOeCompilationProblem> {
                             new OeCompilationWarning {
                                 FilePath = @"C:\initialsource\include2"
                             }
@@ -88,21 +88,21 @@ namespace Oetools.Builder.Test.History {
                 BuiltFiles = new List<OeFileBuilt> {
                     new OeFileBuilt {
                         Path = @"C:\initialsource\source1",
-                        Targets = new List<OeTarget> {
-                            new OeTargetFileCopy {
-                                TargetFilePath = @"D:\initialtarget\target1"
+                        Targets = new List<AOeTarget> {
+                            new OeTargetFile {
+                                FilePath = @"D:\initialtarget\target1"
                             },
-                            new OeTargetArchiveCab {
-                                TargetPackFilePath = @"D:\initialtarget\targetcab1",
-                                RelativeTargetFilePath = ""
+                            new OeTargetCab {
+                                ArchiveFilePath = @"D:\initialtarget\targetcab1",
+                                FilePath = ""
                             },
-                            new OeTargetArchiveProlib {
-                                TargetPackFilePath = @"D:\initialtarget\targetprolib1",
-                                RelativeTargetFilePath = ""
+                            new OeTargetProlib {
+                                ArchiveFilePath = @"D:\initialtarget\targetprolib1",
+                                FilePath = ""
                             },
-                            new OeTargetArchiveZip {
-                                TargetPackFilePath = @"D:\initialtarget\targetzip1",
-                                RelativeTargetFilePath = ""
+                            new OeTargetZip {
+                                ArchiveFilePath = @"D:\initialtarget\targetzip1",
+                                FilePath = ""
                             }
                         }
                     },

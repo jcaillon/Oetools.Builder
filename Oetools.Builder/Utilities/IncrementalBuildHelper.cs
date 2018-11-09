@@ -113,7 +113,7 @@ namespace Oetools.Builder.Utilities {
             foreach (var newFile in allUnchangedSourcePathsWithSetTargets.Where(file => file.State == OeFileState.Unchanged)) {
                 var previousFile = previousPathsBuilt[newFile.Path];
                 var previouslyCreatedTargets = previousFile.Targets.ToNonNullList().Where(target => !target.IsDeletionMode()).Select(t => t.GetTargetPath()).ToList();
-                foreach (var targetPath in newFile.GetAllTargets().Select(t => t.GetTargetPath())) {
+                foreach (var targetPath in newFile.TargetsToBuild.Select(t => t.GetTargetPath())) {
                     if (!previouslyCreatedTargets.Exists(prevTarget => prevTarget.PathEquals(targetPath))) {
                         yield return newFile;
                         break;
@@ -129,7 +129,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="previousPathsBuilt"></param>
         /// <returns></returns>
         internal static IEnumerable<OeFileBuilt> GetBuiltFilesWithOldTargetsToRemove(PathList<OeFile> allUnchangedOrModifiedSourcePathsWithSetTargets, PathList<OeFileBuilt> previousPathsBuilt) {
-            var finalFileTargets = new List<OeTarget>();
+            var finalFileTargets = new List<AOeTarget>();
             foreach (var newFile in allUnchangedOrModifiedSourcePathsWithSetTargets.Where(file => file.State == OeFileState.Unchanged || file.State == OeFileState.Modified)) {
                 var previousFile = previousPathsBuilt[newFile.Path];
                 if (previousFile == null) {
@@ -140,7 +140,7 @@ namespace Oetools.Builder.Utilities {
                 }
                 finalFileTargets.Clear();
                 bool isFileWithTargetsToDelete = false;
-                var newCreateTargets = newFile.GetAllTargets().Select(t => t.GetTargetPath()).ToList();
+                var newCreateTargets = newFile.TargetsToBuild.Select(t => t.GetTargetPath()).ToList();
                 foreach (var previousTarget in previousFile.Targets.ToNonNullList().Where(target => !target.IsDeletionMode())) {
                     var previousTargetPath = previousTarget.GetTargetPath();
                     if (!newCreateTargets.Exists(target => target.PathEquals(previousTargetPath))) {
@@ -158,7 +158,7 @@ namespace Oetools.Builder.Utilities {
                     switch (newFile.State) {
                         case OeFileState.Unchanged:
                             // add the unchanged targets
-                            previousFileCopy.Targets.AddRange(newFile.GetAllTargets());
+                            previousFileCopy.Targets.AddRange(newFile.TargetsToBuild);
                             previousFileCopy.State = OeFileState.Unchanged;
                             break;
                         case OeFileState.Modified:

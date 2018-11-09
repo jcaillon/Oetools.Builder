@@ -81,6 +81,9 @@ namespace Oetools.Builder.Test.Project {
         [TestMethod]
         public void CheckForXmlPropertiesOnEachPublicProperties() {
             foreach (var type in TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}")) {
+                if (!type.IsPublic) {
+                    continue;
+                }
                 foreach (var propertyInfo in type.GetProperties().ToList().Where(p => p.PropertyType.IsPublic)) {
                     Assert.IsTrue(
                         Attribute.GetCustomAttribute(propertyInfo, typeof(XmlAnyAttributeAttribute), true) != null ||
@@ -261,44 +264,49 @@ namespace Oetools.Builder.Test.Project {
                     },
                     Properties = null,
                     PreBuildStepGroup = new List<OeBuildStepClassic>(),
-                    BuildSourceStepGroup = new List<OeBuildStepCompile> {
-                        new OeBuildStepCompile {
+                    BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
+                        new OeBuildStepBuildSource {
                             Label = "step1",
-                            Tasks = new List<OeTask> {
-                                new OeTaskFileTargetFileCompile {
+                            Tasks = new List<AOeTask> {
+                                new OeTaskFileCompile {
                                     Exclude = "**",
                                     Include = "{{**}}",
                                     TargetDirectory = "mydir"
                                 },
-                                new OeTaskFileTargetArchiveProlibCompile {
+                                new OeTaskFileArchiverArchiveProlib {
                                     ExcludeRegex = "regex",
                                     IncludeRegex = "regex",
                                     TargetProlibFilePath = "myprolib.pl",
                                     RelativeTargetDirectory = "insdide/directory"
                                 },
-                                new OeTaskFileTargetArchiveZipCompile {
+                                new OeTaskFileArchiverArchiveProlibCompile {
                                     ExcludeRegex = "regex",
                                     IncludeRegex = "regex",
-                                    TargetZipFilePath = "path.zip",
-                                    RelativeTargetDirectory = "insdide/directory",
-                                    ArchivesCompressionLevel = "None"
+                                    TargetProlibFilePath = "path.zip",
+                                    RelativeTargetDirectory = "insdide/directory"
                                 },
-                                new OeTaskFileTargetArchiveCabCompile() {
+                                new OeTaskFileArchiverArchiveCab {
+                                    ExcludeRegex = "regex",
+                                    IncludeRegex = "regex",
+                                    TargetCabFilePath = "myprolib.pl",
+                                    RelativeTargetDirectory = "inside/directory"
+                                },
+                                new OeTaskFileArchiverArchiveCabCompile {
                                     ExcludeRegex = "regex",
                                     IncludeRegex = "regex",
                                     TargetCabFilePath = "path.cab",
-                                    RelativeTargetFilePath = "insdide/file.p",
+                                    RelativeTargetFilePath = "inside/file.p",
                                     ArchivesCompressionLevel = "Max"
                                 },
-                                new OeTaskFileTargetArchiveFtpCompile(),
-                                new OeTaskFileTargetFileCopy(),
-                                new OeTaskFileTargetArchiveProlib(),
-                                new OeTaskFileTargetArchiveZip(),
-                                new OeTaskFileTargetArchiveCab(),
-                                new OeTaskFileTargetArchiveFtp()
+                                //new OeTaskFileTargetArchiveFtpCompile(),
+                                //new OeTaskFileTargetFileCopy(),
+                                //new OeTaskFileTargetArchiveProlib(),
+                                //new OeTaskFileTargetArchiveZip(),
+                                new OeTaskFileArchiverArchiveCab(),
+                                //new OeTaskFileTargetArchiveFtp()
                             }
                         },
-                        new OeBuildStepCompile {
+                        new OeBuildStepBuildSource {
                             Label = "step2",
                             Tasks = null
                         }
@@ -306,7 +314,7 @@ namespace Oetools.Builder.Test.Project {
                     BuildOutputStepGroup = new List<OeBuildStepClassic> {
                         new OeBuildStepClassic {
                             Label = "step output 1",
-                            Tasks = new List<OeTask> {
+                            Tasks = new List<AOeTask> {
                                 new OeTaskExec {
                                     Label = "exec1",
                                     ExecutablePath = "exec",

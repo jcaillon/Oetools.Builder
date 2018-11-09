@@ -29,7 +29,7 @@ namespace Oetools.Builder.Test.History {
 
         [TestMethod]
         public void OeCompilationProblem_Test_New() {
-            var new1 = OeCompilationProblem.New(new UoeCompilationWarning {
+            var new1 = AOeCompilationProblem.New(new UoeCompilationWarning {
                 Message = "message",
                 Column = 2,
                 Line = 2,
@@ -44,7 +44,7 @@ namespace Oetools.Builder.Test.History {
             Assert.AreEqual(2, new1.ErrorNumber);
             
             
-            var new2 = OeCompilationProblem.New(new UoeCompilationError {
+            var new2 = AOeCompilationProblem.New(new UoeCompilationError {
                 Message = "message2",
                 Column = 3,
                 Line = 3,

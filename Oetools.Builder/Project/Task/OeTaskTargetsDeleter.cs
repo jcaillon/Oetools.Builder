@@ -28,12 +28,12 @@ using Oetools.Utilities.Lib;
 namespace Oetools.Builder.Project.Task {
     
     /// <summary>
-    /// The job of this task is to delete al the targets present in <see cref="_pathsWithTargetsToRemove"/> with <see cref="OeTarget.DeletionMode"/> = true, they are
+    /// The job of this task is to delete al the targets present in <see cref="_pathsWithTargetsToRemove"/> with <see cref="AOeTarget.DeletionMode"/> = true, they are
     /// targets that are no longer needed. Those targets were built in the previous build but the targets have changed (or the file itself has been deleted)
     /// </summary>
     [Serializable]
     [XmlRoot("TargetsRemover")]
-    public class OeTaskTargetsDeleter : OeTask, IOeTaskFileBuilder {
+    public class OeTaskTargetsDeleter : AOeTask, IOeTaskWithBuiltFiles {
 
         private PathList<OeFileBuilt> _builtPaths;
 
@@ -46,33 +46,30 @@ namespace Oetools.Builder.Project.Task {
             _pathsWithTargetsToRemove = pathsWithTargetsToRemove;
         }
 
-        /// <inheritdoc cref="OeTask.Validate"/>
+        /// <inheritdoc cref="AOeTask.Validate"/>
         public override void Validate() {
             // nothing to validate
         }
 
-        /// <inheritdoc cref="OeTask.ExecuteInternal"/>
+        /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
         protected sealed override void ExecuteInternal() {
-            var targetsToRemove = _pathsWithTargetsToRemove.SelectMany(f => f.Targets).Where(target => target.IsDeletionMode()).ToList();
+            var targetsToRemove = _pathsWithTargetsToRemove.SelectMany(f => f.TargetsToBuild).Where(target => target.IsDeletionMode()).ToList();
             ExecuteTargetsRemoval(targetsToRemove);
             _builtPaths = _pathsWithTargetsToRemove;
         }
 
-        /// <inheritdoc cref="OeTask.ExecuteTestModeInternal"/>
+        /// <inheritdoc cref="AOeTask.ExecuteTestModeInternal"/>
         protected override void ExecuteTestModeInternal() {
             _builtPaths = _pathsWithTargetsToRemove;
         }
 
-        private void ExecuteTargetsRemoval(List<OeTarget> targetsToRemove) {
-            var fileTargets = targetsToRemove.Where(target => target is OeTargetFileCopy);
-            Log?.Debug("Deleting all file targets");
-
-            var archiveTargets = targetsToRemove.Where(target => target is OeTargetArchive);
-            Log?.Debug("Deleting all archive targets");
+        private void ExecuteTargetsRemoval(List<AOeTarget> targetsToRemove) {
+            var archiveTargets = targetsToRemove;
+            Log?.Debug("Deleting all archive targets.");
         }
 
-        /// <inheritdoc cref="IOeTaskFileBuilder.GetFilesBuilt"/>
-        public PathList<OeFileBuilt> GetFilesBuilt() => _builtPaths;
+        /// <inheritdoc cref="IOeTaskWithBuiltFiles.GetBuiltFiles"/>
+        public PathList<OeFileBuilt> GetBuiltFiles() => _builtPaths;
 
     }
 }

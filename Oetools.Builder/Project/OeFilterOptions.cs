@@ -23,7 +23,7 @@ using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.Project {
-    public class OeFilterOptions : OeTaskFilter {
+    public class OeFilterOptions : AOeTaskFilter {
         
         /// <summary>
         /// Whether or not to ignore hidden directories during the listing.
@@ -47,12 +47,12 @@ namespace Oetools.Builder.Project {
         public static string GetDefaultExtraVcsPatternExclusion() => OeBuilderConstants.VcsDirectoryExclusions;
 
        
-        /// <inheritdoc cref="OeTask.ExecuteInternal"/>
+        /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
         protected override void ExecuteInternal() {
             // does nothing
         }
         
-        /// <inheritdoc cref="OeTask.ExecuteTestModeInternal"/>
+        /// <inheritdoc cref="AOeTask.ExecuteTestModeInternal"/>
         protected override void ExecuteTestModeInternal() {
             // does nothing
         }

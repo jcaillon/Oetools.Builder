@@ -21,6 +21,6 @@ using System;
 
 namespace Oetools.Builder.History {
     [Serializable]
-    public class OeCompilationError : OeCompilationProblem {
+    public class OeCompilationError : AOeCompilationProblem {
     }
 }

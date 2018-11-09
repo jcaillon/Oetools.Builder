@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
+using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Test {
@@ -89,7 +90,7 @@ namespace Oetools.Builder.Test {
             
             Assert.AreEqual(2, task1.Files.Count, "only file1.ext and file3 were included");
             
-            var taskTargets = task1.Files.SelectMany(f => f.TargetsFiles).ToList();
+            var taskTargets = task1.Files.SelectMany(f => f.TargetsToBuild).ToList();
             
             Assert.AreEqual(4, taskTargets.Count, "we expect 4 targets");
             
@@ -102,14 +103,41 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(2, task2.Directories.Count, "we expect 2 directories to have been built");
         }
         
-        private class TaskOnFile : OeTaskFileTargetFile {
-            public List<IOeFileToBuildTargetFile> Files { get; set; } = new List<IOeFileToBuildTargetFile>();
-            public override void ExecuteForFilesTargetFiles(IEnumerable<IOeFileToBuildTargetFile> files) {
+        private class TaskOnFile : AOeTaskFileArchiverArchive {
+            public IArchiver Archiver { get; set; }
+            
+            public string TargetFilePath { get; set; }
+        
+            public string TargetDirectory { get; set; }
+            
+            public string ArchivePath { get; set; }       
+        
+            public override ArchiveCompressionLevel GetCompressionLevel() => ArchiveCompressionLevel.None;
+        
+            protected override IArchiver GetArchiver() => Archiver;
+        
+            protected override AOeTarget GetNewTarget() => new OeTargetFile();
+
+            protected override string GetArchivePath() => ArchivePath;
+
+            protected override string GetArchivePathPropertyName() => nameof(ArchivePath);
+
+            protected override string GetTargetFilePath() => TargetFilePath;
+
+            protected override string GetTargetFilePathPropertyName() => nameof(TargetFilePath);
+
+            protected override string GetTargetDirectory() => TargetDirectory;
+
+            protected override string GetTargetDirectoryPropertyName() => nameof(TargetDirectory);
+
+            public List<IOeFileToBuild> Files { get; set; } = new List<IOeFileToBuild>();
+            
+            public override void ExecuteForFilesWithTargets(IEnumerable<IOeFileToBuild> files) {
                 Files.AddRange(files);
             }
         }
         
-        private class TaskOnDirectory : OeTaskDirectory {
+        private class TaskOnDirectory : AOeTaskDirectory {
             public List<OeDirectory> Directories { get; set; } = new List<OeDirectory>();
             protected override void ExecuteTestModeInternal() {
                 throw new System.NotImplementedException();

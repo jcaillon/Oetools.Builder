@@ -28,19 +28,13 @@ namespace Oetools.Builder.Project {
                 
         [XmlArray("Tasks")]
         [XmlArrayItem("Execute", typeof(OeTaskExec))]
-        [XmlArrayItem("Copy", typeof(OeTaskFileTargetFileCopy))]
-        [XmlArrayItem("Move", typeof(OeTaskFileTargetFileMove))]
         [XmlArrayItem("RemoveDirectory", typeof(OeTaskDirectoryDelete))]
         [XmlArrayItem("Delete", typeof(OeTaskFileDelete))]
-        [XmlArrayItem("DeleteInProlib", typeof(OeTaskFileTargetDeleteInArchiveProlib))]
-        [XmlArrayItem("Prolib", typeof(OeTaskFileTargetArchiveProlib))]
-        [XmlArrayItem("Zip", typeof(OeTaskFileTargetArchiveZip))]
-        [XmlArrayItem("Cab", typeof(OeTaskFileTargetArchiveCab))]
-        [XmlArrayItem("UploadFtp", typeof(OeTaskFileTargetArchiveFtp))]
+        [XmlArrayItem("Cab", typeof(OeTaskFileArchiverArchiveCab))]
         [XmlArrayItem("Webclient", typeof(OeTaskWebclient))]
-        public List<OeTask> Tasks { get; set; }
+        public List<AOeTask> Tasks { get; set; }
 
-        public override List<OeTask> GetTaskList() => Tasks;
+        public override List<AOeTask> GetTaskList() => Tasks;
 
         internal override void InitIds() => InitIds(Tasks);
     }

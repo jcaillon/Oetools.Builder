@@ -55,45 +55,45 @@ namespace Oetools.Builder.Test.Utilities {
                 new OeFileBuilt {
                     State = OeFileState.Modified,
                     Path = "source1",
-                    Targets = new List<OeTarget> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target1"
+                    Targets = new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePath ="target1"
                         },
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target2"
+                        new OeTargetFile {
+                            FilePath ="target2"
                         }
                     }
                 },
                 new OeFileBuilt {
                     State = OeFileState.Deleted,
                     Path = "source2",
-                    Targets = new List<OeTarget> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target1"
+                    Targets = new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePath ="target1"
                         }
                     }
                 },
                 new OeFileBuilt {
                     State = OeFileState.Modified,
                     Path = "source3",
-                    Targets = new List<OeTarget> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target1"
+                    Targets = new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePath ="target1"
                         }
                     }
                 },
                 new OeFileBuilt {
                     State = OeFileState.Added,
                     Path = "source4",
-                    Targets = new List<OeTarget> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target1"
+                    Targets = new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePath ="target1"
                         },
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target2"
+                        new OeTargetFile {
+                            FilePath ="target2"
                         },
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target3",
+                        new OeTargetFile {
+                            FilePath ="target3",
                             DeletionMode = "1"
                         }
                     }
@@ -103,36 +103,36 @@ namespace Oetools.Builder.Test.Utilities {
                 new OeFile {
                     State = OeFileState.Unchanged,
                     Path = "source1",
-                    TargetsFiles = new List<OeTargetFile> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target2"
+                    TargetsToBuild = new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePath ="target2"
                         },
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target3"
+                        new OeTargetFile {
+                            FilePath ="target3"
                         }
                     }
                 },
                 new OeFile {
                     State = OeFileState.Modified,
                     Path = "source3",
-                    TargetsFiles = new List<OeTargetFile> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target2"
+                    TargetsToBuild = new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePath ="target2"
                         },
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target3"
+                        new OeTargetFile {
+                            FilePath ="target3"
                         }
                     }
                 },
                 new OeFile {
                     State = OeFileState.Modified,
                     Path = "source4",
-                    TargetsFiles = new List<OeTargetFile> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target1"
+                    TargetsToBuild =new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePath ="target1"
                         },
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target2"
+                        new OeTargetFile {
+                            FilePath ="target2"
                         }
                     }
                 }
@@ -178,32 +178,32 @@ namespace Oetools.Builder.Test.Utilities {
                 new OeFileBuilt {
                     State = OeFileState.Modified,
                     Path = "/random/source1",
-                    Targets = new List<OeTarget> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target1"
+                    Targets = new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePath = "target1"
                         },
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target2"
+                        new OeTargetFile {
+                            FilePath ="target2"
                         }
                     }
                 },
                 new OeFileBuilt {
                     State = OeFileState.Unchanged,
                     Path = Path.Combine(TestFolder, "source2"),
-                    Targets = new List<OeTarget> {
-                        new OeTargetArchiveZip {
-                            TargetPackFilePath = "target1",
-                            RelativeTargetFilePath = ""
+                    Targets = new List<AOeTarget> {
+                        new OeTargetZip {
+                            ArchiveFilePath = "target1",
+                            FilePath = ""
                         }
                     }
                 },
                 new OeFileBuilt {
                     State = OeFileState.Added,
                     Path = "/random/source3",
-                    Targets = new List<OeTarget> {
-                        new OeTargetArchiveZip {
-                            TargetPackFilePath = "target1",
-                            RelativeTargetFilePath = ""
+                    Targets = new List<AOeTarget> {
+                        new OeTargetZip {
+                            ArchiveFilePath = "target1",
+                            FilePath = ""
                         }
                     }
                 }
@@ -241,33 +241,31 @@ namespace Oetools.Builder.Test.Utilities {
                 new OeFile {
                     State = OeFileState.Unchanged,
                     Path = "source1",
-                    TargetsFiles = new List<OeTargetFile> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target1"
+                    TargetsToBuild = new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePath = "target1"
                         }
                     }
                 },
                 new OeFile {
                     State = OeFileState.Unchanged,
                     Path = "source2",
-                    TargetsFiles = new List<OeTargetFile> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target2"
-                        }
-                    },
-                    TargetsArchives = new List<OeTargetArchive> {
-                        new OeTargetArchiveZip {
-                            TargetPackFilePath = "target3",
-                            RelativeTargetFilePath = ""
+                    TargetsToBuild =new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePath ="target2"
+                        },
+                        new OeTargetZip {
+                            ArchiveFilePath = "target3",
+                            FilePath = ""
                         }
                     }
                 },
                 new OeFile {
                     State = OeFileState.Modified,
                     Path = "source3",
-                    TargetsFiles = new List<OeTargetFile> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target4"
+                    TargetsToBuild =new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePath ="target4"
                         }
                     }
                 }
@@ -275,17 +273,17 @@ namespace Oetools.Builder.Test.Utilities {
             var prevBuilt = new PathList<OeFileBuilt> {
                 new OeFileBuilt {
                     Path = "source1",
-                    Targets = new List<OeTarget> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target1"
+                    Targets = new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePath ="target1"
                         }
                     }
                 },
                 new OeFileBuilt {
                     Path = "source2",
-                    Targets = new List<OeTarget> {
-                        new OeTargetFileCopy {
-                            TargetFilePath = "target2"
+                    Targets = new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePath ="target2"
                         }
                     }
                 }

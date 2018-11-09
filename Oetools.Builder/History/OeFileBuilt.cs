@@ -24,7 +24,7 @@ using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.History {
     [Serializable]
-    public class OeFileBuilt : OeFile {
+    public class OeFileBuilt : OeFile, IOeFileBuilt {
         
         public OeFileBuilt() { }
 
@@ -36,12 +36,10 @@ namespace Oetools.Builder.History {
         /// A list of the targets for this file
         /// </summary>
         [XmlArray("Targets")]
-        [XmlArrayItem("Copied", typeof(OeTargetFileCopy))]
-        [XmlArrayItem("Prolibed", typeof(OeTargetArchiveProlib))]
-        [XmlArrayItem("Zipped", typeof(OeTargetArchiveZip))]
-        [XmlArrayItem("Cabbed", typeof(OeTargetArchiveCab))]
-        public List<OeTarget> Targets { get; set; }
-
-        public override IEnumerable<OeTarget> GetAllTargets() => Targets;
+        [XmlArrayItem("Copied", typeof(OeTargetFile))]
+        [XmlArrayItem("Prolibed", typeof(OeTargetProlib))]
+        [XmlArrayItem("Zipped", typeof(OeTargetZip))]
+        [XmlArrayItem("Cabbed", typeof(OeTargetCab))]
+        public List<AOeTarget> Targets { get; set; }
     }
 }

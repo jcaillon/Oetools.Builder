@@ -28,7 +28,7 @@ namespace Oetools.Builder.Project.Task {
     
     [Serializable]
     [XmlRoot("Exec")]
-    public class OeTaskExec : OeTask {
+    public class OeTaskExec : AOeTask {
         
         [XmlElement("ExecutablePath")]
         public string ExecutablePath { get; set; }
@@ -102,7 +102,7 @@ namespace Oetools.Builder.Project.Task {
             }
         }
 
-        /// <inheritdoc cref="OeTask.ExecuteTestModeInternal"/>
+        /// <inheritdoc cref="AOeTask.ExecuteTestModeInternal"/>
         protected override void ExecuteTestModeInternal() {
             // does nothing in test mode
         }

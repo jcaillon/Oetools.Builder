@@ -33,7 +33,7 @@ namespace Oetools.Builder.Project.Task {
     /// </summary>
     [Serializable]
     [XmlRoot("DeleteDirectory")]
-    public class OeTaskDirectoryDelete : OeTaskDirectory {
+    public class OeTaskDirectoryDelete : AOeTaskDirectory {
 
         protected override void ExecuteForDirectoriesInternal(PathList<OeDirectory> directories) {
             throw new NotImplementedException();

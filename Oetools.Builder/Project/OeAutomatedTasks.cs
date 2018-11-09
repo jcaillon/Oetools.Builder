@@ -35,21 +35,11 @@ namespace Oetools.Builder.Project {
         [XmlArrayItem("Variable", typeof(OeVariable))]
         public List<OeVariable> Variables { get; set; }
         
-        [XmlElement(ElementName = "ArchivesCompressionLevel")]
-        public OeCompressionLevel? ArchivesCompressionLevel { get; set; }
-        
         [XmlArray("Tasks")]
-        [XmlArrayItem("Copy", typeof(OeTaskFileTargetFileCopy))]
-        [XmlArrayItem("Move", typeof(OeTaskFileTargetFileMove))]
         [XmlArrayItem("Execute", typeof(OeTaskExec))]
         [XmlArrayItem("RemoveDirectory", typeof(OeTaskDirectoryDelete))]
         [XmlArrayItem("Delete", typeof(OeTaskFileDelete))]
-        [XmlArrayItem("DeleteInProlib", typeof(OeTaskFileTargetDeleteInArchiveProlib))]
-        [XmlArrayItem("Prolib", typeof(OeTaskFileTargetArchiveProlib))]
-        [XmlArrayItem("Zip", typeof(OeTaskFileTargetArchiveZip))]
-        [XmlArrayItem("Cab", typeof(OeTaskFileTargetArchiveCab))]
-        [XmlArrayItem("UploadFtp", typeof(OeTaskFileTargetArchiveFtp))]
-        [XmlArrayItem("Webclient", typeof(OeTaskWebclient))]
-        public List<OeTask> Tasks { get; set; }
+        [XmlArrayItem("Cab", typeof(OeTaskFileArchiverArchiveCab))]
+        public List<AOeTask> Tasks { get; set; }
     }
 }

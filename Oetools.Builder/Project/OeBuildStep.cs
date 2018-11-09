@@ -15,7 +15,7 @@ namespace Oetools.Builder.Project {
         [XmlIgnore]
         internal int Id { get; set; }
 
-        public virtual List<OeTask> GetTaskList() => null;
+        public virtual List<AOeTask> GetTaskList() => null;
 
         /// <summary>
         /// Validate tasks in this step
@@ -49,7 +49,7 @@ namespace Oetools.Builder.Project {
         /// </summary>
         internal virtual void InitIds() { }
 
-        protected void InitIds(List<OeTask> tasks) {
+        protected void InitIds(List<AOeTask> tasks) {
             if (tasks != null) {
                 var i = 0;
                 foreach (var task in tasks.Where(v => v != null)) {

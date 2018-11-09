@@ -21,14 +21,12 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using Oetools.Builder.Utilities.Attributes;
-using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Attributes;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.History {
-    
     [Serializable]
-    public class OeFile : IOeFileToBuildTargetFile, IOeFileToBuildTargetArchive, IPathListItem {
+    public class OeFile : IOeFileToBuild {
 
         public OeFile() { }
 
@@ -43,30 +41,25 @@ namespace Oetools.Builder.History {
         [BaseDirectory(Type = BaseDirectoryType.SourceDirectory)]
         public string Path { get; set; }
 
+        /// <inheritdoc cref="IOeFile.LastWriteTime"/>
         [XmlAttribute(AttributeName = "LastWriteTime")]
         public DateTime LastWriteTime { get; set; }
 
+        /// <inheritdoc cref="IOeFile.Size"/>
         [XmlAttribute(AttributeName = "Size")]
         public long Size { get; set; }
 
-        /// <summary>
-        ///     MD5
-        /// </summary>
+        /// <inheritdoc cref="IOeFile.Hash"/>
         [XmlAttribute(AttributeName = "Md5")]
         public string Hash { get; set; }
         
-        /// <summary>
-        /// Represents the state of the file for this build compare to the previous one
-        /// </summary>
+        /// <inheritdoc cref="IOeFile.State"/>
         [XmlElement(ElementName = "State")]
         public OeFileState State { get; set; }
 
         private string _sourcePathForTaskExecution;
         
-        /// <summary>
-        /// Can be different from <see cref="Path"/> for instance in the case of a .p, <see cref="SourcePathForTaskExecution"/>
-        /// will be set to the path of the .r code to copy instead of the actual source path
-        /// </summary>
+        /// <inheritdoc cref="IOeFileToBuild.SourcePathForTaskExecution"/>
         [XmlIgnore]
         [DeepCopy(Ignore = true)]
         public string SourcePathForTaskExecution {
@@ -74,15 +67,10 @@ namespace Oetools.Builder.History {
             set => _sourcePathForTaskExecution = value;
         }
 
+        /// <inheritdoc cref="IOeFileToBuild.TargetsToBuild"/>
         [XmlIgnore]
         [DeepCopy(Ignore = true)]
-        public List<OeTargetArchive> TargetsArchives { get; set; }
-
-        [XmlIgnore]
-        [DeepCopy(Ignore = true)]
-        public List<OeTargetFile> TargetsFiles { get; set; }
-
-        public virtual IEnumerable<OeTarget> GetAllTargets() => TargetsArchives.UnionHandleNull<OeTarget>(TargetsFiles);
+        public List<AOeTarget> TargetsToBuild { get; set; }
         
         public override string ToString() => Path;
     }

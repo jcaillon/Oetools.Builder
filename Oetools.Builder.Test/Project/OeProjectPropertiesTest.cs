@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Project;
-using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 
@@ -52,15 +51,22 @@ namespace Oetools.Builder.Test.Project {
         public void SetDefaultValues_Test() {
             var prop = new OeProperties();
             prop.SetDefaultValues();
-            Assert.AreEqual(OeProperties.GetDefaultDlcDirectoryPath(), prop.DlcDirectoryPath);
             Assert.AreEqual(OeGitFilterOptions.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch(), prop.SourceToBuildGitFilterOptions.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch);
             Assert.AreEqual(OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput(), prop.IncrementalBuildOptions.MirrorDeletedSourceFileToOutput);
             Assert.AreEqual(OeCompilationOptions.GetDefaultCompileWithDebugList(), prop.CompilationOptions.CompileWithDebugList);
             Assert.AreEqual(OeBuildOptions.GetDefaultTreatWarningsAsErrors(), prop.BuildOptions.TreatWarningsAsErrors);
+            
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
+            Assert.AreEqual(OeProperties.GetDefaultDlcDirectoryPath(), prop.DlcDirectoryPath);
         }
 
         [TestMethod]
         public void GetPropath_Test() {
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
             
             var iniPath = !Utils.IsRuntimeWindowsPlatform ? null : Path.Combine(TestFolder, "test.ini");
             if (!string.IsNullOrEmpty(iniPath)) {

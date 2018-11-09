@@ -24,12 +24,12 @@ using Oetools.Builder.Project.Task;
 namespace Oetools.Builder.Exceptions {
     public class TaskExecutionException : BuilderException {
         
-        public OeTask Task { get; }
+        public AOeTask Task { get; }
         
-        public TaskExecutionException(OeTask task, string message) : base(message) {
+        public TaskExecutionException(AOeTask task, string message) : base(message) {
             Task = task;
         }
-        public TaskExecutionException(OeTask task, string message, Exception innerException) : base(message, innerException) {
+        public TaskExecutionException(AOeTask task, string message, Exception innerException) : base(message, innerException) {
             Task = task;
         }
         

@@ -19,7 +19,9 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
@@ -33,11 +35,13 @@ namespace Oetools.Builder.Project.Task {
     /// </summary>
     [Serializable]
     [XmlRoot("Delete")]
-    public class OeTaskFileDelete : OeTaskFile {
+    public class OeTaskFileDelete : AOeTaskFile {
         
-        /// <inheritdoc cref="OeTaskFile.ExecuteForFilesInternal"/>
-        protected override void ExecuteForFilesInternal(PathList<OeFile> paths) {
+        /// <inheritdoc cref="AOeTaskFile.ExecuteForFilesInternal"/>
+        protected override void ExecuteForFilesInternal(IEnumerable<IOeFile> filesIn) {
 
+            var paths = filesIn.ToList();
+            
             if (paths.Count <= 0) {
                 return;
             }
@@ -47,15 +51,15 @@ namespace Oetools.Builder.Project.Task {
             var nbDone = 0;
             foreach (var file in paths) {
                 CancelToken?.ThrowIfCancellationRequested();
-                if (File.Exists(file.SourcePathForTaskExecution)) {
-                    Log?.Trace?.Write($"Deleting file {file.SourcePathForTaskExecution.PrettyQuote()}");
+                if (File.Exists(file.Path)) {
+                    Log?.Trace?.Write($"Deleting file {file.Path.PrettyQuote()}");
                     try {
-                        File.Delete(file.SourcePathForTaskExecution);
+                        File.Delete(file.Path);
                     } catch (Exception e) {
-                        throw new TaskExecutionException(this, $"Could not delete file {file.SourcePathForTaskExecution.PrettyQuote()}", e);
+                        throw new TaskExecutionException(this, $"Could not delete file {file.Path.PrettyQuote()}", e);
                     }
                 } else {
-                    Log?.Trace?.Write($"Deleting file not existing {file.SourcePathForTaskExecution.PrettyQuote()}");
+                    Log?.Trace?.Write($"Deleting file not existing {file.Path.PrettyQuote()}");
                 }
                 nbDone++;
                 Log?.ReportProgress(paths.Count, nbDone, $"Deleting files {nbDone}/{paths.Count}");
@@ -63,7 +67,7 @@ namespace Oetools.Builder.Project.Task {
             
         }
 
-        /// <inheritdoc cref="OeTask.ExecuteTestModeInternal"/>
+        /// <inheritdoc cref="AOeTask.ExecuteTestModeInternal"/>
         protected override void ExecuteTestModeInternal() {
             // this task doesn't actually build anything, it just deletes files
         }

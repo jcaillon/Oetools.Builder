@@ -71,8 +71,8 @@ namespace Oetools.Builder {
                 foreach (var task in Tasks) {
                     if (task is IOeTaskFile taskFile) {
                         var filesToBuildForTask = GetFilesToBuildForSingleTask(taskFile).CopySelect(f => f.GetDeepCopy());
-                        if (task is IOeTaskFileTarget taskTarget) {
-                            taskTarget.SetTargetForFiles(filesToBuildForTask, BaseTargetDirectory);
+                        if (task is IOeTaskFileWithTargets taskTarget) {
+                            taskTarget.SetTargets(filesToBuildForTask, BaseTargetDirectory);
                         }
                         taskFile.SetFilesToBuild(filesToBuildForTask);
                     }

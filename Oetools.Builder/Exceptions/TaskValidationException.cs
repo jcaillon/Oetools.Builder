@@ -23,12 +23,12 @@ using Oetools.Builder.Project.Task;
 namespace Oetools.Builder.Exceptions {
     public class TaskValidationException : BuilderException {
         
-        public OeTask Task { get; }
+        public AOeTask Task { get; }
         
-        public TaskValidationException(OeTask task, string message) : base(message) {
+        public TaskValidationException(AOeTask task, string message) : base(message) {
             Task = task;
         }
-        public TaskValidationException(OeTask task, string message, Exception innerException) : base(message, innerException) {
+        public TaskValidationException(AOeTask task, string message, Exception innerException) : base(message, innerException) {
             Task = task;
         }
         

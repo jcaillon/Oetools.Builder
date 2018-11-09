@@ -49,14 +49,14 @@ namespace Oetools.Builder {
         protected override PathList<OeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
             var baseList = SourceDirectoryPathListToBuild;
             
-            if (task is IOeTaskFileTarget taskTarget) {
+            if (task is IOeTaskFileWithTargets taskTarget) {
                 // we add files that should be rebuild by this task because they have new targets in this task.
                 var rebuildFilesWithNewTargets = Properties.IncrementalBuildOptions?.RebuildFilesWithNewTargets ?? OeIncrementalBuildOptions.GetDefaultRebuildFilesWithNewTargets();
                 if (rebuildFilesWithNewTargets && !FullRebuild && UseIncrementalBuild && PreviouslyBuiltPaths != null) {
 
                     Log?.Debug("Need to compute the targets for all the unchanged files in the source directory");
                     var unchangedFiles = SourceDirectoryCompletePathList.CopyWhere(f => f.State == OeFileState.Unchanged);
-                    taskTarget.SetTargetForFiles(unchangedFiles, BaseTargetDirectory);
+                    taskTarget.SetTargets(unchangedFiles, BaseTargetDirectory);
 
                     Log?.Info("Adding files with new targets to the build list");
                     baseList.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseTheyHaveNewTargets(unchangedFiles, PreviouslyBuiltPaths));
@@ -182,9 +182,10 @@ namespace Oetools.Builder {
                 string preferredTargetDirectory = null;
                 
                 var allTargets = groupedBySourcePath
-                    .Where(file => file.TargetsFiles != null)
-                    .SelectMany(file => file.TargetsFiles)
-                    .Select(target => target.TargetFilePath).ToList();
+                    .Where(file => file.TargetsToBuild != null)
+                    .SelectMany(file => file.TargetsToBuild)
+                    .Where(target => target is OeTargetFile)
+                    .Select(target => target.GetTargetPath()).ToList();
                 
                 var firstFileTarget = allTargets.FirstOrDefault();
                 
