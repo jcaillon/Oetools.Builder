@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
+using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Test.Project {
@@ -122,6 +123,9 @@ namespace Oetools.Builder.Test.Project {
                     DlcDirectoryPath = "globaldlc",
                     BuildOptions = new OeBuildOptions {
                         OutputDirectoryPath = "globaloutput"
+                    },
+                    PropathSourceDirectoriesFilter = new OeFilterOptions {
+                        Include = "inc"
                     }
                 },
                 BuildConfigurations = new List<OeBuildConfiguration> {
@@ -136,7 +140,10 @@ namespace Oetools.Builder.Test.Project {
                             }
                         },
                         Properties = new OeProperties {
-                            DlcDirectoryPath = "localdlc"
+                            DlcDirectoryPath = "localdlc",
+                            PropathSourceDirectoriesFilter = new OeFilterOptions {
+                                Exclude = "exclude"
+                            }
                         }
                     }
                 }
@@ -148,6 +155,11 @@ namespace Oetools.Builder.Test.Project {
             Assert.AreEqual("second", conf.ConfigurationName);
             Assert.AreEqual("localdlc", conf.Properties.DlcDirectoryPath);
             Assert.AreEqual("globaloutput", conf.Properties.BuildOptions.OutputDirectoryPath);
+            Assert.AreEqual(null, conf.Properties.PropathSourceDirectoriesFilter.Include);
+            Assert.AreEqual("exclude", conf.Properties.PropathSourceDirectoriesFilter.Exclude);
+            
+            Assert.AreEqual("globaldlc", project.GlobalProperties.DlcDirectoryPath, "This should not modified the global properties.");
+            Assert.AreEqual(null, project.BuildConfigurations[1].Properties.BuildOptions, "This should also not modified the properties of the original build configurations.");
             
 
         }
@@ -296,7 +308,7 @@ namespace Oetools.Builder.Test.Project {
                                     IncludeRegex = "regex",
                                     TargetCabFilePath = "path.cab",
                                     RelativeTargetFilePath = "inside/file.p",
-                                    ArchivesCompressionLevel = "Max"
+                                    CompressionLevel = OeCabCompressionLevel.Max
                                 },
                                 //new OeTaskFileTargetArchiveFtpCompile(),
                                 //new OeTaskFileTargetFileCopy(),

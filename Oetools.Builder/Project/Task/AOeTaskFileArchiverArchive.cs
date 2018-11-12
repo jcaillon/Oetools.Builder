@@ -35,13 +35,7 @@ namespace Oetools.Builder.Project.Task {
     /// <summary>
     /// Base task class for tasks that operates on files and that have targets for aforementioned files.
     /// </summary>
-    public abstract class AOeTaskFileArchiverArchive : AOeTaskFile, IOeTaskFileWithTargets {
-
-        /// <summary>
-        /// Compression level for this archive task.
-        /// </summary>
-        /// <returns></returns>
-        public abstract ArchiveCompressionLevel GetCompressionLevel();
+    public abstract class AOeTaskFileArchiverArchive : AOeTaskFile, IOeTaskFileToBuild {
         
         /// <summary>
         /// Returns an instance of an archiver.
@@ -103,26 +97,25 @@ namespace Oetools.Builder.Project.Task {
         /// <returns></returns>
         protected abstract string GetTargetDirectoryPropertyName();
         
-        protected PathList<OeFileBuilt> _builtPaths;
-        
-        /// <inheritdoc cref="IOeTaskWithBuiltFiles.GetBuiltFiles"/>
-        public PathList<OeFileBuilt> GetBuiltFiles() => _builtPaths;
-        
         /// <inheritdoc cref="IOeTask.Validate"/>
         public override void Validate() {
             base.Validate();
+            
+            // need at least 1 target
             if (string.IsNullOrEmpty(GetTargetFilePath()) && GetTargetDirectory() == null) {
                 throw new TaskValidationException(this, $"This task needs the following properties to be defined : {GetType().GetXmlName(GetTargetFilePathPropertyName())} and/or {GetType().GetXmlName(GetTargetDirectoryPropertyName())}");
             }
+            CheckTargetPath((GetTargetFilePath()?.Split(';')).UnionHandleNull(GetTargetDirectory()?.Split(';')));
+            
+            // need archive path
             if (!string.IsNullOrEmpty(GetArchivePathPropertyName()) && string.IsNullOrEmpty(GetArchivePath())) {
                 throw new TaskValidationException(this, $"This task needs the following property to be defined : {GetType().GetXmlName(GetArchivePathPropertyName())}");
             }
-            CheckTargetPath((GetTargetFilePath()?.Split(';')).UnionHandleNull(GetTargetDirectory()?.Split(';')));
             CheckTargetPath(GetArchivePath()?.Split(';'));
         }
         
-        /// <inheritdoc cref="IOeTaskFileWithTargets.SetTargets"/>
-        public void SetTargets(PathList<OeFile> paths, string baseTargetDirectory, bool appendMode = false) {
+        /// <inheritdoc cref="IOeTaskFileToBuild.SetTargets"/>
+        public void SetTargets(PathList<IOeFileToBuild> paths, string baseTargetDirectory, bool appendMode = false) {
             bool isTaskCompile = this is IOeTaskCompile;
             foreach (var file in paths) {
                 var newTargets = GetTargets(file.Path, baseTargetDirectory, GetArchivePath(), GetTargetFilePath(), GetTargetDirectory(), GetNewTarget);
@@ -143,19 +136,6 @@ namespace Oetools.Builder.Project.Task {
                 }
             }
         }
-        
-        /// <summary>
-        /// Adds all the files to build to the built files list,
-        /// this method is executed instead of <see cref="AOeTask.ExecuteInternal"/> when test mode is on.
-        /// </summary>
-        protected override void ExecuteTestModeInternal() {
-            _builtPaths = new PathList<OeFileBuilt>();
-            foreach (var file in GetFilesToBuild()) {
-                var fileBuilt = GetNewFileBuilt(file);
-                fileBuilt.Targets = file.TargetsToBuild.ToList();
-                _builtPaths.Add(fileBuilt);
-            }
-        }
 
         /// <summary>
         /// Returns a file built from a file to build, should be called when the action is done for the source file.
@@ -163,7 +143,7 @@ namespace Oetools.Builder.Project.Task {
         /// </summary>
         /// <param name="sourceFile"></param>
         /// <returns></returns>
-        private OeFileBuilt GetNewFileBuilt(OeFile sourceFile) {
+        private OeFileBuilt GetNewFileBuilt(IOeFile sourceFile) {
             if (this is IOeTaskCompile thisOeTaskCompile) {
                 var newFileBuilt = new OeFileBuiltCompiled(sourceFile);
                 var compiledFile = thisOeTaskCompile.GetCompiledFiles()?[sourceFile.Path];
@@ -171,24 +151,45 @@ namespace Oetools.Builder.Project.Task {
                     newFileBuilt.RequiredFiles = compiledFile.RequiredFiles?.ToList();
                     newFileBuilt.RequiredDatabaseReferences = compiledFile.RequiredDatabaseReferences?.Select(OeDatabaseReference.New).ToList();
                 }
+                newFileBuilt.Targets = null;
                 return newFileBuilt;
             }
             return new OeFileBuilt(sourceFile);
         }
 
-        /// <inheritdoc cref="AOeTaskFile.ExecuteForFilesInternal"/>
-        protected sealed override void ExecuteForFilesInternal(IEnumerable<IOeFile> paths) => throw new Exception("Should not be called.");
+        /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
+        protected sealed override void ExecuteInternal() {
+            if (this is IOeTaskCompile thisOeTaskCompile) {
+                try {
+                    Log?.Debug("Is a compile task.");
+                    var compiledFiles = thisOeTaskCompile.GetCompiledFiles();
+                    if (compiledFiles == null) {
+                        Log?.Debug("Start file compilation.");
+                        compiledFiles = OeFilesCompiler.CompileFiles(thisOeTaskCompile.GetProperties(), _filesToBuild.CopySelect(f => new UoeFileToCompile(f.Path) {
+                            FileSize = f.Size
+                        }), CancelToken, Log);
+                        thisOeTaskCompile.SetCompiledFiles(compiledFiles);
+                    }
+                    
+                    Log?.Debug("Switching original source files for rcode files to build.");
+                    _filesToBuild = OeFilesCompiler.SetRcodeFilesAsSourceInsteadOfSourceFiles(_filesToBuild, compiledFiles);
+                } catch(Exception e) {
+                    throw new TaskExecutionException(this, e.Message, e);
+                }
+            }
+            ExecuteInternalArchive();
+        }
 
-        /// <inheritdoc cref="IOeTaskFileWithTargets.ExecuteForFilesWithTargets"/>
-        public virtual void ExecuteForFilesWithTargets(IEnumerable<IOeFileToBuild> files) {
+        /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
+        protected virtual void ExecuteInternalArchive() {
+            
             var archiver = GetArchiver();
             
             archiver.SetCancellationToken(CancelToken);
-            archiver.SetCompressionLevel(GetCompressionLevel());
             archiver.OnProgress += ArchiverOnProgress;
             
             try {
-                var filesToPack = files.SelectMany(f => f.TargetsToBuild.Select(t => new FileToArchive(t.ArchiveFilePath, t.FilePath, f.SourcePathForTaskExecution) as IFileToArchive)).ToList();
+                var filesToPack = _filesToBuild.SelectMany(f => f.TargetsToBuild.Select(t => new FileToArchive(t.ArchiveFilePath, t.FilePath, f.SourcePathForTaskExecution) as IFileToArchive)).ToList();
                 
                 Log?.Trace?.Write($"Processing {filesToPack.Count} files.");
                 
@@ -197,32 +198,63 @@ namespace Oetools.Builder.Project.Task {
             } finally {
                 archiver.OnProgress -= ArchiverOnProgress;
             }
-        }       
+        }
         
         private void ArchiverOnProgress(object sender, ArchiverEventArgs args) {
-            switch (args.EventType) {
-                case ArchiverEventType.GlobalProgression:
-                    var archiveString = string.IsNullOrEmpty(args.ArchivePath) ? "" : $" in {args.ArchivePath}";
-                    Log?.ReportProgress(100, (int) args.PercentageDone, $"Processing {args.RelativePathInArchive}{archiveString}.");
-                    break;
-                case ArchiverEventType.FileProcessed:
-                    var archiveString2 = string.IsNullOrEmpty(args.ArchivePath) ? "" : $" in {args.ArchivePath}";
-                    Log?.Trace?.Write($"{args.RelativePathInArchive}{archiveString2} has been processed.");
-                    break;
-            }
+            var archiveString = string.IsNullOrEmpty(args.ArchivePath) ? "" : $" in {args.ArchivePath}";
+            Log?.ReportProgress(100, (int) args.PercentageDone, $"Processing {args.RelativePathInArchive}{archiveString}.");
         }
         
         private struct FileToArchive : IFileToArchive {
             public string ArchivePath { get; }
             public string RelativePathInArchive { get; }
+            public bool Processed { get; set; }
             public string SourcePath { get; }
             public FileToArchive(string archivePath, string relativePathInArchive, string sourcePath) {
                 ArchivePath = archivePath;
                 RelativePathInArchive = relativePathInArchive;
                 SourcePath = sourcePath;
+                Processed = false;
             }
         }
         
+        /// <summary>
+        /// Adds all the files to build to the built files list,
+        /// this method is executed instead of <see cref="AOeTask.ExecuteInternal"/> when test mode is on.
+        /// </summary>
+        protected override void ExecuteTestModeInternal() {
+            _builtFiles = new PathList<IOeFileBuilt>();
+            foreach (var file in GetFilesToBuild()) {
+                var fileBuilt = GetNewFileBuilt(file);
+                fileBuilt.Targets = file.TargetsToBuild.ToList();
+                _builtFiles.Add(fileBuilt);
+            }
+        }
+
+        private string _baseDirectory;
+
+        /// <inheritdoc cref="IOeTaskFileToBuild.SetBaseDirectory"/>
+        public void SetBaseDirectory(string baseDirectory) {
+            _baseDirectory = baseDirectory;
+        }
+        
+        private PathList<IOeFileToBuild> _filesToBuild;
+        
+        /// <inheritdoc cref="IOeTaskFile.SetFilesToProcess"/>
+        public override void SetFilesToProcess(PathList<IOeFile> filesToProcess) {
+            // make a deep copy of those files because we will modify them
+            _filesToBuild = filesToProcess.CopySelect(f => new OeFile(f) as IOeFileToBuild);
+            SetTargets(_filesToBuild, _baseDirectory);
+        }
+
+        /// <inheritdoc cref="IOeTaskFileToBuild.GetFilesToBuild"/>
+        public PathList<IOeFileToBuild> GetFilesToBuild() => _filesToBuild;
+        
+        /// <inheritdoc cref="IOeTaskFile.GetFilesToProcess"/>
+        public override PathList<IOeFile> GetFilesToProcess() => _filesToBuild.CopySelect(f => f as IOeFile);
+
+        #region IOeTaskCompile
+
         private PathList<UoeCompiledFile> CompiledPaths { get; set; }
         
         /// <inheritdoc cref="IOeTaskCompile.SetCompiledFiles"/>
@@ -230,6 +262,16 @@ namespace Oetools.Builder.Project.Task {
         
         /// <inheritdoc cref="IOeTaskCompile.GetCompiledFiles"/>
         public PathList<UoeCompiledFile> GetCompiledFiles() => CompiledPaths;
+
+        #endregion
+
+        #region IOeTaskWithBuiltFiles
+
+        private PathList<IOeFileBuilt> _builtFiles;
         
+        /// <inheritdoc cref="IOeTaskWithBuiltFiles.GetBuiltFiles"/>
+        public PathList<IOeFileBuilt> GetBuiltFiles() => _builtFiles;
+
+        #endregion
     }
 }

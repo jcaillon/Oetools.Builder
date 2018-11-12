@@ -32,6 +32,9 @@ namespace Oetools.Builder.History {
         [XmlAttribute("DeletionMode")]
         public string DeletionMode { get; set; }
 
+        /// <summary>
+        /// if true, it means this target was actually a deletion.
+        /// </summary>
         public bool IsDeletionMode() => !string.IsNullOrEmpty(DeletionMode);
         
         public void SetDeletionMode(bool deletionMode) => DeletionMode = deletionMode ? "1" : null;

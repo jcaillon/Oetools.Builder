@@ -67,18 +67,17 @@ namespace Oetools.Builder {
                 foreach (var task in Tasks) {
                     InjectPropertiesInTask(task);
                 }
-                Log?.Debug("Set the paths to build for each task and their targets if needed.");
+                Log?.Debug("Set the paths to build for each task if needed.");
                 foreach (var task in Tasks) {
-                    if (task is IOeTaskFile taskFile) {
-                        var filesToBuildForTask = GetFilesToBuildForSingleTask(taskFile).CopySelect(f => f.GetDeepCopy());
-                        if (task is IOeTaskFileWithTargets taskTarget) {
-                            taskTarget.SetTargets(filesToBuildForTask, BaseTargetDirectory);
+                    switch (task) {
+                        case IOeTaskFile taskFile: {
+                            taskFile.SetFilesToProcess(GetFilesToBuildForSingleTask(taskFile));
+                            break;
                         }
-                        taskFile.SetFilesToBuild(filesToBuildForTask);
-                    }
-                    if (task is IOeTaskDirectory taskDirectory) {
-                        var directoriesToBuildForTask = GetDirectoriesToBuildForSingleTask(taskDirectory).CopySelect(f => f.GetDeepCopy());
-                        taskDirectory.SetDirectoriesToBuild(directoriesToBuildForTask);
+                        case IOeTaskDirectory taskDirectory: {
+                            taskDirectory.SetDirectoriesToProcess(GetDirectoriesToBuildForSingleTask(taskDirectory));
+                            break;
+                        }
                     }
                 }
                 ExecuteInternal();
@@ -132,6 +131,9 @@ namespace Oetools.Builder {
             if (task is IOeTaskNeedingProperties taskNeedingProperties) {
                 taskNeedingProperties.SetProperties(Properties);
             }
+            if (task is IOeTaskFileToBuild taskFileToBuild) {
+                taskFileToBuild.SetBaseDirectory(BaseTargetDirectory);
+            }
         }
 
         /// <summary>
@@ -139,9 +141,8 @@ namespace Oetools.Builder {
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        protected virtual PathList<OeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
-            Log?.Debug("Gets the list of files on which to apply this task from path inclusion.");
-            return task.GetFilesToBuildFromIncludes();
+        protected virtual PathList<IOeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
+            return task.GetFilesToProcessFromIncludes();
         }
 
         /// <summary>
@@ -149,9 +150,8 @@ namespace Oetools.Builder {
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        protected virtual PathList<OeDirectory> GetDirectoriesToBuildForSingleTask(IOeTaskDirectory task) {
-            Log?.Debug("Gets the list of files on which to apply this task from path inclusion.");
-            return task.GetDirectoriesToBuildFromIncludes();
+        protected virtual PathList<IOeDirectory> GetDirectoriesToBuildForSingleTask(IOeTaskDirectory task) {
+            return task.GetDirectoriesToProcessFromIncludes();
         }
         
         private void TaskOnPublishException(object sender, TaskWarningEventArgs e) {

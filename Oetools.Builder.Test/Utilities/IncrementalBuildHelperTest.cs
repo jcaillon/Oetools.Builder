@@ -51,7 +51,7 @@ namespace Oetools.Builder.Test.Utilities {
         
         [TestMethod]
         public void GetTaskTargetsRemover_Test() {
-            var prevBuilt = new PathList<OeFileBuilt> {
+            var prevBuilt = new PathList<IOeFileBuilt> {
                 new OeFileBuilt {
                     State = OeFileState.Modified,
                     Path = "source1",
@@ -99,7 +99,7 @@ namespace Oetools.Builder.Test.Utilities {
                     }
                 }
             };
-            var allSourceFiles = new PathList<OeFile> {
+            var allSourceFiles = new PathList<IOeFileToBuild> {
                 new OeFile {
                     State = OeFileState.Unchanged,
                     Path = "source1",
@@ -174,7 +174,7 @@ namespace Oetools.Builder.Test.Utilities {
             
             File.WriteAllText(Path.Combine(TestFolder, "source2"), "");
             
-            var prevBuilt = new PathList<OeFileBuilt> {
+            var prevBuilt = new PathList<IOeFileBuilt> {
                 new OeFileBuilt {
                     State = OeFileState.Modified,
                     Path = "/random/source1",
@@ -237,7 +237,7 @@ namespace Oetools.Builder.Test.Utilities {
 
         [TestMethod]
         public void GetSourceFilesToRebuildBecauseTheyHaveNewTargets_Test() {
-            var allSourceFiles = new PathList<OeFile> {
+            var allSourceFiles = new PathList<IOeFileToBuild> {
                 new OeFile {
                     State = OeFileState.Unchanged,
                     Path = "source1",
@@ -270,7 +270,7 @@ namespace Oetools.Builder.Test.Utilities {
                     }
                 }
             };
-            var prevBuilt = new PathList<OeFileBuilt> {
+            var prevBuilt = new PathList<IOeFileBuilt> {
                 new OeFileBuilt {
                     Path = "source1",
                     Targets = new List<AOeTarget> {
@@ -366,14 +366,14 @@ namespace Oetools.Builder.Test.Utilities {
         
         [TestMethod]
         public void GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification_Test() {
-            var modifiedFiles = new PathList<OeFile>();
+            var modifiedFiles = new PathList<IOeFile>();
             var previouslyBuiltFiles = new List<OeFileBuiltCompiled>();
 
             var output = IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(modifiedFiles, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(0, output.Count, "empty for now");
 
-            modifiedFiles = new PathList<OeFile> {
+            modifiedFiles = new PathList<IOeFile> {
                 new OeFile("file1"),
                 new OeFile("file2"),
                 new OeFile("file3"),

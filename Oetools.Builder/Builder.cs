@@ -33,7 +33,7 @@ namespace Oetools.Builder {
     
     public class Builder : IDisposable {
         
-        private PathList<OeFileBuilt> _previouslyBuiltPaths;
+        private PathList<IOeFileBuilt> _previouslyBuiltPaths;
         private OeBuildHistory _buildSourceHistory;
 
         public ILogger Log { protected get; set; }
@@ -61,10 +61,10 @@ namespace Oetools.Builder {
 
         private string BuildTemporaryDirectory { get; set; }
 
-        private PathList<OeFileBuilt> PreviouslyBuiltPaths {
+        private PathList<IOeFileBuilt> PreviouslyBuiltPaths {
             get {
                 if (_previouslyBuiltPaths == null && BuildSourceHistory?.BuiltFiles != null) {
-                    _previouslyBuiltPaths = BuildSourceHistory.BuiltFiles.ToFileList();
+                    _previouslyBuiltPaths = BuildSourceHistory.BuiltFiles.Cast<IOeFileBuilt>().ToFileList();
                 }
                 return _previouslyBuiltPaths;
             }
@@ -204,7 +204,7 @@ namespace Oetools.Builder {
         }
 
         /// <summary>
-        /// Configure the source build
+        /// Configure the source build, allowing to delete obsolete files there were previously built.
         /// </summary>
         /// <param name="buildSourceExecutor"></param>
         /// <param name="stepsList"></param>
@@ -252,11 +252,11 @@ namespace Oetools.Builder {
             if (mirrorDeletedTargetsToOutput) {
                 Log?.Info("Mirroring deleted targets to the output directory");
 
-                var unchangedOrModifiedFiles = buildSourceExecutor.SourceDirectoryCompletePathList?.CopyWhere(f => f.State == OeFileState.Unchanged || f.State == OeFileState.Modified);
+                var unchangedOrModifiedFiles = OeFile.ConvertToFileToBuild(buildSourceExecutor.SourceDirectoryCompletePathList?.Where(f => f.State == OeFileState.Unchanged || f.State == OeFileState.Modified));
 
                 if (unchangedOrModifiedFiles != null && unchangedOrModifiedFiles.Count > 0) {
                     Log?.Debug("For all the unchanged or modified files, set all the targets that should be built in this build");
-                    foreach (var task in stepsList.SelectMany(step1 => (step1.GetTaskList()?.OfType<IOeTaskFileWithTargets>()).ToNonNullList())) {
+                    foreach (var task in stepsList.SelectMany(step1 => (step1.GetTaskList()?.OfType<IOeTaskFileToBuild>()).ToNonNullList())) {
                         task.SetTargets(unchangedOrModifiedFiles, BuildConfiguration.Properties?.BuildOptions?.OutputDirectoryPath, true);
                     }
 
@@ -279,7 +279,12 @@ namespace Oetools.Builder {
         
         private OeBuildHistory GetBuildHistory() {
             var history = new OeBuildHistory {
-                BuiltFiles = GetFilesBuiltHistory().ToList(),
+                BuiltFiles = GetFilesBuiltHistory().Select(f => {
+                    if (f is OeFileBuilt fb) {
+                        return fb;
+                    }
+                    return new OeFileBuilt(f);
+                }).ToList(),
                 CompiledFiles = GetSourceCompilationProblems().ToList(),
                 WebclientPackageInfo = null // TODO : webclient package info
             };
@@ -322,9 +327,9 @@ namespace Oetools.Builder {
         /// Returns a list of all the files built; include files that were automatically deleted.
         /// </summary>
         /// <returns></returns>
-        private PathList<OeFileBuilt> GetFilesBuiltHistory() {
+        private PathList<IOeFileBuilt> GetFilesBuiltHistory() {
 
-            var builtFiles = new PathList<OeFileBuilt>();
+            var builtFiles = new PathList<IOeFileBuilt>();
             
             var outputDirectory = BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath;
             
@@ -340,9 +345,9 @@ namespace Oetools.Builder {
                     .ToList();
                 
                 if (!builtFiles.Contains(fileBuilt)) {
-                    builtFiles.Add(fileBuilt.GetDeepCopy());
+                    builtFiles.Add(new OeFileBuilt(fileBuilt));
                 } else {
-                    OeFileBuilt historyFileBuilt = builtFiles[fileBuilt];
+                    var historyFileBuilt = builtFiles[fileBuilt];
                     if (historyFileBuilt.Targets == null) {
                         historyFileBuilt.Targets = targetsOutputDirectory;
                     } else {
@@ -354,8 +359,9 @@ namespace Oetools.Builder {
             // add all the files that were not rebuild from the previous build history
             if (PreviouslyBuiltPaths != null) {
                 foreach (var previousFile in PreviouslyBuiltPaths.Where(oldFile => oldFile.State != OeFileState.Deleted && !builtFiles.Contains(oldFile))) {
-                    var previousFileCopy = previousFile.GetDeepCopy();
-                    previousFileCopy.State = OeFileState.Unchanged;
+                    var previousFileCopy = new OeFileBuilt(previousFile) {
+                        State = OeFileState.Unchanged
+                    };
                     builtFiles.Add(previousFileCopy);
                 }
             }

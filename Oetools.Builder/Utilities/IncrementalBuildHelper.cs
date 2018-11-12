@@ -41,7 +41,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="pathsModified"></param>
         /// <param name="previousFilesBuilt"></param>
         /// <returns></returns>
-        internal static IEnumerable<OeFile> GetSourceFilesToRebuildBecauseOfDependenciesModification(PathList<OeFile> pathsModified, List<OeFileBuiltCompiled> previousFilesBuilt) {
+        internal static IEnumerable<IOeFile> GetSourceFilesToRebuildBecauseOfDependenciesModification(PathList<IOeFile> pathsModified, List<OeFileBuiltCompiled> previousFilesBuilt) {
             var filesModifiedList = pathsModified.ToList();
             for (int i = 0; i < filesModifiedList.Count; i++) {
                 var fileModified = filesModifiedList[i];
@@ -53,7 +53,7 @@ namespace Oetools.Builder.Utilities {
                         filesModifiedList.Add(result);
                     }
                     firstAdd = false;
-                    yield return result.GetDeepCopy();
+                    yield return new OeFile(result);
                 }
             }
         }
@@ -65,7 +65,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="env"></param>
         /// <param name="previousFilesBuilt"></param>
         /// <returns></returns>
-        internal static IEnumerable<OeFile> GetSourceFilesToRebuildBecauseOfTableCrcChanges(UoeExecutionEnv env, IEnumerable<OeFileBuiltCompiled> previousFilesBuilt) {
+        internal static IEnumerable<IOeFile> GetSourceFilesToRebuildBecauseOfTableCrcChanges(UoeExecutionEnv env, IEnumerable<OeFileBuiltCompiled> previousFilesBuilt) {
             var sequences = env.Sequences;
             var tables = env.TablesCrc;
             
@@ -82,7 +82,7 @@ namespace Oetools.Builder.Utilities {
                     }
                 }) ?? true;
                 if (!allReferencesOk) {
-                    yield return previousFile.GetDeepCopy();
+                    yield return new OeFile(previousFile);
                 }
             }
         }
@@ -92,10 +92,10 @@ namespace Oetools.Builder.Utilities {
         /// </summary>
         /// <param name="previousPathsBuilt"></param>
         /// <returns></returns>
-        internal static IEnumerable<OeFileBuilt> GetBuiltFilesDeletedSincePreviousBuild(PathList<OeFileBuilt> previousPathsBuilt) {
+        internal static IEnumerable<IOeFileBuilt> GetBuiltFilesDeletedSincePreviousBuild(PathList<IOeFileBuilt> previousPathsBuilt) {
             foreach (var previousFile in previousPathsBuilt.Where(f => f.State != OeFileState.Deleted)) {
                 if (!File.Exists(previousFile.Path) && previousFile.Targets != null && previousFile.Targets.Count > 0) {
-                    var previousFileCopy = previousFile.GetDeepCopy();
+                    var previousFileCopy = new OeFileBuilt(previousFile);
                     previousFileCopy.Targets.ForEach(target => target.SetDeletionMode(true));
                     previousFileCopy.State = OeFileState.Deleted;
                     yield return previousFileCopy;
@@ -109,7 +109,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="allUnchangedSourcePathsWithSetTargets"></param>
         /// <param name="previousPathsBuilt"></param>
         /// <returns></returns>
-        internal static IEnumerable<OeFile> GetSourceFilesToRebuildBecauseTheyHaveNewTargets(PathList<OeFile> allUnchangedSourcePathsWithSetTargets, PathList<OeFileBuilt> previousPathsBuilt) {
+        internal static IEnumerable<IOeFileToBuild> GetSourceFilesToRebuildBecauseTheyHaveNewTargets(PathList<IOeFileToBuild> allUnchangedSourcePathsWithSetTargets, PathList<IOeFileBuilt> previousPathsBuilt) {
             foreach (var newFile in allUnchangedSourcePathsWithSetTargets.Where(file => file.State == OeFileState.Unchanged)) {
                 var previousFile = previousPathsBuilt[newFile.Path];
                 var previouslyCreatedTargets = previousFile.Targets.ToNonNullList().Where(target => !target.IsDeletionMode()).Select(t => t.GetTargetPath()).ToList();
@@ -128,7 +128,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="allUnchangedOrModifiedSourcePathsWithSetTargets"></param>
         /// <param name="previousPathsBuilt"></param>
         /// <returns></returns>
-        internal static IEnumerable<OeFileBuilt> GetBuiltFilesWithOldTargetsToRemove(PathList<OeFile> allUnchangedOrModifiedSourcePathsWithSetTargets, PathList<OeFileBuilt> previousPathsBuilt) {
+        internal static IEnumerable<IOeFileBuilt> GetBuiltFilesWithOldTargetsToRemove(PathList<IOeFileToBuild> allUnchangedOrModifiedSourcePathsWithSetTargets, PathList<IOeFileBuilt> previousPathsBuilt) {
             var finalFileTargets = new List<AOeTarget>();
             foreach (var newFile in allUnchangedOrModifiedSourcePathsWithSetTargets.Where(file => file.State == OeFileState.Unchanged || file.State == OeFileState.Modified)) {
                 var previousFile = previousPathsBuilt[newFile.Path];
@@ -152,7 +152,7 @@ namespace Oetools.Builder.Utilities {
                 if (isFileWithTargetsToDelete) {
                     var originalPreviousFileTargets = previousFile.Targets.ToList();
                     previousFile.Targets = finalFileTargets;
-                    var previousFileCopy = previousFile.GetDeepCopy();
+                    var previousFileCopy = new OeFileBuilt(previousFile);
                     previousFile.Targets = originalPreviousFileTargets;
                     previousFileCopy.Targets.ForEach(target => target.SetDeletionMode(true));
                     switch (newFile.State) {

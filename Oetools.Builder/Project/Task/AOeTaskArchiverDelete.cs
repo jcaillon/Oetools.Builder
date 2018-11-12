@@ -74,9 +74,7 @@ namespace Oetools.Builder.Project.Task {
         }
 
         private void ArchiverOnOnProgress(object sender, ArchiverEventArgs args) {
-            if (args.EventType == ArchiverEventType.GlobalProgression) {
-                Log?.ReportProgress(100, (int) args.PercentageDone, $"Deleting {args.RelativePathInArchive} in {args.ArchivePath}.");
-            }
+            Log?.ReportProgress(100, (int) args.PercentageDone, $"Deleting {args.RelativePathInArchive} in {args.ArchivePath}.");
         }
 
         /// <inheritdoc cref="AOeTaskFileArchiverArchive.ExecuteTestModeInternal"/>
@@ -87,9 +85,12 @@ namespace Oetools.Builder.Project.Task {
         private struct FileInArchiveToDelete : IFileInArchiveToDelete {
             public string ArchivePath { get; }
             public string RelativePathInArchive { get; }
+            public bool Processed { get; set; }
+
             public FileInArchiveToDelete(string archivePath, string relativePathInArchive) {
                 ArchivePath = archivePath;
                 RelativePathInArchive = relativePathInArchive;
+                Processed = false;
             }
         }
     }

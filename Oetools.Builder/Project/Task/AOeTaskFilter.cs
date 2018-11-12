@@ -129,12 +129,12 @@ namespace Oetools.Builder.Project.Task {
         }
 
         /// <inheritdoc cref="IOeTaskFilter.FilterFiles"/>
-        public PathList<OeFile> FilterFiles(PathList<OeFile> originalListOfPaths) {
+        public PathList<IOeFile> FilterFiles(PathList<IOeFile> originalListOfPaths) {
             return originalListOfPaths?.CopyWhere(f => IsPathPassingFilter(f.Path));
         }
 
         /// <inheritdoc cref="IOeTaskFilter.FilterDirectories"/>
-        public PathList<OeDirectory> FilterDirectories(PathList<OeDirectory> originalListOfPaths) {
+        public PathList<IOeDirectory> FilterDirectories(PathList<IOeDirectory> originalListOfPaths) {
             return originalListOfPaths?.CopyWhere(f => IsPathPassingFilter(f.Path));
         }
         

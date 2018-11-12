@@ -28,8 +28,12 @@ namespace Oetools.Builder.History {
         
         public OeFileBuilt() { }
 
-        public OeFileBuilt(OeFile sourceFile) {
-            Utils.DeepCopyPublicProperties(sourceFile, GetType(), this);
+        public OeFileBuilt(IOeFile sourceFile) {
+            sourceFile.DeepCopy(this);
+        }
+
+        public OeFileBuilt(IOeFileBuilt sourceFile) {
+            sourceFile.DeepCopy(this);
         }
 
         /// <summary>

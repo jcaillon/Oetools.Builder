@@ -44,8 +44,6 @@ namespace Oetools.Builder.Project.Task {
         [ReplaceVariables(LeaveUnknownUntouched = true)]
         public string TargetDirectory { get; set; }       
         
-        public override ArchiveCompressionLevel GetCompressionLevel() => ArchiveCompressionLevel.None;
-        
         protected override IArchiver GetArchiver() => Archiver.NewFileSystemArchiver();
         
         protected override AOeTarget GetNewTarget() => new OeTargetFile();

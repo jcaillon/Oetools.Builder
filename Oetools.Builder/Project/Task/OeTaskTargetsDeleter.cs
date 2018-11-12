@@ -35,14 +35,14 @@ namespace Oetools.Builder.Project.Task {
     [XmlRoot("TargetsRemover")]
     public class OeTaskTargetsDeleter : AOeTask, IOeTaskWithBuiltFiles {
 
-        private PathList<OeFileBuilt> _builtPaths;
+        private PathList<IOeFileBuilt> _builtPaths;
 
         /// <summary>
         /// a list of files with targets to remove
         /// </summary>
-        private PathList<OeFileBuilt> _pathsWithTargetsToRemove;
+        private PathList<IOeFileBuilt> _pathsWithTargetsToRemove;
 
-        public void SetFilesWithTargetsToRemove(PathList<OeFileBuilt> pathsWithTargetsToRemove) {
+        public void SetFilesWithTargetsToRemove(PathList<IOeFileBuilt> pathsWithTargetsToRemove) {
             _pathsWithTargetsToRemove = pathsWithTargetsToRemove;
         }
 
@@ -53,7 +53,7 @@ namespace Oetools.Builder.Project.Task {
 
         /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
         protected sealed override void ExecuteInternal() {
-            var targetsToRemove = _pathsWithTargetsToRemove.SelectMany(f => f.TargetsToBuild).Where(target => target.IsDeletionMode()).ToList();
+            var targetsToRemove = _pathsWithTargetsToRemove.SelectMany(f => f.Targets).Where(target => target.IsDeletionMode()).ToList();
             ExecuteTargetsRemoval(targetsToRemove);
             _builtPaths = _pathsWithTargetsToRemove;
         }
@@ -69,7 +69,7 @@ namespace Oetools.Builder.Project.Task {
         }
 
         /// <inheritdoc cref="IOeTaskWithBuiltFiles.GetBuiltFiles"/>
-        public PathList<OeFileBuilt> GetBuiltFiles() => _builtPaths;
+        public PathList<IOeFileBuilt> GetBuiltFiles() => _builtPaths;
 
     }
 }

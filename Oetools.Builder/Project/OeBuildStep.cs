@@ -20,7 +20,7 @@ namespace Oetools.Builder.Project {
         /// <summary>
         /// Validate tasks in this step
         /// </summary>
-        /// <param name="buildFromIncludeList">should the task also be validated with <see cref="IOeTaskFile.ValidateCanGetFilesToBuildFromIncludes"/></param>
+        /// <param name="buildFromIncludeList">should the task also be validated with <see cref="IOeTaskFile.ValidateCanGetFilesToProcessFromIncludes"/></param>
         /// <exception cref="BuildStepException"></exception>
         public void Validate(bool buildFromIncludeList) {
             var tasks = GetTaskList();
@@ -32,10 +32,10 @@ namespace Oetools.Builder.Project {
                     task.Validate();
                     if (buildFromIncludeList) {
                         if (task is IOeTaskFile taskFile) {
-                            taskFile.ValidateCanGetFilesToBuildFromIncludes();
+                            taskFile.ValidateCanGetFilesToProcessFromIncludes();
                         }
                         if (task is IOeTaskDirectory taskDirectory) {
-                            taskDirectory.ValidateCanGetDirectoriesToBuildFromIncludes();
+                            taskDirectory.ValidateCanGetDirectoriesToProcessFromIncludes();
                         }
                     }
                 } catch (Exception e) {

@@ -108,7 +108,6 @@ namespace Oetools.Builder.Project.Task {
                     
                     archiver.MoveFileSet(GetFilesToMove(filesToMove));
                 }
-                
             } finally {
                 archiver.OnProgress -= ArchiverOnOnProgress;
             }
@@ -128,19 +127,19 @@ namespace Oetools.Builder.Project.Task {
         }
 
         private void ArchiverOnOnProgress(object sender, ArchiverEventArgs args) {
-            if (args.EventType == ArchiverEventType.GlobalProgression) {
-                Log?.ReportProgress(100, (int) args.PercentageDone, $"Extracting {args.RelativePathInArchive} from {args.ArchivePath}.");
-            }
+            Log?.ReportProgress(100, (int) args.PercentageDone, $"Extracting {args.RelativePathInArchive} from {args.ArchivePath}.");
         }
 
         private struct FileInArchiveToMove : IFileInArchiveToMove {
             public string ArchivePath { get; }
             public string RelativePathInArchive { get; }
+            public bool Processed { get; set; }
             public string NewRelativePathInArchive { get; }
             public FileInArchiveToMove(string archivePath, string relativePathInArchive, string newRelativePathInArchive) {
                 ArchivePath = archivePath;
                 RelativePathInArchive = relativePathInArchive;
                 NewRelativePathInArchive = newRelativePathInArchive;
+                Processed = false;
             }
         }
     }

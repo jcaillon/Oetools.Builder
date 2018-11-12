@@ -6,7 +6,12 @@ namespace Oetools.Builder.History {
     /// Represents a file.
     /// </summary>
     public interface IOeFile : IPathListItem {
-
+        
+        /// <summary>
+        /// Path.
+        /// </summary>
+        new string Path { get; set; }
+        
         /// <summary>
         /// Datetime at which this file was last modified.
         /// </summary>

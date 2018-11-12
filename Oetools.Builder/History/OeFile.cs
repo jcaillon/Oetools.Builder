@@ -19,8 +19,10 @@
 #endregion
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.Utilities.Attributes;
+using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Attributes;
 using Oetools.Utilities.Lib.Extension;
 
@@ -32,6 +34,10 @@ namespace Oetools.Builder.History {
 
         public OeFile(string sourceFilePath) {
             Path = sourceFilePath;
+        }
+        
+        public OeFile(IOeFile sourceFile) {
+            sourceFile.DeepCopy(this);
         }
 
         /// <summary>
@@ -73,5 +79,14 @@ namespace Oetools.Builder.History {
         public List<AOeTarget> TargetsToBuild { get; set; }
         
         public override string ToString() => Path;
+
+        public static PathList<IOeFileToBuild> ConvertToFileToBuild(IEnumerable<IOeFile> files) {
+            return files?.Select(f => {
+                if (f is IOeFileToBuild ftb) {
+                    return ftb;
+                }
+                return new OeFile(f);
+            }).ToFileList();
+        }
     }
 }

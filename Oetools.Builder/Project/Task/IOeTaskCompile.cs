@@ -26,7 +26,7 @@ namespace Oetools.Builder.Project.Task {
     /// <summary>
     /// A task that allows to compile files.
     /// </summary>
-    public interface IOeTaskCompile : IOeTaskFile, IOeTaskNeedingProperties {
+    public interface IOeTaskCompile : IOeTaskFileToBuild, IOeTaskNeedingProperties {
 
         /// <summary>
         /// Sets a list of files that were compiled for this task.

@@ -145,10 +145,11 @@ namespace Oetools.Builder.Project {
             }
             
             // make a copy of the object since we want to modify it
-            var output = (OeBuildConfiguration) Utils.DeepCopyPublicProperties(buildConfiguration, typeof(OeBuildConfiguration));
+            var output = buildConfiguration.GetDeepCopy();
             
             // we take the global properties by default but they can be overload by the build configuration properties
-            output.Properties = (OeProperties) Utils.DeepCopyPublicProperties(buildConfiguration.Properties, typeof(OeProperties), GlobalProperties);
+            output.Properties = GlobalProperties.GetDeepCopy();
+            buildConfiguration.Properties.DeepCopy(output.Properties);
             
             // add global variables to the build configuration
             if (GlobalVariables != null) {

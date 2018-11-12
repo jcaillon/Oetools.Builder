@@ -30,16 +30,16 @@ namespace Oetools.Builder.Project.Task {
     public interface IOeTaskFile : IOeTaskFilter {
 
         /// <summary>
-        /// Sets the list of files to be built by this task.
+        /// Sets the list of files to be processed by this task.
         /// </summary>
-        /// <param name="pathsToBuild"></param>
-        void SetFilesToBuild(PathList<OeFile> pathsToBuild);
+        /// <param name="filesToProcess"></param>
+        void SetFilesToProcess(PathList<IOeFile> filesToProcess);
         
         /// <summary>
-        /// Gets a list of files to be built by this task.
+        /// Gets a list of files to be processed by this task.
         /// </summary>
         /// <returns></returns>
-        PathList<OeFile> GetFilesToBuild();
+        PathList<IOeFile> GetFilesToProcess();
         
         /// <summary>
         /// Given the inclusion wildcard paths and exclusion patterns, returns a list of files on which to apply this task.
@@ -50,17 +50,17 @@ namespace Oetools.Builder.Project.Task {
         /// Of if the include pattern is something like C:\windows\exe*
         /// </example>
         /// <returns></returns>
-        PathList<OeFile> GetFilesToBuildFromIncludes();
+        PathList<IOeFile> GetFilesToProcessFromIncludes();
 
         /// <summary>
         /// Validates that the task can be applied on files without having a base directory to list; for that,
         /// the task must have an included path (and should not use regex inclusion).
         /// </summary>
         /// <example>
-        /// See the examples in <see cref="GetFilesToBuildFromIncludes"/>
+        /// See the examples in <see cref="GetFilesToProcessFromIncludes"/>
         /// </example>
         /// <exception cref="TaskExecutionException"></exception>
-        void ValidateCanGetFilesToBuildFromIncludes();
+        void ValidateCanGetFilesToProcessFromIncludes();
         
     }
 }

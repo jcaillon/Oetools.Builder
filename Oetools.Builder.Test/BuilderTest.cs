@@ -458,19 +458,19 @@ namespace Oetools.Builder.Test {
         }
 
         private class OeTaskFileTargetArchiveProlibCompileProlib2 : OeTaskFileArchiverArchiveProlibCompile {
-            public override void ExecuteForFilesWithTargets(IEnumerable<IOeFileToBuild> files) {
+            protected override void ExecuteInternalArchive() {
                 ExecuteTestModeInternal();
             }
         }
 
         private class OeTaskFileTargetFileCompile2 : OeTaskFileCompile {
-            public override void ExecuteForFilesWithTargets(IEnumerable<IOeFileToBuild> files) {
+            protected override void ExecuteInternalArchive() {
                 ExecuteTestModeInternal();
             }
         }
         
         private class OeTaskFileTargetFileCopy2 : OeTaskFileCopy {
-            public override void ExecuteForFilesWithTargets(IEnumerable<IOeFileToBuild> files) {
+            protected override void ExecuteInternalArchive() {
                 ExecuteTestModeInternal();
             }
         }

@@ -140,8 +140,6 @@ namespace Oetools.Builder.Test.Project.Task {
             
             public string ArchivePath { get; set; }       
         
-            public override ArchiveCompressionLevel GetCompressionLevel() => ArchiveCompressionLevel.None;
-        
             protected override IArchiver GetArchiver() => Archiver;
         
             protected override AOeTarget GetNewTarget() => NewTargetFunc?.Invoke() ?? new OeTargetZip();
@@ -162,7 +160,7 @@ namespace Oetools.Builder.Test.Project.Task {
 
             public List<AOeTarget> GetTargetsFiles(string filePath, string baseDirectory) {
                 var file = new OeFile(filePath);
-                var list = new PathList<OeFile> { file };
+                var list = new PathList<IOeFileToBuild> { file };
                 SetTargets(list, baseDirectory);
                 return list.ElementAt(0).TargetsToBuild;
             }

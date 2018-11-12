@@ -49,8 +49,6 @@ namespace Oetools.Builder.Project.Task {
         [ReplaceVariables(LeaveUnknownUntouched = true)]
         public string TargetProlibFilePath { get; set; }
         
-        public override ArchiveCompressionLevel GetCompressionLevel() => ArchiveCompressionLevel.None;
-
         protected override IArchiver GetArchiver() => Archiver.NewProlibArchiver();
         
         protected override AOeTarget GetNewTarget() => new OeTargetProlib();

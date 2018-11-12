@@ -43,10 +43,10 @@ namespace Oetools.Builder.Project.Task {
         [XmlIgnore]
         public override string IncludeRegex => null;
         
-        private PathList<OeDirectory> _directoriesToBuild;
+        private PathList<IOeDirectory> _directoriesToBuild;
 
-        /// <inheritdoc cref="IOeTaskDirectory.ValidateCanGetDirectoriesToBuildFromIncludes"/>
-        public void ValidateCanGetDirectoriesToBuildFromIncludes() {
+        /// <inheritdoc cref="IOeTaskDirectory.ValidateCanGetDirectoriesToProcessFromIncludes"/>
+        public void ValidateCanGetDirectoriesToProcessFromIncludes() {
             if (string.IsNullOrEmpty(Include)) {
                 throw new TaskValidationException(this, $"This task needs to have the property {GetType().GetXmlName(nameof(Include))} defined or it can not be applied on any file.");
             }
@@ -55,15 +55,15 @@ namespace Oetools.Builder.Project.Task {
             }
         }
 
-        /// <inheritdoc cref="IOeTaskDirectory.SetDirectoriesToBuild"/>
-        public void SetDirectoriesToBuild(PathList<OeDirectory> pathsToBuild) => _directoriesToBuild = pathsToBuild;
+        /// <inheritdoc cref="IOeTaskDirectory.SetDirectoriesToProcess"/>
+        public void SetDirectoriesToProcess(PathList<IOeDirectory> pathsToBuild) => _directoriesToBuild = pathsToBuild;
 
-        /// <inheritdoc cref="IOeTaskDirectory.GetDirectoriesToBuild"/>
-        public PathList<OeDirectory> GetDirectoriesToBuild() => _directoriesToBuild;
+        /// <inheritdoc cref="IOeTaskDirectory.GetDirectoriesToProcess"/>
+        public PathList<IOeDirectory> GetDirectoriesToProcess() => _directoriesToBuild;
 
-        /// <inheritdoc cref="IOeTaskFile.GetFilesToBuildFromIncludes"/>
-        public PathList<OeDirectory> GetDirectoriesToBuildFromIncludes() {
-            var output = new PathList<OeDirectory>();
+        /// <inheritdoc cref="IOeTaskFile.GetFilesToProcessFromIncludes"/>
+        public PathList<IOeDirectory> GetDirectoriesToProcessFromIncludes() {
+            var output = new PathList<IOeDirectory>();
             var i = 0;
             foreach (var path in GetIncludeStrings()) {
                 if (Directory.Exists(path)) {
@@ -107,7 +107,7 @@ namespace Oetools.Builder.Project.Task {
         /// </remarks>
         /// <param name="directories"></param>
         /// <exception cref="TaskExecutionException"></exception>
-        protected abstract void ExecuteForDirectoriesInternal(PathList<OeDirectory> directories);
+        protected abstract void ExecuteForDirectoriesInternal(PathList<IOeDirectory> directories);
 
     }
 }

@@ -37,10 +37,9 @@ namespace Oetools.Builder.Project.Task {
     [XmlRoot("Delete")]
     public class OeTaskFileDelete : AOeTaskFile {
         
-        /// <inheritdoc cref="AOeTaskFile.ExecuteForFilesInternal"/>
-        protected override void ExecuteForFilesInternal(IEnumerable<IOeFile> filesIn) {
-
-            var paths = filesIn.ToList();
+        /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
+        protected override void ExecuteInternal() {
+            var paths = GetFilesToProcess().ToList();
             
             if (paths.Count <= 0) {
                 return;
@@ -64,7 +63,6 @@ namespace Oetools.Builder.Project.Task {
                 nbDone++;
                 Log?.ReportProgress(paths.Count, nbDone, $"Deleting files {nbDone}/{paths.Count}");
             }
-            
         }
 
         /// <inheritdoc cref="AOeTask.ExecuteTestModeInternal"/>

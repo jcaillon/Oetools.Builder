@@ -36,20 +36,20 @@ namespace Oetools.Builder.Project.Task {
     /// </summary>
     public abstract class AOeTaskFile : AOeTaskFilter, IOeTaskFile {
         
-        private PathList<OeFile> _pathsToBuild;
+        private PathList<IOeFile> _filesToProcess;
         
-        public void SetFilesToBuild(PathList<OeFile> pathsToBuild) {
-            _pathsToBuild = pathsToBuild;
+        public virtual void SetFilesToProcess(PathList<IOeFile> filesToProcess) {
+            _filesToProcess = filesToProcess;
         }
 
-        public PathList<OeFile> GetFilesToBuild() => _pathsToBuild;
+        public virtual PathList<IOeFile> GetFilesToProcess() => _filesToProcess;
 
         /// <summary>
         /// Validates that this task as at least one <see cref="AOeTaskFilter.Include"/> defined and
         /// no <see cref="AOeTaskFilter.IncludeRegex"/>
         /// </summary>
         /// <exception cref="TaskValidationException"></exception>
-        public void ValidateCanGetFilesToBuildFromIncludes() {
+        public void ValidateCanGetFilesToProcessFromIncludes() {
             if (string.IsNullOrEmpty(Include)) {
                 throw new TaskValidationException(this, $"This task needs to have the property {GetType().GetXmlName(nameof(Include))} defined or it can not be applied on any file.");
             }
@@ -58,9 +58,9 @@ namespace Oetools.Builder.Project.Task {
             }
         }
         
-        /// <inheritdoc cref="IOeTaskFile.GetFilesToBuildFromIncludes"/>
-        public PathList<OeFile> GetFilesToBuildFromIncludes() {
-            var output = new PathList<OeFile>();
+        /// <inheritdoc cref="IOeTaskFile.GetFilesToProcessFromIncludes"/>
+        public PathList<IOeFile> GetFilesToProcessFromIncludes() {
+            var output = new PathList<IOeFile>();
             var i = 0;
             foreach (var path in GetIncludeStrings()) {
                 if (File.Exists(path)) {
@@ -85,51 +85,9 @@ namespace Oetools.Builder.Project.Task {
                 }
                 i++;
             }
-
             return output;
         }
         
-        /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
-        protected sealed override void ExecuteInternal() {
-            if (this is IOeTaskCompile thisOeTaskCompile) {
-                try {
-                    Log?.Debug("Is a compile task.");
-                    var compiledFiles = thisOeTaskCompile.GetCompiledFiles();
-                    if (compiledFiles == null) {
-                        Log?.Debug("Start file compilation.");
-                        compiledFiles = OeFilesCompiler.CompileFiles(thisOeTaskCompile.GetProperties(), _pathsToBuild.CopySelect(f => new UoeFileToCompile(f.Path) {
-                            FileSize = f.Size
-                        }), CancelToken, Log);
-                        thisOeTaskCompile.SetCompiledFiles(compiledFiles);
-                    }
-                    
-                    Log?.Debug("Switching original source files for rcode files to build.");
-                    _pathsToBuild = OeFilesCompiler.SetRcodeFilesAsSourceInsteadOfSourceFiles(_pathsToBuild, compiledFiles);
-                } catch(Exception e) {
-                    throw new TaskExecutionException(this, e.Message, e);
-                }
-            }
-            
-            if (this is IOeTaskFileWithTargets taskFileWithTargets) {
-                taskFileWithTargets.ExecuteForFilesWithTargets(_pathsToBuild);
-            } else {
-                ExecuteForFilesInternal(_pathsToBuild);
-            }
-        }
-        
-        /// <summary>
-        /// Execute the task for a set of files.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// - The task should create/add a list of files that it builds, list that is returned by <see cref="IOeTaskWithBuiltFiles.GetBuiltFiles"/>
-        /// - This method should throw <see cref="TaskExecutionException"/> if needed
-        /// - This method can publish warnings using <see cref="AOeTask.AddExecutionWarning"/>
-        /// </para>
-        /// </remarks>
-        /// <param name="paths"></param>
-        /// <exception cref="TaskExecutionException"></exception>
-        protected abstract void ExecuteForFilesInternal(IEnumerable<IOeFile> paths);
        
     }
 }

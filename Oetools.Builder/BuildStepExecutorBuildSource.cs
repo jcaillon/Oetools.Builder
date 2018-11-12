@@ -16,7 +16,7 @@ namespace Oetools.Builder {
         
         protected override string BaseTargetDirectory => Properties.BuildOptions?.OutputDirectoryPath;
         
-        public PathList<OeFileBuilt> PreviouslyBuiltPaths { private get; set; }
+        public PathList<IOeFileBuilt> PreviouslyBuiltPaths { private get; set; }
 
         private bool UseIncrementalBuild => Properties.IncrementalBuildOptions?.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled();
         
@@ -26,7 +26,7 @@ namespace Oetools.Builder {
         
         private PathList<UoeCompiledFile> _compiledPaths;
         
-        private PathList<OeFile> _sourceDirectoryPathListToBuild;
+        private PathList<IOeFile> _sourceDirectoryPathListToBuild;
 
         /// <inheritdoc cref="BuildStepExecutor.ExecuteInternal"/>
         protected override void ExecuteInternal() {
@@ -37,7 +37,7 @@ namespace Oetools.Builder {
                     Log?.Debug("Associate the list of compiled files for each task");
                     foreach (var task in Tasks) {
                         if (task is IOeTaskCompile taskCompile) {
-                            taskCompile.SetCompiledFiles(_compiledPaths?.CopyWhere(cf => taskCompile.GetFilesToBuild().Contains(cf.Path)));
+                            taskCompile.SetCompiledFiles(_compiledPaths?.CopyWhere(cf => taskCompile.GetFilesToProcess().Contains(cf.Path)));
                         }
                     }
                 }
@@ -46,16 +46,16 @@ namespace Oetools.Builder {
         }
 
         /// <inheritdoc cref="BuildStepExecutor.GetFilesToBuildForSingleTask"/>
-        protected override PathList<OeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
+        protected override PathList<IOeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
             var baseList = SourceDirectoryPathListToBuild;
             
-            if (task is IOeTaskFileWithTargets taskTarget) {
+            if (task is IOeTaskFileToBuild taskTarget) {
                 // we add files that should be rebuild by this task because they have new targets in this task.
                 var rebuildFilesWithNewTargets = Properties.IncrementalBuildOptions?.RebuildFilesWithNewTargets ?? OeIncrementalBuildOptions.GetDefaultRebuildFilesWithNewTargets();
                 if (rebuildFilesWithNewTargets && !FullRebuild && UseIncrementalBuild && PreviouslyBuiltPaths != null) {
 
                     Log?.Debug("Need to compute the targets for all the unchanged files in the source directory");
-                    var unchangedFiles = SourceDirectoryCompletePathList.CopyWhere(f => f.State == OeFileState.Unchanged);
+                    var unchangedFiles = OeFile.ConvertToFileToBuild(SourceDirectoryCompletePathList.Where(f => f.State == OeFileState.Unchanged));
                     taskTarget.SetTargets(unchangedFiles, BaseTargetDirectory);
 
                     Log?.Info("Adding files with new targets to the build list");
@@ -69,7 +69,7 @@ namespace Oetools.Builder {
         /// <summary>
         /// List all the files of the source directory that need to be rebuild.
         /// </summary>
-        private PathList<OeFile> SourceDirectoryPathListToBuild {
+        private PathList<IOeFile> SourceDirectoryPathListToBuild {
             get {
                 if (_sourceDirectoryPathListToBuild == null) {
                     var sourceLister = GetSourceDirectoryFilesLister();
@@ -113,12 +113,12 @@ namespace Oetools.Builder {
             }
         }
         
-        private PathList<OeFile> _sourceDirectoryCompletePathList;
+        private PathList<IOeFile> _sourceDirectoryCompletePathList;
         
         /// <summary>
         /// List all the existing files in the source directory.
         /// </summary>
-        public PathList<OeFile> SourceDirectoryCompletePathList {
+        public PathList<IOeFile> SourceDirectoryCompletePathList {
             get {
                 if (SourceDirectoryPathListToBuild != null && _sourceDirectoryCompletePathList == null) {
                     var sourceLister = GetSourceDirectoryFilesLister();
@@ -169,7 +169,7 @@ namespace Oetools.Builder {
             if (!(Properties?.CompilationOptions?.TryToOptimizeCompilationDirectory ?? OeCompilationOptions.GetDefaultTryToOptimizeCompilationDirectory())) {
                 return 
                     compileTasks
-                    .SelectMany(t => t.GetFilesToBuild())
+                    .SelectMany(t => t.GetFilesToProcess())
                     .ToFileList()
                     .CopySelect(f => new UoeFileToCompile(f.Path) { FileSize = f.Size });
             }
@@ -229,7 +229,7 @@ namespace Oetools.Builder {
             return sourceLister;
         }
 
-        private OeFile GetPreviousFileImage(string filePath) {
+        private IOeFile GetPreviousFileImage(string filePath) {
             return PreviouslyBuiltPaths?[filePath];
         }
     }

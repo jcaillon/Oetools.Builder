@@ -246,8 +246,6 @@ namespace Oetools.Builder.Test {
         
             public string TargetDirectory { get; set; }
             
-            public override ArchiveCompressionLevel GetCompressionLevel() => ArchiveCompressionLevel.None;
-        
             protected override IArchiver GetArchiver() => Archiver;
         
             protected override AOeTarget GetNewTarget() => new OeTargetFile();
@@ -266,8 +264,8 @@ namespace Oetools.Builder.Test {
 
             public List<IOeFileToBuild> Files { get; set; } = new List<IOeFileToBuild>();
             
-            public override void ExecuteForFilesWithTargets(IEnumerable<IOeFileToBuild> files) {
-                Files.AddRange(files);
+            protected override void ExecuteInternalArchive() {
+                Files.AddRange(GetFilesToBuild());
             }
         }
         

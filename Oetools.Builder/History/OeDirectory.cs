@@ -18,10 +18,8 @@
 // ========================================================================
 #endregion
 
-using Oetools.Utilities.Lib;
-
 namespace Oetools.Builder.History {
-    public class OeDirectory : IPathListItem {
+    public class OeDirectory : IOeDirectory {
         
         /// <summary>
         /// The path of the directory.

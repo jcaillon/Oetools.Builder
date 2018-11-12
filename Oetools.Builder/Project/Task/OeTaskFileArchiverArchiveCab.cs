@@ -49,17 +49,16 @@ namespace Oetools.Builder.Project.Task {
         [ReplaceVariables(LeaveUnknownUntouched = true)]
         public string TargetCabFilePath { get; set; }
         
-        [XmlAttribute(AttributeName = "ArchivesCompressionLevel")]
-        public string ArchivesCompressionLevel { get; set; }
+        [XmlAttribute(AttributeName = "CompressionLevel")]
+        public OeCabCompressionLevel CompressionLevel { get; set; }
 
-        public override ArchiveCompressionLevel GetCompressionLevel() {
-            if (Enum.TryParse(ArchivesCompressionLevel, true, out ArchiveCompressionLevel level)) {
-                return level;
+        protected override IArchiver GetArchiver() {
+            var archiver = Archiver.NewCabArchiver();
+            if (Enum.TryParse(CompressionLevel.ToString(), true, out ArchiveCompressionLevel level)) {
+                archiver.SetCompressionLevel(level);
             }
-            return ArchiveCompressionLevel.None;
+            return archiver;
         }
-
-        protected override IArchiver GetArchiver() => Archiver.NewCabArchiver();
         
         protected override AOeTarget GetNewTarget() => new OeTargetCab();
 
@@ -77,8 +76,10 @@ namespace Oetools.Builder.Project.Task {
     }
     
     [Serializable]
-    public enum OeCompressionLevel {
-        [XmlEnum("None")] None,
-        [XmlEnum("Max")] Max
+    public enum OeCabCompressionLevel {
+        [XmlEnum("None")] 
+        None,
+        [XmlEnum("Max")] 
+        Max
     }
 }

@@ -23,6 +23,10 @@ using Oetools.Builder.History;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {
+    
+    /// <summary>
+    /// A task that allows to select files or directories with include/exclude patterns.
+    /// </summary>
     public interface IOeTaskFilter : IOeTask {
         
         /// <summary>
@@ -54,14 +58,14 @@ namespace Oetools.Builder.Project.Task {
         /// </summary>
         /// <param name="originalListOfPaths"></param>
         /// <returns></returns>
-        PathList<OeFile> FilterFiles(PathList<OeFile> originalListOfPaths);
+        PathList<IOeFile> FilterFiles(PathList<IOeFile> originalListOfPaths);
         
         /// <summary>
         /// Given the inclusion and exclusion patterns, filter the input list of files to only keep files that apply to this task.
         /// </summary>
         /// <param name="originalListOfPaths"></param>
         /// <returns></returns>
-        PathList<OeDirectory> FilterDirectories(PathList<OeDirectory> originalListOfPaths);
+        PathList<IOeDirectory> FilterDirectories(PathList<IOeDirectory> originalListOfPaths);
 
         /// <summary>
         /// Returns true if the given file passes this filter.

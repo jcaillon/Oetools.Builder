@@ -201,8 +201,8 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
         /// <param name="simplifyPathWithWorkingDirectory"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public PathList<OeDirectory> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory) {
-            var output = new PathList<OeDirectory>();
+        public PathList<IOeDirectory> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory) {
+            var output = new PathList<IOeDirectory>();
             if (PropathEntries != null) {
                 foreach (var propathEntry in PropathEntries) {
                     var entry = propathEntry.ToCleanPath();

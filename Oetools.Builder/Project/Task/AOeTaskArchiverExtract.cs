@@ -128,19 +128,19 @@ namespace Oetools.Builder.Project.Task {
         }
 
         private void ArchiverOnOnProgress(object sender, ArchiverEventArgs args) {
-            if (args.EventType == ArchiverEventType.GlobalProgression) {
-                Log?.ReportProgress(100, (int) args.PercentageDone, $"Extracting {args.RelativePathInArchive} from {args.ArchivePath}.");
-            }
+            Log?.ReportProgress(100, (int) args.PercentageDone, $"Extracting {args.RelativePathInArchive} from {args.ArchivePath}.");
         }
 
         private struct FileInArchiveToExtract : IFileInArchiveToExtract {
             public string ArchivePath { get; }
             public string RelativePathInArchive { get; }
+            public bool Processed { get; set; }
             public string ExtractionPath { get; }
             public FileInArchiveToExtract(string archivePath, string relativePathInArchive, string extractionPath) {
                 ArchivePath = archivePath;
                 RelativePathInArchive = relativePathInArchive;
                 ExtractionPath = extractionPath;
+                Processed = false;
             }
         }
     }

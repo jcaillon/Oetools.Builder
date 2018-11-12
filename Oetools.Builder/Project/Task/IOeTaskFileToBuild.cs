@@ -18,16 +18,27 @@
 // ========================================================================
 #endregion
 
-using System.Collections.Generic;
 using Oetools.Builder.History;
 using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {
     
     /// <summary>
-    /// A task that operates on paths that need targets.
+    /// A task that operates on files that need targets.
     /// </summary>
-    public interface IOeTaskFileWithTargets : IOeTaskFile {
+    public interface IOeTaskFileToBuild : IOeTaskFile {
+        
+        /// <summary>
+        /// Sets the base directory that will be used to determine the target of each file.
+        /// </summary>
+        /// <param name="baseDirectory"></param>
+        void SetBaseDirectory(string baseDirectory);
+
+        /// <summary>
+        /// Gets the list of files to build.
+        /// </summary>
+        /// <returns></returns>
+        PathList<IOeFileToBuild> GetFilesToBuild();
         
         /// <summary>
         /// For a given list of files, set the targets that will be needed from this task.
@@ -36,12 +47,7 @@ namespace Oetools.Builder.Project.Task {
         /// <param name="paths"></param>
         /// <param name="baseTargetDirectory"></param>
         /// <param name="appendMode">Either add new targets to existing ones, or resets them.</param>
-        void SetTargets(PathList<OeFile> paths, string baseTargetDirectory, bool appendMode = false);
+        void SetTargets(PathList<IOeFileToBuild> paths, string baseTargetDirectory, bool appendMode = false);
 
-        /// <summary>
-        /// Execute the task for a set of files in archives.
-        /// </summary>
-        /// <inheritdoc cref="AOeTaskFile.ExecuteForFilesInternal"/>
-        void ExecuteForFilesWithTargets(IEnumerable<IOeFileToBuild> files);
     }
 }

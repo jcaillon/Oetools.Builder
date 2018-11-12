@@ -109,8 +109,8 @@ namespace Oetools.Builder.Utilities {
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         /// <exception cref="OperationCanceledException"></exception>
-        public PathList<OeFile> GetFileList() {
-            PathList<OeFile> listedFiles;
+        public PathList<IOeFile> GetFileList() {
+            PathList<IOeFile> listedFiles;
             if (GitFilter != null && GitFilter.IsActive()) {
                 listedFiles = GetBaseFileListFromGit();
             } else {
@@ -137,11 +137,11 @@ namespace Oetools.Builder.Utilities {
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         /// <exception cref="OperationCanceledException"></exception>
-        public PathList<OeDirectory> GetDirectoryList() {
+        public PathList<IOeDirectory> GetDirectoryList() {
             var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(Filter);
             return Utils.EnumerateAllFolders(BaseDirectory, FilterOptions?.RecursiveListing ?? OeFilterOptions.GetDefaultRecursiveListing() ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly, sourcePathExcludeRegexStrings, FilterOptions?.ExcludeHiddenDirectories ?? OeFilterOptions.GetDefaultExcludeHiddenDirectories(), CancelToken)
                 .Where(IsFileIncludedBySourcePathFilters)
-                .Select(d => new OeDirectory(d))
+                .Select(d => new OeDirectory(d) as IOeDirectory)
                 .ToFileList();
         }
 
@@ -149,11 +149,11 @@ namespace Oetools.Builder.Utilities {
         /// Returns a list of all the files in the source directory, filtered with <see cref="FilterOptions"/>
         /// </summary>
         /// <returns></returns>
-        private PathList<OeFile> GetBaseFileList() {
+        private PathList<IOeFile> GetBaseFileList() {
             var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(Filter);
             return Utils.EnumerateAllFiles(BaseDirectory, FilterOptions?.RecursiveListing ?? OeFilterOptions.GetDefaultRecursiveListing() ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly, sourcePathExcludeRegexStrings, FilterOptions?.ExcludeHiddenDirectories ?? OeFilterOptions.GetDefaultExcludeHiddenDirectories(), CancelToken)
                 .Where(IsFileIncludedBySourcePathFilters)
-                .Select(f => new OeFile(f))
+                .Select(f => new OeFile(f) as IOeFile)
                 .ToFileList();
         }
 
@@ -161,8 +161,8 @@ namespace Oetools.Builder.Utilities {
         /// Returns a list of files in the source directory based on a git filter and also filtered with <see cref="FilterOptions"/>
         /// </summary>
         /// <returns></returns>
-        private PathList<OeFile> GetBaseFileListFromGit() {
-            var output = new PathList<OeFile>();
+        private PathList<IOeFile> GetBaseFileListFromGit() {
+            var output = new PathList<IOeFile>();
 
             var gitManager = new GitManager {
                 Log = Log
@@ -203,7 +203,7 @@ namespace Oetools.Builder.Utilities {
         /// </summary>
         /// <param name="oeFile"></param>
         /// <exception cref="Exception"></exception>
-        private void SetFileState(OeFile oeFile) {
+        private void SetFileState(IOeFile oeFile) {
             var previousFile = OutputOptions?.GetPreviousFileImage?.Invoke(oeFile.Path);
             if (previousFile == null || previousFile.State == OeFileState.Deleted) {
                 oeFile.State = OeFileState.Added;
@@ -224,7 +224,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="now"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private bool HasFileChanged(OeFile previous, OeFile now) {
+        private bool HasFileChanged(IOeFile previous, IOeFile now) {
             // test if it has changed
             if (previous.Size.Equals(now.Size)) {
                 if (!(OutputOptions?.UseLastWriteDateComparison ?? false) || previous.LastWriteTime.Equals(now.LastWriteTime)) {
@@ -242,7 +242,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="oeFile"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static OeFile SetFileHash(OeFile oeFile) {
+        public static IOeFile SetFileHash(IOeFile oeFile) {
             if (!string.IsNullOrEmpty(oeFile.Hash)) {
                 return oeFile;
             }
@@ -259,7 +259,7 @@ namespace Oetools.Builder.Utilities {
         /// </summary>
         /// <param name="oeFile"></param>
         /// <exception cref="Exception"></exception>
-        private static void SetFileBaseInfo(OeFile oeFile) {
+        private static void SetFileBaseInfo(IOeFile oeFile) {
             if (oeFile.Size > 0) {
                 return;
             }
@@ -277,7 +277,7 @@ namespace Oetools.Builder.Utilities {
         /// </summary>
         /// <param name="files"></param>
         /// <returns></returns>
-        public IEnumerable<OeFile> FilterSourceFiles(IEnumerable<OeFile> files) {
+        public IEnumerable<IOeFile> FilterSourceFiles(IEnumerable<IOeFile> files) {
             return files.Where(f => IsFilePassingDefaultFilters(f.Path) && IsFilePassingSourcePathFilters(f.Path));
         }
         

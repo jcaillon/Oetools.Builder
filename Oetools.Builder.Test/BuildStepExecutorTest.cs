@@ -145,7 +145,17 @@ namespace Oetools.Builder.Test {
                 }
             };
             taskExecutor.Execute();
-            Assert.AreEqual(15, task.Total, "One of the following methods were not called : set files, set directories, get files to include, get directories to include.");
+            Assert.AreEqual(12, task.Total, "One of the following methods were not called : set files, get files to include.");
+            
+            var task2 = new TaskSetPathAndTargetTest2();
+            Assert.AreEqual(0, task2.Total);
+            taskExecutor = new BuildStepExecutor {
+                Tasks = new List<IOeTask> {
+                    task2
+                }
+            };
+            taskExecutor.Execute();
+            Assert.AreEqual(3, task2.Total, "One of the following methods were not called : set directories, get directories to include.");
         }
 
         [TestMethod]
@@ -155,6 +165,7 @@ namespace Oetools.Builder.Test {
             Assert.IsFalse(task.IsLogSet);
             Assert.IsFalse(task.IsTestSet);
             Assert.IsFalse(task.IsFilesCompiledSet);
+            Assert.IsFalse(task.IsBaseDirectorySet);
             Assert.IsFalse(task.IsPropertySet);
             var taskExecutor = new BuildStepExecutor {
                 Tasks = new List<IOeTask> {
@@ -173,7 +184,8 @@ namespace Oetools.Builder.Test {
             Assert.IsTrue(task.IsLogSet);
             Assert.IsTrue(task.IsTestSet);
             Assert.IsTrue(task.IsPropertySet);
-            Assert.IsFalse(task.IsFilesCompiledSet);
+            Assert.IsFalse(task.IsFilesCompiledSet, "test mode is on.");
+            Assert.IsTrue(task.IsBaseDirectorySet);
         }
 
         private class Log2 : ILogger {
@@ -233,8 +245,6 @@ namespace Oetools.Builder.Test {
             
             public string ArchivePath { get; set; }       
         
-            public override ArchiveCompressionLevel GetCompressionLevel() => ArchiveCompressionLevel.None;
-        
             protected override IArchiver GetArchiver() => Archiver;
         
             protected override AOeTarget GetNewTarget() => new OeTargetZip();
@@ -253,32 +263,39 @@ namespace Oetools.Builder.Test {
 
             public List<IOeFileToBuild> Files { get; set; } = new List<IOeFileToBuild>();
             
-            public override void ExecuteForFilesWithTargets(IEnumerable<IOeFileToBuild> files) {
-                Files.AddRange(files);
+            protected override void ExecuteInternalArchive() {
+                Files.AddRange(GetFilesToBuild());
             }
         }
         
-        private class TaskSetPathAndTargetTest : AOeTaskFilter, IOeTaskFile, IOeTaskDirectory {
+        private class TaskSetPathAndTargetTest : AOeTaskFilter, IOeTaskFile {
             public int Total { get; set; }
             protected override void ExecuteInternal() {
                 // does nothing
             }
             protected override void ExecuteTestModeInternal() => throw new NotImplementedException();
-            public void SetDirectoriesToBuild(PathList<OeDirectory> pathsToBuild) => Total += 1;
-
-            public PathList<OeDirectory> GetDirectoriesToBuildFromIncludes() {
-                Total += 2;
-                return new PathList<OeDirectory>();
-            }
-            public void SetFilesToBuild(PathList<OeFile> pathsToBuild) => Total += 4;
-            public PathList<OeFile> GetFilesToBuildFromIncludes() {
+            public void SetFilesToProcess(PathList<IOeFile> pathsToBuild) => Total += 4;
+            public PathList<IOeFile> GetFilesToProcessFromIncludes() {
                 Total += 8;
-                return new PathList<OeFile>();
+                return new PathList<IOeFile>();
             }
-            public PathList<OeFile> GetFilesToBuild() => throw new NotImplementedException();
-            public PathList<OeDirectory> GetDirectoriesToBuild() => throw new NotImplementedException();
-            public void ValidateCanGetDirectoriesToBuildFromIncludes() => throw new NotImplementedException();
-            public void ValidateCanGetFilesToBuildFromIncludes() => throw new NotImplementedException();
+            public PathList<IOeFile> GetFilesToProcess() => throw new NotImplementedException();
+            public void ValidateCanGetFilesToProcessFromIncludes() => throw new NotImplementedException();
+        }
+        
+        private class TaskSetPathAndTargetTest2 : AOeTaskFilter, IOeTaskDirectory {
+            public int Total { get; set; }
+            protected override void ExecuteInternal() {
+                // does nothing
+            }
+            protected override void ExecuteTestModeInternal() => throw new NotImplementedException();
+            public void SetDirectoriesToProcess(PathList<IOeDirectory> pathsToBuild) => Total += 1;
+            public PathList<IOeDirectory> GetDirectoriesToProcessFromIncludes() {
+                Total += 2;
+                return new PathList<IOeDirectory>();
+            }
+            public PathList<IOeDirectory> GetDirectoriesToProcess() => throw new NotImplementedException();
+            public void ValidateCanGetDirectoriesToProcessFromIncludes() => throw new NotImplementedException();
         }
         
         private class TaskInjectionTest : AOeTaskFile, IOeTaskCompile {
@@ -286,13 +303,22 @@ namespace Oetools.Builder.Test {
             public bool IsCancelSourceSet => CancelToken != null;
             public bool IsTestSet => TestMode;
             public bool IsFilesCompiledSet { get; private set; }
+            public bool IsBaseDirectorySet { get; private set; }
             public bool IsPropertySet => GetProperties() != null;
             public void SetCompiledFiles(PathList<UoeCompiledFile> compiledPath) {
                 IsFilesCompiledSet = true;
             }
+            public void SetBaseDirectory(string baseDirectory) {
+                IsBaseDirectorySet = true;
+            }
             public PathList<UoeCompiledFile> GetCompiledFiles() => null;
-            protected override void ExecuteForFilesInternal(IEnumerable<IOeFile> paths) {}
+            protected override void ExecuteInternal() {}
             protected override void ExecuteTestModeInternal() { }
+
+            public PathList<IOeFileToBuild> GetFilesToBuild() {
+                return null;
+            }
+            public void SetTargets(PathList<IOeFileToBuild> paths, string baseTargetDirectory, bool appendMode = false) { }
         }
         
         private class TaskException : AOeTask {

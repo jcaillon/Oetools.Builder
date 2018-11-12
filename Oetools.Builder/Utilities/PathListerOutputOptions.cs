@@ -26,7 +26,7 @@ namespace Oetools.Builder.Utilities {
         /// This will be used to compute the state of a file.
         /// And, for instance, to know if a file has been modified since the last time.
         /// </summary>
-        public Func<string, OeFile> GetPreviousFileImage { get; set; }
+        public Func<string, IOeFile> GetPreviousFileImage { get; set; }
         
     }
 }

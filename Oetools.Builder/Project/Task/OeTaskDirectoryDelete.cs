@@ -35,7 +35,7 @@ namespace Oetools.Builder.Project.Task {
     [XmlRoot("DeleteDirectory")]
     public class OeTaskDirectoryDelete : AOeTaskDirectory {
 
-        protected override void ExecuteForDirectoriesInternal(PathList<OeDirectory> directories) {
+        protected override void ExecuteForDirectoriesInternal(PathList<IOeDirectory> directories) {
             throw new NotImplementedException();
             
             //CancelToken?.ThrowIfCancellationRequested();

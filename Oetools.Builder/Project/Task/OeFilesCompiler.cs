@@ -42,7 +42,7 @@ namespace Oetools.Builder.Project.Task {
         /// <param name="originalPaths"></param>
         /// <param name="compiledPaths"></param>
         /// <returns></returns>
-        public static PathList<OeFile> SetRcodeFilesAsSourceInsteadOfSourceFiles(PathList<OeFile> originalPaths, PathList<UoeCompiledFile> compiledPaths) {
+        public static PathList<IOeFileToBuild> SetRcodeFilesAsSourceInsteadOfSourceFiles(PathList<IOeFileToBuild> originalPaths, PathList<UoeCompiledFile> compiledPaths) {
             foreach (var file in originalPaths.ToList()) {
                 var compiledFile = compiledPaths[file.Path];
                 if (compiledFile != null && (compiledFile.CompiledCorrectly || compiledFile.CompiledWithWarnings)) {

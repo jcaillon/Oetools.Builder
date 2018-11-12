@@ -103,6 +103,7 @@ namespace Oetools.Builder.Project.Task {
         /// - This method can publish warnings using <see cref="AOeTask.AddExecutionWarning"/>.
         /// </remarks>
         /// <exception cref="TaskExecutionException"></exception>
+        /// <exception cref="OperationCanceledException"></exception>
         protected abstract void ExecuteInternal();
 
         /// <summary>

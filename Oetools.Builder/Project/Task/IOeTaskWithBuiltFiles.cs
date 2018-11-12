@@ -33,7 +33,7 @@ namespace Oetools.Builder.Project.Task {
         /// Returns the list of files built by this task.
         /// </summary>
         /// <returns></returns>
-        PathList<OeFileBuilt> GetBuiltFiles();
+        PathList<IOeFileBuilt> GetBuiltFiles();
         
     }
 }

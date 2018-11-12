@@ -52,18 +52,18 @@ namespace Oetools.Builder.Test.Project.Task {
             var task = new OeTaskOnDirectory2();
 
             task.Validate();
-            Assert.ThrowsException<TaskValidationException>(() => task.ValidateCanGetDirectoriesToBuildFromIncludes());
+            Assert.ThrowsException<TaskValidationException>(() => task.ValidateCanGetDirectoriesToProcessFromIncludes());
             
             task.IncludeRegex = ".*";
             
-            Assert.ThrowsException<TaskValidationException>(() => task.ValidateCanGetDirectoriesToBuildFromIncludes());
+            Assert.ThrowsException<TaskValidationException>(() => task.ValidateCanGetDirectoriesToProcessFromIncludes());
         }
 
         [TestMethod]
         public void GetDirectoriesToBuildFromIncludes() {
             var task = new OeTaskOnDirectory2();
 
-            Assert.AreEqual(0, task.GetDirectoriesToBuildFromIncludes().Count);
+            Assert.AreEqual(0, task.GetDirectoriesToProcessFromIncludes().Count);
 
             Utils.CreateDirectoryIfNeeded(Path.Combine(TestFolder, "boom", "sub"));
             Utils.CreateDirectoryIfNeeded(Path.Combine(TestFolder, "folder", "sub1"));
@@ -72,46 +72,46 @@ namespace Oetools.Builder.Test.Project.Task {
 
             task.Include = "**";
             
-            Assert.AreEqual(0, task.GetDirectoriesToBuildFromIncludes().Count, "we can't match any existing file or folder with this");
+            Assert.AreEqual(0, task.GetDirectoriesToProcessFromIncludes().Count, "we can't match any existing file or folder with this");
             
             Assert.AreEqual(1, task.GetRuntimeExceptionList().Count, "the task should have published 1 warning");
 
             task.Include = Path.Combine(TestFolder, "folder**");
             task.IncludeRegex = null;
 
-            task.ValidateCanGetDirectoriesToBuildFromIncludes();
+            task.ValidateCanGetDirectoriesToProcessFromIncludes();
             
-            Assert.AreEqual(6, task.GetDirectoriesToBuildFromIncludes().Count, "we should match the 6 dir");
+            Assert.AreEqual(6, task.GetDirectoriesToProcessFromIncludes().Count, "we should match the 6 dir");
 
             task.Exclude = "**2";
             
-            Assert.AreEqual(4, task.GetDirectoriesToBuildFromIncludes().Count, "now 4 subfolders");
+            Assert.AreEqual(4, task.GetDirectoriesToProcessFromIncludes().Count, "now 4 subfolders");
 
             task.Exclude = "**2;**1";
             
-            Assert.AreEqual(3, task.GetDirectoriesToBuildFromIncludes().Count, "now 3 subfolder");
+            Assert.AreEqual(3, task.GetDirectoriesToProcessFromIncludes().Count, "now 3 subfolder");
             
-            Assert.IsTrue(task.GetDirectoriesToBuildFromIncludes().ToList().Exists(s => s.Path.ToCleanPath().Equals(Path.Combine(TestFolder, "folder3", "sub3").ToCleanPath())));
+            Assert.IsTrue(task.GetDirectoriesToProcessFromIncludes().ToList().Exists(s => s.Path.ToCleanPath().Equals(Path.Combine(TestFolder, "folder3", "sub3").ToCleanPath())));
 
             task.Include = $"{task.Include};{Path.Combine(TestFolder, "boom", "sub")}";
             
-            Assert.AreEqual(4, task.GetDirectoriesToBuildFromIncludes().Count, "we added a direct file path");
+            Assert.AreEqual(4, task.GetDirectoriesToProcessFromIncludes().Count, "we added a direct file path");
             
             task.Include = $"{task.Include};{Path.Combine(TestFolder, "boom", "sub")}";
             
-            Assert.AreEqual(4, task.GetDirectoriesToBuildFromIncludes().Count, "we added another direct file path. However, this method only returns unique files");
+            Assert.AreEqual(4, task.GetDirectoriesToProcessFromIncludes().Count, "we added another direct file path. However, this method only returns unique files");
 
             task.Include = Path.Combine(TestFolder, "folder3", "sub3");
             task.Exclude = null;
             
-            Assert.AreEqual(1, task.GetDirectoriesToBuildFromIncludes().Count, "should be good alone");
+            Assert.AreEqual(1, task.GetDirectoriesToProcessFromIncludes().Count, "should be good alone");
         }
 
         private class OeTaskOnDirectory2 : AOeTaskDirectory {
             protected override void ExecuteTestModeInternal() {
                 throw new System.NotImplementedException();
             }
-            protected override void ExecuteForDirectoriesInternal(PathList<OeDirectory> directories) {
+            protected override void ExecuteForDirectoriesInternal(PathList<IOeDirectory> directories) {
                 throw new System.NotImplementedException();
             }
         }

@@ -11,11 +11,11 @@ namespace Oetools.Builder {
         
         protected override string BaseTargetDirectory => Properties?.BuildOptions?.OutputDirectoryPath;
 
-        private PathList<OeFile> _outputFilesCompleteList;
+        private PathList<IOeFile> _outputFilesCompleteList;
         
-        private PathList<OeDirectory> _outputDirectoriesCompleteList;
+        private PathList<IOeDirectory> _outputDirectoriesCompleteList;
 
-        protected override PathList<OeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
+        protected override PathList<IOeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
             Log?.Debug("Gets the list of files on which to apply this task from the output directory.");
             
             if (_outputFilesCompleteList == null) {
@@ -28,10 +28,10 @@ namespace Oetools.Builder {
                 }
             }
             
-            return task.FilterFiles(_outputFilesCompleteList ?? new PathList<OeFile>());
+            return task.FilterFiles(_outputFilesCompleteList ?? new PathList<IOeFile>());
         }
 
-        protected override PathList<OeDirectory> GetDirectoriesToBuildForSingleTask(IOeTaskDirectory task) {
+        protected override PathList<IOeDirectory> GetDirectoriesToBuildForSingleTask(IOeTaskDirectory task) {
             Log?.Debug("Gets the list of directories on which to apply this task from the output directory.");
             
             if (_outputDirectoriesCompleteList == null) {
@@ -44,7 +44,7 @@ namespace Oetools.Builder {
                 }
             }
             
-            return task.FilterDirectories(_outputDirectoriesCompleteList ?? new PathList<OeDirectory>());
+            return task.FilterDirectories(_outputDirectoriesCompleteList ?? new PathList<IOeDirectory>());
         }
     }
 }

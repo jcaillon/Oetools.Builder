@@ -112,8 +112,6 @@ namespace Oetools.Builder.Test {
             
             public string ArchivePath { get; set; }       
         
-            public override ArchiveCompressionLevel GetCompressionLevel() => ArchiveCompressionLevel.None;
-        
             protected override IArchiver GetArchiver() => Archiver;
         
             protected override AOeTarget GetNewTarget() => new OeTargetFile();
@@ -132,17 +130,17 @@ namespace Oetools.Builder.Test {
 
             public List<IOeFileToBuild> Files { get; set; } = new List<IOeFileToBuild>();
             
-            public override void ExecuteForFilesWithTargets(IEnumerable<IOeFileToBuild> files) {
-                Files.AddRange(files);
+            protected override void ExecuteInternalArchive() {
+                Files.AddRange(GetFilesToBuild());
             }
         }
         
         private class TaskOnDirectory : AOeTaskDirectory {
-            public List<OeDirectory> Directories { get; set; } = new List<OeDirectory>();
+            public List<IOeDirectory> Directories { get; set; } = new List<IOeDirectory>();
             protected override void ExecuteTestModeInternal() {
                 throw new System.NotImplementedException();
             }
-            protected override void ExecuteForDirectoriesInternal(PathList<OeDirectory> directories) {
+            protected override void ExecuteForDirectoriesInternal(PathList<IOeDirectory> directories) {
                 Directories.AddRange(directories);
             }
         }

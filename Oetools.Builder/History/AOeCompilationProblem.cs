@@ -59,7 +59,7 @@ namespace Oetools.Builder.History {
                 default:
                     throw new ArgumentOutOfRangeException(nameof(UoeCompilationProblem), problem, "no matching type");
             }
-            Utils.DeepCopyPublicProperties(problem, output.GetType(), output);
+            problem.DeepCopy(output);
             return output;
         }
     }
