@@ -219,25 +219,25 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(1, filesBuilt.Count, "1 file built on the second task");
             Assert.AreEqual(2, filesBuilt.SelectMany(f => f.Targets).Count(), "2 targets built on the second task");
             Assert.AreEqual(Path.Combine(outputDirectory, "w.pl"), ((OeTargetProlib) filesBuilt[0].Targets[0]).ArchiveFilePath);
-            Assert.AreEqual("file2.r", ((OeTargetProlib) filesBuilt[0].Targets[0]).FilePath);
+            Assert.AreEqual("file2.r", ((OeTargetProlib) filesBuilt[0].Targets[0]).FilePathInArchive);
             Assert.AreEqual(Path.Combine(outputDirectory, "w.pl"), ((OeTargetProlib) filesBuilt[0].Targets[1]).ArchiveFilePath);
-            Assert.AreEqual(Path.Combine("screens", "file2.r"), ((OeTargetProlib) filesBuilt[0].Targets[1]).FilePath);
+            Assert.AreEqual(Path.Combine("screens", "file2.r"), ((OeTargetProlib) filesBuilt[0].Targets[1]).FilePathInArchive);
 
             // check the third task
             task = (OeTaskFileCompile) builder.BuildStepExecutors[1].Tasks[0];
             filesBuilt = task.GetBuiltFiles().ToList();
             Assert.AreEqual(3, filesBuilt.Count, "3 files built on the third task (1 didn't compile so it was not built)");
             Assert.AreEqual(3, filesBuilt.SelectMany(f => f.Targets).Count(), "3 targets built on the third task");
-            Assert.AreEqual(Path.Combine(outputDirectory, "file1", "file1.r"), ((OeTargetFile) filesBuilt[0].Targets[0]).FilePath);
-            Assert.AreEqual(Path.Combine(outputDirectory, "file4", "file4.r"), ((OeTargetFile) filesBuilt[1].Targets[0]).FilePath);
-            Assert.AreEqual(Path.Combine(outputDirectory, "file5", "file5.r"), ((OeTargetFile) filesBuilt[2].Targets[0]).FilePath);
+            Assert.AreEqual(Path.Combine(outputDirectory, "file1", "file1.r"), ((OeTargetFile) filesBuilt[0].Targets[0]).FilePathInArchive);
+            Assert.AreEqual(Path.Combine(outputDirectory, "file4", "file4.r"), ((OeTargetFile) filesBuilt[1].Targets[0]).FilePathInArchive);
+            Assert.AreEqual(Path.Combine(outputDirectory, "file5", "file5.r"), ((OeTargetFile) filesBuilt[2].Targets[0]).FilePathInArchive);
 
             // check the fourth task
             task = (OeTaskFileCopy) builder.BuildStepExecutors[1].Tasks[1];
             filesBuilt = task.GetBuiltFiles().ToList();
             Assert.AreEqual(1, filesBuilt.Count, "1 file built on the fourth task");
             Assert.AreEqual(1, filesBuilt.SelectMany(f => f.Targets).Count(), "1 target built on the fourth task");
-            Assert.AreEqual(Path.Combine(outputDirectory, "resources", "file.new"), ((OeTargetFile) filesBuilt[0].Targets[0]).FilePath);
+            Assert.AreEqual(Path.Combine(outputDirectory, "resources", "file.new"), ((OeTargetFile) filesBuilt[0].Targets[0]).FilePathInArchive);
         }
         
         [TestMethod]
@@ -384,7 +384,7 @@ namespace Oetools.Builder.Test {
                             State = OeFileState.Modified,
                             Targets = new List<AOeTarget> {
                                 new OeTargetFile {
-                                    FilePath = "derp.out.p"
+                                    FilePathInArchive = "derp.out.p"
                                 }
                             },
                             Hash = "okay"

@@ -96,7 +96,7 @@ namespace Oetools.Builder.Project.Task {
             try {
                 foreach (var archivePath in archives.Split(';')) {
                     var filesToExtract = archiver.ListFiles(archivePath)
-                        .Where(f => IsPathPassingFilter(f.RelativePathInArchive))
+                        .Where(f => IsPathPassingFilter(f.PathInArchive))
                         .ToList();
 
                     if (!filesToExtract.Any()) {
@@ -121,8 +121,8 @@ namespace Oetools.Builder.Project.Task {
 
         private IEnumerable<IFileInArchiveToExtract> GetFilesToExtract(List<IFileInArchive> filesToExtract) {
             foreach (var f in filesToExtract) {
-                foreach (var target in GetTargets(f.RelativePathInArchive, null, null, GetTargetFilePath(), GetTargetDirectory(), GetNewTarget)) {
-                    yield return new FileInArchiveToExtract(f.ArchivePath, f.RelativePathInArchive, target.FilePath);
+                foreach (var target in GetTargets(f.PathInArchive, null, null, GetTargetFilePath(), GetTargetDirectory(), GetNewTarget)) {
+                    yield return new FileInArchiveToExtract(f.ArchivePath, f.PathInArchive, target.FilePathInArchive);
                 }
             }
         }
@@ -133,12 +133,12 @@ namespace Oetools.Builder.Project.Task {
 
         private struct FileInArchiveToExtract : IFileInArchiveToExtract {
             public string ArchivePath { get; }
-            public string RelativePathInArchive { get; }
+            public string PathInArchive { get; }
             public bool Processed { get; set; }
             public string ExtractionPath { get; }
             public FileInArchiveToExtract(string archivePath, string relativePathInArchive, string extractionPath) {
                 ArchivePath = archivePath;
-                RelativePathInArchive = relativePathInArchive;
+                PathInArchive = relativePathInArchive;
                 ExtractionPath = extractionPath;
                 Processed = false;
             }

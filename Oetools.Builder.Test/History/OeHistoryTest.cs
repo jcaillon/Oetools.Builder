@@ -90,19 +90,19 @@ namespace Oetools.Builder.Test.History {
                         Path = @"C:\initialsource\source1",
                         Targets = new List<AOeTarget> {
                             new OeTargetFile {
-                                FilePath = @"D:\initialtarget\target1"
+                                FilePathInArchive = @"D:\initialtarget\target1"
                             },
                             new OeTargetCab {
                                 ArchiveFilePath = @"D:\initialtarget\targetcab1",
-                                FilePath = "internalpath1"
+                                FilePathInArchive = "internalpath1"
                             },
                             new OeTargetProlib {
                                 ArchiveFilePath = @"D:\initialtarget\targetprolib1",
-                                FilePath = "internalpath1"
+                                FilePathInArchive = "internalpath1"
                             },
                             new OeTargetZip {
                                 ArchiveFilePath = @"D:\initialtarget\targetzip1",
-                                FilePath = "internalpath1"
+                                FilePathInArchive = "internalpath1"
                             }
                         }
                     },
@@ -127,9 +127,9 @@ namespace Oetools.Builder.Test.History {
             Assert.AreEqual(@"E:\newsource\include3", ((OeFileBuiltCompiled)loadedHistory.BuiltFiles[1]).RequiredFiles[0]);
             Assert.AreEqual(@"E:\newsource\include4", ((OeFileBuiltCompiled)loadedHistory.BuiltFiles[1]).RequiredFiles[1]);
             Assert.AreEqual(@"F:\newtarget\target1", loadedHistory.BuiltFiles[0].Targets[0].GetTargetPath());
-            Assert.AreEqual(@"F:\newtarget\target1", loadedHistory.BuiltFiles[0].Targets[0].FilePath);
+            Assert.AreEqual(@"F:\newtarget\target1", loadedHistory.BuiltFiles[0].Targets[0].FilePathInArchive);
             Assert.AreEqual(@"F:\newtarget\targetcab1", loadedHistory.BuiltFiles[0].Targets[1].ArchiveFilePath);
-            Assert.AreEqual(@"internalpath1", loadedHistory.BuiltFiles[0].Targets[1].FilePath);
+            Assert.AreEqual(@"internalpath1", loadedHistory.BuiltFiles[0].Targets[1].FilePathInArchive);
             Assert.AreEqual(@"F:\newtarget\targetprolib1", loadedHistory.BuiltFiles[0].Targets[2].ArchiveFilePath);
             Assert.AreEqual(@"F:\newtarget\targetzip1", loadedHistory.BuiltFiles[0].Targets[3].ArchiveFilePath);
         }

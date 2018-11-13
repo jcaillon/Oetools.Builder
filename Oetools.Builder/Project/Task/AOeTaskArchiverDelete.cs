@@ -54,7 +54,7 @@ namespace Oetools.Builder.Project.Task {
             try {
                 foreach (var archivePath in archives.Split(';')) {
                     var filesToDelete = archiver.ListFiles(archivePath)
-                        .Where(f => IsPathPassingFilter(f.RelativePathInArchive))
+                        .Where(f => IsPathPassingFilter(f.PathInArchive))
                         .ToList();
 
                     if (!filesToDelete.Any()) {
@@ -65,7 +65,7 @@ namespace Oetools.Builder.Project.Task {
                     Log?.Trace?.Write($"Deleting {filesToDelete.Count} files in {archivePath}.");
             
 
-                    archiver.DeleteFileSet(filesToDelete.Select(f => new FileInArchiveToDelete(f.ArchivePath, f.RelativePathInArchive) as IFileInArchiveToDelete));
+                    archiver.DeleteFileSet(filesToDelete.Select(f => new FileInArchiveToDelete(f.ArchivePath, f.PathInArchive) as IFileInArchiveToDelete));
                 }
                 
             } finally {
@@ -84,12 +84,12 @@ namespace Oetools.Builder.Project.Task {
 
         private struct FileInArchiveToDelete : IFileInArchiveToDelete {
             public string ArchivePath { get; }
-            public string RelativePathInArchive { get; }
+            public string PathInArchive { get; }
             public bool Processed { get; set; }
 
             public FileInArchiveToDelete(string archivePath, string relativePathInArchive) {
                 ArchivePath = archivePath;
-                RelativePathInArchive = relativePathInArchive;
+                PathInArchive = relativePathInArchive;
                 Processed = false;
             }
         }

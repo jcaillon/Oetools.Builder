@@ -223,8 +223,8 @@ namespace Oetools.Builder.Test {
             Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file1.r"))));
             Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file2.r"))));
 
-            Assert.IsTrue(taskCompile.Files.Exists(f => f.SourcePathForTaskExecution.Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file1.r"))));
-            Assert.IsTrue(taskCompile.Files.Exists(f => f.SourcePathForTaskExecution.Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file2.r"))));
+            Assert.IsTrue(taskCompile.Files.Exists(f => f.PathForTaskExecution.Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file1.r"))));
+            Assert.IsTrue(taskCompile.Files.Exists(f => f.PathForTaskExecution.Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file2.r"))));
             
             Assert.AreEqual(2, taskCompileArchive.GetCompiledFiles().Count, "2 files compiled for archiving");
 
@@ -234,8 +234,8 @@ namespace Oetools.Builder.Test {
             Assert.IsTrue(taskTargets2.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "test.zip", "file1.r"))));
             Assert.IsTrue(taskTargets2.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "test.zip", "scre1.r"))));
 
-            Assert.IsTrue(taskCompileArchive.Files.Exists(f => f.SourcePathForTaskExecution.Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file1.r"))));
-            Assert.AreEqual(1, taskCompileArchive.Files.Count(f => f.SourcePathForTaskExecution.StartsWith(TestFolder)), "1 file compiled directly, file1.p, because we also need it there. The other is compiled in the temp dir.");
+            Assert.IsTrue(taskCompileArchive.Files.Exists(f => f.PathForTaskExecution.Equals(Path.Combine(TestFolder, "source_preferred_dir", "bin", "file1.r"))));
+            Assert.AreEqual(1, taskCompileArchive.Files.Count(f => f.PathForTaskExecution.StartsWith(TestFolder)), "1 file compiled directly, file1.p, because we also need it there. The other is compiled in the temp dir.");
         }
         
         private class TaskCompileFile : AOeTaskFileArchiverArchive, IOeTaskCompile {

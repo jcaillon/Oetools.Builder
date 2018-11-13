@@ -96,7 +96,7 @@ namespace Oetools.Builder.Project.Task {
             try {
                 foreach (var archivePath in archives.Split(';')) {
                     var filesToMove = archiver.ListFiles(archivePath)
-                        .Where(f => IsPathPassingFilter(f.RelativePathInArchive))
+                        .Where(f => IsPathPassingFilter(f.PathInArchive))
                         .ToList();
 
                     if (!filesToMove.Any()) {
@@ -120,8 +120,8 @@ namespace Oetools.Builder.Project.Task {
 
         private IEnumerable<IFileInArchiveToMove> GetFilesToMove(List<IFileInArchive> filesToExtract) {
             foreach (var f in filesToExtract) {
-                foreach (var target in GetTargets(f.RelativePathInArchive, null, f.ArchivePath, GetTargetFilePath(), GetTargetDirectory(), GetNewTarget)) {
-                    yield return new FileInArchiveToMove(f.ArchivePath, f.RelativePathInArchive, target.FilePath);
+                foreach (var target in GetTargets(f.PathInArchive, null, f.ArchivePath, GetTargetFilePath(), GetTargetDirectory(), GetNewTarget)) {
+                    yield return new FileInArchiveToMove(f.ArchivePath, f.PathInArchive, target.FilePathInArchive);
                 }
             }
         }
@@ -132,12 +132,12 @@ namespace Oetools.Builder.Project.Task {
 
         private struct FileInArchiveToMove : IFileInArchiveToMove {
             public string ArchivePath { get; }
-            public string RelativePathInArchive { get; }
+            public string PathInArchive { get; }
             public bool Processed { get; set; }
             public string NewRelativePathInArchive { get; }
             public FileInArchiveToMove(string archivePath, string relativePathInArchive, string newRelativePathInArchive) {
                 ArchivePath = archivePath;
-                RelativePathInArchive = relativePathInArchive;
+                PathInArchive = relativePathInArchive;
                 NewRelativePathInArchive = newRelativePathInArchive;
                 Processed = false;
             }

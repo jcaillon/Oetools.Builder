@@ -264,14 +264,14 @@ namespace Oetools.Builder.Project.Task {
                     foreach (var fileTarget in (relativeTargetFilePath?.Split(';')).ToNonNullList()) {
                         var target = getNewTarget();
                         target.ArchiveFilePath = targetArchiveFilePath;
-                        target.FilePath = GetSingleTargetPath(fileTarget, false, match, filePath, hasArchivePath ? null : baseTargetDirectory, hasArchivePath);
+                        target.FilePathInArchive = GetSingleTargetPath(fileTarget, false, match, filePath, hasArchivePath ? null : baseTargetDirectory, hasArchivePath);
                         output.Add(target);
                     }
                     
                     foreach (var directoryTarget in (relativeTargetDirectory?.Split(';')).ToNonNullList()) {
                         var target = getNewTarget();
                         target.ArchiveFilePath = targetArchiveFilePath;
-                        target.FilePath = GetSingleTargetPath(directoryTarget, true, match, filePath, hasArchivePath ? null : baseTargetDirectory, hasArchivePath);
+                        target.FilePathInArchive = GetSingleTargetPath(directoryTarget, true, match, filePath, hasArchivePath ? null : baseTargetDirectory, hasArchivePath);
                         output.Add(target);
                     }
                     

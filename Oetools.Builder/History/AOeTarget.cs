@@ -42,17 +42,14 @@ namespace Oetools.Builder.History {
         /// <summary>
         /// Path to the archive file.
         /// </summary>
-        [XmlAttribute("ArchiveFilePath")]
-        [BaseDirectory(Type = BaseDirectoryType.OutputDirectory)]
-        public virtual string ArchiveFilePath { get; set; }
+        public abstract string ArchiveFilePath { get; set; }
         
         /// <summary>
         /// The file path inside the archive (relative).
         /// </summary>
-        [XmlAttribute("FilePath")]
-        public virtual string FilePath { get; set; }
+        public abstract string FilePathInArchive { get; set; }
         
-        public virtual string GetTargetPath() => Path.Combine(ArchiveFilePath, FilePath);
+        public virtual string GetTargetPath() => Path.Combine(ArchiveFilePath, FilePathInArchive);
 
     }
 }

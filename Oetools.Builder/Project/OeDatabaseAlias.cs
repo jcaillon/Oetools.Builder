@@ -23,12 +23,12 @@ using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project {
     [Serializable]
-    public class OeDatabaseAlias : IUoeExecutionDatabaseAlias {
+    public class OeDatabaseAlias : AUoeExecutionDatabaseAlias {
                 
         [XmlAttribute(AttributeName = "DatabaseLogicalName")]
-        public string DatabaseLogicalName { get; set; }
+        public override string DatabaseLogicalName { get; set; }
         
         [XmlAttribute(AttributeName = "AliasLogicalName")]
-        public string AliasLogicalName { get; set; }
+        public override string AliasLogicalName { get; set; }
     }
 }

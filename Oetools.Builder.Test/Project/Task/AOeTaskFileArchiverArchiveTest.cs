@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Xml.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
@@ -34,7 +35,22 @@ namespace Oetools.Builder.Test.Project.Task {
     
     [TestClass]
     public class AOeTaskFileArchiverArchiveTest {
-        
+
+        [TestMethod]
+        public void SetFilesToProcess() {
+            var task = new AOeTaskFileArchiverArchive2 {
+                Include = "**", 
+                ArchivePath = "archive.pack", 
+                TargetDirectory = "dir"
+            };
+            task.SetBaseDirectory(@"D:\");
+            task.SetFilesToProcess(new PathList<IOeFile> { new OeFile(@"C:\folder\source.txt") });
+
+            var targets = task.GetFilesToBuild().SelectMany(s => s.TargetsToBuild).Select(t => t.GetTargetPath()).ToList();
+            Assert.AreEqual(1, targets.Count);
+            Assert.IsTrue(targets.Exists(s => s.Equals(@"D:\archive.pack\dir\source.txt")));
+        }
+
         [TestMethod]
         public void SetTargets() {
             var task = new AOeTaskFileArchiverArchive2 {
@@ -93,11 +109,11 @@ namespace Oetools.Builder.Test.Project.Task {
             task.TargetFilePath = "{{1}}file.{{3}}";
             task.ArchivePath = null;
             
-            list = task.GetTargetsFiles(@"C:\folder\source.txt", null).Select(s => s.FilePath).ToList();
+            list = task.GetTargetsFiles(@"C:\folder\source.txt", null).Select(s => s.FilePathInArchive).ToList();
             Assert.AreEqual(1, list.Count);
             Assert.IsTrue(list.Exists(s => s.Equals(@"C:\folder\file.txt")));
             
-            list = task.GetTargetsFiles(@"C:\cool\source", @"D:\").Select(s => s.FilePath).ToList();
+            list = task.GetTargetsFiles(@"C:\cool\source", @"D:\").Select(s => s.FilePathInArchive).ToList();
             Assert.AreEqual(1, list.Count);
             Assert.IsTrue(list.Exists(s => s.Equals(@"D:\file")), "The final . disappears on windows.");
         }
@@ -166,5 +182,88 @@ namespace Oetools.Builder.Test.Project.Task {
             }
         }
         
+        [TestMethod]
+        public void Dunno() {
+            var targetTask = new AOeTaskFileArchiverArchive2();
+
+            Assert.ThrowsException<TaskValidationException>(() => targetTask.Validate());
+
+            targetTask.Include = "**";
+            
+            Assert.ThrowsException<TaskValidationException>(() => targetTask.Validate());
+
+            targetTask.TargetFilePath = "{{wrong var usage";
+            
+            Assert.ThrowsException<TaskValidationException>(() => targetTask.Validate());
+            
+            targetTask.ArchivePath = "needed as well";
+
+            Assert.ThrowsException<TargetValidationException>(() => targetTask.Validate());
+            
+            targetTask.TargetFilePath = null;
+            targetTask.TargetDirectory = "\r wrong target, invalid path";
+            
+            Assert.ThrowsException<TargetValidationException>(() => targetTask.Validate());
+
+            targetTask.TargetDirectory = "ok";
+            
+            targetTask.Validate();
+        }
+        
+        private class TestTaskFileArchiverArchive : AOeTaskFileArchiverArchive {
+                       
+            public string TargetFilePath { get; set; }
+        
+            public string TargetDirectory { get; set; }
+            
+            public string ArchivePath { get; set; }       
+        
+            protected override IArchiver GetArchiver() => new TestArchiver();
+        
+            protected override AOeTarget GetNewTarget() => new TestTarget();
+
+            protected override string GetArchivePath() => ArchivePath;
+
+            protected override string GetArchivePathPropertyName() => nameof(ArchivePath);
+
+            protected override string GetTargetFilePath() => TargetFilePath;
+
+            protected override string GetTargetFilePathPropertyName() => nameof(TargetFilePath);
+
+            protected override string GetTargetDirectory() => TargetDirectory;
+
+            protected override string GetTargetDirectoryPropertyName() => nameof(TargetDirectory);
+        }
+
+        private class TestArchiver : IArchiver {
+            public void SetCancellationToken(CancellationToken? cancelToken) {}
+            public event EventHandler<ArchiverEventArgs> OnProgress;
+            public int ArchiveFileSet(IEnumerable<IFileToArchive> filesToPack) {
+                filesToPack.First().Processed = true;
+                OnProgress?.Invoke(this, null);
+                return 1;
+            }
+            public int ExtractFileSet(IEnumerable<IFileInArchiveToExtract> filesToExtract) {
+                filesToExtract.First().Processed = true;
+                return 1;
+            }
+            public int DeleteFileSet(IEnumerable<IFileInArchiveToDelete> filesToDelete) {
+                filesToDelete.First().Processed = true;
+                return 1;
+            }
+            public IEnumerable<IFileInArchive> ListFiles(string archivePath) {
+                return null;
+            }
+            public int MoveFileSet(IEnumerable<IFileInArchiveToMove> filesToMove) {
+                filesToMove.First().Processed = true;
+                return 1;
+            }
+        }
+
+        private class TestTarget : AOeTarget {
+            public override string ArchiveFilePath { get; set; }
+        
+            public override string FilePathInArchive { get; set; }
+        }
     }
 }

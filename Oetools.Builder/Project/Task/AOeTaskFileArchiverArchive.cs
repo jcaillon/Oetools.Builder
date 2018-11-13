@@ -24,6 +24,7 @@ using System.IO;
 using System.Linq;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
+using Oetools.Builder.Utilities;
 using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
@@ -123,7 +124,7 @@ namespace Oetools.Builder.Project.Task {
                 // change the targets extension to .r for compiled files.
                 if (isTaskCompile && newTargets != null) {
                     foreach (var targetArchive in newTargets) {
-                        targetArchive.FilePath = Path.ChangeExtension(targetArchive.FilePath, UoeConstants.ExtR);
+                        targetArchive.FilePathInArchive = Path.ChangeExtension(targetArchive.FilePathInArchive, UoeConstants.ExtR);
                     }
                 }
                         
@@ -183,20 +184,35 @@ namespace Oetools.Builder.Project.Task {
         /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
         protected virtual void ExecuteInternalArchive() {
             
+            var filesToPack = _filesToBuild.SelectMany(f => f.TargetsToBuild.Select(t => new FileToArchive(t.ArchiveFilePath, t.FilePathInArchive, f.PathForTaskExecution, f.Path))).ToList();
+                
+            Log?.Trace?.Write($"Processing {filesToPack.Count} files.");
+            
             var archiver = GetArchiver();
             
             archiver.SetCancellationToken(CancelToken);
             archiver.OnProgress += ArchiverOnProgress;
-            
             try {
-                var filesToPack = _filesToBuild.SelectMany(f => f.TargetsToBuild.Select(t => new FileToArchive(t.ArchiveFilePath, t.FilePath, f.SourcePathForTaskExecution) as IFileToArchive)).ToList();
-                
-                Log?.Trace?.Write($"Processing {filesToPack.Count} files.");
-                
-                archiver.ArchiveFileSet(filesToPack);
-                
+                archiver.ArchiveFileSet(filesToPack.Cast<IFileToArchive>());
             } finally {
                 archiver.OnProgress -= ArchiverOnProgress;
+            }
+
+            // set the files + targets that were actually built
+            _builtFiles = new PathList<IOeFileBuilt>();
+            foreach (var file in filesToPack.Where(file => file.Processed)) {
+                var builtFile = _builtFiles[file.ActualSourcePath];
+                if (builtFile == null) {
+                    builtFile = GetNewFileBuilt(_filesToBuild[file.ActualSourcePath]);
+                    _builtFiles.Add(builtFile);
+                }
+                if (builtFile.Targets == null) {
+                    builtFile.Targets = new List<AOeTarget>();
+                }
+                var target = GetNewTarget();
+                target.ArchiveFilePath = file.ArchivePath;
+                target.FilePathInArchive = file.PathInArchive;
+                builtFile.Targets.Add(target);
             }
         }
         
@@ -207,13 +223,15 @@ namespace Oetools.Builder.Project.Task {
         
         private struct FileToArchive : IFileToArchive {
             public string ArchivePath { get; }
-            public string RelativePathInArchive { get; }
+            public string PathInArchive { get; }
             public bool Processed { get; set; }
             public string SourcePath { get; }
-            public FileToArchive(string archivePath, string relativePathInArchive, string sourcePath) {
+            public string ActualSourcePath { get; }
+            public FileToArchive(string archivePath, string pathInArchive, string sourcePath, string actualSourcePath) {
                 ArchivePath = archivePath;
-                RelativePathInArchive = relativePathInArchive;
+                PathInArchive = pathInArchive;
                 SourcePath = sourcePath;
+                ActualSourcePath = actualSourcePath;
                 Processed = false;
             }
         }

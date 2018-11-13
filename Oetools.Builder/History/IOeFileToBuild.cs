@@ -28,10 +28,10 @@ namespace Oetools.Builder.History {
     public interface IOeFileToBuild : IOeFile {
         
         /// <summary>
-        /// Can be different from <see cref="IPathListItem.Path"/> for instance in the case of a .p, <see cref="SourcePathForTaskExecution"/>
+        /// Can be different from <see cref="IPathListItem.Path"/> for instance in the case of a .p, <see cref="PathForTaskExecution"/>
         /// will be set to the path of the .r code to copy instead of the actual source path
         /// </summary>
-        string SourcePathForTaskExecution { get; set; }
+        string PathForTaskExecution { get; set; }
         
         /// <summary>
         /// The list of targets to build.

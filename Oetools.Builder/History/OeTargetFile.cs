@@ -25,21 +25,19 @@ namespace Oetools.Builder.History {
 
     public class OeTargetFile : AOeTarget {
         
-        /// <summary>
-        /// Not applicable
-        /// </summary>
+        /// <inheritdoc cref="AOeTarget.ArchiveFilePath"/>
         [XmlIgnore]
         [BaseDirectory(SkipReplace = true)]
         public override string ArchiveFilePath { get; set; }
         
         /// <summary>
-        /// The file path.
+        /// The target file path.
         /// </summary>
         [XmlAttribute("FilePath")]
         [BaseDirectory(Type = BaseDirectoryType.OutputDirectory)]
-        public override string FilePath { get; set; }
+        public override string FilePathInArchive { get; set; }
         
-        public override string GetTargetPath() => FilePath;
+        public override string GetTargetPath() => FilePathInArchive;
 
     }
 }

@@ -18,8 +18,20 @@
 // ========================================================================
 #endregion
 using System;
+using System.Xml.Serialization;
+using Oetools.Builder.Utilities.Attributes;
 
 namespace Oetools.Builder.History {
     [Serializable]
-    public class OeTargetFtp : AOeTarget { }
+    public class OeTargetFtp : AOeTarget {
+        
+        /// <inheritdoc cref="AOeTarget.ArchiveFilePath"/>
+        [XmlAttribute("ArchiveFilePath")]
+        [BaseDirectory(Type = BaseDirectoryType.OutputDirectory)]
+        public override string ArchiveFilePath { get; set; }
+        
+        /// <inheritdoc cref="AOeTarget.FilePathInArchive"/>
+        [XmlAttribute("FilePathInArchive")]
+        public override string FilePathInArchive { get; set; }
+    }
 }

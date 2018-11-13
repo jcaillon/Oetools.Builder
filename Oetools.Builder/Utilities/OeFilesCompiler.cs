@@ -23,12 +23,12 @@ using System.Linq;
 using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
-using Oetools.Builder.Utilities;
+using Oetools.Builder.Project;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Openedge.Execution;
 using Oetools.Utilities.Openedge.Execution.Exceptions;
 
-namespace Oetools.Builder.Project.Task {
+namespace Oetools.Builder.Utilities {
     
     /// <summary>
     /// This class allows to compile files.
@@ -47,7 +47,7 @@ namespace Oetools.Builder.Project.Task {
                 var compiledFile = compiledPaths[file.Path];
                 if (compiledFile != null && (compiledFile.CompiledCorrectly || compiledFile.CompiledWithWarnings)) {
                     // change the source file to copy from
-                    file.SourcePathForTaskExecution = compiledFile.CompilationRcodeFilePath;
+                    file.PathForTaskExecution = compiledFile.CompilationRcodeFilePath;
                 } else {
                     // the file didn't compile, we delete it from the list
                     originalPaths.Remove(file);

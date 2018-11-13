@@ -65,10 +65,10 @@ namespace Oetools.Builder.History {
 
         private string _sourcePathForTaskExecution;
         
-        /// <inheritdoc cref="IOeFileToBuild.SourcePathForTaskExecution"/>
+        /// <inheritdoc cref="IOeFileToBuild.PathForTaskExecution"/>
         [XmlIgnore]
         [DeepCopy(Ignore = true)]
-        public string SourcePathForTaskExecution {
+        public string PathForTaskExecution {
             get => _sourcePathForTaskExecution ?? Path;
             set => _sourcePathForTaskExecution = value;
         }

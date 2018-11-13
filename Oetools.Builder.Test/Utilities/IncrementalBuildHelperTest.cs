@@ -57,10 +57,10 @@ namespace Oetools.Builder.Test.Utilities {
                     Path = "source1",
                     Targets = new List<AOeTarget> {
                         new OeTargetFile {
-                            FilePath ="target1"
+                            FilePathInArchive ="target1"
                         },
                         new OeTargetFile {
-                            FilePath ="target2"
+                            FilePathInArchive ="target2"
                         }
                     }
                 },
@@ -69,7 +69,7 @@ namespace Oetools.Builder.Test.Utilities {
                     Path = "source2",
                     Targets = new List<AOeTarget> {
                         new OeTargetFile {
-                            FilePath ="target1"
+                            FilePathInArchive ="target1"
                         }
                     }
                 },
@@ -78,7 +78,7 @@ namespace Oetools.Builder.Test.Utilities {
                     Path = "source3",
                     Targets = new List<AOeTarget> {
                         new OeTargetFile {
-                            FilePath ="target1"
+                            FilePathInArchive ="target1"
                         }
                     }
                 },
@@ -87,13 +87,13 @@ namespace Oetools.Builder.Test.Utilities {
                     Path = "source4",
                     Targets = new List<AOeTarget> {
                         new OeTargetFile {
-                            FilePath ="target1"
+                            FilePathInArchive ="target1"
                         },
                         new OeTargetFile {
-                            FilePath ="target2"
+                            FilePathInArchive ="target2"
                         },
                         new OeTargetFile {
-                            FilePath ="target3",
+                            FilePathInArchive ="target3",
                             DeletionMode = "1"
                         }
                     }
@@ -105,10 +105,10 @@ namespace Oetools.Builder.Test.Utilities {
                     Path = "source1",
                     TargetsToBuild = new List<AOeTarget> {
                         new OeTargetFile {
-                            FilePath ="target2"
+                            FilePathInArchive ="target2"
                         },
                         new OeTargetFile {
-                            FilePath ="target3"
+                            FilePathInArchive ="target3"
                         }
                     }
                 },
@@ -117,10 +117,10 @@ namespace Oetools.Builder.Test.Utilities {
                     Path = "source3",
                     TargetsToBuild = new List<AOeTarget> {
                         new OeTargetFile {
-                            FilePath ="target2"
+                            FilePathInArchive ="target2"
                         },
                         new OeTargetFile {
-                            FilePath ="target3"
+                            FilePathInArchive ="target3"
                         }
                     }
                 },
@@ -129,10 +129,10 @@ namespace Oetools.Builder.Test.Utilities {
                     Path = "source4",
                     TargetsToBuild =new List<AOeTarget> {
                         new OeTargetFile {
-                            FilePath ="target1"
+                            FilePathInArchive ="target1"
                         },
                         new OeTargetFile {
-                            FilePath ="target2"
+                            FilePathInArchive ="target2"
                         }
                     }
                 }
@@ -180,10 +180,10 @@ namespace Oetools.Builder.Test.Utilities {
                     Path = "/random/source1",
                     Targets = new List<AOeTarget> {
                         new OeTargetFile {
-                            FilePath = "target1"
+                            FilePathInArchive = "target1"
                         },
                         new OeTargetFile {
-                            FilePath ="target2"
+                            FilePathInArchive ="target2"
                         }
                     }
                 },
@@ -193,7 +193,7 @@ namespace Oetools.Builder.Test.Utilities {
                     Targets = new List<AOeTarget> {
                         new OeTargetZip {
                             ArchiveFilePath = "target1",
-                            FilePath = ""
+                            FilePathInArchive = ""
                         }
                     }
                 },
@@ -203,7 +203,7 @@ namespace Oetools.Builder.Test.Utilities {
                     Targets = new List<AOeTarget> {
                         new OeTargetZip {
                             ArchiveFilePath = "target1",
-                            FilePath = ""
+                            FilePathInArchive = ""
                         }
                     }
                 }
@@ -243,7 +243,7 @@ namespace Oetools.Builder.Test.Utilities {
                     Path = "source1",
                     TargetsToBuild = new List<AOeTarget> {
                         new OeTargetFile {
-                            FilePath = "target1"
+                            FilePathInArchive = "target1"
                         }
                     }
                 },
@@ -252,11 +252,11 @@ namespace Oetools.Builder.Test.Utilities {
                     Path = "source2",
                     TargetsToBuild =new List<AOeTarget> {
                         new OeTargetFile {
-                            FilePath ="target2"
+                            FilePathInArchive ="target2"
                         },
                         new OeTargetZip {
                             ArchiveFilePath = "target3",
-                            FilePath = ""
+                            FilePathInArchive = ""
                         }
                     }
                 },
@@ -265,7 +265,7 @@ namespace Oetools.Builder.Test.Utilities {
                     Path = "source3",
                     TargetsToBuild =new List<AOeTarget> {
                         new OeTargetFile {
-                            FilePath ="target4"
+                            FilePathInArchive ="target4"
                         }
                     }
                 }
@@ -275,7 +275,7 @@ namespace Oetools.Builder.Test.Utilities {
                     Path = "source1",
                     Targets = new List<AOeTarget> {
                         new OeTargetFile {
-                            FilePath ="target1"
+                            FilePathInArchive ="target1"
                         }
                     }
                 },
@@ -283,7 +283,7 @@ namespace Oetools.Builder.Test.Utilities {
                     Path = "source2",
                     Targets = new List<AOeTarget> {
                         new OeTargetFile {
-                            FilePath ="target2"
+                            FilePathInArchive ="target2"
                         }
                     }
                 }
