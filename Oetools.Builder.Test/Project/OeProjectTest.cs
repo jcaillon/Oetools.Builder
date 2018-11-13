@@ -55,6 +55,9 @@ namespace Oetools.Builder.Test.Project {
         [TestMethod]
         public void CheckForGetDefaultMethodsAssociatedWithProperties() {
             foreach (var type in TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}")) {
+                if (!type.IsPublic) {
+                    continue;
+                }
                 foreach (var methodInfo in type.GetMethods().ToList().Where(m => m.IsStatic && m.Name.StartsWith(DefaultMethodPrefix))) {
                     var prop = type.GetProperty(methodInfo.Name.Replace(DefaultMethodPrefix, ""));
                     Assert.IsNotNull(prop, $"if {methodInfo.Name} exists, we should find the property {methodInfo.Name.Replace(DefaultMethodPrefix, "")} which is not the case...");
@@ -70,6 +73,9 @@ namespace Oetools.Builder.Test.Project {
         [TestMethod]
         public void CheckForNullablePublicPropertiesOnly() {
             foreach (var type in TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}")) {
+                if (!type.IsPublic) {
+                    continue;
+                }
                 foreach (var propertyInfo in type.GetProperties().ToList().Where(p => p.PropertyType.IsPublic)) {
                     Assert.IsTrue(TestHelper.CanBeNull(propertyInfo.PropertyType), $"{type.Name}.{propertyInfo.Name} is not nullable!");
                 }
@@ -85,11 +91,12 @@ namespace Oetools.Builder.Test.Project {
                 if (!type.IsPublic) {
                     continue;
                 }
-                foreach (var propertyInfo in type.GetProperties().ToList().Where(p => p.PropertyType.IsPublic)) {
+                foreach (var propertyInfo in type.GetProperties().ToList().Where(p => p.PropertyType.IsPublic && !(p.GetSetMethod()?.IsAbstract ?? false))) {
                     Assert.IsTrue(
                         Attribute.GetCustomAttribute(propertyInfo, typeof(XmlAnyAttributeAttribute), true) != null ||
                         Attribute.GetCustomAttribute(propertyInfo, typeof(XmlArrayAttribute), true) != null ||
                         Attribute.GetCustomAttribute(propertyInfo, typeof(XmlElementAttribute), true) != null ||
+                        Attribute.GetCustomAttribute(propertyInfo, typeof(XmlIgnoreAttribute), true) != null ||
                         Attribute.GetCustomAttribute(propertyInfo, typeof(XmlAttributeAttribute), true) != null, 
                         $"{type.Name}.{propertyInfo.Name} does not have an xml attribute!");
                 }
@@ -288,27 +295,28 @@ namespace Oetools.Builder.Test.Project {
                                 new OeTaskFileArchiverArchiveProlib {
                                     ExcludeRegex = "regex",
                                     IncludeRegex = "regex",
-                                    TargetProlibFilePath = "myprolib.pl",
-                                    RelativeTargetDirectory = "insdide/directory"
+                                    TargetArchivePath = "myprolib.pl",
+                                    TargetDirectory = "insdide/directory",
+                                    
                                 },
                                 new OeTaskFileArchiverArchiveProlibCompile {
                                     ExcludeRegex = "regex",
                                     IncludeRegex = "regex",
-                                    TargetProlibFilePath = "path.zip",
-                                    RelativeTargetDirectory = "insdide/directory"
+                                    TargetArchivePath = "path.zip",
+                                    TargetDirectory = "insdide/directory"
                                 },
                                 new OeTaskFileArchiverArchiveCab {
                                     ExcludeRegex = "regex",
                                     IncludeRegex = "regex",
-                                    TargetCabFilePath = "myprolib.pl",
-                                    RelativeTargetDirectory = "inside/directory"
+                                    TargetArchivePath = "myprolib.pl",
+                                    TargetDirectory = "inside/directory"
                                 },
                                 new OeTaskFileArchiverArchiveCabCompile {
                                     ExcludeRegex = "regex",
                                     IncludeRegex = "regex",
-                                    TargetCabFilePath = "path.cab",
-                                    RelativeTargetFilePath = "inside/file.p",
-                                    CompressionLevel = OeCabCompressionLevel.Max
+                                    TargetArchivePath = "path.cab",
+                                    TargetFilePath = "inside/file.p",
+                                    CompressionLevel = "Max"
                                 },
                                 //new OeTaskFileTargetArchiveFtpCompile(),
                                 //new OeTaskFileTargetFileCopy(),
@@ -341,7 +349,12 @@ namespace Oetools.Builder.Test.Project {
                     PostBuildStepGroup = null
                 }
             };
-            
+            new OeTaskFileArchiverArchiveProlibCompile {
+                ExcludeRegex = "regex",
+                IncludeRegex = "regex",
+                TargetArchivePath = "path.zip",
+                TargetDirectory = "insdide/directory"
+            }.Validate();
             project.Save(Path.Combine(TestFolder, "project.xml"));
             
             loadedProject = OeProject.Load(Path.Combine(TestFolder, "project.xml"));

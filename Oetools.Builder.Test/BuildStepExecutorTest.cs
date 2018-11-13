@@ -155,7 +155,7 @@ namespace Oetools.Builder.Test {
                 }
             };
             taskExecutor.Execute();
-            Assert.AreEqual(3, task2.Total, "One of the following methods were not called : set directories, get directories to include.");
+            Assert.AreEqual(7, task2.Total, "One of the following methods were not called : set directories, get directories to include or dispose task.");
         }
 
         [TestMethod]
@@ -218,7 +218,7 @@ namespace Oetools.Builder.Test {
             };
             var task2 = new TaskOnArchive {
                 Include = $"{baseDir}/((file1)).ext;{baseDir}/((**))",
-                ArchivePath = $"{baseDir}\\archive.zip",
+                TargetArchivePath = $"{baseDir}\\archive.zip",
                 TargetFilePath = "new{{1}}"
             };
             taskExecutor.Tasks = new List<IOeTask> {
@@ -236,33 +236,13 @@ namespace Oetools.Builder.Test {
         }
         
         private class TaskOnArchive : AOeTaskFileArchiverArchive {
-            
             public IArchiver Archiver { get; set; }
-            
-            public string TargetFilePath { get; set; }
-        
-            public string TargetDirectory { get; set; }
-            
-            public string ArchivePath { get; set; }       
-        
+            public override string TargetArchivePath { get; set; }
+            public override string TargetFilePath { get; set; }
+            public override string TargetDirectory { get; set; }
             protected override IArchiver GetArchiver() => Archiver;
-        
             protected override AOeTarget GetNewTarget() => new OeTargetZip();
-
-            protected override string GetArchivePath() => ArchivePath;
-
-            protected override string GetArchivePathPropertyName() => nameof(ArchivePath);
-
-            protected override string GetTargetFilePath() => TargetFilePath;
-
-            protected override string GetTargetFilePathPropertyName() => nameof(TargetFilePath);
-
-            protected override string GetTargetDirectory() => TargetDirectory;
-
-            protected override string GetTargetDirectoryPropertyName() => nameof(TargetDirectory);
-
             public List<IOeFileToBuild> Files { get; set; } = new List<IOeFileToBuild>();
-            
             protected override void ExecuteInternalArchive() {
                 Files.AddRange(GetFilesToBuild());
             }
@@ -308,7 +288,7 @@ namespace Oetools.Builder.Test {
             public void SetCompiledFiles(PathList<UoeCompiledFile> compiledPath) {
                 IsFilesCompiledSet = true;
             }
-            public void SetBaseDirectory(string baseDirectory) {
+            public void SetTargetBaseDirectory(string baseDirectory) {
                 IsBaseDirectorySet = true;
             }
             public PathList<UoeCompiledFile> GetCompiledFiles() => null;

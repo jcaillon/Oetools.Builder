@@ -19,6 +19,7 @@
 #endregion
 
 using System;
+using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities.Attributes;
@@ -27,8 +28,8 @@ using Oetools.Utilities.Archive;
 namespace Oetools.Builder.Project.Task {
     
     [Serializable]
-    [XmlRoot("Copy")]
-    public class OeTaskFileCopy : AOeTaskFileArchiverArchive, IOeTaskWithBuiltFiles {
+    [XmlRoot("Move")]
+    public class OeTaskFileMove : AOeTaskFileArchiverArchive {
         
         // ReSharper disable once NotAccessedField.Local
         private string _targetArchivePath;
@@ -57,5 +58,37 @@ namespace Oetools.Builder.Project.Task {
         protected override IArchiver GetArchiver() => Archiver.NewFileSystemArchiver();
         
         protected override AOeTarget GetNewTarget() => new OeTargetFile();
+        
+        /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
+        protected override void ExecuteInternalArchive() {
+            
+            var filesToArchive = GetFilesToBuild().SelectMany(f => f.TargetsToBuild.Select(t => new FileInArchiveToMove(null, f.PathForTaskExecution, t.FilePathInArchive, f.Path))).ToList();
+                
+            Log?.Trace?.Write($"Processing {filesToArchive.Count} files.");
+            
+            var archiver = Archiver.NewFileSystemArchiver();
+            
+            archiver.SetCancellationToken(CancelToken);
+            archiver.OnProgress += ArchiverOnProgress;
+            try {
+                archiver.MoveFileSet(filesToArchive);
+            } finally {
+                archiver.OnProgress -= ArchiverOnProgress;
+            }
+        }
+        
+        private class FileInArchiveToMove : IFileInArchiveToMove {
+            public string ArchivePath { get; }
+            public string PathInArchive { get; }
+            public bool Processed { get; set; }
+            public string NewRelativePathInArchive { get; }
+            public string ActualSourcePath { get; }
+            public FileInArchiveToMove(string archivePath, string pathInArchive, string newRelativePathInArchive, string actualSourcePath) {
+                ArchivePath = archivePath;
+                PathInArchive = pathInArchive;
+                NewRelativePathInArchive = newRelativePathInArchive;
+                ActualSourcePath = actualSourcePath;
+            }
+        }
     }
 }

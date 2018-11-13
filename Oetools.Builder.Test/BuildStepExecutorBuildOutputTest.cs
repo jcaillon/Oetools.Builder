@@ -103,33 +103,14 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(2, task2.Directories.Count, "we expect 2 directories to have been built");
         }
         
-        private class TaskOnFile : AOeTaskFileArchiverArchive {
+        private class TaskOnFile : AOeTaskFileArchiverArchive {   
             public IArchiver Archiver { get; set; }
-            
-            public string TargetFilePath { get; set; }
-        
-            public string TargetDirectory { get; set; }
-            
-            public string ArchivePath { get; set; }       
-        
+            public override string TargetArchivePath { get; set; }
+            public override string TargetFilePath { get; set; }
+            public override string TargetDirectory { get; set; }    
             protected override IArchiver GetArchiver() => Archiver;
-        
             protected override AOeTarget GetNewTarget() => new OeTargetFile();
-
-            protected override string GetArchivePath() => ArchivePath;
-
-            protected override string GetArchivePathPropertyName() => nameof(ArchivePath);
-
-            protected override string GetTargetFilePath() => TargetFilePath;
-
-            protected override string GetTargetFilePathPropertyName() => nameof(TargetFilePath);
-
-            protected override string GetTargetDirectory() => TargetDirectory;
-
-            protected override string GetTargetDirectoryPropertyName() => nameof(TargetDirectory);
-
             public List<IOeFileToBuild> Files { get; set; } = new List<IOeFileToBuild>();
-            
             protected override void ExecuteInternalArchive() {
                 Files.AddRange(GetFilesToBuild());
             }

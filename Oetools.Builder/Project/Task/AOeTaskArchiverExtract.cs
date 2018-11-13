@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Utilities.Archive;
@@ -13,58 +14,31 @@ namespace Oetools.Builder.Project.Task {
     public abstract class AOeTaskArchiverExtract : AOeTaskFilter {
         
         /// <summary>
-        /// The path of the archive to handle.
+        /// The path of the target archive.
         /// </summary>
-        /// <remarks>
-        /// This string can contain ; to separate several values.
-        /// Each value can contain placeholders.
-        /// </remarks>
-        /// <returns></returns>
-        protected abstract string GetArchivePath();
+        /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetArchivePath"/>
+        [XmlIgnore]
+        public abstract string ArchivePath { get; set; }
         
         /// <summary>
-        /// Returns the property name of the property which holds the value <see cref="GetArchivePath"/>.
+        /// The extraction target file path.
         /// </summary>
-        /// <returns></returns>
-        protected abstract string GetArchivePathPropertyName();
-
-        /// <summary>
-        /// The file path to which we need to extract the included files.
-        /// </summary>
-        /// <remarks>
-        /// This string can contain ; to separate several values.
-        /// Each value can contain placeholders.
-        /// </remarks>
-        /// <returns></returns>
-        protected abstract string GetTargetFilePath();
+        /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetArchivePath"/>
+        [XmlIgnore]
+        public abstract string TargetFilePath { get; set; }
         
         /// <summary>
-        /// Returns the property name of the property which holds the value <see cref="GetTargetFilePath"/>.
+        /// The extraction target directory.
         /// </summary>
-        /// <returns></returns>
-        protected abstract string GetTargetFilePathPropertyName();
-        
-        /// <summary>
-        /// The directory to which we need to extract the included files.
-        /// </summary>
-        /// <remarks>
-        /// This string can contain ; to separate several values.
-        /// Each value can contain placeholders.
-        /// </remarks>
-        /// <returns></returns>
-        protected abstract string GetTargetDirectory();
-        
-        /// <summary>
-        /// Returns the property name of the property which holds the value <see cref="GetTargetDirectory"/>.
-        /// </summary>
-        /// <returns></returns>
-        protected abstract string GetTargetDirectoryPropertyName();
+        /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetArchivePath"/>
+        [XmlIgnore]
+        public abstract string TargetDirectory { get; set; }
         
         /// <summary>
         /// Returns an instance of an archiver.
         /// </summary>
         /// <returns></returns>
-        protected abstract IArchiver GetArchiver();
+        protected abstract IArchiverFullFeatured GetArchiver();
         
         /// <summary>
         /// Must return a new instance of <see cref="AOeTarget"/> corresponding to the current target type.
@@ -74,20 +48,23 @@ namespace Oetools.Builder.Project.Task {
 
         /// <inheritdoc cref="IOeTask.Validate"/>
         public override void Validate() {
-            if (string.IsNullOrEmpty(GetTargetFilePath()) && GetTargetDirectory() == null) {
-                throw new TaskValidationException(this, $"This task needs the following properties to be defined : {GetType().GetXmlName(GetTargetFilePathPropertyName())} and/or {GetType().GetXmlName(GetTargetDirectoryPropertyName())}");
+            if (string.IsNullOrEmpty(TargetFilePath) && TargetDirectory == null) {
+                throw new TaskValidationException(this, $"This task needs at least one of the two following properties to be defined : {GetType().GetXmlName(nameof(TargetFilePath))} and/or {GetType().GetXmlName(nameof(TargetDirectory))}.");
             }
-            if (string.IsNullOrEmpty(GetArchivePath())) {
-                throw new TaskValidationException(this, $"This task needs the following property to be defined : {GetType().GetXmlName(GetArchivePathPropertyName())}");
+            CheckTargetPath(TargetFilePath?.Split(';'), () => GetType().GetXmlName(nameof(TargetFilePath)));
+            CheckTargetPath(TargetDirectory?.Split(';'), () => GetType().GetXmlName(nameof(TargetDirectory)));
+            
+            if (string.IsNullOrEmpty(ArchivePath)) {
+                throw new TaskValidationException(this, $"This task needs the following property to be defined : {GetType().GetXmlName(nameof(ArchivePath))}.");
             }
-            CheckTargetPath((GetTargetFilePath()?.Split(';')).UnionHandleNull(GetTargetDirectory()?.Split(';')));
-            CheckTargetPath(GetArchivePath()?.Split(';'));
+            CheckTargetPath(ArchivePath?.Split(';'), () => GetType().GetXmlName(nameof(ArchivePath)));
+            
             base.Validate();
         }
 
         /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
         protected override void ExecuteInternal() {
-            var archives = GetArchivePath();
+            var archives = ArchivePath;
             var archiver = GetArchiver();
             
             archiver.SetCancellationToken(CancelToken);
@@ -121,7 +98,7 @@ namespace Oetools.Builder.Project.Task {
 
         private IEnumerable<IFileInArchiveToExtract> GetFilesToExtract(List<IFileInArchive> filesToExtract) {
             foreach (var f in filesToExtract) {
-                foreach (var target in GetTargets(f.PathInArchive, null, null, GetTargetFilePath(), GetTargetDirectory(), GetNewTarget)) {
+                foreach (var target in GetTargets(f.PathInArchive, null, null, TargetFilePath, TargetDirectory, GetNewTarget)) {
                     yield return new FileInArchiveToExtract(f.ArchivePath, f.PathInArchive, target.FilePathInArchive);
                 }
             }
@@ -131,7 +108,7 @@ namespace Oetools.Builder.Project.Task {
             Log?.ReportProgress(100, (int) args.PercentageDone, $"Extracting {args.RelativePathInArchive} from {args.ArchivePath}.");
         }
 
-        private struct FileInArchiveToExtract : IFileInArchiveToExtract {
+        private class FileInArchiveToExtract : IFileInArchiveToExtract {
             public string ArchivePath { get; }
             public string PathInArchive { get; }
             public bool Processed { get; set; }

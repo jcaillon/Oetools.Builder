@@ -1,11 +1,7 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
-using Oetools.Builder.History;
 using Oetools.Utilities.Archive;
-using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
@@ -16,36 +12,29 @@ namespace Oetools.Builder.Project.Task {
     public abstract class AOeTaskArchiverDelete : AOeTaskFilter {
         
         /// <summary>
-        /// The path of the archive to handle.
+        /// The path of the target archive.
         /// </summary>
-        /// <remarks>
-        /// This string can contain ; to separate several values.
-        /// Each value can contain placeholders.
-        /// </remarks>
-        /// <returns></returns>
-        protected abstract string GetArchivePath();
+        /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetArchivePath"/>
+        [XmlIgnore]
+        public abstract string ArchivePath { get; set; }
         
-        /// <summary>
-        /// Returns the property name of the property which holds the value <see cref="GetArchivePath"/>.
-        /// </summary>
-        /// <returns></returns>
-        protected abstract string GetArchivePathPropertyName();
-
         /// <summary>
         /// Returns an instance of an archiver.
         /// </summary>
         /// <returns></returns>
-        protected abstract IArchiver GetArchiver();
+        protected abstract IArchiverFullFeatured GetArchiver();
 
         public override void Validate() {
-            base.Validate();
-            foreach (var archivePath in GetArchivePath().Split(';')) {
-                Utils.ValidatePathWildCard(archivePath);
+            if (string.IsNullOrEmpty(ArchivePath)) {
+                throw new TaskValidationException(this, $"This task needs the following property to be defined : {GetType().GetXmlName(nameof(ArchivePath))}.");
             }
+            CheckTargetPath(ArchivePath?.Split(';'), () => GetType().GetXmlName(nameof(ArchivePath)));
+            
+            base.Validate();
         }
 
         protected override void ExecuteInternal() {
-            var archives = GetArchivePath();
+            var archives = ArchivePath;
             var archiver = GetArchiver();
             
             archiver.SetCancellationToken(CancelToken);
@@ -82,7 +71,7 @@ namespace Oetools.Builder.Project.Task {
             // this task doesn't actually build anything, it just deletes files
         }
 
-        private struct FileInArchiveToDelete : IFileInArchiveToDelete {
+        private class FileInArchiveToDelete : IFileInArchiveToDelete {
             public string ArchivePath { get; }
             public string PathInArchive { get; }
             public bool Processed { get; set; }

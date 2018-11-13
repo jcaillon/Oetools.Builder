@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities;
@@ -37,6 +38,44 @@ namespace Oetools.Builder.Project.Task {
     /// Base task class for tasks that operates on files and that have targets for aforementioned files.
     /// </summary>
     public abstract class AOeTaskFileArchiverArchive : AOeTaskFile, IOeTaskFileToBuild {
+                
+        /// <summary>
+        /// The path of the target archive.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Several target paths can be used, separate them with a semi-colon (i.e. ;).
+        /// Each target path can contain special placeholders:
+        /// 
+        /// - {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed
+        /// - {{group_name}} will be replaced by the value captured in group "group_name"
+        /// </para>
+        /// </remarks>
+        /// <example>
+        /// <para>
+        /// Having "((C:\folder\**))((*.txt))" as an <see cref="AOeTaskFilter.Include"/> pattern
+        /// and "D:\pre_{{2}}.raw" as the target,
+        /// for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".
+        /// (note: In this example, the captured group 1 was not used)
+        /// </para>
+        /// </example>
+        /// <returns></returns>
+        [XmlIgnore]
+        public abstract string TargetArchivePath { get; set; }
+        
+        /// <summary>
+        /// The relative target file path inside the archive.
+        /// </summary>
+        /// <inheritdoc cref="TargetArchivePath"/>
+        [XmlIgnore]
+        public abstract string TargetFilePath { get; set; }
+        
+        /// <summary>
+        /// The relative target directory inside the archive.
+        /// </summary>
+        /// <inheritdoc cref="TargetArchivePath"/>
+        [XmlIgnore]
+        public abstract string TargetDirectory { get; set; }
         
         /// <summary>
         /// Returns an instance of an archiver.
@@ -45,81 +84,41 @@ namespace Oetools.Builder.Project.Task {
         protected abstract IArchiver GetArchiver();
         
         /// <summary>
-        /// The path of the target archive.
-        /// </summary>
-        /// <remarks>
-        /// This string can contain ; to separate several values.
-        /// Each value can contain placeholders.
-        /// </remarks>
-        /// <returns></returns>
-        protected abstract string GetArchivePath();
-        
-        /// <summary>
-        /// Returns the property name of the property which holds the value <see cref="GetArchivePath"/>.
-        /// </summary>
-        /// <returns></returns>
-        protected abstract string GetArchivePathPropertyName();
-
-        /// <summary>
         /// Must return a new instance of <see cref="AOeTarget"/> corresponding to the current target type.
         /// </summary>
         /// <returns></returns>
         protected abstract AOeTarget GetNewTarget();
-        
+
         /// <summary>
-        /// The relative target file path inside the archive.
-        /// </summary>
-        /// <remarks>
-        /// This string can contain ; to separate several values.
-        /// Each value can contain placeholders.
-        /// </remarks>
-        /// <returns></returns>
-        protected abstract string GetTargetFilePath();
-        
-        /// <summary>
-        /// Returns the property name of the property which holds the value <see cref="GetTargetFilePath"/>.
+        /// Returns true of the <see cref="TargetArchivePath"/> is required for this task to operate.
         /// </summary>
         /// <returns></returns>
-        protected abstract string GetTargetFilePathPropertyName();
-        
-        /// <summary>
-        /// The relative target directory inside the archive.
-        /// </summary>
-        /// <remarks>
-        /// This string can contain ; to separate several values.
-        /// Each value can contain placeholders.
-        /// </remarks>
-        /// <returns></returns>
-        protected abstract string GetTargetDirectory();
-        
-        /// <summary>
-        /// Returns the property name of the property which holds the value <see cref="GetTargetDirectory"/>.
-        /// </summary>
-        /// <returns></returns>
-        protected abstract string GetTargetDirectoryPropertyName();
+        protected virtual bool IsTargetArchiveRequired() => true;
         
         /// <inheritdoc cref="IOeTask.Validate"/>
         public override void Validate() {
-            base.Validate();
-            
             // need at least 1 target
-            if (string.IsNullOrEmpty(GetTargetFilePath()) && GetTargetDirectory() == null) {
-                throw new TaskValidationException(this, $"This task needs the following properties to be defined : {GetType().GetXmlName(GetTargetFilePathPropertyName())} and/or {GetType().GetXmlName(GetTargetDirectoryPropertyName())}");
+            if (string.IsNullOrEmpty(TargetFilePath) && TargetDirectory == null) {
+                throw new TaskValidationException(this, $"This task needs at least one of the two following properties to be defined : {GetType().GetXmlName(nameof(TargetFilePath))} and/or {GetType().GetXmlName(nameof(TargetDirectory))}.");
             }
-            CheckTargetPath((GetTargetFilePath()?.Split(';')).UnionHandleNull(GetTargetDirectory()?.Split(';')));
+            CheckTargetPath(TargetFilePath?.Split(';'), () => GetType().GetXmlName(nameof(TargetFilePath)));
+            CheckTargetPath(TargetDirectory?.Split(';'), () => GetType().GetXmlName(nameof(TargetDirectory)));
             
             // need archive path
-            if (!string.IsNullOrEmpty(GetArchivePathPropertyName()) && string.IsNullOrEmpty(GetArchivePath())) {
-                throw new TaskValidationException(this, $"This task needs the following property to be defined : {GetType().GetXmlName(GetArchivePathPropertyName())}");
+            if (IsTargetArchiveRequired() && string.IsNullOrEmpty(TargetArchivePath)) {
+                throw new TaskValidationException(this, $"This task needs the following property to be defined : {GetType().GetXmlName(nameof(TargetArchivePath))}.");
             }
-            CheckTargetPath(GetArchivePath()?.Split(';'));
+            CheckTargetPath(TargetArchivePath?.Split(';'), () => GetType().GetXmlName(nameof(TargetArchivePath)));
+            
+
+            base.Validate();
         }
         
         /// <inheritdoc cref="IOeTaskFileToBuild.SetTargets"/>
         public void SetTargets(PathList<IOeFileToBuild> paths, string baseTargetDirectory, bool appendMode = false) {
             bool isTaskCompile = this is IOeTaskCompile;
             foreach (var file in paths) {
-                var newTargets = GetTargets(file.Path, baseTargetDirectory, GetArchivePath(), GetTargetFilePath(), GetTargetDirectory(), GetNewTarget);
+                var newTargets = GetTargets(file.Path, baseTargetDirectory, TargetArchivePath, TargetFilePath, TargetDirectory, GetNewTarget);
                         
                 // change the targets extension to .r for compiled files.
                 if (isTaskCompile && newTargets != null) {
@@ -137,14 +136,14 @@ namespace Oetools.Builder.Project.Task {
                 }
             }
         }
-
+        
         /// <summary>
         /// Returns a file built from a file to build, should be called when the action is done for the source file.
         /// In case of a compiled file, this also sets output properties to the file built (db references and required files).
         /// </summary>
         /// <param name="sourceFile"></param>
         /// <returns></returns>
-        private OeFileBuilt GetNewFileBuilt(IOeFile sourceFile) {
+        protected OeFileBuilt GetNewFileBuilt(IOeFile sourceFile) {
             if (this is IOeTaskCompile thisOeTaskCompile) {
                 var newFileBuilt = new OeFileBuiltCompiled(sourceFile);
                 var compiledFile = thisOeTaskCompile.GetCompiledFiles()?[sourceFile.Path];
@@ -160,13 +159,15 @@ namespace Oetools.Builder.Project.Task {
 
         /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
         protected sealed override void ExecuteInternal() {
+            OeFilesCompiler compiler = null;
             if (this is IOeTaskCompile thisOeTaskCompile) {
                 try {
                     Log?.Debug("Is a compile task.");
                     var compiledFiles = thisOeTaskCompile.GetCompiledFiles();
                     if (compiledFiles == null) {
                         Log?.Debug("Start file compilation.");
-                        compiledFiles = OeFilesCompiler.CompileFiles(thisOeTaskCompile.GetProperties(), _filesToBuild.CopySelect(f => new UoeFileToCompile(f.Path) {
+                        compiler = new OeFilesCompiler();
+                        compiledFiles = compiler.CompileFiles(thisOeTaskCompile.GetProperties(), _filesToBuild.CopySelect(f => new UoeFileToCompile(f.Path) {
                             FileSize = f.Size
                         }), CancelToken, Log);
                         thisOeTaskCompile.SetCompiledFiles(compiledFiles);
@@ -178,29 +179,36 @@ namespace Oetools.Builder.Project.Task {
                     throw new TaskExecutionException(this, e.Message, e);
                 }
             }
-            ExecuteInternalArchive();
+            try {
+                ExecuteInternalArchive();
+            } finally {
+                compiler?.Dispose();
+            }
         }
 
         /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
         protected virtual void ExecuteInternalArchive() {
             
-            var filesToPack = _filesToBuild.SelectMany(f => f.TargetsToBuild.Select(t => new FileToArchive(t.ArchiveFilePath, t.FilePathInArchive, f.PathForTaskExecution, f.Path))).ToList();
+            var filesToArchive = _filesToBuild.SelectMany(f => f.TargetsToBuild.Select(t => new FileToArchive(t.ArchiveFilePath, t.FilePathInArchive, f.PathForTaskExecution, f.Path))).ToList();
                 
-            Log?.Trace?.Write($"Processing {filesToPack.Count} files.");
+            Log?.Trace?.Write($"Processing {filesToArchive.Count} files.");
             
             var archiver = GetArchiver();
-            
             archiver.SetCancellationToken(CancelToken);
             archiver.OnProgress += ArchiverOnProgress;
             try {
-                archiver.ArchiveFileSet(filesToPack.Cast<IFileToArchive>());
+                archiver.ArchiveFileSet(filesToArchive);
             } finally {
                 archiver.OnProgress -= ArchiverOnProgress;
             }
 
+            AddBuiltFiles(filesToArchive);
+        }
+
+        private void AddBuiltFiles(IEnumerable<FileToArchive> filesToArchive) {
             // set the files + targets that were actually built
             _builtFiles = new PathList<IOeFileBuilt>();
-            foreach (var file in filesToPack.Where(file => file.Processed)) {
+            foreach (var file in filesToArchive.Where(file => file.Processed)) {
                 var builtFile = _builtFiles[file.ActualSourcePath];
                 if (builtFile == null) {
                     builtFile = GetNewFileBuilt(_filesToBuild[file.ActualSourcePath]);
@@ -216,12 +224,12 @@ namespace Oetools.Builder.Project.Task {
             }
         }
         
-        private void ArchiverOnProgress(object sender, ArchiverEventArgs args) {
+        protected void ArchiverOnProgress(object sender, ArchiverEventArgs args) {
             var archiveString = string.IsNullOrEmpty(args.ArchivePath) ? "" : $" in {args.ArchivePath}";
             Log?.ReportProgress(100, (int) args.PercentageDone, $"Processing {args.RelativePathInArchive}{archiveString}.");
         }
         
-        private struct FileToArchive : IFileToArchive {
+        protected class FileToArchive : IFileToArchive {
             public string ArchivePath { get; }
             public string PathInArchive { get; }
             public bool Processed { get; set; }
@@ -249,20 +257,20 @@ namespace Oetools.Builder.Project.Task {
             }
         }
 
-        private string _baseDirectory;
+        private string _targetBaseDirectory;
 
-        /// <inheritdoc cref="IOeTaskFileToBuild.SetBaseDirectory"/>
-        public void SetBaseDirectory(string baseDirectory) {
-            _baseDirectory = baseDirectory;
+        /// <inheritdoc cref="IOeTaskFileToBuild.SetTargetBaseDirectory"/>
+        public void SetTargetBaseDirectory(string baseDirectory) {
+            _targetBaseDirectory = baseDirectory;
         }
         
-        private PathList<IOeFileToBuild> _filesToBuild;
+        protected PathList<IOeFileToBuild> _filesToBuild;
         
         /// <inheritdoc cref="IOeTaskFile.SetFilesToProcess"/>
         public override void SetFilesToProcess(PathList<IOeFile> filesToProcess) {
             // make a deep copy of those files because we will modify them
             _filesToBuild = filesToProcess.CopySelect(f => new OeFile(f) as IOeFileToBuild);
-            SetTargets(_filesToBuild, _baseDirectory);
+            SetTargets(_filesToBuild, _targetBaseDirectory);
         }
 
         /// <inheritdoc cref="IOeTaskFileToBuild.GetFilesToBuild"/>
@@ -285,11 +293,12 @@ namespace Oetools.Builder.Project.Task {
 
         #region IOeTaskWithBuiltFiles
 
-        private PathList<IOeFileBuilt> _builtFiles;
+        protected PathList<IOeFileBuilt> _builtFiles;
         
         /// <inheritdoc cref="IOeTaskWithBuiltFiles.GetBuiltFiles"/>
         public PathList<IOeFileBuilt> GetBuiltFiles() => _builtFiles;
 
         #endregion
+
     }
 }

@@ -205,7 +205,7 @@ namespace Oetools.Builder.Test {
             
             var taskCompileArchive = new TaskCompileArchive {
                 Include = @"**1**",
-                ArchivePath = @"test.zip",
+                TargetArchivePath = @"test.zip",
                 TargetDirectory = @""
             };
             
@@ -239,45 +239,20 @@ namespace Oetools.Builder.Test {
         }
         
         private class TaskCompileFile : AOeTaskFileArchiverArchive, IOeTaskCompile {
-            
             public IArchiver Archiver { get; set; }
-            
-            public string TargetFilePath { get; set; }
-        
-            public string TargetDirectory { get; set; }
-            
+            public override string TargetArchivePath { get; set; }
+            public override string TargetFilePath { get; set; }
+            public override string TargetDirectory { get; set; }
             protected override IArchiver GetArchiver() => Archiver;
-        
             protected override AOeTarget GetNewTarget() => new OeTargetFile();
-
-            protected override string GetArchivePath() => null;
-
-            protected override string GetArchivePathPropertyName() => null;
-
-            protected override string GetTargetFilePath() => TargetFilePath;
-
-            protected override string GetTargetFilePathPropertyName() => nameof(TargetFilePath);
-
-            protected override string GetTargetDirectory() => TargetDirectory;
-
-            protected override string GetTargetDirectoryPropertyName() => nameof(TargetDirectory);
-
             public List<IOeFileToBuild> Files { get; set; } = new List<IOeFileToBuild>();
-            
             protected override void ExecuteInternalArchive() {
                 Files.AddRange(GetFilesToBuild());
             }
         }
         
         private class TaskCompileArchive : TaskCompileFile {
-            
-            public string ArchivePath { get; set; }       
-
-            protected override string GetArchivePath() => ArchivePath;
-            
             protected override AOeTarget GetNewTarget() => new OeTargetZip();
-
-            protected override string GetArchivePathPropertyName() => nameof(ArchivePath);
         }
     }
 }

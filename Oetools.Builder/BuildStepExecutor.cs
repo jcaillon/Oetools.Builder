@@ -132,7 +132,7 @@ namespace Oetools.Builder {
                 taskNeedingProperties.SetProperties(Properties);
             }
             if (task is IOeTaskFileToBuild taskFileToBuild) {
-                taskFileToBuild.SetBaseDirectory(BaseTargetDirectory);
+                taskFileToBuild.SetTargetBaseDirectory(BaseTargetDirectory);
             }
         }
 

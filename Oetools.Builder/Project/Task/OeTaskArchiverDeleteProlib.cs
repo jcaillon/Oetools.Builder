@@ -29,15 +29,11 @@ namespace Oetools.Builder.Project.Task {
     [XmlRoot("DeleteInProlib")]
     public class OeTaskArchiverDeleteProlib : AOeTaskArchiverDelete {
                     
-        /// <inheritdoc cref="AOeTaskArchiverDelete.GetArchivePath"/>
+        /// <inheritdoc cref="AOeTaskArchiverDelete.ArchivePath"/>
         [XmlAttribute("ProlibFilePath")]
-        public string ProlibFilePath { get; set; }
+        public override string ArchivePath { get; set; }
 
-        protected override string GetArchivePath() => ProlibFilePath;
-        
-        protected override string GetArchivePathPropertyName() => nameof(ProlibFilePath);
-
-        protected override IArchiver GetArchiver() => Archiver.NewProlibArchiver();
+        protected override IArchiverFullFeatured GetArchiver() => Archiver.NewProlibArchiver();
 
     }
 }

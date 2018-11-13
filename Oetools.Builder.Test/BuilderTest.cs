@@ -73,7 +73,7 @@ namespace Oetools.Builder.Test {
                     new OeBuildStepBuildSource {
                         Tasks = new List<AOeTask> {
                             new OeTaskFileCompile { Include = "**/subfolder/**", TargetDirectory = "subfolder;copy_subfolder" },
-                            new OeTaskFileArchiverArchiveProlibCompile { Include = "**.w", TargetProlibFilePath = "w.pl", RelativeTargetDirectory = ";screens" }
+                            new OeTaskFileArchiverArchiveProlibCompile { Include = "**.w", TargetArchivePath = "w.pl", TargetDirectory = ";screens" }
                         }
                     },
                     new OeBuildStepBuildSource {
@@ -257,7 +257,7 @@ namespace Oetools.Builder.Test {
                     new OeBuildStepClassic {
                         Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCopy2 { Include = "{{SOURCE_DIRECTORY}}/**.w", TargetDirectory = "{{SOURCE_DIRECTORY}}/copied_w" },
-                            new OeTaskFileTargetArchiveProlibCompileProlib2 { Include = "{{SOURCE_DIRECTORY}}/**file1**", TargetProlibFilePath = "{{SOURCE_DIRECTORY}}/my.pl", RelativeTargetDirectory = "" }
+                            new OeTaskFileTargetArchiveProlibCompileProlib2 { Include = "{{SOURCE_DIRECTORY}}/**file1**", TargetArchivePath = "{{SOURCE_DIRECTORY}}/my.pl", TargetDirectory = "" }
                         }
                     }
                 },
@@ -308,7 +308,7 @@ namespace Oetools.Builder.Test {
                     new OeBuildStepClassic {
                         Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCopy2 { Include = "**.w", TargetDirectory = "copied_w" },
-                            new OeTaskFileTargetArchiveProlibCompileProlib2 { Include = "**file1**", TargetProlibFilePath = "my.pl", RelativeTargetDirectory = "" }
+                            new OeTaskFileTargetArchiveProlibCompileProlib2 { Include = "**file1**", TargetArchivePath = "my.pl", TargetDirectory = "" }
                         }
                     },
                     new OeBuildStepClassic {
@@ -356,7 +356,7 @@ namespace Oetools.Builder.Test {
                     new OeBuildStepBuildSource {
                         Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCompile2 { Include = "**file1**", TargetDirectory = "first;/random/folder" },
-                            new OeTaskFileTargetArchiveProlibCompileProlib2 { Include = "**file((2||3))**", TargetProlibFilePath = "my.pl", RelativeTargetDirectory = "" }
+                            new OeTaskFileTargetArchiveProlibCompileProlib2 { Include = "**file((2||3))**", TargetArchivePath = "my.pl", TargetDirectory = "" }
                         }
                     },
                     new OeBuildStepBuildSource {
@@ -427,7 +427,7 @@ namespace Oetools.Builder.Test {
                     new OeBuildStepBuildSource {
                         Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCompile2 { Include = "**file1**", TargetDirectory = "first;/random/folder" },
-                            new OeTaskFileTargetArchiveProlibCompileProlib2 { Include = "**file((2||3))**", TargetProlibFilePath = "my.pl", RelativeTargetDirectory = "" }
+                            new OeTaskFileTargetArchiveProlibCompileProlib2 { Include = "**file((2||3))**", TargetArchivePath = "my.pl", TargetDirectory = "" }
                         }
                     },
                     new OeBuildStepBuildSource {

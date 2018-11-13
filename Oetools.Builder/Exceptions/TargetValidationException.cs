@@ -18,16 +18,14 @@
 // ========================================================================
 #endregion
 using System;
+using Oetools.Builder.Project.Task;
 
 namespace Oetools.Builder.Exceptions {
     
-    public class TargetValidationException : BuilderException {
-        
+    public class TargetValidationException : TaskValidationException {
         public int TargetNumber { get; set; }
-
-        public TargetValidationException(string message) : base(message) { }
-        public TargetValidationException(string message, Exception innerException) : base(message, innerException) { }
-        
-        public override string Message => $"Target {TargetNumber.ToString()} : {base.Message ?? ""}";
+        public TargetValidationException(AOeTask task, string message) : base(task, message) { }
+        public TargetValidationException(AOeTask task, string message, Exception innerException) : base(task, message, innerException) { }
+        public override string Message => $"Target {TargetNumber.ToString()}: {base.Message ?? ""}";
     }
 }

@@ -19,67 +19,49 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Xml.Serialization;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Archive;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
     
     [Serializable]
     [XmlRoot("Cab")]
-    public class OeTaskFileArchiverArchiveCab : AOeTaskFileArchiverArchive, IOeTaskWithBuiltFiles {
+    public class OeTaskFileArchiverArchiveCab : AOeTaskFileArchiverArchive, IOeTaskWithBuiltFiles { 
         
-        /// <summary>
-        /// Relative path inside the archive.
-        /// </summary>
-        [XmlAttribute("RelativeTargetFilePath")]
-        [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public string RelativeTargetFilePath { get; set; }
-        
-        /// <summary>
-        /// Relative path inside the archive.
-        /// </summary>
-        [XmlAttribute("RelativeTargetDirectory")]
-        [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public string RelativeTargetDirectory { get; set; }       
-        
+        /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetArchivePath"/>
         [XmlAttribute("TargetCabFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public string TargetCabFilePath { get; set; }
+        public override string TargetArchivePath { get; set; } 
+               
+        /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetFilePath"/>
+        [XmlAttribute("RelativeTargetFilePath")]
+        [ReplaceVariables(LeaveUnknownUntouched = true)]
+        public override string TargetFilePath { get; set; }
         
+        /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetDirectory"/>
+        [XmlAttribute("RelativeTargetDirectory")]
+        [ReplaceVariables(LeaveUnknownUntouched = true)]
+        public override string TargetDirectory { get; set; }      
+        
+        /// <summary>
+        /// The compression level to use for the cabinet file.
+        /// </summary>
         [XmlAttribute(AttributeName = "CompressionLevel")]
-        public OeCabCompressionLevel CompressionLevel { get; set; }
+        public string CompressionLevel { get; set; }
 
         protected override IArchiver GetArchiver() {
             var archiver = Archiver.NewCabArchiver();
-            if (Enum.TryParse(CompressionLevel.ToString(), true, out ArchiveCompressionLevel level)) {
+            if (Enum.TryParse(CompressionLevel, true, out ArchiveCompressionLevel level)) {
                 archiver.SetCompressionLevel(level);
+            } else {
+                Log?.Warn($"Failed to understand the value {CompressionLevel.PrettyQuote()} for {GetType().GetXmlName(nameof(CompressionLevel))}.");
             }
             return archiver;
         }
         
         protected override AOeTarget GetNewTarget() => new OeTargetCab();
-
-        protected override string GetArchivePath() => TargetCabFilePath;
-
-        protected override string GetArchivePathPropertyName() => nameof(TargetCabFilePath);
-
-        protected override string GetTargetFilePath() => RelativeTargetFilePath;
-
-        protected override string GetTargetFilePathPropertyName() => nameof(RelativeTargetFilePath);
-
-        protected override string GetTargetDirectory() => RelativeTargetDirectory;
-
-        protected override string GetTargetDirectoryPropertyName() => nameof(RelativeTargetDirectory);
-    }
-    
-    [Serializable]
-    public enum OeCabCompressionLevel {
-        [XmlEnum("None")] 
-        None,
-        [XmlEnum("Max")] 
-        Max
     }
 }

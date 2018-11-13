@@ -36,44 +36,31 @@ namespace Oetools.Builder.Project.Task {
     public abstract class AOeTaskFilter : AOeTask, IOeTaskFilter {
 
         /// <summary>
-        /// ; are authorized
+        /// A path pattern that describes paths that should be processed by this task.
         /// </summary>
         /// <remarks>
         /// <para>
-        ///     Allows to tranform a matching string using **, * and ? (wildcards) into a valid regex expression
-        ///     it escapes regex special char so it will work as you expect!
-        ///     Ex: foo*.xls? will become ^foo.*\.xls.$
-        ///     - ** matches any char any nb of time (greedy match! allows to do stuff like C:\((**))((*)).txt)
-        ///     - * matches only non path separators any time
-        ///     - ? matches non path separators 1 time
-        ///     - (( will be transformed into open capturing parenthesis
-        ///     - )) will be transformed into close capturing parenthesis
-        ///     - || will be transformed into |
+        /// Several pattern can be used, separate them with a semi-colon (i.e. ;).
+        /// The following symbols can be used in patterns:
+        /// 
+        /// - ** will match any char any number of time (corresponds to a regex greedy match)
+        /// - * will match only non path separators any time (can be used to match any file name)
+        /// - ? matches non path separators exactly 1 time
+        /// - (( will start capturing characters (equivalent to regex capturing parenthesis)
+        /// - )) will stop capturing characters
+        /// - || will corresponds to a "or" in a captured context (equivalent to | in regex)
+        /// 
+        /// Fyi, internally, each pattern is turned into a valid regular expression.
+        ///
+        /// If a file is matched by several patterns, only the first one will be used.
         /// </para>
         /// </remarks>
-        [XmlAttribute(AttributeName = "Exclude")]
-        public string Exclude {
-            get => _exclude;
-            set {
-                _excludeRegexes = null; 
-                _exclude = value;
-            }
-        }
-
-        /// <summary>
-        /// Separate different path with ; if a file is matched with several include path, only the first one is used
-        /// </summary>
-        /// <remarks>
-        ///     Allows to tranform a matching string using **, * and ? (wildcards) into a valid regex expression
-        ///     it escapes regex special char so it will work as you expect!
-        ///     Ex: foo*.xls? will become ^foo.*\.xls.$
-        ///     - ** matches any char any nb of time (greedy match! allows to do stuff like C:\((**))((*)).txt)
-        ///     - * matches only non path separators any time
-        ///     - ? matches non path separators 1 time
-        ///     - (( will be transformed into open capturing parenthesis
-        ///     - )) will be transformed into close capturing parenthesis
-        ///     - || will be transformed into |
-        /// </remarks>
+        /// <example>
+        /// <para>
+        /// ** will match any path.
+        /// ((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).
+        /// </para>
+        /// </example>
         [XmlAttribute(AttributeName = "Include")]
         public string Include {
             get => _include;
@@ -84,7 +71,7 @@ namespace Oetools.Builder.Project.Task {
         }
 
         /// <summary>
-        /// Separate different path with ;
+        /// A regular expression path pattern that describes paths that should be processed by this task.
         /// </summary>
         [XmlAttribute(AttributeName = "IncludeRegex")]
         public virtual string IncludeRegex {
@@ -94,9 +81,22 @@ namespace Oetools.Builder.Project.Task {
                 _includeRegex = value;
             }
         }
+        
+        /// <summary>
+        /// A path pattern that describes paths that should be excluded from being processed by this task.
+        /// </summary>
+        /// <inheritdoc cref="Include"/>
+        [XmlAttribute(AttributeName = "Exclude")]
+        public string Exclude {
+            get => _exclude;
+            set {
+                _excludeRegexes = null; 
+                _exclude = value;
+            }
+        }
 
         /// <summary>
-        /// Separate different path with ;
+        /// A regular expression path pattern that describes paths that should be excluded from being processed by this task.
         /// </summary>
         [XmlAttribute(AttributeName = "ExcludeRegex")]
         public string ExcludeRegex {
@@ -201,7 +201,7 @@ namespace Oetools.Builder.Project.Task {
                 try {
                     output.Add(new Regex(regexString));
                 } catch (Exception e) {
-                    var ex = new FilterValidationException($"Invalid filter regex expression {regexString.PrettyQuote()}, reason : {e.Message}", e) {
+                    var ex = new FilterValidationException($"Invalid filter regex expression {regexString.PrettyQuote()}. {e.Message}", e) {
                         FilterNumber = i
                     };
                     throw ex;
@@ -226,7 +226,7 @@ namespace Oetools.Builder.Project.Task {
                 try {
                     Utils.ValidatePathWildCard(originalString);
                 } catch (Exception e) {
-                    var ex = new FilterValidationException($"Invalid path expression {originalString.PrettyQuote()}, reason : {e.Message}", e) {
+                    var ex = new FilterValidationException($"Invalid path expression {originalString.PrettyQuote()}. {e.Message}", e) {
                         FilterNumber = i
                     };
                     throw ex;
@@ -285,18 +285,18 @@ namespace Oetools.Builder.Project.Task {
         }
         
         /// <summary>
-        /// Computes a single target file for the given <paramref name="sourceFilePath"/>.
+        /// Computes a single target file for the given <paramref name="sourcePath"/>.
         /// </summary>
         /// <param name="targetPathWithPlaceholders">target path that can contain placeholders.</param>
         /// <param name="isDirectoryPath">Is the target path a directory.</param>
         /// <param name="match">The match result of the source path with the include regex.</param>
-        /// <param name="sourceFilePath">The source path.</param>
+        /// <param name="sourcePath">The source path.</param>
         /// <param name="baseTargetDirectory">The base target directory</param>
         /// <param name="mustBeRelativePath">Indicates if the resulting target should be a relative path or not.</param>
         /// <returns></returns>
         /// <exception cref="TaskExecutionException"></exception>
-        private string GetSingleTargetPath(string targetPathWithPlaceholders, bool isDirectoryPath, Match match, string sourceFilePath, string baseTargetDirectory, bool mustBeRelativePath) {
-            var sourceFileDirectory = Path.GetDirectoryName(sourceFilePath);
+        private string GetSingleTargetPath(string targetPathWithPlaceholders, bool isDirectoryPath, Match match, string sourcePath, string baseTargetDirectory, bool mustBeRelativePath) {
+            var sourceFileDirectory = Path.GetDirectoryName(sourcePath);
             var target = targetPathWithPlaceholders.ReplacePlaceHolders(s => {
                 if (s.EqualsCi(OeBuilderConstants.OeVarNameFileSourceDirectory)) {
                     return sourceFileDirectory;
@@ -309,7 +309,7 @@ namespace Oetools.Builder.Project.Task {
 
             // if we target a directory, append the source filename
             if (isDirectoryPath) {
-                target = Path.Combine(target, Path.GetFileName(sourceFilePath ?? ""));
+                target = Path.Combine(target, Path.GetFileName(sourcePath ?? ""));
             } else {
                 target = target.TrimEndDirectorySeparator();
             }
@@ -324,10 +324,10 @@ namespace Oetools.Builder.Project.Task {
                     target = Path.Combine(baseTargetDirectory, target);
                     isPathRooted = true;
                 } else if (!mustBeRelativePath) {
-                    throw new TaskExecutionException(this, $"This task is not allowed to target a relative path because no base target directory is defined for this task, the error occured for : {targetPathWithPlaceholders.PrettyQuote()}");
+                    throw new TaskExecutionException(this, $"This task is not allowed to target a relative path because no base target directory is defined for this task, the error occured for : {targetPathWithPlaceholders.PrettyQuote()}.");
                 }
             } else if (mustBeRelativePath) {
-                throw new TaskExecutionException(this, $"The following path should resolve to a relative path : {targetPathWithPlaceholders.PrettyQuote()}");
+                throw new TaskExecutionException(this, $"The following path should resolve to a relative path : {targetPathWithPlaceholders.PrettyQuote()}.");
             }
             
             // get the real full path name of the target
@@ -335,7 +335,7 @@ namespace Oetools.Builder.Project.Task {
                 try {
                     target = Path.GetFullPath(target);
                 } catch (Exception e) {
-                    throw new TaskExecutionException(this, $"Could not convert the target path to an absolute path, the original path pattern was {targetPathWithPlaceholders.PrettyQuote()}, it was resolved into the target {target.PrettyQuote()} but failed with the exception : {e.Message}", e);
+                    throw new TaskExecutionException(this, $"Could not convert the target path to an absolute path, the original path pattern was {targetPathWithPlaceholders.PrettyQuote()}, it was resolved into the target {target.PrettyQuote()} but failed. {e.Message}", e);
                 }
             }
 
@@ -346,9 +346,10 @@ namespace Oetools.Builder.Project.Task {
         /// Checks that a list of strings are valid path with placeholders.
         /// </summary>
         /// <param name="originalStrings"></param>
+        /// <param name="getPropertyName"></param>
         /// <returns></returns>
         /// <exception cref="TaskValidationException"></exception>
-        protected void CheckTargetPath(IEnumerable<string> originalStrings) {
+        protected void CheckTargetPath(IEnumerable<string> originalStrings, Func<string> getPropertyName) {
             if (originalStrings == null) {
                 return;
             }
@@ -357,12 +358,12 @@ namespace Oetools.Builder.Project.Task {
                 try {
                     foreach (char c in Path.GetInvalidPathChars()) {
                         if (originalString.IndexOf(c) >= 0) {
-                            throw new Exception($"Illegal character path {c} at column {originalString.IndexOf(c)}");
+                            throw new Exception($"Illegal character path {c} at column {originalString.IndexOf(c)}.");
                         }
                     }
                     originalString.ValidatePlaceHolders();
                 } catch (Exception e) {
-                    var ex = new TargetValidationException($"Invalid path expression {originalString.PrettyQuote()}, reason : {e.Message}", e) {
+                    var ex = new TargetValidationException(this, $"Property {getPropertyName?.Invoke() ?? "?"}, invalid path expression {originalString.PrettyQuote()}. {e.Message}", e) {
                         TargetNumber = i
                     };
                     throw ex;

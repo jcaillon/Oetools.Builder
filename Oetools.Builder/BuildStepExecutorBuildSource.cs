@@ -30,9 +30,10 @@ namespace Oetools.Builder {
 
         /// <inheritdoc cref="BuildStepExecutor.ExecuteInternal"/>
         protected override void ExecuteInternal() {
+            IDisposable compiler = null;
             if (!TestMode) {
                 Log?.Info("Compiling files from all tasks before executing all the tasks");
-                CompileFiles();
+                compiler = CompileFiles();
                 if (_compiledPaths != null) {
                     Log?.Debug("Associate the list of compiled files for each task");
                     foreach (var task in Tasks) {
@@ -42,7 +43,11 @@ namespace Oetools.Builder {
                     }
                 }
             }
-            base.ExecuteInternal();
+            try {
+                base.ExecuteInternal();
+            } finally {
+                compiler?.Dispose();
+            }
         }
 
         /// <inheritdoc cref="BuildStepExecutor.GetFilesToBuildForSingleTask"/>
@@ -134,16 +139,18 @@ namespace Oetools.Builder {
         /// </summary>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="TaskExecutorException"></exception>
-        private void CompileFiles() {
+        private IDisposable CompileFiles() {
             var filesToCompile = GetFilesToCompile(Tasks);
             if (filesToCompile.Count == 0) {
-                return;
+                return null;
             }
             if (Properties == null) {
                 throw new ArgumentNullException(nameof(Properties));
             }
             try {
-                _compiledPaths = OeFilesCompiler.CompileFiles(Properties, filesToCompile, CancelToken, Log);
+                var compiler = new OeFilesCompiler();
+                _compiledPaths = compiler.CompileFiles(Properties, filesToCompile, CancelToken, Log);
+                return compiler;
             } catch (Exception e) {
                 throw new TaskExecutorException(this, e.Message, e);
             }

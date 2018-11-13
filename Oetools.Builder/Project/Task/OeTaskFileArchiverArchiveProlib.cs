@@ -19,7 +19,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Xml.Serialization;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities.Attributes;
@@ -30,39 +29,27 @@ namespace Oetools.Builder.Project.Task {
     [Serializable]
     [XmlRoot("Prolib")]
     public class OeTaskFileArchiverArchiveProlib : AOeTaskFileArchiverArchive, IOeTaskWithBuiltFiles {
-        
+           
         /// <summary>
-        /// Relative path inside the archive.
+        /// The path to the targeted prolib file.
         /// </summary>
-        [XmlAttribute("RelativeTargetFilePath")]
-        [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public string RelativeTargetFilePath { get; set; }
-        
-        /// <summary>
-        /// Relative path inside the archive.
-        /// </summary>
-        [XmlAttribute("RelativeTargetDirectory")]
-        [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public string RelativeTargetDirectory { get; set; }       
-        
+        /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetArchivePath"/>
         [XmlAttribute("TargetProlibFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public string TargetProlibFilePath { get; set; }
+        public override string TargetArchivePath { get; set; }
+        
+        /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetFilePath"/>
+        [XmlAttribute("RelativeTargetFilePath")]
+        [ReplaceVariables(LeaveUnknownUntouched = true)]
+        public override string TargetFilePath { get; set; }
+        
+        /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetDirectory"/>
+        [XmlAttribute("RelativeTargetDirectory")]
+        [ReplaceVariables(LeaveUnknownUntouched = true)]
+        public override string TargetDirectory { get; set; }    
         
         protected override IArchiver GetArchiver() => Archiver.NewProlibArchiver();
         
         protected override AOeTarget GetNewTarget() => new OeTargetProlib();
-
-        protected override string GetArchivePath() => TargetProlibFilePath;
-
-        protected override string GetArchivePathPropertyName() => nameof(TargetProlibFilePath);
-
-        protected override string GetTargetFilePath() => RelativeTargetFilePath;
-
-        protected override string GetTargetFilePathPropertyName() => nameof(RelativeTargetFilePath);
-
-        protected override string GetTargetDirectory() => RelativeTargetDirectory;
-
-        protected override string GetTargetDirectoryPropertyName() => nameof(RelativeTargetDirectory);
     }
 }

@@ -32,7 +32,7 @@ namespace Oetools.Builder.Project.Task {
         /// Sets the base directory that will be used to determine the target of each file.
         /// </summary>
         /// <param name="baseDirectory"></param>
-        void SetBaseDirectory(string baseDirectory);
+        void SetTargetBaseDirectory(string baseDirectory);
 
         /// <summary>
         /// Gets the list of files to build.

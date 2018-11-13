@@ -20,12 +20,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Xml.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
+using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Archive;
@@ -35,15 +37,31 @@ namespace Oetools.Builder.Test.Project.Task {
     
     [TestClass]
     public class AOeTaskFileArchiverArchiveTest {
+        
+        private static string _testFolder;
 
+        private static string TestFolder => _testFolder ?? (_testFolder = TestHelper.GetTestFolder(nameof(AOeTaskFileArchiverArchiveTest)));
+                     
+        [ClassInitialize]
+        public static void Init(TestContext context) {
+            Cleanup();
+            Utils.CreateDirectoryIfNeeded(TestFolder);
+        }
+
+
+        [ClassCleanup]
+        public static void Cleanup() {
+            Utils.DeleteDirectoryIfExists(TestFolder, true);
+        }
+        
         [TestMethod]
         public void SetFilesToProcess() {
             var task = new AOeTaskFileArchiverArchive2 {
                 Include = "**", 
-                ArchivePath = "archive.pack", 
+                TargetArchivePath = "archive.pack", 
                 TargetDirectory = "dir"
             };
-            task.SetBaseDirectory(@"D:\");
+            task.SetTargetBaseDirectory(@"D:\");
             task.SetFilesToProcess(new PathList<IOeFile> { new OeFile(@"C:\folder\source.txt") });
 
             var targets = task.GetFilesToBuild().SelectMany(s => s.TargetsToBuild).Select(t => t.GetTargetPath()).ToList();
@@ -60,7 +78,7 @@ namespace Oetools.Builder.Test.Project.Task {
             
             Assert.AreEqual(0, task.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").ToList().Count);
 
-            task.ArchivePath = "archive.pack";
+            task.TargetArchivePath = "archive.pack";
             task.TargetDirectory = "dir";
             
             var list = task.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetPath()).ToList();
@@ -71,12 +89,12 @@ namespace Oetools.Builder.Test.Project.Task {
             
             Assert.AreEqual(2, task.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").ToList().Count);
             
-            task.ArchivePath = "archive.pack;archive2.pack";
+            task.TargetArchivePath = "archive.pack;archive2.pack";
             
             Assert.AreEqual(4, task.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").ToList().Count);
             
             task.Include = @"C:\((**))((*)).((*));**";
-            task.ArchivePath = @"archive.pack;/arc.{{3}}";
+            task.TargetArchivePath = @"archive.pack;/arc.{{3}}";
             task.TargetFilePath = "{{1}}file.{{3}}";
             task.TargetDirectory = null;
 
@@ -88,7 +106,7 @@ namespace Oetools.Builder.Test.Project.Task {
             
             Assert.ThrowsException<TaskExecutionException>(() => task.GetTargetsFiles(@"C:\folder\source.txt", null), "This task is not allowed to target relative path because no base target directory is not defined at this moment, the error occured for : <<targetfolder>>");
             
-            task.ArchivePath = @"C:\archive.pack";
+            task.TargetArchivePath = @"C:\archive.pack";
             
             Assert.AreEqual(1, task.GetTargetsFiles(@"C:\folder\source.txt", null).Count);
             
@@ -107,7 +125,7 @@ namespace Oetools.Builder.Test.Project.Task {
             task.Include = "((**))((*)).((*));**";
             task.TargetDirectory = null;
             task.TargetFilePath = "{{1}}file.{{3}}";
-            task.ArchivePath = null;
+            task.TargetArchivePath = null;
             
             list = task.GetTargetsFiles(@"C:\folder\source.txt", null).Select(s => s.FilePathInArchive).ToList();
             Assert.AreEqual(1, list.Count);
@@ -130,9 +148,9 @@ namespace Oetools.Builder.Test.Project.Task {
 
             targetTask.TargetFilePath = "{{wrong var usage";
             
-            Assert.ThrowsException<TaskValidationException>(() => targetTask.Validate());
+            Assert.ThrowsException<TargetValidationException>(() => targetTask.Validate());
             
-            targetTask.ArchivePath = "needed as well";
+            targetTask.TargetArchivePath = "needed as well";
 
             Assert.ThrowsException<TargetValidationException>(() => targetTask.Validate());
             
@@ -143,37 +161,20 @@ namespace Oetools.Builder.Test.Project.Task {
 
             targetTask.TargetDirectory = "ok";
             
+            Assert.ThrowsException<TaskValidationException>(() => targetTask.Validate());
+
+            targetTask.TargetArchivePath = "archive";
+            
             targetTask.Validate();
         }
 
         private class AOeTaskFileArchiverArchive2 : AOeTaskFileArchiverArchive {
-            
-            public IArchiver Archiver { get; set; }
-            
-            public string TargetFilePath { get; set; }
-        
-            public string TargetDirectory { get; set; }
-            
-            public string ArchivePath { get; set; }       
-        
-            protected override IArchiver GetArchiver() => Archiver;
-        
+            public override string TargetArchivePath { get; set; }
+            public override string TargetFilePath { get; set; }
+            public override string TargetDirectory { get; set; }
+            protected override IArchiver GetArchiver() => null;
             protected override AOeTarget GetNewTarget() => NewTargetFunc?.Invoke() ?? new OeTargetZip();
-
             public Func<AOeTarget> NewTargetFunc { get; set; }
-
-            protected override string GetArchivePath() => ArchivePath;
-
-            protected override string GetArchivePathPropertyName() => nameof(ArchivePath);
-
-            protected override string GetTargetFilePath() => TargetFilePath;
-
-            protected override string GetTargetFilePathPropertyName() => nameof(TargetFilePath);
-
-            protected override string GetTargetDirectory() => TargetDirectory;
-
-            protected override string GetTargetDirectoryPropertyName() => nameof(TargetDirectory);
-
             public List<AOeTarget> GetTargetsFiles(string filePath, string baseDirectory) {
                 var file = new OeFile(filePath);
                 var list = new PathList<IOeFileToBuild> { file };
@@ -183,56 +184,58 @@ namespace Oetools.Builder.Test.Project.Task {
         }
         
         [TestMethod]
-        public void Dunno() {
-            var targetTask = new AOeTaskFileArchiverArchive2();
-
-            Assert.ThrowsException<TaskValidationException>(() => targetTask.Validate());
-
-            targetTask.Include = "**";
+        public void FilesBuilts() {
+            var task = new TestTaskFileArchiverArchive {
+                Include = "**",
+                TargetDirectory = "",
+                TargetArchivePath = "archive.test"
+            };
+            task.SetTargetBaseDirectory("/target");
+            task.SetFilesToProcess(new PathList<IOeFile> { new OeFile(@"/file1"), new OeFile(@"/file2") });
+            task.Validate();
+            task.Execute();
+            var builtFiles = task.GetBuiltFiles();
             
-            Assert.ThrowsException<TaskValidationException>(() => targetTask.Validate());
-
-            targetTask.TargetFilePath = "{{wrong var usage";
-            
-            Assert.ThrowsException<TaskValidationException>(() => targetTask.Validate());
-            
-            targetTask.ArchivePath = "needed as well";
-
-            Assert.ThrowsException<TargetValidationException>(() => targetTask.Validate());
-            
-            targetTask.TargetFilePath = null;
-            targetTask.TargetDirectory = "\r wrong target, invalid path";
-            
-            Assert.ThrowsException<TargetValidationException>(() => targetTask.Validate());
-
-            targetTask.TargetDirectory = "ok";
-            
-            targetTask.Validate();
+            Assert.AreEqual(1, builtFiles.Count, "Expect 1 file built.");
+            Assert.IsTrue(builtFiles.ElementAt(0).Targets.ElementAt(0).GetTargetPath().PathEquals("/target/archive.test/file1".ToCleanPath()));
         }
         
-        private class TestTaskFileArchiverArchive : AOeTaskFileArchiverArchive {
-                       
-            public string TargetFilePath { get; set; }
-        
-            public string TargetDirectory { get; set; }
+        [TestMethod]
+        public void ExecuteFromIncludedFiles() {
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
             
-            public string ArchivePath { get; set; }       
+            var sourceDirectory = TestFolder;
+            Utils.CreateDirectoryIfNeeded(Path.Combine(sourceDirectory, "subfolder"));
+            
+            File.WriteAllText(Path.Combine(sourceDirectory, "file1.p"), "quit."); // compile ok
+            File.WriteAllText(Path.Combine(sourceDirectory, "file2.w"), "quit. quit."); // compile with warnings
+            File.WriteAllText(Path.Combine(sourceDirectory, "subfolder", "file3.p"), "quit.");
+            
+            var task = new TestTaskFileArchiverArchive {
+                Include = Path.Combine(TestFolder, "((**))"),
+                TargetDirectory = "",
+                TargetArchivePath = "archive.test"
+            };
+            
+            task.SetProperties(new OeProperties { BuildOptions = new OeBuildOptions { SourceDirectoryPath = sourceDirectory }});
+            task.SetTargetBaseDirectory("/target");
+            task.SetFilesToProcess(task.GetFilesToProcessFromIncludes());
+            task.Validate();
+            task.Execute();
+            var builtFiles = task.GetBuiltFiles();
+            
+            Assert.AreEqual(1, builtFiles.Count, "Expect 1 file built.");
+            Assert.IsTrue(builtFiles.ElementAt(0).Targets.ElementAt(0).GetTargetPath().PathEquals("/target/archive.test/file1.r".ToCleanPath()));
+        }
         
+        private class TestTaskFileArchiverArchive : AOeTaskFileArchiverArchive, IOeTaskCompile {
+            public override string TargetArchivePath { get; set; }
+            public override string TargetFilePath { get; set; }
+            public override string TargetDirectory { get; set; }
             protected override IArchiver GetArchiver() => new TestArchiver();
-        
             protected override AOeTarget GetNewTarget() => new TestTarget();
-
-            protected override string GetArchivePath() => ArchivePath;
-
-            protected override string GetArchivePathPropertyName() => nameof(ArchivePath);
-
-            protected override string GetTargetFilePath() => TargetFilePath;
-
-            protected override string GetTargetFilePathPropertyName() => nameof(TargetFilePath);
-
-            protected override string GetTargetDirectory() => TargetDirectory;
-
-            protected override string GetTargetDirectoryPropertyName() => nameof(TargetDirectory);
         }
 
         private class TestArchiver : IArchiver {
@@ -240,7 +243,7 @@ namespace Oetools.Builder.Test.Project.Task {
             public event EventHandler<ArchiverEventArgs> OnProgress;
             public int ArchiveFileSet(IEnumerable<IFileToArchive> filesToPack) {
                 filesToPack.First().Processed = true;
-                OnProgress?.Invoke(this, null);
+                OnProgress?.Invoke(this, new ArchiverEventArgs());
                 return 1;
             }
             public int ExtractFileSet(IEnumerable<IFileInArchiveToExtract> filesToExtract) {
@@ -262,7 +265,6 @@ namespace Oetools.Builder.Test.Project.Task {
 
         private class TestTarget : AOeTarget {
             public override string ArchiveFilePath { get; set; }
-        
             public override string FilePathInArchive { get; set; }
         }
     }
