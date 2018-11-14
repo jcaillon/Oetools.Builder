@@ -52,12 +52,19 @@ namespace Oetools.Builder.Project.Task {
         [XmlAttribute(AttributeName = "CompressionLevel")]
         public string CompressionLevel { get; set; }
 
+        public ArchiveCompressionLevel? GetEnumCompressionLevel() {
+            if (Enum.TryParse(CompressionLevel, true, out ArchiveCompressionLevel level)) {
+                return level;
+            }
+            Log?.Warn($"Failed to understand the value {CompressionLevel.PrettyQuote()} for {GetType().GetXmlName(nameof(CompressionLevel))}.");
+            return null;
+        }
+
         protected override IArchiver GetArchiver() {
             var archiver = Archiver.NewCabArchiver();
-            if (Enum.TryParse(CompressionLevel, true, out ArchiveCompressionLevel level)) {
-                archiver.SetCompressionLevel(level);
-            } else {
-                Log?.Warn($"Failed to understand the value {CompressionLevel.PrettyQuote()} for {GetType().GetXmlName(nameof(CompressionLevel))}.");
+            var compressionLevel = GetEnumCompressionLevel();
+            if (compressionLevel != null) {
+                archiver.SetCompressionLevel((ArchiveCompressionLevel) compressionLevel);
             }
             return archiver;
         }

@@ -161,10 +161,6 @@ namespace Oetools.Builder.Test.Project.Task {
 
             targetTask.TargetDirectory = "ok";
             
-            Assert.ThrowsException<TaskValidationException>(() => targetTask.Validate());
-
-            targetTask.TargetArchivePath = "archive";
-            
             targetTask.Validate();
         }
 
@@ -213,7 +209,7 @@ namespace Oetools.Builder.Test.Project.Task {
             File.WriteAllText(Path.Combine(sourceDirectory, "file2.w"), "quit. quit."); // compile with warnings
             File.WriteAllText(Path.Combine(sourceDirectory, "subfolder", "file3.p"), "quit.");
             
-            var task = new TestTaskFileArchiverArchive {
+            var task = new TestTaskFileArchiverArchiveCompile {
                 Include = Path.Combine(TestFolder, "((**))"),
                 TargetDirectory = "",
                 TargetArchivePath = "archive.test"
@@ -230,12 +226,15 @@ namespace Oetools.Builder.Test.Project.Task {
             Assert.IsTrue(builtFiles.ElementAt(0).Targets.ElementAt(0).GetTargetPath().PathEquals("/target/archive.test/file1.r".ToCleanPath()));
         }
         
-        private class TestTaskFileArchiverArchive : AOeTaskFileArchiverArchive, IOeTaskCompile {
+        private class TestTaskFileArchiverArchive : AOeTaskFileArchiverArchive {
             public override string TargetArchivePath { get; set; }
             public override string TargetFilePath { get; set; }
             public override string TargetDirectory { get; set; }
             protected override IArchiver GetArchiver() => new TestArchiver();
             protected override AOeTarget GetNewTarget() => new TestTarget();
+        }
+        
+        private class TestTaskFileArchiverArchiveCompile : TestTaskFileArchiverArchive, IOeTaskCompile {
         }
 
         private class TestArchiver : IArchiver {

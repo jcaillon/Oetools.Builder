@@ -23,6 +23,8 @@ using System.Xml.Serialization;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Archive;
+using Oetools.Utilities.Archive.Prolib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
     
@@ -46,9 +48,39 @@ namespace Oetools.Builder.Project.Task {
         /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetDirectory"/>
         [XmlAttribute("RelativeTargetDirectory")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public override string TargetDirectory { get; set; }    
+        public override string TargetDirectory { get; set; }
         
-        protected override IArchiver GetArchiver() => Archiver.NewProlibArchiver();
+        /// <summary>
+        /// The version to use for the pro library file.
+        /// </summary>
+        [XmlAttribute(AttributeName = "ProlibVersion")]
+        public string ProlibVersion { get; set; }
+        
+        /// <summary>
+        /// The openedge codepage to use for file path encoding inside the pro library.
+        /// </summary>
+        [XmlAttribute(AttributeName = "FilePathCodePage")]
+        public string FilePathCodePage { get; set; }
+
+        public ProlibVersion? GetEnumProlibVersion() {
+            if (Enum.TryParse(ProlibVersion, true, out ProlibVersion version)) {
+                return version;
+            }
+            Log?.Warn($"Failed to understand the value {ProlibVersion.PrettyQuote()} for {GetType().GetXmlName(nameof(ProlibVersion))}.");
+            return null;
+        }
+
+        protected override IArchiver GetArchiver() {
+            var archiver = Archiver.NewProlibArchiver();
+            var version = GetEnumProlibVersion();
+            if (version != null) {
+                archiver.SetProlibVersion((ProlibVersion) version);
+            }
+            if (!string.IsNullOrEmpty(FilePathCodePage)) {
+                archiver.SetFilePathCodePage(FilePathCodePage);
+            }
+            return archiver;
+        }
         
         protected override AOeTarget GetNewTarget() => new OeTargetProlib();
     }

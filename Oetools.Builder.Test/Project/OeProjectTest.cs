@@ -50,6 +50,24 @@ namespace Oetools.Builder.Test.Project {
             Utils.DeleteDirectoryIfExists(TestFolder, true);
         }
 
+        private const string EnumMethodPrefix = "GetEnum";
+        
+        [TestMethod]
+        public void CheckForGetEnumMethodsAssociatedWithProperties() {
+            foreach (var type in TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}")) {
+                if (!type.IsPublic) {
+                    continue;
+                }
+                foreach (var methodInfo in type.GetMethods().ToList().Where(m => m.Name.StartsWith(EnumMethodPrefix))) {
+                    var prop = type.GetProperty(methodInfo.Name.Replace(EnumMethodPrefix, ""));
+                    Assert.IsNotNull(prop, $"If {methodInfo.Name} exists, we should find the property {methodInfo.Name.Replace(EnumMethodPrefix, "")} which is not the case...");
+                    Assert.IsTrue(TestHelper.CanBeNull(methodInfo.ReturnType), $"Return type of {type.Name}.{methodInfo.Name} is not nullable!");
+                    Assert.IsTrue(methodInfo.ReturnType.GenericTypeArguments[0].IsEnum, $"Return type of {type.Name}.{methodInfo.Name} is not an enum!");
+                }
+            }
+        }
+        
+
         private const string DefaultMethodPrefix = "GetDefault";
         
         [TestMethod]
@@ -58,7 +76,7 @@ namespace Oetools.Builder.Test.Project {
                 if (!type.IsPublic) {
                     continue;
                 }
-                foreach (var methodInfo in type.GetMethods().ToList().Where(m => m.IsStatic && m.Name.StartsWith(DefaultMethodPrefix))) {
+                foreach (var methodInfo in type.GetMethods().ToList().Where(m => m.IsStatic && m.Name.StartsWith(DefaultMethodPrefix))) {                   
                     var prop = type.GetProperty(methodInfo.Name.Replace(DefaultMethodPrefix, ""));
                     Assert.IsNotNull(prop, $"if {methodInfo.Name} exists, we should find the property {methodInfo.Name.Replace(DefaultMethodPrefix, "")} which is not the case...");
                     //Assert.AreEqual(methodInfo.ReturnType, prop.PropertyType, $"The method {methodInfo.Name} should return the same type as {methodInfo.Name.Replace(DefaultMethodPrefix, "")}");

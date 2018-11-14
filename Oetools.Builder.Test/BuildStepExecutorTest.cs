@@ -155,7 +155,7 @@ namespace Oetools.Builder.Test {
                 }
             };
             taskExecutor.Execute();
-            Assert.AreEqual(7, task2.Total, "One of the following methods were not called : set directories, get directories to include or dispose task.");
+            Assert.AreEqual(3, task2.Total, "One of the following methods were not called : set directories, get directories to include or dispose task.");
         }
 
         [TestMethod]
