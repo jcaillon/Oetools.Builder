@@ -1,391 +1,1040 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:element name="Project" nillable="true" type="OeProject" />
+  <xs:element name="Project" nillable="true" type="OeProject">
+    <xs:annotation>
+      <xs:documentation><![CDATA[Represents an openedge project (i.e. an application).]]></xs:documentation>
+    </xs:annotation>
+  </xs:element>
   <xs:complexType name="OeProject">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="GlobalProperties" type="OeProperties" />
-      <xs:element minOccurs="0" maxOccurs="1" name="GlobalVariables" type="ArrayOfOeVariable" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildConfigurations" type="ArrayOfOeBuildConfiguration" />
+      <xs:element minOccurs="0" maxOccurs="1" name="GlobalProperties" type="OeProperties">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Global properties for this project, shared by all the build configurations.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="GlobalVariables" type="ArrayOfOeVariable">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Global variables shared by all the build configurations.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildConfigurations" type="ArrayOfOeBuildConfiguration">
+        <xs:annotation>
+          <xs:documentation><![CDATA[A list of build configurations.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeProperties">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="DlcDirectoryPath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeCodePage" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="ProjectDatabases" type="ArrayOfOeProjectDatabase" />
-      <xs:element minOccurs="0" maxOccurs="1" name="DatabaseConnectionExtraParameters" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="DatabaseAliases" type="ArrayOfOeDatabaseAlias" />
-      <xs:element minOccurs="0" maxOccurs="1" name="IniFilePath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="PropathEntries" type="ArrayOfString" />
-      <xs:element minOccurs="1" maxOccurs="1" name="AddAllSourceDirectoriesToPropath" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="PropathSourceDirectoriesFilter" type="OeFilterOptions" />
-      <xs:element minOccurs="1" maxOccurs="1" name="AddDefaultOpenedgePropath" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="UseCharacterModeExecutable" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeCommandLineExtraParameters" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteBeforeAnyProgressExecution" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteAfterAnyProgressExecution" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeTemporaryDirectoryPath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildFilter" type="OeFilterOptions" />
-      <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildGitFilterOptions" type="OeGitFilterOptions" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CompilationOptions" type="OeCompilationOptions" />
-      <xs:element minOccurs="0" maxOccurs="1" name="IncrementalBuildOptions" type="OeIncrementalBuildOptions" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildOptions" type="OeBuildOptions" />
+      <xs:element minOccurs="0" maxOccurs="1" name="DlcDirectoryPath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeCodePage" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="ProjectDatabases" type="ArrayOfOeProjectDatabase">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="DatabaseConnectionExtraParameters" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="DatabaseAliases" type="ArrayOfOeDatabaseAlias">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="IniFilePath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="PropathEntries" type="ArrayOfString">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="AddAllSourceDirectoriesToPropath" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="PropathSourceDirectoriesFilter" type="OeFilterOptions">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="AddDefaultOpenedgePropath" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Adds the gui or tty (depending on ) folder as well as the contained .pl to the propath
+Also adds dlc and dlc/bin
+Defaults to "True".]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="UseCharacterModeExecutable" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeCommandLineExtraParameters" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteBeforeAnyProgressExecution" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteAfterAnyProgressExecution" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeTemporaryDirectoryPath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildFilter" type="OeFilterOptions">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Allows to exclude path from being treated by 
+Specify what should not be considered as a source file in your source directory (for instance, the docs/ folder)]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildGitFilterOptions" type="OeGitFilterOptions">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Use this to apply GIT filters to your 
+Obviously, you need GIT installed and present in your OS path]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="CompilationOptions" type="OeCompilationOptions">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="IncrementalBuildOptions" type="OeIncrementalBuildOptions">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildOptions" type="OeBuildOptions">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeProjectDatabase">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="ProjectDatabase" nillable="true" type="OeProjectDatabase" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="ProjectDatabase" nillable="true" type="OeProjectDatabase">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeProjectDatabase">
-    <xs:attribute name="LogicalName" type="xs:string" />
-    <xs:attribute name="DataDefinitionFilePath" type="xs:string" />
+    <xs:attribute name="LogicalName" type="xs:string">
+      <xs:annotation>
+        <xs:documentation><![CDATA[]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="DataDefinitionFilePath" type="xs:string">
+      <xs:annotation>
+        <xs:documentation><![CDATA[]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeDatabaseAlias">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Alias" nillable="true" type="OeDatabaseAlias" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Alias" nillable="true" type="OeDatabaseAlias">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeDatabaseAlias">
-    <xs:attribute name="DatabaseLogicalName" type="xs:string" />
-    <xs:attribute name="AliasLogicalName" type="xs:string" />
+    <xs:attribute name="DatabaseLogicalName" type="xs:string">
+      <xs:annotation>
+        <xs:documentation><![CDATA[]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="AliasLogicalName" type="xs:string">
+      <xs:annotation>
+        <xs:documentation><![CDATA[]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <xs:complexType name="ArrayOfString">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Path" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Path" nillable="true" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeFilterOptions">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFilter">
+      <xs:extension base="AOeTaskFilter">
         <xs:sequence>
-          <xs:element minOccurs="1" maxOccurs="1" name="ExcludeHiddenDirectories" nillable="true" type="xs:boolean" />
-          <xs:element minOccurs="1" maxOccurs="1" name="RecursiveListing" nillable="true" type="xs:boolean" />
-          <xs:element minOccurs="0" maxOccurs="1" name="ExtraVcsPatternExclusion" type="xs:string" />
+          <xs:element minOccurs="1" maxOccurs="1" name="ExcludeHiddenDirectories" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[Whether or not to ignore hidden directories during the listing.
+Defaults to "False".]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="1" maxOccurs="1" name="RecursiveListing" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[Whether or not to include the content of subdirectories when listing.
+Defaults to "True".]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="ExtraVcsPatternExclusion" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[Extra patterns of path to exclude during a listing, corresponds to typical svn/git directories that we don't want to include in builds.
+Defaults to ".git**;.svn**".]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTaskFilter" abstract="true">
+  <xs:complexType name="AOeTaskFilter" abstract="true">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTask">
-        <xs:attribute name="Exclude" type="xs:string" />
-        <xs:attribute name="Include" type="xs:string" />
-        <xs:attribute name="IncludeRegex" type="xs:string" />
-        <xs:attribute name="ExcludeRegex" type="xs:string" />
+      <xs:extension base="AOeTask">
+        <xs:attribute name="Include" type="xs:string">
+          <xs:annotation>
+            <xs:documentation><![CDATA[A path pattern that describes paths that should be processed by this task.
+
+Remarks:
+Several pattern can be used, separate them with a semi-colon (i.e. ;).
+The following symbols can be used in patterns:
+
+- ** will match any char any number of time (corresponds to a regex greedy match)
+- * will match only non path separators any time (can be used to match any file name)
+- ? matches non path separators exactly 1 time
+- (( will start capturing characters (equivalent to regex capturing parenthesis)
+- )) will stop capturing characters
+- || will corresponds to a "or" in a captured context (equivalent to | in regex)
+
+Fyi, internally, each pattern is turned into a valid regular expression.
+
+If a file is matched by several patterns, only the first one will be used.
+
+Examples:
+** will match any path.
+((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="IncludeRegex" type="xs:string">
+          <xs:annotation>
+            <xs:documentation><![CDATA[A regular expression path pattern that describes paths that should be processed by this task.]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="Exclude" type="xs:string">
+          <xs:annotation>
+            <xs:documentation><![CDATA[A path pattern that describes paths that should be excluded from being processed by this task.
+
+Remarks:
+Several pattern can be used, separate them with a semi-colon (i.e. ;).
+The following symbols can be used in patterns:
+
+- ** will match any char any number of time (corresponds to a regex greedy match)
+- * will match only non path separators any time (can be used to match any file name)
+- ? matches non path separators exactly 1 time
+- (( will start capturing characters (equivalent to regex capturing parenthesis)
+- )) will stop capturing characters
+- || will corresponds to a "or" in a captured context (equivalent to | in regex)
+
+Fyi, internally, each pattern is turned into a valid regular expression.
+
+If a file is matched by several patterns, only the first one will be used.
+
+Examples:
+** will match any path.
+((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="ExcludeRegex" type="xs:string">
+          <xs:annotation>
+            <xs:documentation><![CDATA[A regular expression path pattern that describes paths that should be excluded from being processed by this task.]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTask" abstract="true">
-    <xs:attribute name="Label" type="xs:string" />
+  <xs:complexType name="AOeTask" abstract="true">
+    <xs:attribute name="Label" type="xs:string">
+      <xs:annotation>
+        <xs:documentation><![CDATA[The label of this task. A custom string that allows to identify this task in the logs.]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <xs:complexType name="OeTaskWebclient">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTask">
+      <xs:extension base="AOeTask">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="VendorName" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="ApplicationName" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="ApplicationVersion" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="StartupParameters" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="LocatorUrl" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="WebClientVersion" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="WebclientRootDirectoryPath" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="WebclientOutputDirectory" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="ProwcappTemplateFilePath" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="Components" type="ArrayOfOeWebclientComponent" />
+          <xs:element minOccurs="0" maxOccurs="1" name="VendorName" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="ApplicationName" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="ApplicationVersion" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[defaults to ApplicationName + autoincremented webclient version]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="StartupParameters" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="LocatorUrl" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[Will be used for both Prowcapp and Codebase by default, provide a custom prowcapp template to change this behavior]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="WebClientVersion" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[Valid oe version for this application]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="WebclientRootDirectoryPath" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[The Directory path from which to create the webclient files (can be relative to the build output directory, the default value is ".")]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="WebclientOutputDirectory" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[The output directory in which the .prowcapp and .cab + diffs/.cab files will be created (can be relative to the build output directory)]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="ProwcappTemplateFilePath" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[Path to the model of the .prowcapp to use (can be left empty and the internal model will be used)]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="Components" type="ArrayOfOeWebclientComponent">
+            <xs:annotation>
+              <xs:documentation><![CDATA[If null, all the files in the root path will be added to a default component named as]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeWebclientComponent">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Component" nillable="true" type="OeWebclientComponent" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Component" nillable="true" type="OeWebclientComponent">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeWebclientComponent">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="IncludedFiles" type="ArrayOfString1" />
+      <xs:element minOccurs="0" maxOccurs="1" name="IncludedFiles" type="ArrayOfString1">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
-    <xs:attribute name="DownloadMode" type="OeWebclientComponentDownloadMode" use="required" />
+    <xs:attribute name="DownloadMode" type="OeWebclientComponentDownloadMode" use="required">
+      <xs:annotation>
+        <xs:documentation><![CDATA[]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <xs:complexType name="ArrayOfString1">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="IncludePathPattern" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="IncludePathPattern" nillable="true" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:simpleType name="OeWebclientComponentDownloadMode">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="Eager" />
-      <xs:enumeration value="Lazy" />
+      <xs:enumeration value="Eager">
+        <xs:annotation>
+          <xs:documentation><![CDATA[The component is downloaded at the application startup.]]></xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Lazy">
+        <xs:annotation>
+          <xs:documentation><![CDATA[The component is downloaded "as needed" during the application runtime.]]></xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
   <xs:complexType name="OeTaskExec">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTask">
+      <xs:extension base="AOeTask">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="ExecutablePath" type="xs:string" />
-          <xs:element minOccurs="0" maxOccurs="1" name="Parameters" type="xs:string" />
-          <xs:element minOccurs="1" maxOccurs="1" name="HiddenExecution" nillable="true" type="xs:boolean" />
-          <xs:element minOccurs="1" maxOccurs="1" name="MaxTimeOut" nillable="true" type="xs:int" />
-          <xs:element minOccurs="1" maxOccurs="1" name="DoNotRedirectOutput" nillable="true" type="xs:boolean" />
-          <xs:element minOccurs="1" maxOccurs="1" name="IgnoreExitCode" nillable="true" type="xs:boolean" />
-          <xs:element minOccurs="1" maxOccurs="1" name="FailOnErrorOutput" nillable="true" type="xs:boolean" />
-          <xs:element minOccurs="0" maxOccurs="1" name="WorkingDirectory" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="1" name="ExecutablePath" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="Parameters" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[(you can use task variables in this string)]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="1" maxOccurs="1" name="HiddenExecution" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="1" maxOccurs="1" name="MaxTimeOut" nillable="true" type="xs:int">
+            <xs:annotation>
+              <xs:documentation><![CDATA[]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="1" maxOccurs="1" name="DoNotRedirectOutput" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="1" maxOccurs="1" name="IgnoreExitCode" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[With this option, the task will not fail if the exit code is different of 0]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="1" maxOccurs="1" name="FailOnErrorOutput" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="WorkingDirectory" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[(default to output directory)]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTaskDirectory" abstract="true">
+  <xs:complexType name="AOeTaskFile" abstract="true">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFilter" />
+      <xs:extension base="AOeTaskFilter" />
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTaskDirectoryDelete">
+  <xs:complexType name="AOeTaskFileArchiverArchive" abstract="true">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskDirectory" />
+      <xs:extension base="AOeTaskFile" />
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTaskFile" abstract="true">
+  <xs:complexType name="OeTaskFileArchiverArchiveProlib">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFilter" />
+      <xs:extension base="AOeTaskFileArchiverArchive">
+        <xs:attribute name="TargetProlibFilePath" type="xs:string">
+          <xs:annotation>
+            <xs:documentation><![CDATA[The path to the targeted prolib file.
+
+Remarks:
+Several target paths can be used, separate them with a semi-colon (i.e. ;).
+Each target path can contain special placeholders:
+
+- {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed
+- {{group_name}} will be replaced by the value captured in group "group_name"
+
+Examples:
+Having "((C:\folder\**))((*.txt))" as an pattern
+and "D:\pre_{{2}}.raw" as the target,
+for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".
+(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="RelativeTargetFilePath" type="xs:string">
+          <xs:annotation>
+            <xs:documentation><![CDATA[The relative target file path inside the archive.
+
+Remarks:
+Several target paths can be used, separate them with a semi-colon (i.e. ;).
+Each target path can contain special placeholders:
+
+- {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed
+- {{group_name}} will be replaced by the value captured in group "group_name"
+
+Examples:
+Having "((C:\folder\**))((*.txt))" as an pattern
+and "D:\pre_{{2}}.raw" as the target,
+for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".
+(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="RelativeTargetDirectory" type="xs:string">
+          <xs:annotation>
+            <xs:documentation><![CDATA[The relative target directory inside the archive.
+
+Remarks:
+Several target paths can be used, separate them with a semi-colon (i.e. ;).
+Each target path can contain special placeholders:
+
+- {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed
+- {{group_name}} will be replaced by the value captured in group "group_name"
+
+Examples:
+Having "((C:\folder\**))((*.txt))" as an pattern
+and "D:\pre_{{2}}.raw" as the target,
+for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".
+(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="OeTaskFileArchiverArchiveProlibCompile">
+    <xs:complexContent mixed="false">
+      <xs:extension base="OeTaskFileArchiverArchiveProlib" />
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="OeTaskFileCopy">
+    <xs:complexContent mixed="false">
+      <xs:extension base="AOeTaskFileArchiverArchive">
+        <xs:attribute name="TargetFilePath" type="xs:string">
+          <xs:annotation>
+            <xs:documentation><![CDATA[The relative target file path inside the archive.
+
+Remarks:
+Several target paths can be used, separate them with a semi-colon (i.e. ;).
+Each target path can contain special placeholders:
+
+- {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed
+- {{group_name}} will be replaced by the value captured in group "group_name"
+
+Examples:
+Having "((C:\folder\**))((*.txt))" as an pattern
+and "D:\pre_{{2}}.raw" as the target,
+for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".
+(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="TargetDirectory" type="xs:string">
+          <xs:annotation>
+            <xs:documentation><![CDATA[The relative target directory inside the archive.
+
+Remarks:
+Several target paths can be used, separate them with a semi-colon (i.e. ;).
+Each target path can contain special placeholders:
+
+- {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed
+- {{group_name}} will be replaced by the value captured in group "group_name"
+
+Examples:
+Having "((C:\folder\**))((*.txt))" as an pattern
+and "D:\pre_{{2}}.raw" as the target,
+for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".
+(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="OeTaskFileCompile">
+    <xs:complexContent mixed="false">
+      <xs:extension base="OeTaskFileCopy" />
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="OeTaskFileArchiverArchiveCab">
+    <xs:complexContent mixed="false">
+      <xs:extension base="AOeTaskFileArchiverArchive">
+        <xs:attribute name="TargetCabFilePath" type="xs:string">
+          <xs:annotation>
+            <xs:documentation><![CDATA[The path of the target archive.
+
+Remarks:
+Several target paths can be used, separate them with a semi-colon (i.e. ;).
+Each target path can contain special placeholders:
+
+- {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed
+- {{group_name}} will be replaced by the value captured in group "group_name"
+
+Examples:
+Having "((C:\folder\**))((*.txt))" as an pattern
+and "D:\pre_{{2}}.raw" as the target,
+for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".
+(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="RelativeTargetFilePath" type="xs:string">
+          <xs:annotation>
+            <xs:documentation><![CDATA[The relative target file path inside the archive.
+
+Remarks:
+Several target paths can be used, separate them with a semi-colon (i.e. ;).
+Each target path can contain special placeholders:
+
+- {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed
+- {{group_name}} will be replaced by the value captured in group "group_name"
+
+Examples:
+Having "((C:\folder\**))((*.txt))" as an pattern
+and "D:\pre_{{2}}.raw" as the target,
+for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".
+(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="RelativeTargetDirectory" type="xs:string">
+          <xs:annotation>
+            <xs:documentation><![CDATA[The relative target directory inside the archive.
+
+Remarks:
+Several target paths can be used, separate them with a semi-colon (i.e. ;).
+Each target path can contain special placeholders:
+
+- {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed
+- {{group_name}} will be replaced by the value captured in group "group_name"
+
+Examples:
+Having "((C:\folder\**))((*.txt))" as an pattern
+and "D:\pre_{{2}}.raw" as the target,
+for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".
+(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="CompressionLevel" type="xs:string">
+          <xs:annotation>
+            <xs:documentation><![CDATA[The compression level to use for the cabinet file.]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="OeTaskFileArchiverArchiveCabCompile">
+    <xs:complexContent mixed="false">
+      <xs:extension base="OeTaskFileArchiverArchiveCab" />
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="OeTaskFileDelete">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFile" />
+      <xs:extension base="AOeTaskFile" />
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTaskFileTarget" abstract="true">
+  <xs:complexType name="AOeTaskDirectory" abstract="true">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFile" />
+      <xs:extension base="AOeTaskFilter" />
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetArchive" abstract="true">
+  <xs:complexType name="OeTaskDirectoryDelete">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTarget">
-        <xs:attribute name="RelativeTargetFilePath" type="xs:string" />
-        <xs:attribute name="RelativeTargetDirectory" type="xs:string" />
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetArchiveFtp">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTargetArchive">
-        <xs:attribute name="TargetFtpUri" type="xs:string" />
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetArchiveFtpCompile">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTargetArchiveFtp" />
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetArchiveCab">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTargetArchive">
-        <xs:attribute name="TargetCabFilePath" type="xs:string" />
-        <xs:attribute name="ArchivesCompressionLevel" type="xs:string" />
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetArchiveCabCompile">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTargetArchiveCab" />
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetArchiveZip">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTargetArchive">
-        <xs:attribute name="TargetZipFilePath" type="xs:string" />
-        <xs:attribute name="ArchivesCompressionLevel" type="xs:string" />
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetArchiveZipCompile">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTargetArchiveZip" />
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetArchiveProlib">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTargetArchive">
-        <xs:attribute name="TargetProlibFilePath" type="xs:string" />
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetArchiveProlibCompile">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTargetArchiveProlib" />
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetDeleteInArchive" abstract="true">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTarget" />
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetDeleteInArchiveProlib">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTargetDeleteInArchive">
-        <xs:attribute name="RelativeFilePatternToDelete" type="xs:string" />
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetFile" abstract="true">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTarget">
-        <xs:attribute name="TargetFilePath" type="xs:string" />
-        <xs:attribute name="TargetDirectory" type="xs:string" />
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetFileMove">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTargetFile" />
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetFileCopy">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTargetFile" />
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="OeTaskFileTargetFileCompile">
-    <xs:complexContent mixed="false">
-      <xs:extension base="OeTaskFileTargetFileCopy" />
+      <xs:extension base="AOeTaskDirectory" />
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="OeGitFilterOptions">
     <xs:sequence>
-      <xs:element minOccurs="1" maxOccurs="1" name="OnlyIncludeSourceFilesModifiedSinceLastCommit" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchName" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchOriginCommit" type="xs:string" />
+      <xs:element minOccurs="1" maxOccurs="1" name="OnlyIncludeSourceFilesModifiedSinceLastCommit" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[If true, only the files that were modified since the last commit will be eligible for the 
+(this include files in staging area and untracked files in the working directory)
+Defaults to "False".]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[If true, only the committed files that were committed exclusively on the current branch will be eligible for the 
+We consider that a commit belongs only to the current branch if we can't find a reference different than CURRENT_BRANCH_NAME and ANY_REMOTE/CURRENT_BRANCH_NAME
+which points to said commit
+Defaults to "False".]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchName" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[In detached mode, the CURRENT_BRANCH_NAME is not defined, you can set this value to the branch name to use for the option 
+This can be useful in CI builds where the CI checks out a repo in detached mode (it checks out a commit)
+
+Remarks:
+By default, if in detached mode, this tool tries to deduce the current branch by checking the first remote reference of the currently checked out commit]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchOriginCommit" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Manually specify the reference or SHA1 of the commit from which the current branch originated]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeCompilationOptions">
     <xs:sequence>
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithDebugList" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithXmlXref" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithXref" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithListing" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithPreprocess" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="UseCompilerMultiCompile" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CompileOptions" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CompileStatementExtraOptions" type="xs:string" />
-      <xs:element minOccurs="1" maxOccurs="1" name="TryToOptimizeCompilationDirectory" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="0" maxOccurs="1" name="CompilableFileExtensionPattern" type="xs:string" />
-      <xs:element minOccurs="1" maxOccurs="1" name="ForceSingleProcess" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="NumberProcessPerCore" nillable="true" type="xs:unsignedByte" />
-      <xs:element minOccurs="1" maxOccurs="1" name="MinimumNumberOfFilesPerProcess" nillable="true" type="xs:int" />
-      <xs:element minOccurs="1" maxOccurs="1" name="UseSimplerAnalysisForDatabaseReference" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithDebugList" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithXmlXref" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithXref" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithListing" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileWithPreprocess" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="UseCompilerMultiCompile" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="CompileOptions" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[only since 11.7 : require-full-names, require-field-qualifiers, require-full-keywords]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="CompileStatementExtraOptions" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="TryToOptimizeCompilationDirectory" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Do not always use temporary Directory to compile the .r code files
+Defaults to "True".]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="CompilableFileExtensionPattern" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="ForceSingleProcess" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="NumberProcessPerCore" nillable="true" type="xs:unsignedByte">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="MinimumNumberOfFilesPerProcess" nillable="true" type="xs:int">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="UseSimplerAnalysisForDatabaseReference" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeIncrementalBuildOptions">
     <xs:sequence>
-      <xs:element minOccurs="1" maxOccurs="1" name="Enabled" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="FullRebuild" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="StoreSourceHash" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedSourceFileToOutput" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedTargetsToOutput" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="RebuildFilesWithNewTargets" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Enabled" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[If false, there will be no analyze of compiled files (ref tables/files), no storage
+of the build history after the build, no computation of MD5 nor comparison of date/size of files
+Defaults to "True".]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="FullRebuild" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="StoreSourceHash" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[True if the tool should use a checksum (md5) for each file to figure out if it has changed
+Defaults to "False".]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedSourceFileToOutput" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[If a source file has been deleted since the last build, should we try to delete all its previous targets
+Defaults to "False".]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="MirrorDeletedTargetsToOutput" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[If a target has been deleted since the last build, should we try to apply those modifications.
+by default, if a file was not modified, we just don't build it, even if its targets have changed
+also, if a file is modified and we changed its targets since the last build,
+Defaults to "False".]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="RebuildFilesWithNewTargets" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[If a target has been added since the last build, should we try to apply those modifications.
+by default, if a file was not modified, we just don't build it, even if its targets have changed
+also, if a file is modified and we changed its targets since the last build,
+Defaults to "False".]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeBuildOptions">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="SourceDirectoryPath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="OutputDirectoryPath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryOutputFilePath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryInputFilePath" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="ReportHtmlFilePath" type="xs:string" />
-      <xs:element minOccurs="1" maxOccurs="1" name="TreatWarningsAsErrors" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="StopBuildOnCompilationError" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="StopBuildOnCompilationWarning" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="ShutdownCompilationDatabasesAfterBuild" nillable="true" type="xs:boolean" />
-      <xs:element minOccurs="1" maxOccurs="1" name="TestMode" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="SourceDirectoryPath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="OutputDirectoryPath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryOutputFilePath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryInputFilePath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="ReportHtmlFilePath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="TreatWarningsAsErrors" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Should warnings be considered as errors and stop the build
+Defaults to "False".]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="StopBuildOnCompilationError" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Should the build be stopped if a file fails to compile
+Defaults to "True".]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="StopBuildOnCompilationWarning" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Should the build be stopped if a file compiles with warnings
+Defaults to "False".]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="ShutdownCompilationDatabasesAfterBuild" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="TestMode" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeVariable">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Variable" nillable="true" type="OeVariable" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Variable" nillable="true" type="OeVariable">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Represents a variable.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeVariable">
-    <xs:attribute name="Name" type="xs:string" />
-    <xs:attribute name="Value" type="xs:string" />
+    <xs:attribute name="Name" type="xs:string">
+      <xs:annotation>
+        <xs:documentation><![CDATA[]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Value" type="xs:string">
+      <xs:annotation>
+        <xs:documentation><![CDATA[]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeBuildConfiguration">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Build" nillable="true" type="OeBuildConfiguration" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Build" nillable="true" type="OeBuildConfiguration">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Represents the configuration of a build
+
+Remarks:
+Every public property string not marked with the attribute is allowed
+to use <VARIABLE> which will be replace at the beginning of the build by]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeBuildConfiguration">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="OverloadProperties" type="OeProperties" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildVariables" type="ArrayOfOeVariable" />
-      <xs:element minOccurs="0" maxOccurs="1" name="PreBuildTasks" type="ArrayOfOeBuildStepClassic" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildSourceTasks" type="ArrayOfOeBuildStepCompile" />
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildOutputTasks" type="ArrayOfOeBuildStepClassic" />
-      <xs:element minOccurs="0" maxOccurs="1" name="PostBuildTasks" type="ArrayOfOeBuildStepClassic" />
+      <xs:element minOccurs="0" maxOccurs="1" name="OverloadProperties" type="OeProperties">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Every existing sub node (even if empty) present in this will replace their 
+counterpart]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildVariables" type="ArrayOfOeVariable">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Default variables are added by the builder, see , also 
+are always added]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="PreBuildTasks" type="ArrayOfOeBuildStepClassic">
+        <xs:annotation>
+          <xs:documentation><![CDATA[This list of tasks can include any file]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildSourceTasks" type="ArrayOfOeBuildStepBuildSource">
+        <xs:annotation>
+          <xs:documentation><![CDATA[This list of tasks can only include files located in the source directory]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildOutputTasks" type="ArrayOfOeBuildStepClassic">
+        <xs:annotation>
+          <xs:documentation><![CDATA[This list of tasks can only include files located in the output directory]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="PostBuildTasks" type="ArrayOfOeBuildStepClassic">
+        <xs:annotation>
+          <xs:documentation><![CDATA[This list of tasks can include any file]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
-    <xs:attribute name="Name" type="xs:string" />
+    <xs:attribute name="Name" type="xs:string">
+      <xs:annotation>
+        <xs:documentation><![CDATA[]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeBuildStepClassic">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Step" nillable="true" type="OeBuildStepClassic" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Step" nillable="true" type="OeBuildStepClassic">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeBuildStepClassic">
     <xs:complexContent mixed="false">
       <xs:extension base="OeBuildStep">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice1" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice1">
+            <xs:annotation>
+              <xs:documentation><![CDATA[]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="OeBuildStep" abstract="true">
-    <xs:attribute name="Label" type="xs:string" />
+    <xs:attribute name="Label" type="xs:string">
+      <xs:annotation>
+        <xs:documentation><![CDATA[]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
-  <xs:complexType name="OeBuildStepCompile">
+  <xs:complexType name="OeBuildStepBuildSource">
     <xs:complexContent mixed="false">
       <xs:extension base="OeBuildStep">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice2" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice2">
+            <xs:annotation>
+              <xs:documentation><![CDATA[]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="ArrayOfChoice2">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element minOccurs="1" maxOccurs="1" name="Copy" nillable="true" type="OeTaskFileTargetFileCopy" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Prolib" nillable="true" type="OeTaskFileTargetArchiveProlib" />
-      <xs:element minOccurs="1" maxOccurs="1" name="UploadFtp" nillable="true" type="OeTaskFileTargetArchiveFtp" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Zip" nillable="true" type="OeTaskFileTargetArchiveZip" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileInCab" nillable="true" type="OeTaskFileTargetArchiveCabCompile" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileInZip" nillable="true" type="OeTaskFileTargetArchiveZipCompile" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileUploadFtp" nillable="true" type="OeTaskFileTargetArchiveFtpCompile" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Compile" nillable="true" type="OeTaskFileTargetFileCompile" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Cab" nillable="true" type="OeTaskFileTargetArchiveCab" />
-      <xs:element minOccurs="1" maxOccurs="1" name="CompileInProlib" nillable="true" type="OeTaskFileTargetArchiveProlibCompile" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Copy" nillable="true" type="OeTaskFileCopy">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Prolib" nillable="true" type="OeTaskFileArchiverArchiveProlib">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileInCab" nillable="true" type="OeTaskFileArchiverArchiveCabCompile">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Cab" nillable="true" type="OeTaskFileArchiverArchiveCab">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Compile" nillable="true" type="OeTaskFileCompile">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="CompileInProlib" nillable="true" type="OeTaskFileArchiverArchiveProlibCompile">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:choice>
   </xs:complexType>
   <xs:complexType name="ArrayOfChoice1">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element minOccurs="1" maxOccurs="1" name="Copy" nillable="true" type="OeTaskFileTargetFileCopy" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Prolib" nillable="true" type="OeTaskFileTargetArchiveProlib" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Move" nillable="true" type="OeTaskFileTargetFileMove" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Webclient" nillable="true" type="OeTaskWebclient" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Execute" nillable="true" type="OeTaskExec" />
-      <xs:element minOccurs="1" maxOccurs="1" name="DeleteInProlib" nillable="true" type="OeTaskFileTargetDeleteInArchiveProlib" />
-      <xs:element minOccurs="1" maxOccurs="1" name="UploadFtp" nillable="true" type="OeTaskFileTargetArchiveFtp" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Zip" nillable="true" type="OeTaskFileTargetArchiveZip" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Delete" nillable="true" type="OeTaskFileDelete" />
-      <xs:element minOccurs="1" maxOccurs="1" name="RemoveDirectory" nillable="true" type="OeTaskDirectoryDelete" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Cab" nillable="true" type="OeTaskFileTargetArchiveCab" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Webclient" nillable="true" type="OeTaskWebclient">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Execute" nillable="true" type="OeTaskExec">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Delete" nillable="true" type="OeTaskFileDelete">
+        <xs:annotation>
+          <xs:documentation><![CDATA[This tasks allows to delete files path.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="Cab" nillable="true" type="OeTaskFileArchiverArchiveCab">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="1" maxOccurs="1" name="RemoveDirectory" nillable="true" type="OeTaskDirectoryDelete">
+        <xs:annotation>
+          <xs:documentation><![CDATA[This task allows to delete directories.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:choice>
   </xs:complexType>
-  <xs:complexType name="ArrayOfOeBuildStepCompile">
+  <xs:complexType name="ArrayOfOeBuildStepBuildSource">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Step" nillable="true" type="OeBuildStepCompile" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Step" nillable="true" type="OeBuildStepBuildSource">
+        <xs:annotation>
+          <xs:documentation><![CDATA[]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
 </xs:schema>

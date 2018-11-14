@@ -57,14 +57,11 @@ namespace XsdAnnotator {
                     // case of a property
                     Type correspondingType = GetTypeFromTypeName(parentTypeName);
                     var propertyName = GetTypePropertyNameFromXmlMemberName(correspondingType, element.Attribute("name")?.Value ?? element.Attribute("value")?.Value);
-                    documentationStr = GetDocumentationFromXmlComment($"{parentTypeName}.{propertyName}");
                     var defaultValue = GetDocumentationFromXmlCommentAndDefaultValue(propertyName, correspondingType);
-                    if (!string.IsNullOrEmpty(defaultValue)) {
-                        documentationStr = $"{documentationStr} Defaults to \"{defaultValue}\".";
-                    }
+                    documentationStr = GetDocumentationFromXmlComment($"{parentTypeName}.{propertyName}", defaultValue);
                 } else {
                     // case of a type
-                    documentationStr = GetDocumentationFromXmlComment(element.Attribute("type")?.Value);
+                    documentationStr = GetDocumentationFromXmlComment(element.Attribute("type")?.Value, null);
                 }
                 
                 element.Add(new XElement(_xsNs + "annotation",
@@ -77,7 +74,6 @@ namespace XsdAnnotator {
 
         private string GetTypePropertyNameFromXmlMemberName(Type correspondingType, string methodName) {
             if (correspondingType != null) {
-                // get the description
                 foreach (var propertyInfo in correspondingType.GetMembers()) {
                     if (Attribute.GetCustomAttribute(propertyInfo, typeof(XmlArrayAttribute), true) is XmlArrayAttribute attr && attr.ElementName.Equals(methodName)) {
                         methodName = propertyInfo.Name;
@@ -118,16 +114,47 @@ namespace XsdAnnotator {
             return parentTypeName;
         }
 
-        private string GetDocumentationFromXmlComment(string qualifiedMemberName) {
-            var summary = _xmlDocElementsList.FirstOrDefault(elem => elem.Attribute("name")?.Value.EndsWith(qualifiedMemberName) ?? false)?.Element("summary")?.Value;
-            if (!string.IsNullOrEmpty(summary)) {
-                summary = CliCompactWhitespaces(new StringBuilder(summary)).ToString();
+        private string GetDocumentationFromXmlComment(string qualifiedMemberName, string defaultValue, bool incSummary = true, bool incRemarks = true, bool incExamples = true) {
+            StringBuilder output = new StringBuilder();
+            var memberNode = _xmlDocElementsList.FirstOrDefault(elem => elem.Attribute("name")?.Value.EndsWith(qualifiedMemberName) ?? false);
+            if (memberNode != null) {
+                var summaryNode = memberNode.Element("summary");
+                if (incSummary && summaryNode != null) {
+                    var paraNode = summaryNode.Element("para");
+                    output.Append(CliCompactWhitespaces(new StringBuilder(paraNode?.Value ?? summaryNode.Value)));
+                }
+                if (!string.IsNullOrEmpty(defaultValue)) {
+                    output.Append("\n");
+                    output.Append($"Defaults to \"{defaultValue}\".");
+                }
+                var remarksNode = memberNode.Element("remarks");
+                if (incRemarks && remarksNode != null) {
+                    output.Append("\n");
+                    output.Append("\n");
+                    output.Append("Remarks:");
+                    output.Append("\n");
+                    output.Append(CliCompactWhitespaces(new StringBuilder(remarksNode.Value)));
+                }
+                var exampleNode = memberNode.Element("example");
+                if (incExamples && exampleNode != null) {
+                    output.Append("\n");
+                    output.Append("\n");
+                    output.Append("Examples:");
+                    output.Append("\n");
+                    output.Append(CliCompactWhitespaces(new StringBuilder(exampleNode.Value)));
+                }
+                var inheritdocNode = memberNode.Element("inheritdoc");
+                if (inheritdocNode != null) {
+                    var cref = inheritdocNode.Attribute("cref");
+                    if (cref != null) {
+                        output.Append(GetDocumentationFromXmlComment(cref.Value, defaultValue, memberNode.Element("summary") == null, memberNode.Element("remarks") == null, memberNode.Element("example") == null));
+                    }
+                }
             }
-
-            if (string.IsNullOrEmpty(summary)) {
+            if (output.Length == 0) {
                 Console.Error.WriteLine($"Can't find a description for : {qualifiedMemberName}.");
             }
-            return summary ?? $"Can't find a description for : {qualifiedMemberName}.";
+            return output.ToString();
         } 
         
         private string GetDocumentationFromXmlCommentAndDefaultValue(string propertyName, Type correspondingType) {
@@ -199,7 +226,7 @@ namespace XsdAnnotator {
                         dest++;
                     }
                 } else {
-                    previousIsWhitespace = false;
+                    previousIsWhitespace = sb[i] == '\n';
                     sb[dest] = sb[i];
                     dest++;
                 }

@@ -75,7 +75,7 @@ namespace XsdAnnotator {
 
             var annotator = new XsdAnnotate(existingTypes, xmlElementsList);
             try {
-                annotator.Annotate(xsdPath, $"{xsdPath}2");
+                annotator.Annotate(xsdPath, $"{xsdPath}");
             } catch (Exception e) {
                 Console.Error.WriteLine(e);
                 return 1;
