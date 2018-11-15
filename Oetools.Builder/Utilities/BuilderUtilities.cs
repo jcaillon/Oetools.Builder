@@ -53,7 +53,7 @@ namespace Oetools.Builder.Utilities {
 
         /// <summary>
         /// Browse all the string properties of this class (and its children) and replace
-        /// placeholders like &lt;&gt; by their variable values
+        /// placeholders like {{var}} by their variable values
         /// </summary>
         /// <exception cref="Exception"></exception>
         public static void ApplyVariablesToProperties<T>(T instance, List<OeVariable> variables) {
@@ -88,12 +88,10 @@ namespace Oetools.Builder.Utilities {
             if (string.IsNullOrEmpty(s)) {
                 return string.Empty;
             }
-
             var varValue = Environment.GetEnvironmentVariable(s);
             if (!string.IsNullOrEmpty(varValue)) {
                 return varValue;
             }
-
             return variables?.FirstOrDefault(v => v.Name.EqualsCi(s))?.Value ?? defaultValue;
         }
 

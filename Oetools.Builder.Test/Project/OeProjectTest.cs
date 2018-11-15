@@ -240,7 +240,7 @@ namespace Oetools.Builder.Test.Project {
                         DatabaseLogicalName = "db"
                     }
                 },
-                DatabaseConnectionExtraParameters = "-extra \"quotes\" ",
+                ExtraDatabaseConnectionString = "-extra \"quotes\" ",
                 DlcDirectoryPath = "/dlc/",
                 IncrementalBuildOptions = new OeIncrementalBuildOptions {
                     Enabled = false,

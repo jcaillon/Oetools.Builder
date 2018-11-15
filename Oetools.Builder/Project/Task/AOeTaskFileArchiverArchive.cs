@@ -45,8 +45,7 @@ namespace Oetools.Builder.Project.Task {
         /// <remarks>
         /// <para>
         /// Several target paths can be used, separate them with a semi-colon (i.e. ;).
-        /// Each target path can contain special placeholders:
-        /// 
+        /// Each target path can use special placeholders:
         /// - {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed
         /// - {{group_name}} will be replaced by the value captured in group "group_name"
         /// </para>

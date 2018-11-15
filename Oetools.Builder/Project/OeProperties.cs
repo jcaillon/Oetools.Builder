@@ -37,68 +37,138 @@ using Oetools.Utilities.Openedge.Execution;
 namespace Oetools.Builder.Project {
     
     /// <remarks>
-    /// Every public property string not marked with the <see cref="ReplaceVariables"/> attribute is allowed
-    /// to use &lt;VARIABLE&gt; which will be replace at the beginning of the build by <see cref="OeBuildConfiguration.Variables"/>
+    /// The properties.
     /// </remarks>
+    /// <code>
+    /// Every public property string not marked with the <see cref="ReplaceVariables"/> attribute is allowed
+    /// to use {{VARIABLE}} which will be replace at the beginning of the build by <see cref="OeBuildConfiguration.Variables"/>
+    /// </code>
     [Serializable]
     public class OeProperties {
 
-        [Description(@"The path to the directory containing the installation of openedge. 
-Commonly known as the DLC directory.")]
+        /// <summary>
+        /// The path to the directory containing the installation of openedge.
+        /// Commonly known as the DLC directory.
+        /// </summary>
+        /// <remarks>
+        /// It should contain, among many other things, a "bin" directory where the openedge executables are located.
+        /// </remarks>
         [XmlElement(ElementName = "DlcDirectoryPath")]
         public string DlcDirectoryPath { get; set; }
         [Description("$DLC (openedge installation directory)")]
         public static string GetDefaultDlcDirectoryPath() => UoeUtilities.GetDlcPathFromEnv().ToCleanPath();
         
-        [Description(@"The code page to use for input/output with openedge processes.
-This will default to value read for -cpstream or -cpinternal in the file $DLC/startup.pf.
-You most likely do not have to configure this property, except if you encounter wrong character in the console.")]
+        /// <summary>
+        /// The code page to use for input/output with openedge processes.
+        /// This will default to the value read for -cpstream or -cpinternal in the file $DLC/startup.pf.
+        /// </summary>
+        /// <remarks>
+        /// This property should be configured if you encounter wrong characters (wrong encoding) in the console.
+        /// </remarks>
         [XmlElement(ElementName = "OpenedgeCodePage")]
         public string OpenedgeCodePage { get; set; }
         
-        [Description(@"A list of all the openedge databases used by your project (logical name + data definition). 
-This list should contain all the databases necessary to compile your application.
-The databases specified within this option will be automatically generated during a build.
-The idea is to only have to version .df files (data definition files)")]
+        /// <summary>
+        /// A list of all the openedge databases used by your project (couple of logical name + data definition file path).
+        /// This list should contain all the databases necessary to compile your application.
+        /// </summary>
+        /// <remarks>
+        /// The databases specified in this property will be automatically generated during a build (temporary databases).
+        /// The idea is to version .df files (data definition files) and to have a fully buildable application from a checkout.
+        /// </remarks>
         [XmlArray("ProjectDatabases")]
         [XmlArrayItem("ProjectDatabase", typeof(OeProjectDatabase))]
         public List<OeProjectDatabase> ProjectDatabases { get; set; }
         
-        [Description(@"A database connection string that will be used to connect to extra databases before a build. 
-This obviously requires existing databases. 
-Most of the time, it is simpler to use the ProjectDatabase option instead of this one.")]
-        [XmlElement(ElementName = "DatabaseConnectionExtraParameters")]
-        public string DatabaseConnectionExtraParameters { get; set; }
+        /// <summary>
+        /// A database connection string that will be used to connect to extra databases before a build. 
+        /// </summary>
+        /// <remarks>
+        /// This obviously requires existing databases.
+        /// Most of the time, it is simpler to use the ProjectDatabase option instead of this one and let the tool generate the necessary databases.
+        /// This property is used in the following openedge statement: CONNECT VALUE(this_property).
+        /// </remarks>
+        /// <example>
+        /// -db base1 -ld mylogicalName1 -H 127.0.0.1 -S 1024
+        /// -db C:\wrk\sport2000.db -1 -ld mydb
+        /// -pf C:\mypath\db.pf
+        /// </example>
+        [XmlElement(ElementName = "ExtraDatabaseConnectionString")]
+        public string ExtraDatabaseConnectionString { get; set; }
 
+        /// <summary>
+        /// A list of database aliases needed in your project (couple of logical name + alias name).
+        /// </summary>
+        /// <remarks>
+        /// This is useful when your code references several aliases of a single database.
+        /// </remarks>
         [XmlArray("DatabaseAliases")]
         [XmlArrayItem("Alias", typeof(OeDatabaseAlias))]
         public List<OeDatabaseAlias> DatabaseAliases { get; set; }           
             
+        /// <summary>
+        /// The path to the .ini file used by your project.
+        /// </summary>
+        /// <remarks>
+        /// .ini files are specific to the windows platform.
+        /// .ini files are typically used to define COLORS and FONTS for GUI applications.
+        /// The font definition are required to correctly compiled .w files.
+        /// The section [STARTUP] and key [PROPATH] is read and appended to the compilation propath.
+        /// It is advised to version a neutral .ini file with a blank propath in order to allow the compilation of a GUI application.
+        /// Relative path are resolved with the current directory but you can use {{SOURCE_DIRECTORY}} to target the source directory.
+        /// </remarks>
         [XmlElement(ElementName = "IniFilePath")]
         public string IniFilePath { get; set; }
 
+        /// <summary>
+        /// A list of paths to add to the propath during the build.
+        /// </summary>
+        /// <remarks>
+        /// This list should include all the directories containing the include files necessary to compile your application.
+        /// This typically include pro library (.pl) file path or directories.
+        /// Relative path are resolved with the current directory but you can use {{SOURCE_DIRECTORY}} to target the source directory.
+        /// </remarks>
         [XmlArrayItem("Path", typeof(string))]
         [XmlArray("PropathEntries")]
         public List<string> PropathEntries { get; set; }
         
+        /// <summary>
+        /// Indicates if all the directories in the source directory should be added to the compilation propath.
+        /// </summary>
+        /// <remarks>
+        /// The idea is to use this option instead of manually specifying the compilation propath (for lazy people only).
+        /// </remarks>
         [XmlElement(ElementName = "AddAllSourceDirectoriesToPropath")]
         public bool? AddAllSourceDirectoriesToPropath { get; set; }
         public static bool GetDefaultAddAllSourceDirectoriesToPropath() => true;
             
+        /// <summary>
+        /// Filtering options for the automatic listing of directories in the source directory (to use as propath).
+        /// </summary>
         [XmlElement(ElementName = "PropathSourceDirectoriesFilter")]
         public OeFilterOptions PropathSourceDirectoriesFilter { get; set; }
 
         /// <summary>
-        /// Adds the gui or tty (depending on <see cref="UseCharacterModeExecutable"/>) folder as well as the contained .pl to the propath
-        /// Also adds dlc and dlc/bin
+        /// Force the use of the openedge character mode on windows platform.
         /// </summary>
-        [XmlElement(ElementName = "AddDefaultOpenedgePropath")]
-        public bool? AddDefaultOpenedgePropath { get; set; }
-        public static bool GetDefaultAddDefaultOpenedgePropath() => true;
-
+        /// <remarks>
+        /// Typically, this option will make the build process use the "_progres.exe" executable instead of "prowin.exe".
+        /// </remarks>
         [XmlElement(ElementName = "UseCharacterModeExecutable")]
         public bool? UseCharacterModeExecutable { get; set; }
         public static bool GetDefaultUseCharacterModeExecutable() => false;
+        
+        /// <summary>
+        /// Adds the gui (or tty if character mode) directory to the propath.
+        /// Also adds the pro library files in this directory to the propath.
+        /// Also adds the dlc and dlc/bin directories.
+        /// </summary>
+        /// <remarks>
+        /// This is the equivalent of the default propath set by openedge.
+        /// </remarks>
+        [XmlElement(ElementName = "AddDefaultOpenedgePropath")]
+        public bool? AddDefaultOpenedgePropath { get; set; }
+        public static bool GetDefaultAddDefaultOpenedgePropath() => true;
 
         [XmlElement(ElementName = "OpenedgeCommandLineExtraParameters")]
         public string OpenedgeCommandLineExtraParameters { get; set; }
@@ -202,6 +272,8 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public PathList<IOeDirectory> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory) {
+            var currentDirectory = Directory.GetCurrentDirectory();
+            
             var output = new PathList<IOeDirectory>();
             if (PropathEntries != null) {
                 foreach (var propathEntry in PropathEntries) {
@@ -209,7 +281,7 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
                     try {
                         // need to take into account relative paths
                         if (!Path.IsPathRooted(entry)) {
-                            entry = Path.GetFullPath(Path.Combine(sourceDirectory, entry));
+                            entry = Path.GetFullPath(Path.Combine(currentDirectory, entry));
                         }
 
                         if (!Directory.Exists(entry) && !File.Exists(entry)) {
@@ -224,7 +296,7 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
             }
             // read from ini
             if (!string.IsNullOrEmpty(IniFilePath)) {
-                foreach (var entry in UoeUtilities.GetProPathFromIniFile(IniFilePath, sourceDirectory)) {
+                foreach (var entry in UoeUtilities.GetProPathFromIniFile(IniFilePath, currentDirectory)) {
                     output.TryAdd(new OeDirectory(entry));
                 }
             }
@@ -269,7 +341,7 @@ Most of the time, it is simpler to use the ProjectDatabase option instead of thi
                     TempDirectory = OpenedgeTemporaryDirectoryPath.TakeDefaultIfNeeded(GetDefaultOpenedgeTemporaryDirectoryPath()),
                     UseProgressCharacterMode = UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable(),
                     DatabaseAliases = DatabaseAliases,
-                    DatabaseConnectionString = DatabaseConnectionExtraParameters,
+                    DatabaseConnectionString = ExtraDatabaseConnectionString,
                     DatabaseConnectionStringAppendMaxTryOne = true,
                     DlcDirectoryPath = DlcDirectoryPath.TakeDefaultIfNeeded(GetDefaultDlcDirectoryPath()),
                     IniFilePath = IniFilePath,

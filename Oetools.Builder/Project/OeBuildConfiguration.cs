@@ -43,39 +43,6 @@ namespace Oetools.Builder.Project {
     [Serializable]
     [XmlRoot("BuildConfiguration")]
     public class OeBuildConfiguration {
-                
-        #region static
-
-        private const string XsdName = "BuildConfiguration.xsd";
-
-        public static OeBuildConfiguration Load(string path) {
-            OeBuildConfiguration interfaceXml;
-            var serializer = new XmlSerializer(typeof(OeBuildConfiguration));
-            using (var reader = new StreamReader(path)) {
-                interfaceXml = (OeBuildConfiguration) serializer.Deserialize(reader);
-            }
-            interfaceXml.ConfigurationName = Path.GetFileNameWithoutExtension(path);
-            interfaceXml.InitIds();
-            return interfaceXml;
-        }
-
-        public void Save(string path) {
-            var serializer = new XmlSerializer(typeof(OeBuildConfiguration));
-            
-            XmlDocumentWriter.Save(path, serializer, this);
-            
-            File.WriteAllBytes(Path.Combine(Path.GetDirectoryName(path) ?? "", XsdName), XsdResources.GetXsdFromResources(XsdName));
-        }
-
-        #endregion
-
-#if USESCHEMALOCATION
-        /// <summary>
-        /// Only when not generating the build for xsd.exe which has a problem with this attribute
-        /// </summary>
-        [XmlAttribute("noNamespaceSchemaLocation", Namespace = XmlSchema.InstanceNamespace)]
-        public string SchemaLocation = XsdName;
-#endif
             
         [XmlAttribute("Name")]
         public string ConfigurationName { get; set; }

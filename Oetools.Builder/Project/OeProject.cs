@@ -31,8 +31,14 @@ using Oetools.Utilities.Lib;
 namespace Oetools.Builder.Project {
     
     /// <summary>
-    /// Represents an openedge project (i.e. an application).
+    /// An openedge project (i.e. an application).
     /// </summary>
+    /// <remarks>
+    /// A project has:
+    /// - properties, that are used to describe your application (for instance, the database needed to compile) and are also used to describe options to build your application (for instance, if the compilation should also generate the xref files).
+    /// - variables, that make your build process dynamic. You can use variables almost anywhere in this xml and dynamically overload their values when running the build.
+    /// - build configurations, which describe a succession of tasks that build your application. Build configurations can also have their own properties and variables which will overload the ones defined at the project level.
+    /// </remarks>
     [Serializable]
     [XmlRoot("Project")]
     public class OeProject {
@@ -70,21 +76,51 @@ namespace Oetools.Builder.Project {
 #endif
         
         /// <summary>
-        /// Global properties for this project, shared by all the build configurations.
+        /// The global properties for this project.
+        /// Properties can describe your application (for instance, the database needed to compile).
+        /// Properties can also describe options to build your application (for instance, if the compilation should also generate the xref files).
         /// </summary>
+        /// <remarks>
+        /// These properties are used as default values for this project but can be overloaded for each individual build configuration.
+        /// For instance, this allows to define a DLC (v11) path for the project but you can define a build configuration that will use another DLC (v9) path.
+        /// </remarks>
         [XmlElement("GlobalProperties")]
         public OeProperties GlobalProperties { get; set; }
         
         /// <summary>
-        /// Global variables shared by all the build configurations.
+        /// The global variables shared by all the build configurations.
+        /// Variables make your build process dynamic by allowing you to change build options without having to modify this xml.
         /// </summary>
+        /// <remarks>
+        /// You can use a variable with the syntax {{variable_name}}.
+        /// Variables will be replaced by their value at run time.
+        /// If the variable exists as an environment variable, its value will be taken in priority (this allows to overload values using environment variables).
+        /// Non existing variables will be replaced by an empty string.
+        /// Variables can be used in any "string type" properties (this exclude numbers/booleans).
+        /// You can use variables in the variables definition but they must be defined in the right order.
+        ///
+        /// Special variables are already defined and available:
+        /// - {{SOURCE_DIRECTORY}} the application source directory (defined in properties)
+        /// - {{PROJECT_DIRECTORY}} the project directory ({{SOURCE_DIRECTORY}}/.oe)
+        /// - {{PROJECT_LOCAL_DIRECTORY}} the project local directory ({{SOURCE_DIRECTORY}}/.oe/local)
+        /// - {{DLC}} the dlc path used for the current build
+        /// - {{OUTPUT_DIRECTORY}} the build output directory (default to {{SOURCE_DIRECTORY}}/.oe/bin)
+        /// - {{CONFIGURATION_NAME}} the build configuration name for the current build
+        /// - {{CURRENT_DIRECTORY}} the current directory
+        /// </remarks>
         [XmlArray("GlobalVariables")]
         [XmlArrayItem("Variable", typeof(OeVariable))]
         public List<OeVariable> GlobalVariables { get; set; }
         
         /// <summary>
-        /// A list of build configurations.
+        /// The build configurations list.
+        /// A build configuration describe how to build your application.
+        /// It is essentially a succession of tasks (grouped into steps) that should be carried on to build your application.
         /// </summary>
+        /// <remarks>
+        /// You can have several build configurations for a single project.
+        /// You can overload the project level properties and variables for each build configuration.
+        /// </remarks>
         [XmlArray("BuildConfigurations")]
         [XmlArrayItem("Build", typeof(OeBuildConfiguration))]
         public List<OeBuildConfiguration> BuildConfigurations { get; set; }
