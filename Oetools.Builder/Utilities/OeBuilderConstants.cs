@@ -27,7 +27,7 @@ namespace Oetools.Builder.Utilities {
         
         public const string CompilableExtensionsPattern = "*.p;*.w;*.t;*.cls";
         
-        public const string OeProjectExtension = ".oeproj";
+        public const string OeProjectExtension = ".oeproj.xml";
 
         public const string OeProjectDirectory = ".oe";
         

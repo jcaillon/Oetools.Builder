@@ -19,6 +19,7 @@
 #endregion
 using System;
 using System.Xml.Serialization;
+using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.Project {
     
@@ -144,7 +145,7 @@ namespace Oetools.Builder.Project {
         /// </remarks>
         [XmlElement(ElementName = "CompilableFileExtensionPattern")]
         public string CompilableFileExtensionPattern { get; set; }
-        public static string GetDefaultCompilableFileExtensionPattern() => "*.p;*.cls;*.w;*.t";
+        public static string GetDefaultCompilableFileExtensionPattern() => OeBuilderConstants.CompilableExtensionsPattern;
                 
         /// <summary>
         /// The number of openedge process to start simultaneously per core (on your computer) in order to compile your application.
