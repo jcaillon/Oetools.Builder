@@ -25,6 +25,9 @@ using Oetools.Utilities.Archive;
 
 namespace Oetools.Builder.Project.Task {
     
+    /// <summary>
+    /// This task deletes files within pro libraries.
+    /// </summary>
     [Serializable]
     [XmlRoot("DeleteInProlib")]
     public class OeTaskArchiverDeleteProlib : AOeTaskArchiverDelete {

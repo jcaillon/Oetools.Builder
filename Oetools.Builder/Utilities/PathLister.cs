@@ -169,13 +169,13 @@ namespace Oetools.Builder.Utilities {
             };
             gitManager.SetCurrentDirectory(BaseDirectory);
             
-            if (GitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit ?? OeGitFilterOptions.GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit()) {
+            if (GitFilter.IncludeSourceFilesModifiedSinceLastCommit ?? OeGitFilterOptions.GetDefaultIncludeSourceFilesModifiedSinceLastCommit()) {
                 output.AddRange(gitManager.GetAllModifiedFilesSinceLastCommit()
                     .Select(f => new OeFile(f.MakePathAbsolute(BaseDirectory).ToCleanPath()))
                     .ToFileList());
             }
             
-            if (GitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch ?? OeGitFilterOptions.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch()) {
+            if (GitFilter.IncludeSourceFilesCommittedOnlyOnCurrentBranch ?? OeGitFilterOptions.GetDefaultIncludeSourceFilesCommittedOnlyOnCurrentBranch()) {
                 try {
                     output.AddRange(gitManager.GetAllCommittedFilesExclusiveToCurrentBranch(GitFilter.CurrentBranchOriginCommit, GitFilter.CurrentBranchName)
                         .Select(f => new OeFile(f.MakePathAbsolute(BaseDirectory).ToCleanPath()))
@@ -212,7 +212,7 @@ namespace Oetools.Builder.Utilities {
                     oeFile.State = OeFileState.Modified;
                 } else {
                     oeFile.State = OeFileState.Unchanged;
-                    oeFile.Hash = previousFile.Hash ?? oeFile.Hash;
+                    oeFile.Checksum = previousFile.Checksum ?? oeFile.Checksum;
                 }
             }
         }
@@ -228,7 +228,7 @@ namespace Oetools.Builder.Utilities {
             // test if it has changed
             if (previous.Size.Equals(now.Size)) {
                 if (!(OutputOptions?.UseLastWriteDateComparison ?? false) || previous.LastWriteTime.Equals(now.LastWriteTime)) {
-                    if (!(OutputOptions?.UseHashComparison ?? false) || !string.IsNullOrEmpty(previous.Hash) && previous.Hash.Equals(SetFileHash(now).Hash, StringComparison.OrdinalIgnoreCase)) {
+                    if (!(OutputOptions?.UseCheckSumComparison ?? false) || !string.IsNullOrEmpty(previous.Checksum) && previous.Checksum.Equals(SetFileHash(now).Checksum, StringComparison.OrdinalIgnoreCase)) {
                         return false;
                     }
                 }
@@ -237,17 +237,17 @@ namespace Oetools.Builder.Utilities {
         }
 
         /// <summary>
-        /// Sets the <see cref="OeFile.Hash"/> of a file if needed
+        /// Sets the <see cref="OeFile.Checksum"/> of a file if needed
         /// </summary>
         /// <param name="oeFile"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public static IOeFile SetFileHash(IOeFile oeFile) {
-            if (!string.IsNullOrEmpty(oeFile.Hash)) {
+            if (!string.IsNullOrEmpty(oeFile.Checksum)) {
                 return oeFile;
             }
             try {
-                oeFile.Hash = Utils.GetMd5FromFilePath(oeFile.Path);
+                oeFile.Checksum = Utils.GetMd5FromFilePath(oeFile.Path);
             } catch (Exception e) {
                 throw new Exception($"Error getting information on file {oeFile.Path}, check permissions", e);
             }

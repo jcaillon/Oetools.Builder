@@ -26,6 +26,9 @@ using Oetools.Utilities.Archive;
 
 namespace Oetools.Builder.Project.Task {
     
+    /// <summary>
+    /// This task copies files.
+    /// </summary>
     [Serializable]
     [XmlRoot("Copy")]
     public class OeTaskFileCopy : AOeTaskFileArchiverArchive, IOeTaskWithBuiltFiles {

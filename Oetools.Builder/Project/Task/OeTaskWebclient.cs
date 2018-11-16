@@ -27,7 +27,7 @@ using Oetools.Utilities.Lib;
 namespace Oetools.Builder.Project.Task {
     
     [Serializable]
-    public class OeTaskWebclient : AOeTask {
+    internal class OeTaskWebclient : AOeTask {
         
         [XmlElement(ElementName = "VendorName")]
         public string VendorName { get; set; }
@@ -122,7 +122,7 @@ namespace Oetools.Builder.Project.Task {
     }
     
     [Serializable]
-    public class OeWebclientComponent {
+    internal class OeWebclientComponent {
                 
         [XmlAttribute(AttributeName = "DownloadMode")]
         public OeWebclientComponentDownloadMode DownloadMode { get; set; }

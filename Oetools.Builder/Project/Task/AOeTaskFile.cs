@@ -34,6 +34,7 @@ namespace Oetools.Builder.Project.Task {
     /// <summary>
     /// A task that operates on files.
     /// </summary>
+    /// <inheritdoc cref="AOeTaskFilter"/>
     public abstract class AOeTaskFile : AOeTaskFilter, IOeTaskFile {
         
         private PathList<IOeFile> _filesToProcess;

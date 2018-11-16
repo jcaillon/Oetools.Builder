@@ -89,14 +89,14 @@ namespace Oetools.Builder.Test {
                         TreatWarningsAsErrors = true,
                         StopBuildOnCompilationError = false,
                         StopBuildOnCompilationWarning = false,
-                        TestMode = true
-                    },
-                    IncrementalBuildOptions = new OeIncrementalBuildOptions {
-                        Enabled = true,
-                        StoreSourceHash = true,
-                        MirrorDeletedTargetsToOutput = true,
-                        MirrorDeletedSourceFileToOutput = true,
-                        RebuildFilesWithNewTargets = true
+                        TestMode = true,
+                        IncrementalBuildOptions = new OeIncrementalBuildOptions {
+                            Enabled = true,
+                            UseCheckSumComparison = true,
+                            MirrorDeletedTargetsToOutput = true,
+                            MirrorDeletedSourceFileToOutput = true,
+                            RebuildFilesWithNewTargets = true
+                        }
                     }
                 }
             };
@@ -115,7 +115,7 @@ namespace Oetools.Builder.Test {
 
                 // check each file in history
                 foreach (var file in builder.BuildSourceHistory.BuiltFiles) {
-                    Assert.IsFalse(string.IsNullOrEmpty(file.Hash));
+                    Assert.IsFalse(string.IsNullOrEmpty(file.Checksum));
                     Assert.AreEqual(OeFileState.Added, file.State);
                     Assert.IsTrue(file.Size > 0);
                 }
@@ -142,14 +142,14 @@ namespace Oetools.Builder.Test {
                 
                 // check each file in history
                 foreach (var file in builder.BuildSourceHistory.BuiltFiles) {
-                    Assert.IsFalse(string.IsNullOrEmpty(file.Hash));
+                    Assert.IsFalse(string.IsNullOrEmpty(file.Checksum));
                     Assert.AreEqual(OeFileState.Unchanged, file.State);
                     Assert.IsTrue(file.Size > 0);
                 }
             }
 
             // full rebuild 
-            buildConfiguration1.Properties.IncrementalBuildOptions.FullRebuild = true;
+            buildConfiguration1.Properties.BuildOptions.FullRebuild = true;
             using (var builder = new Builder(buildConfiguration1) {
                 BuildSourceHistory = firstBuildHistory
             }) {
@@ -163,12 +163,12 @@ namespace Oetools.Builder.Test {
                 
                 // check each file in history
                 foreach (var file in builder.BuildSourceHistory.BuiltFiles) {
-                    Assert.IsFalse(string.IsNullOrEmpty(file.Hash));
+                    Assert.IsFalse(string.IsNullOrEmpty(file.Checksum));
                     Assert.AreEqual(OeFileState.Unchanged, file.State);
                     Assert.IsTrue(file.Size > 0);
                 }
             }
-            buildConfiguration1.Properties.IncrementalBuildOptions.FullRebuild = false;
+            buildConfiguration1.Properties.BuildOptions.FullRebuild = false;
             
             // delete a file, and delete some targets
             File.Delete(Path.Combine(sourceDirectory, "file2.w"));
@@ -369,10 +369,10 @@ namespace Oetools.Builder.Test {
                     BuildOptions = new OeBuildOptions {
                         SourceDirectoryPath = sourceDirectory,
                         StopBuildOnCompilationError = false,
-                        StopBuildOnCompilationWarning = false
-                    },
-                    IncrementalBuildOptions = new OeIncrementalBuildOptions {
-                        StoreSourceHash = true
+                        StopBuildOnCompilationWarning = false,
+                        IncrementalBuildOptions = new OeIncrementalBuildOptions {
+                            UseCheckSumComparison = true
+                        }
                     }
                 }
             }) {
@@ -387,12 +387,12 @@ namespace Oetools.Builder.Test {
                                     FilePathInArchive = "derp.out.p"
                                 }
                             },
-                            Hash = "okay"
+                            Checksum = "okay"
                         }
                     }
                 }
             };
-            Assert.AreEqual(true, builder.BuildConfiguration.Properties.IncrementalBuildOptions.Enabled);
+            Assert.AreEqual(true, builder.BuildConfiguration.Properties.BuildOptions.IncrementalBuildOptions.Enabled);
 
             builder.Build();
             
@@ -403,8 +403,8 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual("derp.out.p", builder.BuildSourceHistory.BuiltFiles[2].Targets.ToList()[0].GetTargetPath());
             
             // we asked for hash
-            Assert.IsFalse(string.IsNullOrEmpty(builder.BuildSourceHistory.BuiltFiles[0].Hash));
-            Assert.IsFalse(string.IsNullOrEmpty(builder.BuildSourceHistory.BuiltFiles[1].Hash));
+            Assert.IsFalse(string.IsNullOrEmpty(builder.BuildSourceHistory.BuiltFiles[0].Checksum));
+            Assert.IsFalse(string.IsNullOrEmpty(builder.BuildSourceHistory.BuiltFiles[1].Checksum));
             
             builder.Dispose();        
             

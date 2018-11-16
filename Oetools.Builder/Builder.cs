@@ -70,9 +70,9 @@ namespace Oetools.Builder {
             }
         }
 
-        protected bool UseIncrementalBuild => BuildConfiguration.Properties.IncrementalBuildOptions.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled();
+        protected bool UseIncrementalBuild => BuildConfiguration.Properties.BuildOptions?.IncrementalBuildOptions?.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled();
 
-        private bool StoreSourceHash => BuildConfiguration.Properties.IncrementalBuildOptions?.StoreSourceHash ?? OeIncrementalBuildOptions.GetDefaultStoreSourceHash();
+        private bool StoreSourceHash => BuildConfiguration.Properties.BuildOptions?.IncrementalBuildOptions?.UseCheckSumComparison ?? OeIncrementalBuildOptions.GetDefaultUseCheckSumComparison();
 
         protected string SourceDirectory => BuildConfiguration.Properties.BuildOptions?.SourceDirectoryPath;
 
@@ -97,7 +97,6 @@ namespace Oetools.Builder {
         private void ConstructorInitialization() {
             BuildConfiguration.Properties = BuildConfiguration.Properties ?? new OeProperties();
             BuildConfiguration.Properties.SetDefaultValues();
-            BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath = BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath ?? OeBuilderConstants.GetDefaultOutputDirectory(SourceDirectory);
         }
 
         public virtual void Dispose() {
@@ -230,9 +229,9 @@ namespace Oetools.Builder {
 
             var tasksAdded = 0;
             
-            var mirrorDeletedSourceFileToOutput = BuildConfiguration.Properties.IncrementalBuildOptions?.MirrorDeletedSourceFileToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput();
+            var mirrorDeletedSourceFileToOutput = BuildConfiguration.Properties.BuildOptions?.IncrementalBuildOptions?.MirrorDeletedSourceFileToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput();
         
-            var mirrorDeletedTargetsToOutput = BuildConfiguration.Properties.IncrementalBuildOptions?.MirrorDeletedTargetsToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedTargetsToOutput();
+            var mirrorDeletedTargetsToOutput = BuildConfiguration.Properties.BuildOptions?.IncrementalBuildOptions?.MirrorDeletedTargetsToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedTargetsToOutput();
 
             if (mirrorDeletedSourceFileToOutput || mirrorDeletedTargetsToOutput) {
                 Log?.Info("Mirroring deleted files in source to the output directory");
@@ -241,7 +240,7 @@ namespace Oetools.Builder {
                 var filesWithTargetsToRemove = IncrementalBuildHelper.GetBuiltFilesDeletedSincePreviousBuild(PreviouslyBuiltPaths).ToFileList();
                 if (filesWithTargetsToRemove != null && filesWithTargetsToRemove.Count > 0) {
                     var newTask = new OeTaskTargetsDeleter {
-                        Label = "Deleting files missing from the previous build"
+                        Name = "Deleting files missing from the previous build"
                     };
                     newTask.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
                     buildSourceExecutor.Tasks.Add(newTask);
@@ -265,7 +264,7 @@ namespace Oetools.Builder {
 
                     if (filesWithTargetsToRemove != null && filesWithTargetsToRemove.Count > 0) {
                         var newTask = new OeTaskTargetsDeleter {
-                            Label = "Deleting previous targets that no longer exist"
+                            Name = "Deleting previous targets that no longer exist"
                         };
                         newTask.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
                         buildSourceExecutor.Tasks.Add(newTask);

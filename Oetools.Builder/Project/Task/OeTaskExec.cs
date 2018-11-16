@@ -26,64 +26,82 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
     
+    /// <summary>
+    /// This task starts a new external process.
+    /// </summary>
     [Serializable]
     [XmlRoot("Exec")]
     public class OeTaskExec : AOeTask {
         
-        [XmlElement("ExecutablePath")]
-        public string ExecutablePath { get; set; }
+        /// <summary>
+        /// The path to the executable file.
+        /// </summary>
+        [XmlElement("ExecutableFilePath")]
+        public string ExecutableFilePath { get; set; }
             
         /// <summary>
-        /// (you can use task variables in this string)
+        /// The command line parameters for the execution.
         /// </summary>
         [XmlElement("Parameters")]
         public string Parameters { get; set; }
             
+        /// <summary>
+        /// Hide the execution (do not show a window).
+        /// </summary>
         [XmlElement(ElementName = "HiddenExecution")]
         public bool? HiddenExecution { get; set; }
         
+        /// <summary>
+        /// The maximum time in milliseconds before aborting the execution.
+        /// </summary>
         [XmlElement(ElementName = "MaxTimeOut")]
         public int? MaxTimeOut { get; set; }
         
+        /// <summary>
+        /// Do not redirect the executable standard and error output to the log.
+        /// </summary>
         [XmlElement(ElementName = "DoNotRedirectOutput")]
         public bool? DoNotRedirectOutput { get; set; }
             
         /// <summary>
-        /// With this option, the task will not fail if the exit code is different of 0
+        /// Do not consider exit code different than 0 as a failed execution.
         /// </summary>
         [XmlElement(ElementName = "IgnoreExitCode")]
         public bool? IgnoreExitCode { get; set; }
         
+        /// <summary>
+        /// Finish this task in error if the executable wrote in the error output stream. 
+        /// </summary>
         [XmlElement(ElementName = "FailOnErrorOutput")]
         public bool? FailOnErrorOutput { get; set; }
             
         /// <summary>
-        /// (default to output directory)
+        /// The directory to use as the working directory for the execution.
         /// </summary>
         [XmlElement("WorkingDirectory")]
         public string WorkingDirectory { get; set; }
 
         public override void Validate() {
-            if (string.IsNullOrEmpty(ExecutablePath)) {
-                throw new TaskValidationException(this, $"This task needs the following property to be defined : {GetType().GetXmlName(nameof(ExecutablePath))}");
+            if (string.IsNullOrEmpty(ExecutableFilePath)) {
+                throw new TaskValidationException(this, $"This task needs the following property to be defined : {GetType().GetXmlName(nameof(ExecutableFilePath))}");
             }
         }
 
         protected override void ExecuteInternal() {
             var redirectOutput = !(DoNotRedirectOutput ?? false);
             
-            var proc = new ProcessIo(ExecutablePath) {
+            var proc = new ProcessIo(ExecutableFilePath) {
                 RedirectOutput = redirectOutput
             };
             
-            Log?.Debug($"Executing program {ExecutablePath}");
+            Log?.Debug($"Executing program {ExecutableFilePath}");
             Log?.Debug($"With parameters {Parameters}");
             Log?.Debug($"{(HiddenExecution ?? false ? "Hide execution" : "Show execution")} and {(redirectOutput ? "redirect output to info log" : "don't redirect output")}");
             
             try {
                 proc.Execute(Parameters, HiddenExecution ?? false, MaxTimeOut ?? 0);
             } catch (Exception e) {
-                throw new TaskExecutionException(this, $"Failed to execute {ExecutablePath.PrettyQuote()} with parameters {Parameters.PrettyQuote()}", e);
+                throw new TaskExecutionException(this, $"Failed to execute {ExecutableFilePath.PrettyQuote()} with parameters {Parameters.PrettyQuote()}", e);
             }
 
             if (redirectOutput) {
@@ -92,13 +110,13 @@ namespace Oetools.Builder.Project.Task {
 
             if (proc.ErrorOutput.Length > 0) {
                 if (FailOnErrorOutput ?? false) {
-                    throw new TaskExecutionException(this, $"The execution of {ExecutablePath.PrettyQuote()} has content in the error stream :{Environment.NewLine}{proc.ErrorOutput}");
+                    throw new TaskExecutionException(this, $"The execution of {ExecutableFilePath.PrettyQuote()} has content in the error stream :{Environment.NewLine}{proc.ErrorOutput}");
                 }
                 Log?.Error(proc.ErrorOutput.ToString());
             }
 
             if (!(IgnoreExitCode ?? false) && proc.ExitCode != 0) {
-                throw new TaskExecutionException(this, $"The execution of {ExecutablePath.PrettyQuote()} with parameters {Parameters.PrettyQuote()} ended with the exit code {proc.ExitCode}");
+                throw new TaskExecutionException(this, $"The execution of {ExecutableFilePath.PrettyQuote()} with parameters {Parameters.PrettyQuote()} ended with the exit code {proc.ExitCode}");
             }
         }
 

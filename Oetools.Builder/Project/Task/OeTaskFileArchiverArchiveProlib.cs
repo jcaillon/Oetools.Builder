@@ -28,6 +28,9 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
     
+    /// <summary>
+    /// This task adds files into pro libraries (.pl).
+    /// </summary>
     [Serializable]
     [XmlRoot("Prolib")]
     public class OeTaskFileArchiverArchiveProlib : AOeTaskFileArchiverArchive, IOeTaskWithBuiltFiles {

@@ -21,12 +21,17 @@
 using System;
 using System.Linq;
 using System.Xml.Serialization;
+using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Archive;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
     
+    /// <summary>
+    /// This task moves files.
+    /// </summary>
     [Serializable]
     [XmlRoot("Move")]
     public class OeTaskFileMove : AOeTaskFileArchiverArchive {
@@ -51,6 +56,20 @@ namespace Oetools.Builder.Project.Task {
         public override string TargetArchivePath {
             get => null;
             set => _targetArchivePath = value;
+        }
+
+        public override void Validate() {
+            // at most 1 target
+            if (!string.IsNullOrEmpty(TargetFilePath) && TargetDirectory != null) {
+                throw new TaskValidationException(this, $"This task can only have a single target but the two following properties are defined: {GetType().GetXmlName(nameof(TargetFilePath))} and {GetType().GetXmlName(nameof(TargetDirectory))}.");
+            }
+            if (TargetFilePath?.Contains(';') ?? false) {
+                throw new TaskValidationException(this, $"This task can only have a single target but two paths are defined for {GetType().GetXmlName(nameof(TargetFilePath))}.");
+            }
+            if (TargetDirectory?.Contains(';') ?? false) {
+                throw new TaskValidationException(this, $"This task can only have a single target but two paths are defined for {GetType().GetXmlName(nameof(TargetDirectory))}.");
+            }
+            base.Validate();
         }
 
         protected override bool IsTargetArchiveRequired() => false;

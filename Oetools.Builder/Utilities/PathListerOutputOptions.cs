@@ -6,12 +6,12 @@ namespace Oetools.Builder.Utilities {
 
         /// <summary>
         /// If true, we consider that 2 files are different if they have different hash results.
-        /// This implies that we must compute file <see cref="OeFile.Hash"/> .
+        /// This implies that we must compute file <see cref="OeFile.Checksum"/> .
         /// </summary>
         /// <remarks>
         /// by default, we consider the file size to see if they are different
         /// </remarks>
-        public bool UseHashComparison { get; set; }
+        public bool UseCheckSumComparison { get; set; }
 
         /// <summary>
         /// if true, we consider that 2 files are different if they have different <see cref="OeFile.LastWriteTime"/>.

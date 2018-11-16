@@ -144,11 +144,18 @@ namespace Oetools.Builder.Test.Project {
                         Name = "globalname1"
                     }
                 },
-                GlobalProperties = new OeProperties {
-                    DlcDirectoryPath = "globaldlc",
+                DefaultProperties = new OeProperties {
+                    DlcDirectory = "globaldlc",
                     BuildOptions = new OeBuildOptions {
-                        OutputDirectoryPath = "globaloutput"
+                        OutputDirectoryPath = "globaloutput",
+                        SourceToBuildFilter = new OeFilterOptions {
+                            Include = "include"
+                        },
+                        IncrementalBuildOptions = new OeIncrementalBuildOptions {
+                            Enabled = true
+                        }
                     },
+                    
                     PropathSourceDirectoriesFilter = new OeFilterOptions {
                         Include = "inc"
                     }
@@ -165,9 +172,14 @@ namespace Oetools.Builder.Test.Project {
                             }
                         },
                         Properties = new OeProperties {
-                            DlcDirectoryPath = "localdlc",
+                            DlcDirectory = "localdlc",
                             PropathSourceDirectoriesFilter = new OeFilterOptions {
                                 Exclude = "exclude"
+                            },
+                            BuildOptions = new OeBuildOptions {
+                                SourceToBuildFilter = new OeFilterOptions {
+                                    Exclude = "exclude"
+                                }
                             }
                         }
                     }
@@ -178,13 +190,16 @@ namespace Oetools.Builder.Test.Project {
             
             Assert.AreEqual(2, conf.Variables.Count);
             Assert.AreEqual("second", conf.ConfigurationName);
-            Assert.AreEqual("localdlc", conf.Properties.DlcDirectoryPath);
+            Assert.AreEqual("localdlc", conf.Properties.DlcDirectory);
             Assert.AreEqual("globaloutput", conf.Properties.BuildOptions.OutputDirectoryPath);
-            Assert.AreEqual(null, conf.Properties.PropathSourceDirectoriesFilter.Include);
+            Assert.AreEqual("exclude", conf.Properties.BuildOptions.SourceToBuildFilter.Exclude);
+            Assert.AreEqual("include", conf.Properties.BuildOptions.SourceToBuildFilter.Include);
+            Assert.AreEqual("inc", conf.Properties.PropathSourceDirectoriesFilter.Include);
             Assert.AreEqual("exclude", conf.Properties.PropathSourceDirectoriesFilter.Exclude);
+            Assert.AreEqual(true, conf.Properties.BuildOptions.IncrementalBuildOptions.Enabled);
             
-            Assert.AreEqual("globaldlc", project.GlobalProperties.DlcDirectoryPath, "This should not modified the global properties.");
-            Assert.AreEqual(null, project.BuildConfigurations[1].Properties.BuildOptions, "This should also not modified the properties of the original build configurations.");
+            Assert.AreEqual("globaldlc", project.DefaultProperties.DlcDirectory, "This should not modified the global properties.");
+            Assert.AreEqual(null, project.BuildConfigurations[1].Properties.BuildOptions.IncrementalBuildOptions, "This should also not modified the properties of the original build configurations.");
             
 
         }
@@ -203,16 +218,32 @@ namespace Oetools.Builder.Test.Project {
             var loadedProject = OeProject.Load(Path.Combine(TestFolder, "project_default.xml"));
             
             // should load null values
-            Assert.AreEqual(null, loadedProject.GlobalProperties.UseCharacterModeExecutable);
+            Assert.AreEqual(null, loadedProject.DefaultProperties.UseCharacterModeExecutable);
             
-            project.GlobalProperties = new OeProperties {
+            project.DefaultProperties = new OeProperties {
                 AddAllSourceDirectoriesToPropath = true,
                 AddDefaultOpenedgePropath = true,
                 BuildOptions = new OeBuildOptions {
                     BuildHistoryInputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
                     BuildHistoryOutputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
                     OutputDirectoryPath = "D:\\output",
-                    ReportHtmlFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.html")
+                    ReportHtmlFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.html"),
+                    SourceToBuildFilter = new OeFilterOptions {
+                        Exclude = "**/derp",
+                        ExcludeRegex = "\\\\[D][d]"
+                    },
+                    SourceToBuildGitFilter = new OeGitFilterOptions {
+                        CurrentBranchName = null,
+                        CurrentBranchOriginCommit = null,
+                        IncludeSourceFilesCommittedOnlyOnCurrentBranch = true,
+                        IncludeSourceFilesModifiedSinceLastCommit = true
+                    },
+                    IncrementalBuildOptions = new OeIncrementalBuildOptions {
+                        Enabled = false,
+                        MirrorDeletedSourceFileToOutput = true,
+                        UseCheckSumComparison = false,
+                        UseSimplerAnalysisForDatabaseReference = true
+                    }
                 },
                 CompilationOptions = new OeCompilationOptions {
                     CompilableFileExtensionPattern = OeBuilderConstants.CompilableExtensionsPattern,
@@ -226,8 +257,7 @@ namespace Oetools.Builder.Test.Project {
                     CompileWithListing = true,
                     CompileWithPreprocess = true,
                     CompileWithXref = true,
-                    UseCompilerMultiCompile = true,
-                    UseSimplerAnalysisForDatabaseReference = true
+                    UseCompilerMultiCompile = true
                 },
                 UseCharacterModeExecutable = false,
                 DatabaseAliases = new List<OeDatabaseAlias> {
@@ -241,16 +271,11 @@ namespace Oetools.Builder.Test.Project {
                     }
                 },
                 ExtraDatabaseConnectionString = "-extra \"quotes\" ",
-                DlcDirectoryPath = "/dlc/",
-                IncrementalBuildOptions = new OeIncrementalBuildOptions {
-                    Enabled = false,
-                    MirrorDeletedSourceFileToOutput = true,
-                    StoreSourceHash = false
-                },
+                DlcDirectory = "/dlc/",
                 IniFilePath = "C:\\my.ini",
-                ProcedurePathToExecuteAfterAnyProgressExecution = "",
-                ProcedurePathToExecuteBeforeAnyProgressExecution = "",
-                OpenedgeCommandLineExtraParameters = "my extra param \"in quotes\" ''",
+                ProcedureToExecuteAfterAnyProgressExecutionFilePath = "",
+                ProcedureToExecuteBeforeAnyProgressExecutionFilePath = "",
+                ExtraOpenedgeCommandLineParameters = "my extra param \"in quotes\" ''",
                 ProjectDatabases = new List<OeProjectDatabase> {
                     new OeProjectDatabase {
                         DataDefinitionFilePath = "C:\\folder\\file.df",
@@ -266,17 +291,7 @@ namespace Oetools.Builder.Test.Project {
                     Exclude = "**/derp",
                     ExcludeRegex = "\\\\[D][d]"
                 },
-                SourceToBuildFilter =new OeFilterOptions {
-                    Exclude = "**/derp",
-                    ExcludeRegex = "\\\\[D][d]"
-                },
-                SourceToBuildGitFilterOptions = new OeGitFilterOptions {
-                    CurrentBranchName = null,
-                    CurrentBranchOriginCommit = null,
-                    OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true,
-                    OnlyIncludeSourceFilesModifiedSinceLastCommit = true
-                },
-                OpenedgeTemporaryDirectoryPath = "{{TEMP}}"
+                OpenedgeTemporaryDirectory = "{{TEMP}}"
             };
             
             project.GlobalVariables = new List<OeVariable> {
@@ -303,7 +318,7 @@ namespace Oetools.Builder.Test.Project {
                     PreBuildStepGroup = new List<OeBuildStepClassic>(),
                     BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
                         new OeBuildStepBuildSource {
-                            Label = "step1",
+                            Name = "step1",
                             Tasks = new List<AOeTask> {
                                 new OeTaskFileCompile {
                                     Exclude = "**",
@@ -345,17 +360,17 @@ namespace Oetools.Builder.Test.Project {
                             }
                         },
                         new OeBuildStepBuildSource {
-                            Label = "step2",
+                            Name = "step2",
                             Tasks = null
                         }
                     },
                     BuildOutputStepGroup = new List<OeBuildStepClassic> {
                         new OeBuildStepClassic {
-                            Label = "step output 1",
+                            Name = "step output 1",
                             Tasks = new List<AOeTask> {
                                 new OeTaskExec {
-                                    Label = "exec1",
-                                    ExecutablePath = "exec",
+                                    Name = "exec1",
+                                    ExecutableFilePath = "exec",
                                     Parameters = "params \"quotes\"",
                                     WorkingDirectory = "dir",
                                     HiddenExecution = false,
@@ -381,19 +396,19 @@ namespace Oetools.Builder.Test.Project {
 
             string xmlContent = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
-  <GlobalProperties>
-    <DlcDirectoryPath></DlcDirectoryPath>
-    <ProcedurePathToExecuteBeforeAnyProgressExecution />
-  </GlobalProperties>
+  <DefaultProperties>
+    <DlcDirectory></DlcDirectory>
+    <ProcedureToExecuteBeforeAnyProgressExecutionFilePath />
+  </DefaultProperties>
 </Project>
 ";
             File.WriteAllText(Path.Combine(TestFolder, "input_test.xml"), xmlContent);
 
             loadedProject = OeProject.Load(Path.Combine(TestFolder, "input_test.xml"));
             
-            Assert.AreEqual(@"", loadedProject.GlobalProperties.DlcDirectoryPath);
-            Assert.AreEqual(null, loadedProject.GlobalProperties.IniFilePath);
-            Assert.AreEqual(@"", loadedProject.GlobalProperties.ProcedurePathToExecuteBeforeAnyProgressExecution);
+            Assert.AreEqual(@"", loadedProject.DefaultProperties.DlcDirectory);
+            Assert.AreEqual(null, loadedProject.DefaultProperties.IniFilePath);
+            Assert.AreEqual(@"", loadedProject.DefaultProperties.ProcedureToExecuteBeforeAnyProgressExecutionFilePath);
         }
     }
 }

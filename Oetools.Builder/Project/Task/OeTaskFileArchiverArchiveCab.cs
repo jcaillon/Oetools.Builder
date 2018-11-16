@@ -27,6 +27,9 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
     
+    /// <summary>
+    /// This task adds files into cabinet files.
+    /// </summary>
     [Serializable]
     [XmlRoot("Cab")]
     public class OeTaskFileArchiverArchiveCab : AOeTaskFileArchiverArchive, IOeTaskWithBuiltFiles { 

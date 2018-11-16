@@ -24,9 +24,16 @@ using Oetools.Builder.Project.Task;
 
 namespace Oetools.Builder.Project {
     
+    /// <summary>
+    /// A step to build your source files.
+    /// The list of files in your source directory is done at the beginning of each step.
+    /// </summary>
     [Serializable]
     public class OeBuildStepBuildSource : OeBuildStep {
                 
+        /// <summary>
+        /// A list of tasks to build your source files.
+        /// </summary>
         [XmlArray("Tasks")]
         [XmlArrayItem("Copy", typeof(OeTaskFileCopy))]
         [XmlArrayItem("Prolib", typeof(OeTaskFileArchiverArchiveProlib))]

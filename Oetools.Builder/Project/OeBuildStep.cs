@@ -8,12 +8,15 @@ using Oetools.Builder.Project.Task;
 namespace Oetools.Builder.Project {
     
     public abstract class OeBuildStep {
-                
-        [XmlAttribute("Label")]
-        public string Label { get; set; }
         
         [XmlIgnore]
         internal int Id { get; set; }
+                
+        /// <summary>
+        /// The name of this build step. Purely informative.
+        /// </summary>
+        [XmlAttribute("Name")]
+        public string Name { get; set; }
 
         public virtual List<AOeTask> GetTaskList() => null;
 
@@ -59,6 +62,6 @@ namespace Oetools.Builder.Project {
             }
         }
         
-        public override string ToString() => $"Step [{Id}]{(string.IsNullOrEmpty(Label) ? "" : $" {Label}")}";
+        public override string ToString() => $"Step [{Id}]{(string.IsNullOrEmpty(Name) ? "" : $" {Name}")}";
     }
 }

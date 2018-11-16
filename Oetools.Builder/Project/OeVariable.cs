@@ -23,17 +23,24 @@ using System.Xml.Serialization;
 namespace Oetools.Builder.Project {
     
     /// <summary>
-    /// Represents a variable.
+    /// A variable to use in a build configuration.
     /// </summary>
+    /// <inheritdoc cref="OeProject.GlobalVariables"/>
     [Serializable]
     public class OeVariable {
             
-        [XmlAttribute("Name")]
-        public string Name { get; set; }
-        
         [XmlIgnore]
         internal int Id { get; set; }
+        
+        /// <summary>
+        /// The variable name. Can then be used as follows: {{variable_name}}.
+        /// </summary>
+        [XmlAttribute("Name")]
+        public string Name { get; set; }
             
+        /// <summary>
+        /// The variable value.
+        /// </summary>
         [XmlAttribute("Value")]
         public string Value { get; set; }
 

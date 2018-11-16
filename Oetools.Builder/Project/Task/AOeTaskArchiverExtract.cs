@@ -11,12 +11,10 @@ namespace Oetools.Builder.Project.Task {
     /// <summary>
     /// Base task class that allows to extract files from archives.
     /// </summary>
+    /// <inheritdoc cref="AOeTaskFilter"/>
     public abstract class AOeTaskArchiverExtract : AOeTaskFilter {
         
-        /// <summary>
-        /// The path of the target archive.
-        /// </summary>
-        /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetArchivePath"/>
+        /// <inheritdoc cref="AOeTaskArchiverDelete.ArchivePath"/>
         [XmlIgnore]
         public abstract string ArchivePath { get; set; }
         

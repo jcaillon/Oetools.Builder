@@ -51,15 +51,15 @@ namespace Oetools.Builder.Test.Project {
         public void SetDefaultValues_Test() {
             var prop = new OeProperties();
             prop.SetDefaultValues();
-            Assert.AreEqual(OeGitFilterOptions.GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch(), prop.SourceToBuildGitFilterOptions.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch);
-            Assert.AreEqual(OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput(), prop.IncrementalBuildOptions.MirrorDeletedSourceFileToOutput);
+            Assert.AreEqual(OeGitFilterOptions.GetDefaultIncludeSourceFilesCommittedOnlyOnCurrentBranch(), prop.BuildOptions.SourceToBuildGitFilter.IncludeSourceFilesCommittedOnlyOnCurrentBranch);
+            Assert.AreEqual(OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput(), prop.BuildOptions?.IncrementalBuildOptions?.MirrorDeletedSourceFileToOutput);
             Assert.AreEqual(OeCompilationOptions.GetDefaultCompileWithDebugList(), prop.CompilationOptions.CompileWithDebugList);
             Assert.AreEqual(OeBuildOptions.GetDefaultTreatWarningsAsErrors(), prop.BuildOptions.TreatWarningsAsErrors);
             
             if (!TestHelper.GetDlcPath(out string _)) {
                 return;
             }
-            Assert.AreEqual(OeProperties.GetDefaultDlcDirectoryPath(), prop.DlcDirectoryPath);
+            Assert.AreEqual(OeProperties.GetDefaultDlcDirectory(), prop.DlcDirectory);
         }
 
         [TestMethod]
@@ -123,7 +123,7 @@ namespace Oetools.Builder.Test.Project {
                 return;
             }
 
-            prop.DlcDirectoryPath = dlcPath;
+            prop.DlcDirectory = dlcPath;
             prop.AddDefaultOpenedgePropath = true;
             
             list = prop.GetPropath(TestFolder, false);

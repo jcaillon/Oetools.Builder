@@ -26,6 +26,9 @@ using Oetools.Utilities.Archive;
 
 namespace Oetools.Builder.Project.Task {
     
+    /// <summary>
+    /// This task compiles openedge source files to rcode.
+    /// </summary>
     [Serializable]
     [XmlRoot("Compile")]
     public class OeTaskFileCompile: OeTaskFileCopy , IOeTaskCompile { }

@@ -62,7 +62,7 @@ namespace Oetools.Builder.Utilities {
             Properties = configuration.Properties;
             ConfigurationId = configuration.Id;
             try {
-                DbAdmin = new UoeDatabaseAdministrator((Properties?.DlcDirectoryPath).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectoryPath()));
+                DbAdmin = new UoeDatabaseAdministrator((Properties?.DlcDirectory).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectory()));
             } catch (Exception e) {
                 throw new ProjectDatabaseAdministratorException($"Error initiating the database administrator for the projet : {e.Message}", e);
             }

@@ -51,7 +51,7 @@ namespace Oetools.Builder.Test.Project.Task {
             }
 
             var task = new OeTaskExec {
-                ExecutablePath = @"C:\Windows\System32\net.exe",
+                ExecutableFilePath = @"C:\Windows\System32\net.exe",
                 Parameters = "use"
             };
             task.Execute();

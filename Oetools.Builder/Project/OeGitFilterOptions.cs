@@ -21,46 +21,63 @@ using System;
 using System.Xml.Serialization;
 
 namespace Oetools.Builder.Project {
+    
+    /// <summary>
+    /// GIT filtering options.
+    /// </summary>
+    /// <remarks>
+    /// This option required GIT to be installed and available in your system PATH.
+    /// </remarks>
     [Serializable]
     public class OeGitFilterOptions {
             
         /// <summary>
-        /// If true, only the files that were modified since the last commit will be eligible for the <see cref="OeBuildConfiguration.BuildSourceStepGroup"/>
-        /// (this include files in staging area and untracked files in the working directory)
-        /// </summary>
-        [XmlElement(ElementName = "OnlyIncludeSourceFilesModifiedSinceLastCommit")]
-        public bool? OnlyIncludeSourceFilesModifiedSinceLastCommit { get; set; }
-        public static bool GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit() => false;
-            
-        /// <summary>
-        /// If true, only the committed files that were committed exclusively on the current branch will be eligible for the <see cref="OeBuildConfiguration.BuildSourceStepGroup"/>
-        /// We consider that a commit belongs only to the current branch if we can't find a reference different than CURRENT_BRANCH_NAME and ANY_REMOTE/CURRENT_BRANCH_NAME
-        /// which points to said commit
-        /// </summary>
-        [XmlElement(ElementName = "OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch")]
-        public bool? OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch { get; set; }
-        public static bool GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch() => false;
-            
-        /// <summary>
-        /// In detached mode, the CURRENT_BRANCH_NAME is not defined, you can set this value to the branch name to use for the option <see cref="OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch"/>
-        /// This can be useful in CI builds where the CI checks out a repo in detached mode (it checks out a commit)
+        /// Build source files that were modified/added/deleted since the last commit.
         /// </summary>
         /// <remarks>
-        /// By default, if in detached mode, this tool tries to deduce the current branch by checking the first remote reference of the currently checked out commit
+        /// This include all the files in staging area as well as untracked files in the working directory. Basically, any file listed in a `git status` command.
+        /// This is a good filter to build all the files you are about to commit (and thus check if they compile).
+        /// </remarks>
+        [XmlElement(ElementName = "IncludeSourceFilesModifiedSinceLastCommit")]
+        public bool? IncludeSourceFilesModifiedSinceLastCommit { get; set; }
+        public static bool GetDefaultIncludeSourceFilesModifiedSinceLastCommit() => false;
+            
+        /// <summary>
+        /// Build source files that were modified/added/deleted in a commit that is exclusive to the current branch.
+        /// </summary>
+        /// <remarks>
+        /// The `git log` is used to identify which commits are referenced only by the current branch (or reference only by the any remote reference of the current branch). The files modified/added/deleted in these commits are then build.
+        /// To rephrase this, we consider the commits from HEAD to the first commit that has a reference different than current_branch or any_remote/current_branch (aforementioned commit is not included).
+        /// This option is useful to check if the changes you introduced with several commits in your branch do not break the build of your application.
+        /// </remarks>
+        [XmlElement(ElementName = "IncludeSourceFilesCommittedOnlyOnCurrentBranch")]
+        public bool? IncludeSourceFilesCommittedOnlyOnCurrentBranch { get; set; }
+        public static bool GetDefaultIncludeSourceFilesCommittedOnlyOnCurrentBranch() => false;
+            
+        /// <summary>
+        /// The branch reference name for the current branch. To be used with IncludeSourceFilesCommittedOnlyOnCurrentBranch.
+        /// </summary>
+        /// <remarks>
+        /// This can be useful in CI builds where the CI checks out a repo in detached mode (it checks out a commit, not a branch).
+        /// However, by default, if in detached mode, this tool tries to deduce the current branch by checking the first remote reference of the currently checked out commit. This will be sufficient in most cases, so this option can often be left empty.
         /// </remarks>
         [XmlElement(ElementName = "CurrentBranchName")]
         public string CurrentBranchName { get; set; }
         
         /// <summary>
-        /// Manually specify the reference or SHA1 of the commit from which the current branch originated
+        /// The reference or SHA1 of the commit from which the current branch originated. To be used with IncludeSourceFilesCommittedOnlyOnCurrentBranch.
         /// </summary>
+        /// <remarks>
+        /// Read the description of IncludeSourceFilesCommittedOnlyOnCurrentBranch to understand this option.
+        /// This commit is generally found automatically but you can set its value to force a build between HEAD and a given commit.
+        /// </remarks>
         [XmlElement(ElementName = "CurrentBranchOriginCommit")]
         public string CurrentBranchOriginCommit { get; set; }
 
         /// <summary>
-        /// Is this filter active
+        /// Is this filter active?
         /// </summary>
         /// <returns></returns>
-        internal bool IsActive() => (OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch ?? GetDefaultOnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch()) || (OnlyIncludeSourceFilesModifiedSinceLastCommit ?? GetDefaultOnlyIncludeSourceFilesModifiedSinceLastCommit());
+        internal bool IsActive() => (IncludeSourceFilesCommittedOnlyOnCurrentBranch ?? GetDefaultIncludeSourceFilesCommittedOnlyOnCurrentBranch()) || (IncludeSourceFilesModifiedSinceLastCommit ?? GetDefaultIncludeSourceFilesModifiedSinceLastCommit());
     }
 }

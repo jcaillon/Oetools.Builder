@@ -30,8 +30,10 @@ namespace Oetools.Builder.Utilities {
         public const string OeProjectExtension = ".oeproj";
 
         public const string OeProjectDirectory = ".oe";
-        public const string OeProjectLocalDirectory = "local";
-        private const string OeProjectOutput = "bin";
+        
+        private const string OeProjectLocalDirectory = "local";
+        private const string OeProjectOutputDirectory = "bin";
+        private const string OeProjectBuildDirectory = "build";
         
         public const string OeVarNameSourceDirectory = "SOURCE_DIRECTORY";
         public const string OeVarNameProjectDirectory = "PROJECT_DIRECTORY";
@@ -43,8 +45,11 @@ namespace Oetools.Builder.Utilities {
 
         public static string GetProjectDirectory(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory);
         public static string GetProjectDirectoryLocal(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory, OeProjectLocalDirectory);
-        public static string GetProjectDirectoryBuild(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory, OeProjectLocalDirectory, "build");
         public static string GetProjectDirectoryLocalDb(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory, OeProjectLocalDirectory, "db");
-        public static string GetDefaultOutputDirectory(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectOutput);
+        
+        public static string GetDefaultOutputDirectory() => Path.Combine($"{{{{{OeVarNameSourceDirectory}}}}}", OeProjectOutputDirectory);
+        public static string GetDefaultBuildHistoryInputFilePath() => Path.Combine($"{{{{{OeVarNameProjectLocalDirectory}}}}}", OeProjectBuildDirectory, "latest.xml");
+        public static string GetDefaultBuildHistoryOutputFilePath() => Path.Combine($"{{{{{OeVarNameProjectLocalDirectory}}}}}", OeProjectBuildDirectory, "latest.xml");
+        public static string GetDefaultReportHtmlFilePath() => Path.Combine($"{{{{{OeVarNameProjectLocalDirectory}}}}}", OeProjectBuildDirectory, "latest.html");
     }
 }

@@ -31,7 +31,7 @@ using Oetools.Utilities.Lib.Extension;
 namespace Oetools.Builder.Project.Task {
     
     /// <summary>
-    /// This tasks allows to delete files path.
+    /// This task deletes files.
     /// </summary>
     [Serializable]
     [XmlRoot("Delete")]

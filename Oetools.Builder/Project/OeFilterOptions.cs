@@ -18,11 +18,17 @@
 // ========================================================================
 #endregion
 
+using System;
 using System.Xml.Serialization;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.Project {
+    
+    /// <summary>
+    /// Path filtering options.
+    /// </summary>
+    [Serializable]
     public class OeFilterOptions : AOeTaskFilter {
         
         /// <summary>

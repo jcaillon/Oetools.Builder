@@ -24,6 +24,10 @@ using Oetools.Utilities.Lib;
 using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project.Task {
+    
+    /// <summary>
+    /// This task compiles openedge source files into rcode and adds them into pro libraries (.pl).
+    /// </summary>
     [Serializable]
     [XmlRoot("CompileInProlib")]
     public class OeTaskFileArchiverArchiveProlibCompile : OeTaskFileArchiverArchiveProlib, IOeTaskCompile {

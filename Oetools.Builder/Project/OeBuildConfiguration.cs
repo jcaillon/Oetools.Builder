@@ -21,10 +21,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Xml.Schema;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
-using Oetools.Builder.Resources;
 using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib.Attributes;
@@ -36,61 +34,85 @@ namespace Oetools.Builder.Project {
     /// <summary>
     /// Represents the configuration of a build
     /// </summary>
-    /// <remarks>
+    /// <inheritdoc cref="OeProject.BuildConfigurations"/>
+    /// <code>
     /// Every public property string not marked with the <see cref="ReplaceVariables"/> attribute is allowed
-    /// to use &lt;VARIABLE&gt; which will be replace at the beginning of the build by <see cref="Variables"/>
-    /// </remarks>
+    /// to use {{VARIABLE}} which will be replace at the beginning of the build by <see cref="Variables"/>.
+    /// </code>
     [Serializable]
     [XmlRoot("BuildConfiguration")]
     public class OeBuildConfiguration {
             
-        [XmlAttribute("Name")]
-        public string ConfigurationName { get; set; }
-        
         [XmlIgnore]
         internal int Id { get; set; }
         
         /// <summary>
-        /// Every existing sub node (even if empty) present in this will replace their <see cref="OeProject.GlobalProperties"/>
-        /// counterpart
+        /// The name of this configuration. Purely informative.
         /// </summary>
-        [XmlElement("OverloadProperties")]
+        [XmlAttribute("Name")]
+        public string ConfigurationName { get; set; }
+        
+        /// <summary>
+        /// The properties of this build configuration.
+        /// </summary>
+        /// <inheritdoc cref="OeProject.DefaultProperties"/>
+        [XmlElement("Properties")]
         [DeepCopy(Ignore = true)]
         public OeProperties Properties { get; set; }
             
         /// <summary>
-        /// Default variables are added by the builder, see <see cref="ApplyVariables"/>, also <see cref="OeProject.GlobalProperties"/>
-        /// are always added
+        /// The variables specific to this build configuration.
         /// </summary>
-        [XmlArray("BuildVariables")]
+        /// <inheritdoc cref="OeProject.GlobalVariables"/>
+        [XmlArray("Variables")]
         [XmlArrayItem("Variable", typeof(OeVariable))]
         [ReplaceVariables(SkipReplace = true)]
         public List<OeVariable> Variables { get; set; }
         
         /// <summary>
-        /// This list of tasks can include any file
+        /// A list of steps/tasks that will be executed before anything else.
         /// </summary>
+        /// <remarks>
+        /// These tasks can be used to "prepare" the build. For instance, by downloading dependencies or packages. Or by modifying certain source files.
+        /// Steps and tasks within steps are executed sequentially in the given order.
+        /// </remarks>
         [XmlArray("PreBuildTasks")]
         [XmlArrayItem("Step", typeof(OeBuildStepClassic))]
         public List<OeBuildStepClassic> PreBuildStepGroup { get; set; }
 
         /// <summary>
-        /// This list of tasks can only include files located in the source directory
+        /// A list of steps/tasks that will build the files in your project source directory.
         /// </summary>
+        /// <remarks>
+        /// This is the main tasks list, where openedge files should be compiled.
+        /// The history of files built here can be saved to enable an incremental build.
+        /// A listing of the source files is made at each step. Which means it would not be efficient to create 10 steps of 1 task each if the files in your source directory will not change between steps.
+        /// Steps and tasks within steps are executed sequentially in the given order.
+        /// </remarks>
         [XmlArray("BuildSourceTasks")]
         [XmlArrayItem("Step", typeof(OeBuildStepBuildSource))]
         public List<OeBuildStepBuildSource> BuildSourceStepGroup { get; set; }
             
         /// <summary>
-        /// This list of tasks can only include files located in the output directory
+        /// A list of steps/tasks that should affect the files in your project output directory.
         /// </summary>
+        /// <remarks>
+        /// These tasks should be used to "post-process" the files built from your source directory into the output directory.
+        /// For instance, it can be used to build a release zip file containing all the .pl and other configuration files of your release.
+        /// A listing of the files in the output directory is made at each step. Which means it would not be efficient to create 10 steps of 1 task each if those files will not change between steps.
+        /// Steps and tasks within steps are executed sequentially in the given order.
+        /// </remarks>
         [XmlArray("BuildOutputTasks")]
         [XmlArrayItem("Step", typeof(OeBuildStepClassic))]
         public List<OeBuildStepClassic> BuildOutputStepGroup { get; set; }
         
         /// <summary>
-        /// This list of tasks can include any file
+        /// A list of steps/tasks that will be executed after anything else.
         /// </summary>
+        /// <remarks>
+        /// These tasks can be used to "deploy" a build. For instance, by uploading a release zip file to a distant http or ftp server.
+        /// Steps and tasks within steps are executed sequentially in the given order.
+        /// </remarks>
         [XmlArray("PostBuildTasks")]
         [XmlArrayItem("Step", typeof(OeBuildStepClassic))]
         public List<OeBuildStepClassic> PostBuildStepGroup { get; set; }
@@ -111,13 +133,13 @@ namespace Oetools.Builder.Project {
                 Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameProjectDirectory, Value = OeBuilderConstants.GetProjectDirectory(sourceDirectory) });                
                 Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameProjectLocalDirectory, Value = OeBuilderConstants.GetProjectDirectoryLocal(sourceDirectory) });              
             }             
-            Variables.Add(new OeVariable { Name = UoeConstants.OeDlcEnvVar, Value = (Properties?.DlcDirectoryPath).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectoryPath()) });  
-            Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = Properties?.BuildOptions?.OutputDirectoryPath ?? OeBuilderConstants.GetDefaultOutputDirectory(sourceDirectory) });  
+            Variables.Add(new OeVariable { Name = UoeConstants.OeDlcEnvVar, Value = (Properties?.DlcDirectory).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectory()) });  
+            Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = (Properties?.BuildOptions?.OutputDirectoryPath).TakeDefaultIfNeeded(OeBuilderConstants.GetDefaultOutputDirectory()) });  
             Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameConfigurationName, Value = ConfigurationName });
             try {
                 Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameCurrentDirectory, Value = Directory.GetCurrentDirectory() });
             } catch (Exception e) {
-                throw new BuildConfigurationException(this, "Failed to get the current directory (check permissions)", e);
+                throw new BuildConfigurationException(this, "Failed to get the current directory (check permissions).", e);
             }
             // extra variable FILE_SOURCE_DIRECTORY defined only when computing targets
             

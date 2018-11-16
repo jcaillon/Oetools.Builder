@@ -37,10 +37,11 @@ namespace Oetools.Builder.Project.Task {
     /// <summary>
     /// Base task class for tasks that operates on files and that have targets for aforementioned files.
     /// </summary>
+    /// <inheritdoc cref="AOeTaskFilter"/>
     public abstract class AOeTaskFileArchiverArchive : AOeTaskFile, IOeTaskFileToBuild {
                 
         /// <summary>
-        /// The path of the target archive.
+        /// The path to the targeted archive.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -52,7 +53,7 @@ namespace Oetools.Builder.Project.Task {
         /// </remarks>
         /// <example>
         /// <para>
-        /// Having "((C:\folder\**))((*.txt))" as an <see cref="AOeTaskFilter.Include"/> pattern
+        /// Having "((C:\folder\**))((*.txt))" as an include pattern
         /// and "D:\pre_{{2}}.raw" as the target,
         /// for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".
         /// (note: In this example, the captured group 1 was not used)

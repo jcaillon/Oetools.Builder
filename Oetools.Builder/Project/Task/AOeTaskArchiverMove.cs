@@ -11,12 +11,10 @@ namespace Oetools.Builder.Project.Task {
     /// <summary>
     /// Base task class that allows to move files within archives.
     /// </summary>
+    /// <inheritdoc cref="AOeTaskFilter"/>
     public abstract class AOeTaskArchiverMove : AOeTaskFilter {
         
-        /// <summary>
-        /// The path of the target archive.
-        /// </summary>
-        /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetArchivePath"/>
+        /// <inheritdoc cref="AOeTaskArchiverDelete.ArchivePath"/>
         [XmlIgnore]
         public abstract string ArchivePath { get; set; }
         

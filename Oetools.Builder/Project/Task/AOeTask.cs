@@ -34,16 +34,16 @@ namespace Oetools.Builder.Project.Task {
     public abstract class AOeTask : IOeTask {
         
         /// <summary>
-        /// The label of this task. A custom string that allows to identify this task in the logs.
-        /// </summary>
-        [XmlAttribute("Label")]
-        public string Label { get; set; }
-        
-        /// <summary>
         /// Unique identifier for this task.
         /// </summary>
         [XmlIgnore]
         internal int Id { get; set; }   
+        
+        /// <summary>
+        /// The name of this task. Purely informative.
+        /// </summary>
+        [XmlAttribute("Name")]
+        public string Name { get; set; }
         
         protected ILogger Log { get; set; }
         protected CancellationToken? CancelToken { get; set; }
@@ -134,6 +134,6 @@ namespace Oetools.Builder.Project.Task {
         /// String representation of this task.
         /// </summary>
         /// <returns></returns>
-        public override string ToString() => $"Task [{Id}]{(string.IsNullOrEmpty(Label) ? "" : $" {Label}")} of type {GetType().GetXmlName()}";
+        public override string ToString() => $"Task [{Id}]{(string.IsNullOrEmpty(Name) ? "" : $" {Name}")} of type {GetType().GetXmlName()}";
     }
 }

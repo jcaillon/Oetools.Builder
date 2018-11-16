@@ -23,15 +23,21 @@ using System.Xml.Serialization;
 using Oetools.Builder.Project.Task;
 
 namespace Oetools.Builder.Project {
+    
+    /// <summary>
+    /// A step (list of tasks) to build your application.
+    /// </summary>
     [Serializable]
     public class OeBuildStepClassic : OeBuildStep {
                 
+        /// <summary>
+        /// A list of tasks.
+        /// </summary>
         [XmlArray("Tasks")]
         [XmlArrayItem("Execute", typeof(OeTaskExec))]
         [XmlArrayItem("RemoveDirectory", typeof(OeTaskDirectoryDelete))]
         [XmlArrayItem("Delete", typeof(OeTaskFileDelete))]
         [XmlArrayItem("Cab", typeof(OeTaskFileArchiverArchiveCab))]
-        [XmlArrayItem("Webclient", typeof(OeTaskWebclient))]
         public List<AOeTask> Tasks { get; set; }
 
         public override List<AOeTask> GetTaskList() => Tasks;

@@ -23,9 +23,9 @@ namespace Oetools.Builder.History {
         long Size { get; set; }
 
         /// <summary>
-        /// An hash value for this file.
+        /// A checksum value for this file.
         /// </summary>
-        string Hash { get; set; }
+        string Checksum { get; set; }
 
         /// <summary>
         /// Represents the state of the file for this build compare to the previous one.

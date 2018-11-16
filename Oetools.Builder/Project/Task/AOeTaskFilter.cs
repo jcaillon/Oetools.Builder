@@ -32,6 +32,12 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
  
+    /// <summary>
+    /// A task that is used to filter paths to include/exclude.
+    /// </summary>
+    /// <remarks>
+    /// Use the Include and Exclude properties to identify the paths that should be treated by this task.
+    /// </remarks>
     [Serializable]
     public abstract class AOeTaskFilter : AOeTask, IOeTaskFilter {
 
@@ -41,6 +47,9 @@ namespace Oetools.Builder.Project.Task {
         /// <remarks>
         /// <para>
         /// Several pattern can be used, separate them with a semi-colon (i.e. ;).
+        /// Internally, each pattern is turned into a valid regular expression.
+        /// If a file is matched by several patterns, only the first one will be used.
+        ///  
         /// The following symbols can be used in patterns:
         /// 
         /// - ** will match any char any number of time (corresponds to a regex greedy match)
@@ -49,10 +58,6 @@ namespace Oetools.Builder.Project.Task {
         /// - (( will start capturing characters (equivalent to regex capturing parenthesis)
         /// - )) will stop capturing characters
         /// - || will corresponds to a "or" in a captured context (equivalent to | in regex)
-        /// 
-        /// Fyi, internally, each pattern is turned into a valid regular expression.
-        ///
-        /// If a file is matched by several patterns, only the first one will be used.
         /// </para>
         /// </remarks>
         /// <example>

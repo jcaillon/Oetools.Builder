@@ -76,22 +76,22 @@ namespace Oetools.Builder.Project {
 #endif
         
         /// <summary>
-        /// The global properties for this project.
-        /// Properties can describe your application (for instance, the database needed to compile).
-        /// Properties can also describe options to build your application (for instance, if the compilation should also generate the xref files).
+        /// The default properties for this project.
         /// </summary>
         /// <remarks>
+        /// Properties can describe your application (for instance, the database needed to compile).
+        /// Properties can also describe options to build your application (for instance, if the compilation should also generate the xref files).
         /// These properties are used as default values for this project but can be overloaded for each individual build configuration.
         /// For instance, this allows to define a DLC (v11) path for the project but you can define a build configuration that will use another DLC (v9) path.
         /// </remarks>
-        [XmlElement("GlobalProperties")]
-        public OeProperties GlobalProperties { get; set; }
+        [XmlElement("DefaultProperties")]
+        public OeProperties DefaultProperties { get; set; }
         
         /// <summary>
         /// The global variables shared by all the build configurations.
-        /// Variables make your build process dynamic by allowing you to change build options without having to modify this xml.
         /// </summary>
         /// <remarks>
+        /// Variables make your build process dynamic by allowing you to change build options without having to modify this xml.
         /// You can use a variable with the syntax {{variable_name}}.
         /// Variables will be replaced by their value at run time.
         /// If the variable exists as an environment variable, its value will be taken in priority (this allows to overload values using environment variables).
@@ -114,10 +114,10 @@ namespace Oetools.Builder.Project {
         
         /// <summary>
         /// The build configurations list.
-        /// A build configuration describe how to build your application.
-        /// It is essentially a succession of tasks (grouped into steps) that should be carried on to build your application.
         /// </summary>
         /// <remarks>
+        /// A build configuration describe how to build your application.
+        /// It is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.
         /// You can have several build configurations for a single project.
         /// You can overload the project level properties and variables for each build configuration.
         /// </remarks>
@@ -131,16 +131,16 @@ namespace Oetools.Builder.Project {
         /// <returns></returns>
         public static OeProject GetStandardProject() {
             var output = new OeProject {
-                GlobalProperties = new OeProperties {
+                DefaultProperties = new OeProperties {
                     BuildOptions = new OeBuildOptions {
-                        OutputDirectoryPath = Path.Combine("{{SOURCE_DIRECTORY}}", "bin")
+                        OutputDirectoryPath = OeBuilderConstants.GetDefaultOutputDirectory()
                     }
                 },
                 BuildConfigurations = new List<OeBuildConfiguration> {
                     new OeBuildConfiguration {
                         BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
                             new OeBuildStepBuildSource {
-                                Label = "Compile all files next to their source",
+                                Name = "Compile all files next to their source",
                                 Tasks = new List<AOeTask> {
                                     new OeTaskFileCompile {
                                         Include = "((**))*",
@@ -184,7 +184,7 @@ namespace Oetools.Builder.Project {
             var output = buildConfiguration.GetDeepCopy();
             
             // we take the global properties by default but they can be overload by the build configuration properties
-            output.Properties = GlobalProperties.GetDeepCopy();
+            output.Properties = DefaultProperties.GetDeepCopy();
             buildConfiguration.Properties.DeepCopy(output.Properties);
             
             // add global variables to the build configuration

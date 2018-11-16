@@ -22,12 +22,22 @@ using System.Xml.Serialization;
 using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project {
+    
+    /// <summary>
+    /// A database logical name / alias couple.
+    /// </summary>
     [Serializable]
     public class OeDatabaseAlias : IUoeExecutionDatabaseAlias {
                 
+        /// <summary>
+        /// The database logical name for which to create the alias.
+        /// </summary>
         [XmlAttribute(AttributeName = "DatabaseLogicalName")]
         public string DatabaseLogicalName { get; set; }
         
+        /// <summary>
+        /// The alias name to give to the database.
+        /// </summary>
         [XmlAttribute(AttributeName = "AliasLogicalName")]
         public string AliasLogicalName { get; set; }
     }

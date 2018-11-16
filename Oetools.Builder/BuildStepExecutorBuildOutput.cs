@@ -20,7 +20,7 @@ namespace Oetools.Builder {
             
             if (_outputFilesCompleteList == null) {
                 Log?.Debug($"List all the files in output directory: {BaseTargetDirectory.PrettyQuote()}.");
-                if (Directory.Exists(Properties.BuildOptions.OutputDirectoryPath)) {
+                if (Directory.Exists(Properties.BuildOptions?.OutputDirectoryPath)) {
                     var sourceLister = new PathLister(Properties.BuildOptions.OutputDirectoryPath, CancelToken) {
                         Log = Log
                     };
@@ -36,7 +36,7 @@ namespace Oetools.Builder {
             
             if (_outputDirectoriesCompleteList == null) {
                 Log?.Debug($"List all the directories in output directory: {BaseTargetDirectory.PrettyQuote()}.");
-                if (Directory.Exists(Properties.BuildOptions.OutputDirectoryPath)) {
+                if (Directory.Exists(Properties.BuildOptions?.OutputDirectoryPath)) {
                     var sourceLister = new PathLister(Properties.BuildOptions.OutputDirectoryPath, CancelToken) {
                         Log = Log
                     };

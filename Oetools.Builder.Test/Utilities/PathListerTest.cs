@@ -165,7 +165,7 @@ namespace Oetools.Builder.Test.Utilities {
             var lister = new PathLister(repoDir) {
                 OutputOptions = new PathListerOutputOptions {
                     UseLastWriteDateComparison = true,
-                    UseHashComparison = false
+                    UseCheckSumComparison = false
                 }
             };
             
@@ -223,7 +223,7 @@ namespace Oetools.Builder.Test.Utilities {
             var lister = new PathLister(repoDir) {
                 OutputOptions = new PathListerOutputOptions {
                     UseLastWriteDateComparison = false,
-                    UseHashComparison = false
+                    UseCheckSumComparison = false
                 }
             };
 
@@ -275,7 +275,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.IsTrue(list6.All(f => f.State == OeFileState.Unchanged), "all unchanged");
             
             // try hash
-            lister.OutputOptions.UseHashComparison = true;
+            lister.OutputOptions.UseCheckSumComparison = true;
             
             var list7 = lister.GetFileList();
             
@@ -293,7 +293,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.IsTrue(list8.All(f => f.State == OeFileState.Unchanged), "all unchanged");
             
             // modify last HASH
-            list7.ElementAt(0).Hash = "fakehash";
+            list7.ElementAt(0).Checksum = "fakehash";
             
             var list9 = lister.GetFileList();
             
@@ -381,7 +381,7 @@ namespace Oetools.Builder.Test.Utilities {
                 GitFilter = null,
                 OutputOptions = new PathListerOutputOptions {
                     UseLastWriteDateComparison = true,
-                    UseHashComparison = true
+                    UseCheckSumComparison = true
                 }
             };
 
@@ -421,13 +421,13 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(Path.Combine(repoDir, "init file"), lister.GetFileList().ElementAt(0).Path, "check that we get what we expect");
             
             lister.GitFilter = new OeGitFilterOptions {
-                OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true,
-                OnlyIncludeSourceFilesModifiedSinceLastCommit = true
+                IncludeSourceFilesCommittedOnlyOnCurrentBranch = true,
+                IncludeSourceFilesModifiedSinceLastCommit = true
             };
             
             Assert.AreEqual(1, lister.GetFileList().Count, "list one file with git commands instead");
 
-            lister.GitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit = false;
+            lister.GitFilter.IncludeSourceFilesModifiedSinceLastCommit = false;
             
             Assert.AreEqual(0, lister.GetFileList().Count, "we don't list files not committed");
             
@@ -455,8 +455,8 @@ namespace Oetools.Builder.Test.Utilities {
             
             Assert.AreEqual(0, lister.GetFileList().Count, "we still don't list files not committed");
 
-            lister.GitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit = true;
-            lister.GitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = false;
+            lister.GitFilter.IncludeSourceFilesModifiedSinceLastCommit = true;
+            lister.GitFilter.IncludeSourceFilesCommittedOnlyOnCurrentBranch = false;
             
             Assert.AreEqual(2, lister.GetFileList().Count, "but now we do");
             Assert.IsNotNull(lister.GetFileList()[Path.Combine(repoDir, "new file1")], "check that we still get full path");
@@ -472,7 +472,7 @@ namespace Oetools.Builder.Test.Utilities {
             
             Assert.AreEqual(0, lister.GetFileList().Count, "now we committed so we don't see them anymore...");
             
-            lister.GitFilter.OnlyIncludeSourceFilesCommittedOnlyOnCurrentBranch = true;
+            lister.GitFilter.IncludeSourceFilesCommittedOnlyOnCurrentBranch = true;
 
             Assert.AreEqual(2, lister.GetFileList().Count, "but now they are committed so we should see them with the other filter");
             
@@ -559,7 +559,7 @@ namespace Oetools.Builder.Test.Utilities {
                 Assert.IsNotNull(e);
             }
 
-            lister.GitFilter.OnlyIncludeSourceFilesModifiedSinceLastCommit = false;
+            lister.GitFilter.IncludeSourceFilesModifiedSinceLastCommit = false;
             
             Assert.AreEqual(1, lister.GetFileList().Count, "we are in detached mode, but on a commit that reference origin/v1/ft/issue1, so we presume we are on this branch and return the list of files modified from this branch to the last merge (which is 1 commit ago on v1/dev)");
 

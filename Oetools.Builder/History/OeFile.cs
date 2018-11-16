@@ -55,9 +55,9 @@ namespace Oetools.Builder.History {
         [XmlAttribute(AttributeName = "Size")]
         public long Size { get; set; }
 
-        /// <inheritdoc cref="IOeFile.Hash"/>
-        [XmlAttribute(AttributeName = "Md5")]
-        public string Hash { get; set; }
+        /// <inheritdoc cref="IOeFile.Checksum"/>
+        [XmlAttribute(AttributeName = "Checksum")]
+        public string Checksum { get; set; }
         
         /// <inheritdoc cref="IOeFile.State"/>
         [XmlElement(ElementName = "State")]

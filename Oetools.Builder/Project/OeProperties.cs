@@ -36,9 +36,7 @@ using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project {
     
-    /// <remarks>
-    /// The properties.
-    /// </remarks>
+    /// <inheritdoc cref="OeProject.DefaultProperties"/>
     /// <code>
     /// Every public property string not marked with the <see cref="ReplaceVariables"/> attribute is allowed
     /// to use {{VARIABLE}} which will be replace at the beginning of the build by <see cref="OeBuildConfiguration.Variables"/>
@@ -53,10 +51,10 @@ namespace Oetools.Builder.Project {
         /// <remarks>
         /// It should contain, among many other things, a "bin" directory where the openedge executables are located.
         /// </remarks>
-        [XmlElement(ElementName = "DlcDirectoryPath")]
-        public string DlcDirectoryPath { get; set; }
+        [XmlElement(ElementName = "DlcDirectory")]
+        public string DlcDirectory { get; set; }
         [Description("$DLC (openedge installation directory)")]
-        public static string GetDefaultDlcDirectoryPath() => UoeUtilities.GetDlcPathFromEnv().ToCleanPath();
+        public static string GetDefaultDlcDirectory() => UoeUtilities.GetDlcPathFromEnv().ToCleanPath();
         
         /// <summary>
         /// The code page to use for input/output with openedge processes.
@@ -143,7 +141,7 @@ namespace Oetools.Builder.Project {
         public static bool GetDefaultAddAllSourceDirectoriesToPropath() => true;
             
         /// <summary>
-        /// Filtering options for the automatic listing of directories in the source directory (to use as propath).
+        /// The filtering options for the automatic listing of directories in the source directory (to use as propath).
         /// </summary>
         [XmlElement(ElementName = "PropathSourceDirectoriesFilter")]
         public OeFilterOptions PropathSourceDirectoriesFilter { get; set; }
@@ -170,46 +168,60 @@ namespace Oetools.Builder.Project {
         public bool? AddDefaultOpenedgePropath { get; set; }
         public static bool GetDefaultAddDefaultOpenedgePropath() => true;
 
-        [XmlElement(ElementName = "OpenedgeCommandLineExtraParameters")]
-        public string OpenedgeCommandLineExtraParameters { get; set; }
+        /// <summary>
+        /// Command line parameters to add when using the openedge executable (_progres or prowin).
+        /// The available parameters for your version of openedge are available in the reference help, topic "Startup Parameter Descriptions".
+        /// </summary>
+        /// <example>
+        /// -inp 9999
+        /// -s 500
+        /// -assemblies "/root/assemblies/"
+        /// -NL -cwl -k
+        /// </example>
+        [XmlElement(ElementName = "ExtraOpenedgeCommandLineParameters")]
+        public string ExtraOpenedgeCommandLineParameters { get; set; }
 
-        [XmlElement(ElementName = "ProcedurePathToExecuteBeforeAnyProgressExecution")]
-        public string ProcedurePathToExecuteBeforeAnyProgressExecution { get; set; }
+        /// <summary>
+        /// File path to an openedge procedure that will be executed for each new openedge session used (when using _progres or prowin).
+        /// </summary>
+        /// <remarks>
+        /// This procedure is called with a simple RUN statement and must not have any parameters.
+        /// </remarks>
+        /// <example>
+        /// This feature can be used to connected databases, create aliases or add paths to the propath before a compilation and using a custom logic.
+        /// </example>
+        [XmlElement(ElementName = "ProcedureToExecuteBeforeAnyProgressExecutionFilePath")]
+        public string ProcedureToExecuteBeforeAnyProgressExecutionFilePath { get; set; }
 
+        /// <summary>
+        /// File path to an openedge procedure that will be executed at the end of each new openedge session used (when using _progres or prowin).
+        /// </summary>
+        /// <remarks>
+        /// This procedure is called with a simple RUN statement and must not have any parameters.
+        /// It should be used to "clean up" any custom logic put in place with the procedure execution at the beginning of the session.
+        /// </remarks>
         [XmlElement(ElementName = "ProcedurePathToExecuteAfterAnyProgressExecution")]
-        public string ProcedurePathToExecuteAfterAnyProgressExecution { get; set; }
+        public string ProcedureToExecuteAfterAnyProgressExecutionFilePath { get; set; }
 
-        [XmlElement(ElementName = "OpenedgeTemporaryDirectoryPath")]
-        public string OpenedgeTemporaryDirectoryPath { get; set; }
+        /// <summary>
+        /// The temporary directory to use for an openedge session.
+        /// </summary>
+        /// <remarks>
+        /// This is the directory used in the -T startup parameter for the openedge session.
+        /// This directory is also used to store temporary files needed for the compilation and for the interface between openedge and this tool.
+        /// </remarks>
+        [XmlElement(ElementName = "OpenedgeTemporaryDirectory")]
+        public string OpenedgeTemporaryDirectory { get; set; }
         [Description("$TEMP/.oe_tmp-xxx (temporary folder)")]
-        public static string GetDefaultOpenedgeTemporaryDirectoryPath() => Path.Combine(Path.GetTempPath(), $".oe_tmp-{Utils.GetRandomName()}");
-        
-        /// <summary>
-        /// Allows to exclude path from being treated by <see cref="OeBuildConfiguration.BuildSourceStepGroup"/>
-        /// Specify what should not be considered as a source file in your source directory (for instance, the docs/ folder)
-        /// </summary>
-        [XmlElement(ElementName = "SourceToBuildFilter")]
-        public OeFilterOptions SourceToBuildFilter { get; set; }
-                
-        /// <summary>
-        /// Use this to apply GIT filters to your <see cref="OeBuildConfiguration.BuildSourceStepGroup"/>
-        /// Obviously, you need GIT installed and present in your OS path
-        /// </summary>
-        [XmlElement(ElementName = "SourceToBuildGitFilterOptions")]
-        public OeGitFilterOptions SourceToBuildGitFilterOptions { get; set; }    
-        [Description("")]
-        public static OeGitFilterOptions GetDefaultSourceToBuildGitFilterOptions() => new OeGitFilterOptions();
+        public static string GetDefaultOpenedgeTemporaryDirectory() => Path.Combine(Path.GetTempPath(), $".oe_tmp-{Utils.GetRandomName()}");
                   
+        /// <inheritdoc cref="OeCompilationOptions"/>
         [XmlElement(ElementName = "CompilationOptions")]
         public OeCompilationOptions CompilationOptions { get; set; }
         [Description("")]
         public static OeCompilationOptions GetDefaultCompilationOptions() => new OeCompilationOptions();
-            
-        [XmlElement(ElementName = "IncrementalBuildOptions")]
-        public OeIncrementalBuildOptions IncrementalBuildOptions { get; set; }
-        [Description("")]
-        public static OeIncrementalBuildOptions GetDefaultIncrementalBuildOptions() => new OeIncrementalBuildOptions();
         
+        /// <inheritdoc cref="OeBuildOptions"/>
         [XmlElement(ElementName = "BuildOptions")]
         public OeBuildOptions BuildOptions { get; set; }
         [Description("")]
@@ -228,16 +240,14 @@ namespace Oetools.Builder.Project {
         /// <exception cref="BuildConfigurationException"></exception>
         public void Validate() {
             ValidateFilters(PropathSourceDirectoriesFilter, nameof(PropathSourceDirectoriesFilter));
-            ValidateFilters(SourceToBuildFilter, nameof(SourceToBuildFilter));
             if ((CompilationOptions?.NumberProcessPerCore ?? 0) > 10) {
-                throw new PropertiesException($"The property {typeof(OeCompilationOptions).GetXmlName(nameof(OeCompilationOptions.NumberProcessPerCore))} should not exceed 10");
+                throw new PropertiesException($"The property {typeof(OeCompilationOptions).GetXmlName(nameof(OeCompilationOptions.NumberProcessPerCore))} should not exceed 10.");
             }
-
-            if ((IncrementalBuildOptions?.IsActive() ?? false) && (SourceToBuildGitFilterOptions?.IsActive() ?? false)) {
-                throw new PropertiesException($"The {GetType().GetXmlName(nameof(IncrementalBuildOptions))} can not be active when the {GetType().GetXmlName(nameof(SourceToBuildGitFilterOptions))} is active because the two options serve contradictory purposes. {GetType().GetXmlName(nameof(IncrementalBuildOptions))} should be used when the goal is to build the latest modifications on top of a previous build. {GetType().GetXmlName(nameof(SourceToBuildGitFilterOptions))} should be used when the goal is to verify that recent commits to the git repo did not introduce bugs.");
-            }
-            if (!(IncrementalBuildOptions?.IsActive() ?? false) && (IncrementalBuildOptions?.FullRebuild ?? OeIncrementalBuildOptions.GetDefaultFullRebuild())) {
-                throw new PropertiesException($"In {GetType().GetXmlName(nameof(IncrementalBuildOptions))}, the property {typeof(OeBuildOptions).GetXmlName(nameof(OeIncrementalBuildOptions.FullRebuild))} can only be set to true if the property {typeof(OeIncrementalBuildOptions).GetXmlName(nameof(OeIncrementalBuildOptions.Enabled))} is set to true");
+            if (BuildOptions != null) {
+                ValidateFilters(BuildOptions.SourceToBuildFilter, nameof(BuildOptions.SourceToBuildFilter));
+                if ((BuildOptions?.IncrementalBuildOptions?.IsActive() ?? false) && (BuildOptions.SourceToBuildGitFilter?.IsActive() ?? false)) {
+                    throw new PropertiesException($"The {GetType().GetXmlName(nameof(BuildOptions.IncrementalBuildOptions))} can not be active when the {GetType().GetXmlName(nameof(BuildOptions.SourceToBuildGitFilter))} is active because the two options serve contradictory purposes. {GetType().GetXmlName(nameof(BuildOptions.IncrementalBuildOptions))} should be used when the goal is to build the latest modifications on top of a previous build. {GetType().GetXmlName(nameof(BuildOptions.SourceToBuildGitFilter))} should be used when the goal is to verify that recent commits to the git repo did not introduce bugs.");
+                }
             }
         }
         
@@ -308,7 +318,7 @@ namespace Oetools.Builder.Project {
             }
             if (AddDefaultOpenedgePropath ?? GetDefaultAddDefaultOpenedgePropath()) {
                 // %DLC%/tty or %DLC%/gui + %DLC% + %DLC%/bin
-                foreach (var file in UoeUtilities.GetProgressSessionDefaultPropath(DlcDirectoryPath.TakeDefaultIfNeeded(GetDefaultDlcDirectoryPath()), UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable())) {
+                foreach (var file in UoeUtilities.GetProgressSessionDefaultPropath(DlcDirectory.TakeDefaultIfNeeded(GetDefaultDlcDirectory()), UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable())) {
                     output.TryAdd(new OeDirectory(file));
                 }
             }
@@ -338,16 +348,16 @@ namespace Oetools.Builder.Project {
         public UoeExecutionEnv GetEnv() {
             if (_env == null) {
                 _env = new UoeExecutionEnv {
-                    TempDirectory = OpenedgeTemporaryDirectoryPath.TakeDefaultIfNeeded(GetDefaultOpenedgeTemporaryDirectoryPath()),
+                    TempDirectory = OpenedgeTemporaryDirectory.TakeDefaultIfNeeded(GetDefaultOpenedgeTemporaryDirectory()),
                     UseProgressCharacterMode = UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable(),
                     DatabaseAliases = DatabaseAliases,
                     DatabaseConnectionString = ExtraDatabaseConnectionString,
                     DatabaseConnectionStringAppendMaxTryOne = true,
-                    DlcDirectoryPath = DlcDirectoryPath.TakeDefaultIfNeeded(GetDefaultDlcDirectoryPath()),
+                    DlcDirectoryPath = DlcDirectory.TakeDefaultIfNeeded(GetDefaultDlcDirectory()),
                     IniFilePath = IniFilePath,
-                    PostExecutionProgramPath = ProcedurePathToExecuteAfterAnyProgressExecution,
-                    PreExecutionProgramPath = ProcedurePathToExecuteBeforeAnyProgressExecution,
-                    ProExeCommandLineParameters = OpenedgeCommandLineExtraParameters,
+                    PostExecutionProgramPath = ProcedureToExecuteAfterAnyProgressExecutionFilePath,
+                    PreExecutionProgramPath = ProcedureToExecuteBeforeAnyProgressExecutionFilePath,
+                    ProExeCommandLineParameters = ExtraOpenedgeCommandLineParameters,
                     ProPathList = GetPropath((BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()), true).Select(d => d.Path).ToList()
                 };
                 if (!string.IsNullOrEmpty(OpenedgeCodePage)) {
@@ -366,10 +376,10 @@ namespace Oetools.Builder.Project {
         /// <returns></returns>
         public UoeExecutionParallelCompile GetParallelCompiler(string workingDirectory) =>
             new UoeExecutionParallelCompile(GetEnv()) {
-                CompileInAnalysisMode = IncrementalBuildOptions?.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled(),
+                CompileInAnalysisMode = BuildOptions?.IncrementalBuildOptions?.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled(),
                 WorkingDirectory = workingDirectory,
                 NeedDatabaseConnection = true,
-                AnalysisModeSimplifiedDatabaseReferences = CompilationOptions?.UseSimplerAnalysisForDatabaseReference ?? OeCompilationOptions.GetDefaultUseSimplerAnalysisForDatabaseReference(),
+                AnalysisModeSimplifiedDatabaseReferences = BuildOptions?.IncrementalBuildOptions?.UseSimplerAnalysisForDatabaseReference ?? OeIncrementalBuildOptions.GetDefaultUseSimplerAnalysisForDatabaseReference(),
                 CompileOptions = CompilationOptions?.CompileOptions,
                 CompilerMultiCompile = CompilationOptions?.UseCompilerMultiCompile ?? OeCompilationOptions.GetDefaultUseCompilerMultiCompile(),
                 CompileStatementExtraOptions = CompilationOptions?.CompileStatementExtraOptions,

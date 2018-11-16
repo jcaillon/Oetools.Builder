@@ -24,6 +24,10 @@ using Oetools.Utilities.Lib;
 using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project.Task {
+    
+    /// <summary>
+    /// This task compiles openedge source files into rcode and adds them into cabinet files.
+    /// </summary>
     [Serializable]
     [XmlRoot("CompileInCab")]
     public class OeTaskFileArchiverArchiveCabCompile : OeTaskFileArchiverArchiveCab, IOeTaskCompile {

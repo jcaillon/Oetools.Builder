@@ -44,7 +44,7 @@ namespace Oetools.Builder.Test.Utilities {
                 },
                 BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
                     new OeBuildStepBuildSource {
-                        Label = "replace {{anything}} here",
+                        Name = "replace {{anything}} here",
                         Tasks = new List<AOeTask> {
                             new OeTaskFileCopy {
                                 Include = "replace missing '{{missingvar}}' by empty",
@@ -83,7 +83,7 @@ namespace Oetools.Builder.Test.Utilities {
             BuilderUtilities.ApplyVariablesToProperties(buildConf, buildConf.Variables);
             Assert.AreEqual("value_var_1", buildConf.Properties.BuildOptions.BuildHistoryInputFilePath);
             Assert.AreEqual("replace stuff value_env_1", buildConf.Properties.CompilationOptions.CompilableFileExtensionPattern);
-            Assert.AreEqual("replace wtf! here", buildConf.BuildSourceStepGroup[0].Label);
+            Assert.AreEqual("replace wtf! here", buildConf.BuildSourceStepGroup[0].Name);
             Assert.AreEqual("replace missing '' by empty", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].GetTaskList()[0]).Include);
             Assert.AreEqual("keep missing '{{missingvar}}' variables!", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].GetTaskList()[0]).TargetDirectory);
             Assert.AreEqual("2 replace missing '' by empty", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].GetTaskList()[1]).Exclude);

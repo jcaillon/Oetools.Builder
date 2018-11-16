@@ -21,12 +21,28 @@ using System;
 using System.Xml.Serialization;
 
 namespace Oetools.Builder.Project {
+    
+    /// <summary>
+    /// An openedge database representation, consisting of a data definition file and the database logical name.
+    /// </summary>
     [Serializable]
     public class OeProjectDatabase {
       
+        /// <summary>
+        /// The logical name of the database.
+        /// </summary>
+        /// <remarks>
+        /// This is the database name used in the code.
+        /// </remarks>
         [XmlAttribute(AttributeName = "LogicalName")]
         public string LogicalName { get; set; }
             
+        /// <summary>
+        /// The path to the data definition (.df) file representing the schema of your database.
+        /// </summary>
+        /// <remarks>
+        /// From this file, the tool is able to generate a temporary database used to compile your application.
+        /// </remarks>
         [XmlAttribute(AttributeName = "DataDefinitionFilePath")]
         public string DataDefinitionFilePath { get; set; }
         
