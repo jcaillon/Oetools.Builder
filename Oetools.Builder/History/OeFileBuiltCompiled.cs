@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using Oetools.Builder.Utilities.Attributes;
-using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.History {
     [Serializable]

@@ -18,16 +18,12 @@
 // ========================================================================
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
-using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project.Task {
 

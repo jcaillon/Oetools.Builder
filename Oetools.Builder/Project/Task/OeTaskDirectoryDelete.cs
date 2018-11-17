@@ -19,12 +19,9 @@
 #endregion
 
 using System;
-using System.IO;
 using System.Xml.Serialization;
-using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
     

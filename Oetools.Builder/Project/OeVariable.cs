@@ -25,7 +25,7 @@ namespace Oetools.Builder.Project {
     /// <summary>
     /// A variable to use in a build configuration.
     /// </summary>
-    /// <inheritdoc cref="OeProject.GlobalVariables"/>
+    /// <inheritdoc cref="OeBuildConfiguration.Variables"/>
     [Serializable]
     public class OeVariable {
             

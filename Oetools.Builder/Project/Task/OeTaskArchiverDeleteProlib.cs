@@ -20,7 +20,6 @@
 
 using System;
 using System.Xml.Serialization;
-using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Archive;
 
 namespace Oetools.Builder.Project.Task {

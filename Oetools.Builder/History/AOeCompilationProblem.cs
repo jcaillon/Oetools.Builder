@@ -21,7 +21,7 @@
 using System;
 using System.Xml.Serialization;
 using Oetools.Builder.Utilities.Attributes;
-using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.History {

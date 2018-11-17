@@ -88,7 +88,6 @@
   </ItemGroup>
   <ItemGroup Label="Resources">
     <EmbeddedResource Include="Resources\Openedge\*" />
-    <EmbeddedResource Include="Resources\Xsd\BuildConfiguration.xsd" />
     <EmbeddedResource Include="Resources\Xsd\Project.xsd" />
   </ItemGroup>
   <PropertyGroup>

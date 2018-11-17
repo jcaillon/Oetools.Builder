@@ -18,15 +18,18 @@
 // ========================================================================
 #endregion
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Resources;
 using Oetools.Builder.Utilities;
-using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project {
     
@@ -76,53 +79,22 @@ namespace Oetools.Builder.Project {
 #endif
         
         /// <summary>
-        /// The default properties for this project.
-        /// </summary>
-        /// <remarks>
-        /// Properties can describe your application (for instance, the database needed to compile).
-        /// Properties can also describe options to build your application (for instance, if the compilation should also generate the xref files).
-        /// These properties are used as default values for this project but can be overloaded for each individual build configuration.
-        /// For instance, this allows to define a DLC (v11) path for the project but you can define a build configuration that will use another DLC (v9) path.
-        /// </remarks>
-        [XmlElement("DefaultProperties")]
-        public OeProperties DefaultProperties { get; set; }
-        
-        /// <summary>
-        /// The global variables shared by all the build configurations.
-        /// </summary>
-        /// <remarks>
-        /// Variables make your build process dynamic by allowing you to change build options without having to modify this xml.
-        /// You can use a variable with the syntax {{variable_name}}.
-        /// Variables will be replaced by their value at run time.
-        /// If the variable exists as an environment variable, its value will be taken in priority (this allows to overload values using environment variables).
-        /// Non existing variables will be replaced by an empty string.
-        /// Variables can be used in any "string type" properties (this exclude numbers/booleans).
-        /// You can use variables in the variables definition but they must be defined in the right order.
-        ///
-        /// Special variables are already defined and available:
-        /// - {{SOURCE_DIRECTORY}} the application source directory (defined in properties)
-        /// - {{PROJECT_DIRECTORY}} the project directory ({{SOURCE_DIRECTORY}}/.oe)
-        /// - {{PROJECT_LOCAL_DIRECTORY}} the project local directory ({{SOURCE_DIRECTORY}}/.oe/local)
-        /// - {{DLC}} the dlc path used for the current build
-        /// - {{OUTPUT_DIRECTORY}} the build output directory (default to {{SOURCE_DIRECTORY}}/.oe/bin)
-        /// - {{CONFIGURATION_NAME}} the build configuration name for the current build
-        /// - {{CURRENT_DIRECTORY}} the current directory
-        /// </remarks>
-        [XmlArray("GlobalVariables")]
-        [XmlArrayItem("Variable", typeof(OeVariable))]
-        public List<OeVariable> GlobalVariables { get; set; }
-        
-        /// <summary>
-        /// The build configurations list.
+        /// A list of build configurations for this project.
         /// </summary>
         /// <remarks>
         /// A build configuration describe how to build your application.
         /// It is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.
-        /// You can have several build configurations for a single project.
-        /// You can overload the project level properties and variables for each build configuration.
+        /// Each build configuration has properties, that are used to describe your application (for instance, the database needed to compile your code) and are also used to describe options to build your application (for instance, if the compilation should also generate the xref files).
+        /// Each build configuration can also have variables, that make your build process dynamic. You can use variables almost anywhere in this xml and dynamically overload their values when running the build.
+        /// Several build configurations can be defined for a single project.
+        /// 
+        /// Each build configuration can define "children" build configurations.
+        /// Each child inherits its parent properties following these rules:
+        /// - If the same leaf is defined for both, the child value is prioritized (leaf = an xml element with no descendant elements).
+        /// - If the xml element is a list, the elements if the child (if any) will be added to the elements of the parent (if any). For instance, the tasks list has this behavior.
         /// </remarks>
         [XmlArray("BuildConfigurations")]
-        [XmlArrayItem("Build", typeof(OeBuildConfiguration))]
+        [XmlArrayItem("Configuration", typeof(OeBuildConfiguration))]
         public List<OeBuildConfiguration> BuildConfigurations { get; set; }
 
         /// <summary>
@@ -131,13 +103,13 @@ namespace Oetools.Builder.Project {
         /// <returns></returns>
         public static OeProject GetStandardProject() {
             var output = new OeProject {
-                DefaultProperties = new OeProperties {
-                    BuildOptions = new OeBuildOptions {
-                        OutputDirectoryPath = OeBuilderConstants.GetDefaultOutputDirectory()
-                    }
-                },
                 BuildConfigurations = new List<OeBuildConfiguration> {
                     new OeBuildConfiguration {
+                        Properties = new OeProperties {
+                            BuildOptions = new OeBuildOptions {
+                                OutputDirectoryPath = OeBuilderConstants.GetDefaultOutputDirectory()
+                            }
+                        },
                         BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
                             new OeBuildStepBuildSource {
                                 Name = "Compile all files next to their source",
@@ -156,7 +128,7 @@ namespace Oetools.Builder.Project {
         }
 
         /// <summary>
-        /// Returns a copy of the build configuration with the given name, or null by default
+        /// Returns a copy of the first build configuration with the given name, or null by default.
         /// </summary>
         /// <param name="configurationName"></param>
         /// <returns></returns>
@@ -164,7 +136,41 @@ namespace Oetools.Builder.Project {
             if (configurationName == null) {
                 return null;
             }
-            return GetBuildConfigurationCopy(BuildConfigurations.FirstOrDefault(bc => bc.ConfigurationName.Equals(configurationName, StringComparison.CurrentCultureIgnoreCase)));
+            
+            List<OeBuildConfiguration> buildConfigurationsStack = null;
+            
+            var configurationsToCheck = new Stack<Tuple<List<OeBuildConfiguration>, List<OeBuildConfiguration>>>();
+            configurationsToCheck.Push(new Tuple<List<OeBuildConfiguration>, List<OeBuildConfiguration>>(new List<OeBuildConfiguration>(), BuildConfigurations));
+            var found = false;
+            while (!found && configurationsToCheck.Count > 0) {
+                var parentsAndChildrenList = configurationsToCheck.Pop();
+                var parents = parentsAndChildrenList.Item1;
+                var children = parentsAndChildrenList.Item2;
+                foreach (var child in children) {
+                    if (child.Name.Equals(configurationName, StringComparison.CurrentCultureIgnoreCase)) {
+                        buildConfigurationsStack = parents;
+                        buildConfigurationsStack.Add(child);
+                        found = true;
+                        break;
+                    }
+                    if ((child.BuildConfigurations?.Count ?? 0) > 0) {
+                        var childrenParents = parents.ToList();
+                        childrenParents.Add(child);
+                        configurationsToCheck.Push(new Tuple<List<OeBuildConfiguration>, List<OeBuildConfiguration>>(childrenParents, child.BuildConfigurations));
+                    }
+                }
+            }
+
+            if (!found || buildConfigurationsStack.Count < 1) {
+                return null;
+            }
+
+            var output = buildConfigurationsStack[0].GetDeepCopy();
+            for (int i = 1; i < buildConfigurationsStack.Count; i++) {
+                buildConfigurationsStack[i].DeepCopy(output);
+            }
+
+            return output;
         }
 
         /// <summary>
@@ -172,47 +178,51 @@ namespace Oetools.Builder.Project {
         /// </summary>
         /// <returns></returns>
         public OeBuildConfiguration GetDefaultBuildConfigurationCopy() {
-            return GetBuildConfigurationCopy(BuildConfigurations?.FirstOrDefault() ?? new OeBuildConfiguration());
-        }
-
-        private OeBuildConfiguration GetBuildConfigurationCopy(OeBuildConfiguration buildConfiguration) {
-            if (buildConfiguration == null) {
-                return null;
-            }
-            
-            // make a copy of the object since we want to modify it
-            var output = buildConfiguration.GetDeepCopy();
-            
-            // we take the global properties by default but they can be overload by the build configuration properties
-            output.Properties = DefaultProperties.GetDeepCopy();
-            buildConfiguration.Properties.DeepCopy(output.Properties);
-            
-            // add global variables to the build configuration
-            if (GlobalVariables != null) {
-                foreach (var globalVariable in GlobalVariables) {
-                    (output.Variables ?? (output.Variables = new List<OeVariable>())).Add(globalVariable);
-                }
-            }
-            return output;
+            return BuildConfigurations?.FirstOrDefault()?.GetDeepCopy() ?? new OeBuildConfiguration();
         }
 
         /// <summary>
-        /// Give each configuration/variables a unique number to identify it
+        /// Give everything that has an ID property a unique ID.
         /// </summary>
         internal void InitIds() {
-            if (BuildConfigurations != null) {
-                var i = 0;
-                foreach (var configuration in BuildConfigurations.Where(s => s != null)) {
-                    configuration.InitIds();
-                    configuration.Id = i;
-                    i++;
-                }
-            }
-            if (GlobalVariables != null) {
-                var i = 0;
-                foreach (var variable in GlobalVariables.Where(v => v != null)) {
-                    variable.Id = i;
-                    i++;
+            var buildConfigurationCount = 0;
+            var countByPropName = new Dictionary<string, int>();
+            
+            var objectsToInit = new Queue<Tuple<string, Type, object>>();
+            objectsToInit.Enqueue(new Tuple<string, Type, object>(nameof(OeProject), GetType(), this));
+            while (objectsToInit.Count > 0) {
+                var objectToInit = objectsToInit.Dequeue();
+                var objectParentPropName = objectToInit.Item1;
+                var objectType = objectToInit.Item2;
+                var objectInstance = objectToInit.Item3;
+                
+                var properties = objectType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                foreach (var property in properties) {
+                    if (!property.CanRead || !property.CanWrite) {
+                        continue;
+                    }
+                    var obj = property.GetValue(objectInstance);
+                    if (property.Name.Equals("Id")) {
+                        if (objectType.Name.Equals("OeBuildConfiguration")) {
+                            // global counter for build configurations id
+                            property.SetValue(objectInstance, buildConfigurationCount++);
+                            continue;
+                        }
+                        if (!countByPropName.ContainsKey(objectParentPropName)) {
+                            countByPropName.Add(objectParentPropName, 0);
+                        }
+                        property.SetValue(objectInstance, countByPropName[objectParentPropName]++);
+                    } else if (obj is IEnumerable enumerable) {
+                        if (property.PropertyType.UnderlyingSystemType.GenericTypeArguments.Length > 0 && property.PropertyType.UnderlyingSystemType.GenericTypeArguments[0] != typeof(string)) {
+                            foreach (var item in enumerable) {
+                                if (item != null) {
+                                    objectsToInit.Enqueue(new Tuple<string, Type, object>($"{objectParentPropName}.{property.Name}", item.GetType(), item));
+                                }
+                            }
+                        }
+                    } else if (property.PropertyType.IsClass && property.PropertyType != typeof(string) && obj != null) {
+                        objectsToInit.Enqueue(new Tuple<string, Type, object>($"{objectParentPropName}.{property.Name}", property.PropertyType, obj));
+                    }
                 }
             }
         }

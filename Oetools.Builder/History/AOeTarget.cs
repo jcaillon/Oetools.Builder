@@ -20,7 +20,6 @@
 
 using System.IO;
 using System.Xml.Serialization;
-using Oetools.Builder.Utilities.Attributes;
 
 namespace Oetools.Builder.History {
     

@@ -18,17 +18,13 @@
 // ========================================================================
 #endregion
 
-using System;
 using System.IO;
-using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
-using Oetools.Utilities.Openedge;
-using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project.Task {
 

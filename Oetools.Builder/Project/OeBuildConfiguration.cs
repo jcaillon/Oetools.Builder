@@ -50,24 +50,45 @@ namespace Oetools.Builder.Project {
         /// The name of this configuration. Purely informative.
         /// </summary>
         [XmlAttribute("Name")]
-        public string ConfigurationName { get; set; }
-        
-        /// <summary>
-        /// The properties of this build configuration.
-        /// </summary>
-        /// <inheritdoc cref="OeProject.DefaultProperties"/>
-        [XmlElement("Properties")]
-        [DeepCopy(Ignore = true)]
-        public OeProperties Properties { get; set; }
+        public string Name { get; set; }
             
         /// <summary>
-        /// The variables specific to this build configuration.
+        /// The variables of this build configurations.
         /// </summary>
-        /// <inheritdoc cref="OeProject.GlobalVariables"/>
+        /// <remarks>
+        /// Variables make your build process dynamic by allowing you to change build options without having to modify this xml.
+        /// You can use a variable with the syntax {{variable_name}}.
+        /// Variables will be replaced by their value at run time.
+        /// If the variable exists as an environment variable, its value will be taken in priority (this allows to overload values using environment variables).
+        /// Non existing variables will be replaced by an empty string.
+        /// Variables can be used in any "string type" properties (this exclude numbers/booleans).
+        /// You can use variables in the variables definition but they must be defined in the right order.
+        ///
+        /// Special variables are already defined and available:
+        /// - {{SOURCE_DIRECTORY}} the application source directory (defined in properties)
+        /// - {{PROJECT_DIRECTORY}} the project directory ({{SOURCE_DIRECTORY}}/.oe)
+        /// - {{PROJECT_LOCAL_DIRECTORY}} the project local directory ({{SOURCE_DIRECTORY}}/.oe/local)
+        /// - {{DLC}} the dlc path used for the current build
+        /// - {{OUTPUT_DIRECTORY}} the build output directory (default to {{SOURCE_DIRECTORY}}/.oe/bin)
+        /// - {{CONFIGURATION_NAME}} the build configuration name for the current build
+        /// - {{CURRENT_DIRECTORY}} the current directory
+        /// </remarks>
         [XmlArray("Variables")]
         [XmlArrayItem("Variable", typeof(OeVariable))]
         [ReplaceVariables(SkipReplace = true)]
         public List<OeVariable> Variables { get; set; }
+        
+        /// <summary>
+        /// The properties of this build configuration.
+        /// </summary>
+        /// <remarks>
+        /// Properties can describe your application (for instance, the database needed to compile).
+        /// Properties can also describe options to build your application (for instance, if the compilation should also generate the xref files).
+        /// These properties are used as default values for this project but can be overloaded for each individual build configuration.
+        /// For instance, this allows to define a DLC (v11) path for the project but you can define a build configuration that will use another DLC (v9) path.
+        /// </remarks>
+        [XmlElement("Properties")]
+        public OeProperties Properties { get; set; }
         
         /// <summary>
         /// A list of steps/tasks that will be executed before anything else.
@@ -116,6 +137,15 @@ namespace Oetools.Builder.Project {
         [XmlArray("PostBuildTasks")]
         [XmlArrayItem("Step", typeof(OeBuildStepClassic))]
         public List<OeBuildStepClassic> PostBuildStepGroup { get; set; }
+        
+        /// <summary>
+        /// A list of children build configurations, each will inherit the properties defined in this one.
+        /// </summary>
+        /// <inheritdoc cref="OeProject.BuildConfigurations"/>
+        [XmlArray("ChildrenBuildConfigurations")]
+        [XmlArrayItem("Configuration", typeof(OeBuildConfiguration))]
+        [DeepCopy(Ignore = true)]
+        public List<OeBuildConfiguration> BuildConfigurations { get; set; }
                     
         /// <summary>
         /// Add the default variables and apply the variables on all public properties of type string
@@ -135,7 +165,7 @@ namespace Oetools.Builder.Project {
             }             
             Variables.Add(new OeVariable { Name = UoeConstants.OeDlcEnvVar, Value = (Properties?.DlcDirectory).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectory()) });  
             Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = (Properties?.BuildOptions?.OutputDirectoryPath).TakeDefaultIfNeeded(OeBuilderConstants.GetDefaultOutputDirectory()) });  
-            Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameConfigurationName, Value = ConfigurationName });
+            Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameConfigurationName, Value = Name });
             try {
                 Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameCurrentDirectory, Value = Directory.GetCurrentDirectory() });
             } catch (Exception e) {
@@ -218,7 +248,7 @@ namespace Oetools.Builder.Project {
             }
         }
         
-        public override string ToString() => $"Configuration [{Id}]{(string.IsNullOrEmpty(ConfigurationName) ? "" : $" {ConfigurationName}")}";
+        public override string ToString() => $"Configuration [{Id}]{(string.IsNullOrEmpty(Name) ? "" : $" {Name}")}";
 
     }
 

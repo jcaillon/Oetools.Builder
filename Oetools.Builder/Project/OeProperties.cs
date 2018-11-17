@@ -36,7 +36,7 @@ using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project {
     
-    /// <inheritdoc cref="OeProject.DefaultProperties"/>
+    /// <inheritdoc cref="OeBuildConfiguration.Properties"/>
     /// <code>
     /// Every public property string not marked with the <see cref="ReplaceVariables"/> attribute is allowed
     /// to use {{VARIABLE}} which will be replace at the beginning of the build by <see cref="OeBuildConfiguration.Variables"/>
