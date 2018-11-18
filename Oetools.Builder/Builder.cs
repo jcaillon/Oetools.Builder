@@ -35,6 +35,8 @@ namespace Oetools.Builder {
         
         private PathList<IOeFileBuilt> _previouslyBuiltPaths;
         private OeBuildHistory _buildSourceHistory;
+        
+        public CancellationToken? CancelToken { get; set; }
 
         public ILogger Log { protected get; set; }
       
@@ -59,8 +61,6 @@ namespace Oetools.Builder {
         
         private int NumberOfTasksDone { get; set; }
 
-        private string BuildTemporaryDirectory { get; set; }
-
         private PathList<IOeFileBuilt> PreviouslyBuiltPaths {
             get {
                 if (_previouslyBuiltPaths == null && BuildSourceHistory?.BuiltFiles != null) {
@@ -74,10 +74,6 @@ namespace Oetools.Builder {
 
         private bool StoreSourceHash => BuildConfiguration.Properties.BuildOptions?.IncrementalBuildOptions?.UseCheckSumComparison ?? OeIncrementalBuildOptions.GetDefaultUseCheckSumComparison();
 
-        protected string SourceDirectory => BuildConfiguration.Properties.BuildOptions?.SourceDirectoryPath;
-
-        public CancellationToken? CancelToken { get; set; }
-        
         /// <summary>
         /// Initialize the build
         /// </summary>
@@ -95,12 +91,14 @@ namespace Oetools.Builder {
         }
 
         private void ConstructorInitialization() {
-            BuildConfiguration.Properties = BuildConfiguration.Properties ?? new OeProperties();
+            if (BuildConfiguration.Properties == null) {
+                BuildConfiguration.Properties = new OeProperties();
+            }
             BuildConfiguration.Properties.SetDefaultValues();
         }
 
         public virtual void Dispose() {
-            Utils.DeleteDirectoryIfExists(BuildTemporaryDirectory, true);
+            BuildConfiguration.Properties.GetEnv().Dispose();
         }
         
         /// <summary>
@@ -130,13 +128,12 @@ namespace Oetools.Builder {
             
             Log?.Debug($"Initializing build with {BuildConfiguration}");
             BuildConfiguration.Properties.SetCancellationSource(CancelToken);
-            BuildTemporaryDirectory = BuildConfiguration.Properties.GetEnv().TempDirectory;
             
             Log?.Debug("Validating build configuration");
             BuildConfiguration.Validate();
             
             Log?.Debug("Using build variables");
-            BuildConfiguration.ApplyVariables(SourceDirectory);
+            BuildConfiguration.ApplyVariables();
             
             Log?.Debug("Sanitizing path properties");
             BuildConfiguration.Properties.SanitizePathInPublicProperties();

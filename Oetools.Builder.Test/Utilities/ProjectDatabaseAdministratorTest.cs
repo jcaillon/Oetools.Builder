@@ -77,66 +77,72 @@ namespace Oetools.Builder.Test.Utilities {
                             LogicalName = "db2",
                             DataDefinitionFilePath = dfPath2
                         }
+                    },
+                    CompilationOptions = new OeCompilationOptions {
+                        NumberProcessPerCore = 4
                     }
                 },
                 Id = 1
             };
-            
-            var env = new UoeExecutionEnv {
+
+            using (var env = new UoeExecutionEnv {
                 DlcDirectoryPath = dlcPath
-            };
+            }) {
 
-            var sourceDirectory = Path.Combine(TestFolder, "source");
-            Utils.CreateDirectoryIfNeeded(sourceDirectory);
-            
-            // setup databases
-            using (var dbAdmin = new ProjectDatabaseAdministrator(build, sourceDirectory)) {
-                var connectionString = string.Join(' ', dbAdmin.SetupProjectDatabases());
-                Assert.IsFalse(string.IsNullOrEmpty(connectionString));
+                var sourceDirectory = Path.Combine(TestFolder, "source");
+                Utils.CreateDirectoryIfNeeded(sourceDirectory);
+                var projectDatabaseDirectory = OeBuilderConstants.GetProjectDirectoryLocalDb(sourceDirectory);
 
-                env.DatabaseConnectionString = connectionString;
-                using (var exec = new UoeExecutionDbExtractTableAndSequenceList(env)) {
-                    exec.Start();
-                    exec.WaitForExecutionEnd();
-                    Assert.IsFalse(exec.ExecutionHandledExceptions, "ExecutionHandledExceptions");
-                    Assert.IsTrue(exec.TablesCrc.Keys.ToList().Exists(t => t.EndsWith("table1")));
-                    Assert.IsFalse(exec.TablesCrc.Keys.ToList().Exists(t => t.EndsWith("table2")));
+                // setup databases
+                using (var dbAdmin = new ProjectDatabaseAdministrator(env.DlcDirectoryPath, build.Properties.ProjectDatabases, projectDatabaseDirectory)) {
+                    var connectionString = string.Join(' ', dbAdmin.SetupProjectDatabases());
+                    Assert.IsFalse(string.IsNullOrEmpty(connectionString));
+
+                    env.DatabaseConnectionString = connectionString;
+                    using (var exec = new UoeExecutionDbExtractTableAndSequenceList(env)) {
+                        exec.Start();
+                        exec.WaitForExecutionEnd();
+                        Assert.IsFalse(exec.ExecutionHandledExceptions, "ExecutionHandledExceptions");
+                        Assert.IsTrue(exec.TablesCrc.Keys.ToList().Exists(t => t.EndsWith("table1")));
+                        Assert.IsFalse(exec.TablesCrc.Keys.ToList().Exists(t => t.EndsWith("table2")));
+                    }
                 }
-            }
-            
-            // call again, should basically do nothing
-            using (var dbAdmin = new ProjectDatabaseAdministrator(build, sourceDirectory)) {
-                var connectionString = string.Join(' ', dbAdmin.SetupProjectDatabases());
-                
-                env.DatabaseConnectionString = connectionString;
-                using (var exec = new UoeExecutionDbExtractTableAndSequenceList(env)) {
-                    exec.Start();
-                    exec.WaitForExecutionEnd();
-                    Assert.IsFalse(exec.ExecutionHandledExceptions, "ExecutionHandledExceptions");
-                }
-            }
-            
-            // now change the .df, should delete and recreate the db2
-            build.Properties.ProjectDatabases[1].DataDefinitionFilePath = dfPath3;
-            using (var dbAdmin = new ProjectDatabaseAdministrator(build, sourceDirectory)) {
-                var connectionString = string.Join(' ', dbAdmin.SetupProjectDatabases());
-                Assert.IsFalse(string.IsNullOrEmpty(connectionString));
 
-                env.DatabaseConnectionString = connectionString;
-                using (var exec = new UoeExecutionDbExtractTableAndSequenceList(env)) {
-                    exec.Start();
-                    exec.WaitForExecutionEnd();
-                    Assert.IsFalse(exec.ExecutionHandledExceptions, "ExecutionHandledExceptions");
-                    Assert.IsTrue(exec.TablesCrc.Keys.ToList().Exists(t => t.EndsWith("table2")));
-                }
-            }
-            
-            // shutdown all
-            using (var dbAdmin = new ProjectDatabaseAdministrator(build, sourceDirectory)) {
-                dbAdmin.ShutdownAllDatabases();
-            }
+                // call again, should basically do nothing
+                using (var dbAdmin = new ProjectDatabaseAdministrator(env.DlcDirectoryPath, build.Properties.ProjectDatabases, projectDatabaseDirectory)) {
+                    var connectionString = string.Join(' ', dbAdmin.SetupProjectDatabases());
 
-            Utils.DeleteDirectoryIfExists(sourceDirectory, true);
+                    env.DatabaseConnectionString = connectionString;
+                    using (var exec = new UoeExecutionDbExtractTableAndSequenceList(env)) {
+                        exec.Start();
+                        exec.WaitForExecutionEnd();
+                        Assert.IsFalse(exec.ExecutionHandledExceptions, "ExecutionHandledExceptions");
+                    }
+                }
+
+                // now change the .df, should delete and recreate the db2
+                build.Properties.ProjectDatabases[1].DataDefinitionFilePath = dfPath3;
+                using (var dbAdmin = new ProjectDatabaseAdministrator(env.DlcDirectoryPath, build.Properties.ProjectDatabases, projectDatabaseDirectory)) {
+                    var connectionString = string.Join(' ', dbAdmin.SetupProjectDatabases());
+                    Assert.IsFalse(string.IsNullOrEmpty(connectionString));
+
+                    env.DatabaseConnectionString = connectionString;
+                    using (var exec = new UoeExecutionDbExtractTableAndSequenceList(env)) {
+                        exec.Start();
+                        exec.WaitForExecutionEnd();
+                        Assert.IsFalse(exec.ExecutionHandledExceptions, "ExecutionHandledExceptions");
+                        Assert.IsTrue(exec.TablesCrc.Keys.ToList().Exists(t => t.EndsWith("table2")));
+                    }
+                }
+
+                // shutdown all
+                using (var dbAdmin = new ProjectDatabaseAdministrator(env.DlcDirectoryPath, build.Properties.ProjectDatabases, projectDatabaseDirectory)) {
+                    dbAdmin.ShutdownAllDatabases();
+                }
+
+                Utils.DeleteDirectoryIfExists(sourceDirectory, true);
+
+            }
         }
 
 

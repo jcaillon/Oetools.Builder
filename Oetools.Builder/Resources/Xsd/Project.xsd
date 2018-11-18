@@ -12,7 +12,7 @@ A project has:
     </xs:annotation>
   </xs:element>
   <xs:complexType name="OeProject">
-    <xs:sequence>
+    <xs:all>
       <xs:element minOccurs="0" maxOccurs="1" name="BuildConfigurations" type="ArrayOfOeBuildConfiguration">
         <xs:annotation>
           <xs:documentation><![CDATA[A list of build configurations for this project.
@@ -30,7 +30,7 @@ Each child inherits its parent properties following these rules:
 - If the xml element is a list, the elements if the child (if any) will be added to the elements of the parent (if any). For instance, the tasks list has this behavior.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-    </xs:sequence>
+    </xs:all>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeBuildConfiguration">
     <xs:sequence>
@@ -54,7 +54,7 @@ Each child inherits its parent properties following these rules:
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="OeBuildConfiguration">
-    <xs:sequence>
+    <xs:all>
       <xs:element minOccurs="0" maxOccurs="1" name="Variables" type="ArrayOfOeVariable">
         <xs:annotation>
           <xs:documentation><![CDATA[The variables of this build configurations.
@@ -67,6 +67,8 @@ If the variable exists as an environment variable, its value will be taken in pr
 Non existing variables will be replaced by an empty string.
 Variables can be used in any "string type" properties (this exclude numbers/booleans).
 You can use variables in the variables definition but they must be defined in the right order.
+If several variables with the same name exist, the value of the latest defined is used.
+Variable names are case insensitive. 
 
 Special variables are already defined and available:
 - {{SOURCE_DIRECTORY}} the application source directory (defined in properties)
@@ -146,7 +148,7 @@ Each child inherits its parent properties following these rules:
 - If the xml element is a list, the elements if the child (if any) will be added to the elements of the parent (if any). For instance, the tasks list has this behavior.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-    </xs:sequence>
+    </xs:all>
     <xs:attribute name="Name" type="xs:string">
       <xs:annotation>
         <xs:documentation><![CDATA[The name of this configuration. Purely informative.]]></xs:documentation>
@@ -167,6 +169,8 @@ If the variable exists as an environment variable, its value will be taken in pr
 Non existing variables will be replaced by an empty string.
 Variables can be used in any "string type" properties (this exclude numbers/booleans).
 You can use variables in the variables definition but they must be defined in the right order.
+If several variables with the same name exist, the value of the latest defined is used.
+Variable names are case insensitive. 
 
 Special variables are already defined and available:
 - {{SOURCE_DIRECTORY}} the application source directory (defined in properties)
@@ -193,12 +197,12 @@ Special variables are already defined and available:
     </xs:attribute>
   </xs:complexType>
   <xs:complexType name="OeProperties">
-    <xs:sequence>
+    <xs:all>
       <xs:element minOccurs="0" maxOccurs="1" name="DlcDirectory" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[The path to the directory containing the installation of openedge.
 Commonly known as the DLC directory.
-Defaults to "$DLC (openedge installation directory)".
+Defaults to: $DLC (openedge installation directory).
 
 Remarks:
 It should contain, among many other things, a "bin" directory where the openedge executables are located.]]></xs:documentation>
@@ -272,7 +276,7 @@ Relative path are resolved with the current directory but you can use {{SOURCE_D
       <xs:element minOccurs="0" maxOccurs="1" name="AddAllSourceDirectoriesToPropath" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Indicates if all the directories in the source directory should be added to the compilation propath.
-Defaults to "True".
+Defaults to: True.
 
 Remarks:
 The idea is to use this option instead of manually specifying the compilation propath (for lazy people only).]]></xs:documentation>
@@ -286,7 +290,7 @@ The idea is to use this option instead of manually specifying the compilation pr
       <xs:element minOccurs="0" maxOccurs="1" name="UseCharacterModeExecutable" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Force the use of the openedge character mode on windows platform.
-Defaults to "False".
+Defaults to: False.
 
 Remarks:
 Typically, this option will make the build process use the "_progres.exe" executable instead of "prowin.exe".]]></xs:documentation>
@@ -297,7 +301,7 @@ Typically, this option will make the build process use the "_progres.exe" execut
           <xs:documentation><![CDATA[Adds the gui (or tty if character mode) directory to the propath.
 Also adds the pro library files in this directory to the propath.
 Also adds the dlc and dlc/bin directories.
-Defaults to "True".
+Defaults to: True.
 
 Remarks:
 This is the equivalent of the default propath set by openedge.]]></xs:documentation>
@@ -338,7 +342,7 @@ It should be used to "clean up" any custom logic put in place with the procedure
       <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeTemporaryDirectory" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[The temporary directory to use for an openedge session.
-Defaults to "$TEMP/.oe_tmp-xxx (temporary folder)".
+Defaults to: $TEMP/.oe_tmp-xxx (temporary folder).
 
 Remarks:
 This is the directory used in the -T startup parameter for the openedge session.
@@ -355,7 +359,7 @@ This directory is also used to store temporary files needed for the compilation 
           <xs:documentation><![CDATA[The options used when building your application.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-    </xs:sequence>
+    </xs:all>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeProjectDatabase">
     <xs:sequence>
@@ -412,33 +416,157 @@ From this file, the tool is able to generate a temporary database used to compil
   </xs:complexType>
   <xs:complexType name="OeFilterOptions">
     <xs:complexContent mixed="false">
-      <xs:extension base="AOeTaskFilter">
-        <xs:sequence>
+      <xs:extension base="AOeTaskFilterElements">
+        <xs:all>
           <xs:element minOccurs="0" maxOccurs="1" name="ExcludeHiddenDirectories" nillable="true" type="xs:boolean">
             <xs:annotation>
               <xs:documentation><![CDATA[Whether or not to ignore hidden directories during the listing.
-Defaults to "False".]]></xs:documentation>
+Defaults to: False.]]></xs:documentation>
             </xs:annotation>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="RecursiveListing" nillable="true" type="xs:boolean">
             <xs:annotation>
               <xs:documentation><![CDATA[Whether or not to include the content of subdirectories when listing.
-Defaults to "True".]]></xs:documentation>
+Defaults to: True.]]></xs:documentation>
             </xs:annotation>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="ExtraVcsPatternExclusion" type="xs:string">
             <xs:annotation>
               <xs:documentation><![CDATA[Extra patterns of path to exclude during a listing, corresponds to typical svn/git directories that we don't want to include in builds.
-Defaults to ".git**;.svn**".]]></xs:documentation>
+Defaults to: .git**;.svn**.]]></xs:documentation>
             </xs:annotation>
           </xs:element>
-        </xs:sequence>
+        </xs:all>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="AOeTaskFilterElements" abstract="true">
+    <xs:complexContent mixed="false">
+      <xs:extension base="AOeTaskFilter">
+        <xs:all>
+          <xs:element minOccurs="0" maxOccurs="1" name="Include" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[A path pattern that describes paths that should be processed by this task.
+
+Remarks:
+Several pattern can be used, separate them with a semi-colon (i.e. ;).
+Internally, each pattern is turned into a valid regular expression.
+If a file is matched by several patterns, only the first one will be used.
+
+The following symbols can be used in patterns:
+
+- ** will match any char any number of time (corresponds to a regex greedy match)
+- * will match only non path separators any time (can be used to match any file name)
+- ? matches non path separators exactly 1 time
+- (( will start capturing characters (equivalent to regex capturing parenthesis)
+- )) will stop capturing characters
+- || will corresponds to a "or" in a captured context (equivalent to | in regex)
+
+Examples:
+** will match any path.
+((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="IncludeRegex" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[A regular expression path pattern that describes paths that should be processed by this task.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="Exclude" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[A path pattern that describes paths that should be excluded from being processed by this task.
+
+Remarks:
+Several pattern can be used, separate them with a semi-colon (i.e. ;).
+Internally, each pattern is turned into a valid regular expression.
+If a file is matched by several patterns, only the first one will be used.
+
+The following symbols can be used in patterns:
+
+- ** will match any char any number of time (corresponds to a regex greedy match)
+- * will match only non path separators any time (can be used to match any file name)
+- ? matches non path separators exactly 1 time
+- (( will start capturing characters (equivalent to regex capturing parenthesis)
+- )) will stop capturing characters
+- || will corresponds to a "or" in a captured context (equivalent to | in regex)
+
+Examples:
+** will match any path.
+((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="ExcludeRegex" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[A regular expression path pattern that describes paths that should be excluded from being processed by this task.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:all>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="AOeTaskFilter" abstract="true">
     <xs:complexContent mixed="false">
+      <xs:extension base="AOeTask" />
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="AOeTask" abstract="true">
+    <xs:attribute name="Name" type="xs:string">
+      <xs:annotation>
+        <xs:documentation><![CDATA[The name of this task. Purely informative.]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="OeTaskExec">
+    <xs:complexContent mixed="false">
       <xs:extension base="AOeTask">
+        <xs:all>
+          <xs:element minOccurs="0" maxOccurs="1" name="ExecutableFilePath" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[The path to the executable file.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="Parameters" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[The command line parameters for the execution.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="HiddenExecution" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[Hide the execution (do not show a window).]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="MaxTimeOut" nillable="true" type="xs:int">
+            <xs:annotation>
+              <xs:documentation><![CDATA[The maximum time in milliseconds before aborting the execution.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="DoNotRedirectOutput" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[Do not redirect the executable standard and error output to the log.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="IgnoreExitCode" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[Do not consider exit code different than 0 as a failed execution.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="FailOnErrorOutput" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[Finish this task in error if the executable wrote in the error output stream.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="WorkingDirectory" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[The directory to use as the working directory for the execution.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:all>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="AOeTaskFilterAttributes" abstract="true">
+    <xs:complexContent mixed="false">
+      <xs:extension base="AOeTaskFilter">
         <xs:attribute name="Include" type="xs:string">
           <xs:annotation>
             <xs:documentation><![CDATA[A path pattern that describes paths that should be processed by this task.
@@ -498,64 +626,9 @@ Examples:
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="AOeTask" abstract="true">
-    <xs:attribute name="Name" type="xs:string">
-      <xs:annotation>
-        <xs:documentation><![CDATA[The name of this task. Purely informative.]]></xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-  </xs:complexType>
-  <xs:complexType name="OeTaskExec">
-    <xs:complexContent mixed="false">
-      <xs:extension base="AOeTask">
-        <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="ExecutableFilePath" type="xs:string">
-            <xs:annotation>
-              <xs:documentation><![CDATA[The path to the executable file.]]></xs:documentation>
-            </xs:annotation>
-          </xs:element>
-          <xs:element minOccurs="0" maxOccurs="1" name="Parameters" type="xs:string">
-            <xs:annotation>
-              <xs:documentation><![CDATA[The command line parameters for the execution.]]></xs:documentation>
-            </xs:annotation>
-          </xs:element>
-          <xs:element minOccurs="0" maxOccurs="1" name="HiddenExecution" nillable="true" type="xs:boolean">
-            <xs:annotation>
-              <xs:documentation><![CDATA[Hide the execution (do not show a window).]]></xs:documentation>
-            </xs:annotation>
-          </xs:element>
-          <xs:element minOccurs="0" maxOccurs="1" name="MaxTimeOut" nillable="true" type="xs:int">
-            <xs:annotation>
-              <xs:documentation><![CDATA[The maximum time in milliseconds before aborting the execution.]]></xs:documentation>
-            </xs:annotation>
-          </xs:element>
-          <xs:element minOccurs="0" maxOccurs="1" name="DoNotRedirectOutput" nillable="true" type="xs:boolean">
-            <xs:annotation>
-              <xs:documentation><![CDATA[Do not redirect the executable standard and error output to the log.]]></xs:documentation>
-            </xs:annotation>
-          </xs:element>
-          <xs:element minOccurs="0" maxOccurs="1" name="IgnoreExitCode" nillable="true" type="xs:boolean">
-            <xs:annotation>
-              <xs:documentation><![CDATA[Do not consider exit code different than 0 as a failed execution.]]></xs:documentation>
-            </xs:annotation>
-          </xs:element>
-          <xs:element minOccurs="0" maxOccurs="1" name="FailOnErrorOutput" nillable="true" type="xs:boolean">
-            <xs:annotation>
-              <xs:documentation><![CDATA[Finish this task in error if the executable wrote in the error output stream.]]></xs:documentation>
-            </xs:annotation>
-          </xs:element>
-          <xs:element minOccurs="0" maxOccurs="1" name="WorkingDirectory" type="xs:string">
-            <xs:annotation>
-              <xs:documentation><![CDATA[The directory to use as the working directory for the execution.]]></xs:documentation>
-            </xs:annotation>
-          </xs:element>
-        </xs:sequence>
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
   <xs:complexType name="AOeTaskFile" abstract="true">
     <xs:complexContent mixed="false">
-      <xs:extension base="AOeTaskFilter" />
+      <xs:extension base="AOeTaskFilterAttributes" />
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="AOeTaskFileArchiverArchive" abstract="true">
@@ -620,7 +693,7 @@ for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw"
         <xs:attribute name="ProlibVersion" type="xs:string">
           <xs:annotation>
             <xs:documentation><![CDATA[The version to use for the pro library file.
-Options are "Default, V7Standard, V8MemoryMapped, V11Standard, V12MemoryMapped".]]></xs:documentation>
+Options are: Default, V7Standard, V8MemoryMapped, V11Standard, V12MemoryMapped.]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="FilePathCodePage" type="xs:string">
@@ -738,7 +811,7 @@ for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw"
         <xs:attribute name="CompressionLevel" type="xs:string">
           <xs:annotation>
             <xs:documentation><![CDATA[The compression level to use for the cabinet file.
-Options are "None, Fastest, Optimal".]]></xs:documentation>
+Options are: None, Fastest, Optimal.]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
       </xs:extension>
@@ -756,7 +829,7 @@ Options are "None, Fastest, Optimal".]]></xs:documentation>
   </xs:complexType>
   <xs:complexType name="AOeTaskDirectory" abstract="true">
     <xs:complexContent mixed="false">
-      <xs:extension base="AOeTaskFilter" />
+      <xs:extension base="AOeTaskFilterAttributes" />
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="OeTaskDirectoryDelete">
@@ -765,11 +838,11 @@ Options are "None, Fastest, Optimal".]]></xs:documentation>
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="OeCompilationOptions">
-    <xs:sequence>
+    <xs:all>
       <xs:element minOccurs="0" maxOccurs="1" name="CompileWithDebugList" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Use the DEBUG-LIST option in the COMPILE statement.
-Defaults to "False".
+Defaults to: False.
 
 Remarks:
 If true, the compilation process will generate a debugfile (.dbg) that consists of a line-numbered listing of the procedure with the text of all preprocessor include files, names, and parameters inserted.]]></xs:documentation>
@@ -778,7 +851,7 @@ If true, the compilation process will generate a debugfile (.dbg) that consists 
       <xs:element minOccurs="0" maxOccurs="1" name="CompileWithXref" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Use the XREF option in the COMPILE statement.
-Defaults to "False".
+Defaults to: False.
 
 Remarks:
 If true, the compilation process will generate an xref file (.xrf) that contains reference information on ABL elements, cross-references between procedures and ABL objects, and cross-references between class or interface definition files and ABL objects.]]></xs:documentation>
@@ -788,7 +861,7 @@ If true, the compilation process will generate an xref file (.xrf) that contains
         <xs:annotation>
           <xs:documentation><![CDATA[Use the XREF-XML option in the COMPILE statement.
 This option is only available since openedge 10.2.
-Defaults to "False".
+Defaults to: False.
 
 Remarks:
 If true, the compilation process will generate an xref file (.xrf.xml) in XML format that contains reference information on ABL elements, cross-references between procedures and ABL objects, and cross-references between class or interface definition files and ABL objects.
@@ -798,7 +871,7 @@ This option cannot be used simultaneously with the XREF option.]]></xs:documenta
       <xs:element minOccurs="0" maxOccurs="1" name="CompileWithListing" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Use the LISTING option in the COMPILE statement.
-Defaults to "False".
+Defaults to: False.
 
 Remarks:
 If true, the compilation process will produce a file (.lis) including:
@@ -812,7 +885,7 @@ If true, the compilation process will produce a file (.lis) including:
       <xs:element minOccurs="0" maxOccurs="1" name="CompileWithPreprocess" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Use the PREPROCESS option in the COMPILE statement.
-Defaults to "False".
+Defaults to: False.
 
 Remarks:
 If true, the compilation process will generate a file (.preprocessed) that contains a final version of your source code after all include files have been inserted and all text substitutions have been performed.]]></xs:documentation>
@@ -822,7 +895,7 @@ If true, the compilation process will generate a file (.preprocessed) that conta
         <xs:annotation>
           <xs:documentation><![CDATA[Use the MULTI-COMPILE option in the COMPILE statement.
 This option is only available since openedge 10.2.
-Defaults to "False".
+Defaults to: False.
 
 Remarks:
 When set to TRUE, ABL compiles only those class definition files in the inherited class hierarchy that are not found in the cache. ABL also caches any classes or interfaces it compiles to avoid recompiling them during the session.
@@ -859,7 +932,7 @@ LANGUAGES (French-Canadian:French:English,Portuguese:Spanish,New-York:American:E
       <xs:element minOccurs="0" maxOccurs="1" name="TryToOptimizeCompilationDirectory" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Try to find the best location to compile an rcode instead of using the default temporary directory.
-Defaults to "True".
+Defaults to: True.
 
 Remarks:
 By default, all rcode generated are saved in the temporary directory and then moved to the different target locations. This might result in unnecessary delays and can be avoided by saving the rcode directly to the target location. This option allows the tool to make this small simplification when it makes sense.]]></xs:documentation>
@@ -868,7 +941,7 @@ By default, all rcode generated are saved in the temporary directory and then mo
       <xs:element minOccurs="0" maxOccurs="1" name="CompilableFileExtensionPattern" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[A comma-separated list of file extension patterns that represent ABL compilable files.
-Defaults to "*.p;*.w;*.t;*.cls".
+Defaults to: *.p;*.w;*.t;*.cls.
 
 Remarks:
 This is a default filter that is used for each "compile" task and which allows to process only certain types of files.]]></xs:documentation>
@@ -877,7 +950,7 @@ This is a default filter that is used for each "compile" task and which allows t
       <xs:element minOccurs="0" maxOccurs="1" name="NumberProcessPerCore" nillable="true" type="xs:unsignedByte">
         <xs:annotation>
           <xs:documentation><![CDATA[The number of openedge process to start simultaneously per core (on your computer) in order to compile your application.
-Defaults to "1".
+Defaults to: 1.
 
 Remarks:
 To speed up the compilation process, this tool can start parallel openedge processes to compile your application.
@@ -887,7 +960,7 @@ This option allows to fine tune the number of processes to start.]]></xs:documen
       <xs:element minOccurs="0" maxOccurs="1" name="ForceSingleProcess" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Use a single process to compile your application.
-Defaults to "False".
+Defaults to: False.
 
 Remarks:
 This option overload the default behavior of this tool, that aims to use parallel processes to speed up the compilation process.
@@ -897,20 +970,20 @@ This can be useful for low end machines or when connecting to a database in mono
       <xs:element minOccurs="0" maxOccurs="1" name="MinimumNumberOfFilesPerProcess" nillable="true" type="xs:int">
         <xs:annotation>
           <xs:documentation><![CDATA[The minimum number of files that needs to be allocated to one of the processes before justifying the use of a new process.
-Defaults to "10".
+Defaults to: 10.
 
 Remarks:
 This option exists because there would be an important overhead to start 2 openedge processes to compile only 2 files.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-    </xs:sequence>
+    </xs:all>
   </xs:complexType>
   <xs:complexType name="OeBuildOptions">
-    <xs:sequence>
+    <xs:all>
       <xs:element minOccurs="0" maxOccurs="1" name="SourceDirectoryPath" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[The source directory of your application. Should be left empty in most cases.
-Defaults to "$PWD (current directory)".
+Defaults to: $PWD (current directory).
 
 Remarks:
 You cannot use variables in this property.]]></xs:documentation>
@@ -945,13 +1018,13 @@ The idea behind this option is to build files depending on the changes made in G
       <xs:element minOccurs="0" maxOccurs="1" name="FullRebuild" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Build all the source files, ignoring the incremental build options and the GIT filter options.
-Defaults to "False".]]></xs:documentation>
+Defaults to: False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="OutputDirectoryPath" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[The output directory for the build.
-Defaults to "{{SOURCE_DIRECTORY}}\bin".
+Defaults to: {{SOURCE_DIRECTORY}}\bin.
 
 Remarks:
 Relative paths in the targets of tasks will be resolved from this directory. This is only available when building the source or the output.]]></xs:documentation>
@@ -960,63 +1033,72 @@ Relative paths in the targets of tasks will be resolved from this directory. Thi
       <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryInputFilePath" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[The path to an xml file containing the information of a previous build. This is necessary for an incremental build.
-Defaults to "{{PROJECT_LOCAL_DIRECTORY}}\build\latest.xml".]]></xs:documentation>
+Defaults to: {{PROJECT_LOCAL_DIRECTORY}}\build\latest.xml.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryOutputFilePath" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[The path to an xml file that will be created by this build and will contain the information of that build. This is necessary for an incremental build.
-Defaults to "{{PROJECT_LOCAL_DIRECTORY}}\build\latest.xml".]]></xs:documentation>
+Defaults to: {{PROJECT_LOCAL_DIRECTORY}}\build\latest.xml.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ReportHtmlFilePath" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[The path to an html report file that will contain human-readable information about this build.
-Defaults to "{{PROJECT_LOCAL_DIRECTORY}}\build\latest.html".]]></xs:documentation>
+Defaults to: {{PROJECT_LOCAL_DIRECTORY}}\build\latest.html.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="TreatWarningsAsErrors" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether or not build warnings must be considered as errors and stop the build.
-Defaults to "False".]]></xs:documentation>
+Defaults to: False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="StopBuildOnCompilationError" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether or not the build must be stopped if a file fails to compile.
-Defaults to "True".]]></xs:documentation>
+Defaults to: True.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="StopBuildOnCompilationWarning" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether or not the build must be stopped if a file compiles with warnings.
-Defaults to "False".]]></xs:documentation>
+Defaults to: False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ShutdownCompilationDatabasesAfterBuild" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether or not the tool should shutdown the temporary databases created and started for the compilation (if any).
-Defaults to "True".
+Defaults to: True.
 
 Remarks:
 Shutting down an openedge database is a really slow process and it should be avoided if you intent to build files several times consecutively.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="AllowDatabaseShutdownByProcessKill" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Sets whether or not the tool is allowed to shutdown temporary databases by killing the _mprosrv.
+Defaults to: True.
+
+Remarks:
+Shutting down an openedge database is a really slow process, this option speeds up the shutdown drastically. The database broker is kill instead of being properly shutdown. Since the tool uses temporary databases and since those databases are only used to compiled code, this is completely safe.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="TestMode" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether or not to run the build in "test mode". In test mode, the tasks are not actually executed. It should be used as a preview of the actual build process.
-Defaults to "False".]]></xs:documentation>
+Defaults to: False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-    </xs:sequence>
+    </xs:all>
   </xs:complexType>
   <xs:complexType name="OeIncrementalBuildOptions">
-    <xs:sequence>
+    <xs:all>
       <xs:element minOccurs="0" maxOccurs="1" name="Enabled" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether or not the incremental build should be used.
 An incremental build improves the build process by only compiling and building files that were modified or added since the last build. It is the opposite of a full rebuild.
-Defaults to "True".
+Defaults to: True.
 
 Remarks:
 If true, an analysis is done on compiled files to find referenced tables and files. The build history is stored to be able to know which file was modified/added since the last build. And the MD5 checksum of each source file can be computed and saved to improve modification detection.
@@ -1026,7 +1108,7 @@ Depending on your build and your intentions, this can significantly improve the 
       <xs:element minOccurs="0" maxOccurs="1" name="UseSimplerAnalysisForDatabaseReference" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Use a cheapest analysis mode (performance wise) to identify the database references of a compiled file.
-Defaults to "False".
+Defaults to: False.
 
 Remarks:
 If true, the database references are not computed from the resulting xref file but simply using RCODE-INFO:TABLE-LIST.
@@ -1037,7 +1119,7 @@ This option can be used on low-end computers but it is not advised to use this m
       <xs:element minOccurs="0" maxOccurs="1" name="UseCheckSumComparison" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Use a checksum comparison to identify the files that were modified between two builds.
-Defaults to "False".
+Defaults to: False.
 
 Remarks:
 This identification technique is safer than a simple datetime/size comparison but it also costs more cpu time.
@@ -1047,7 +1129,7 @@ By default, a file is considered unmodified if its size and last modified date h
       <xs:element minOccurs="0" maxOccurs="1" name="MirrorDeletedSourceFileToOutput" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether of not the tool should delete the previous targets of a source file that has been deleted since the last build.
-Defaults to "False".
+Defaults to: False.
 
 Examples:
 On the first build, the file "A" was compiled and copied to location "/bin". The file "A" is deleted and a second build is started:
@@ -1058,7 +1140,7 @@ On the first build, the file "A" was compiled and copied to location "/bin". The
       <xs:element minOccurs="0" maxOccurs="1" name="MirrorDeletedTargetsToOutput" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether of not the tool should apply the modifications of a target that has been deleted since the last build.
-Defaults to "False".
+Defaults to: False.
 
 Examples:
 On the first build, the file "A" was compiled and copied to location "/bin" as well as "/bin2". The target "/bin" is deleted and a second build is started:
@@ -1069,7 +1151,7 @@ On the first build, the file "A" was compiled and copied to location "/bin" as w
       <xs:element minOccurs="0" maxOccurs="1" name="RebuildFilesWithNewTargets" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether of not the tool should rebuild a file if it has new targets defined since the last build.
-Defaults to "False".
+Defaults to: False.
 
 Examples:
 On the first build, the file "A" was compiled and copied to location "/bin". A new target "/bin2" is added and a second build is started:
@@ -1077,14 +1159,14 @@ On the first build, the file "A" was compiled and copied to location "/bin". A n
 - If not, nothing happens (the file "A" has not been changed since the last build)]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-    </xs:sequence>
+    </xs:all>
   </xs:complexType>
   <xs:complexType name="OeGitFilterOptions">
-    <xs:sequence>
+    <xs:all>
       <xs:element minOccurs="0" maxOccurs="1" name="IncludeSourceFilesModifiedSinceLastCommit" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Build source files that were modified/added/deleted since the last commit.
-Defaults to "False".
+Defaults to: False.
 
 Remarks:
 This include all the files in staging area as well as untracked files in the working directory. Basically, any file listed in a `git status` command.
@@ -1094,7 +1176,7 @@ This is a good filter to build all the files you are about to commit (and thus c
       <xs:element minOccurs="0" maxOccurs="1" name="IncludeSourceFilesCommittedOnlyOnCurrentBranch" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Build source files that were modified/added/deleted in a commit that is exclusive to the current branch.
-Defaults to "False".
+Defaults to: False.
 
 Remarks:
 The `git log` is used to identify which commits are referenced only by the current branch (or reference only by the any remote reference of the current branch). The files modified/added/deleted in these commits are then build.
@@ -1120,7 +1202,7 @@ Read the description of IncludeSourceFilesCommittedOnlyOnCurrentBranch to unders
 This commit is generally found automatically but you can set its value to force a build between HEAD and a given commit.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-    </xs:sequence>
+    </xs:all>
   </xs:complexType>
   <xs:complexType name="ArrayOfOeBuildStepClassic">
     <xs:sequence>
@@ -1134,13 +1216,13 @@ This commit is generally found automatically but you can set its value to force 
   <xs:complexType name="OeBuildStepClassic">
     <xs:complexContent mixed="false">
       <xs:extension base="OeBuildStep">
-        <xs:sequence>
+        <xs:all>
           <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice1">
             <xs:annotation>
               <xs:documentation><![CDATA[A list of tasks.]]></xs:documentation>
             </xs:annotation>
           </xs:element>
-        </xs:sequence>
+        </xs:all>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -1154,13 +1236,13 @@ This commit is generally found automatically but you can set its value to force 
   <xs:complexType name="OeBuildStepBuildSource">
     <xs:complexContent mixed="false">
       <xs:extension base="OeBuildStep">
-        <xs:sequence>
+        <xs:all>
           <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice2">
             <xs:annotation>
               <xs:documentation><![CDATA[A list of tasks to build your source files.]]></xs:documentation>
             </xs:annotation>
           </xs:element>
-        </xs:sequence>
+        </xs:all>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>

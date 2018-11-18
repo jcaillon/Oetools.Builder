@@ -64,7 +64,6 @@ namespace Oetools.Builder.Utilities {
                 if (string.IsNullOrEmpty(value)) {
                     return value;
                 }
-
                 try {
                     var attr = Attribute.GetCustomAttribute(propInfo, typeof(ReplaceVariables), true) as ReplaceVariables;
                     if (attr == null || !attr.SkipReplace) {

@@ -97,6 +97,8 @@ namespace Oetools.Builder.Test.Project {
 
             BuilderUtilities.ApplyVariablesToProperties(prop, null);
 
+            Directory.SetCurrentDirectory(TestFolder);
+            
             var list = prop.GetPropath(TestFolder, false);
             Assert.AreEqual(2 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
             Assert.IsTrue(list.Contains(Environment.GetEnvironmentVariable("dlc").ToCleanPath()));

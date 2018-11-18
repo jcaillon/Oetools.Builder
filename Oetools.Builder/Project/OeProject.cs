@@ -17,6 +17,7 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -25,7 +26,6 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Resources;
 using Oetools.Builder.Utilities;

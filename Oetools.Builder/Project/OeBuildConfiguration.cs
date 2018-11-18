@@ -25,6 +25,7 @@ using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
+using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Attributes;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge;
@@ -63,6 +64,8 @@ namespace Oetools.Builder.Project {
         /// Non existing variables will be replaced by an empty string.
         /// Variables can be used in any "string type" properties (this exclude numbers/booleans).
         /// You can use variables in the variables definition but they must be defined in the right order.
+        /// If several variables with the same name exist, the value of the latest defined is used.
+        /// Variable names are case insensitive. 
         ///
         /// Special variables are already defined and available:
         /// - {{SOURCE_DIRECTORY}} the application source directory (defined in properties)
@@ -150,33 +153,57 @@ namespace Oetools.Builder.Project {
         /// <summary>
         /// Add the default variables and apply the variables on all public properties of type string
         /// </summary>
-        /// <param name="sourceDirectory"></param>
         /// <exception cref="Exception"></exception>
         /// <exception cref="BuildVariableException"></exception>
         /// <exception cref="BuildConfigurationException"></exception>
-        public void ApplyVariables(string sourceDirectory) {
-            Variables = Variables ?? new List<OeVariable>();
+        public void ApplyVariables() {
+            Variables = Variables ?? new List<OeVariable>();          
             
-            // add some default variables
-            if (!string.IsNullOrEmpty(sourceDirectory)) {
-                Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameSourceDirectory, Value = sourceDirectory });    
-                Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameProjectDirectory, Value = OeBuilderConstants.GetProjectDirectory(sourceDirectory) });                
-                Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameProjectLocalDirectory, Value = OeBuilderConstants.GetProjectDirectoryLocal(sourceDirectory) });              
-            }             
-            Variables.Add(new OeVariable { Name = UoeConstants.OeDlcEnvVar, Value = (Properties?.DlcDirectory).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectory()) });  
-            Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = (Properties?.BuildOptions?.OutputDirectoryPath).TakeDefaultIfNeeded(OeBuilderConstants.GetDefaultOutputDirectory()) });  
-            Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameConfigurationName, Value = Name });
+            string currentDirectory;
             try {
-                Variables.Add(new OeVariable { Name = OeBuilderConstants.OeVarNameCurrentDirectory, Value = Directory.GetCurrentDirectory() });
+                currentDirectory = Directory.GetCurrentDirectory();
             } catch (Exception e) {
                 throw new BuildConfigurationException(this, "Failed to get the current directory (check permissions).", e);
             }
+            currentDirectory = currentDirectory.ToCleanPath();
+            var sourceDirectory = (Properties?.BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath());
+
+            var originalVariablesList = Variables;
+            
+            // add some default variables
+            Variables = new List<OeVariable> {
+                new OeVariable {
+                    Name = OeBuilderConstants.OeVarNameCurrentDirectory, Value = currentDirectory
+                },
+                new OeVariable {
+                    Name = OeBuilderConstants.OeVarNameSourceDirectory, Value = sourceDirectory
+                },
+                new OeVariable {
+                    Name = OeBuilderConstants.OeVarNameProjectDirectory, Value = OeBuilderConstants.GetProjectDirectory(sourceDirectory)
+                },
+                new OeVariable {
+                    Name = OeBuilderConstants.OeVarNameProjectLocalDirectory, Value = OeBuilderConstants.GetProjectDirectoryLocal(sourceDirectory)
+                },
+                new OeVariable {
+                    Name = UoeConstants.OeDlcEnvVar, Value = (Properties?.DlcDirectory).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectory())
+                },
+                new OeVariable {
+                    Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = (Properties?.BuildOptions?.OutputDirectoryPath).TakeDefaultIfNeeded(OeBuilderConstants.GetDefaultOutputDirectory())
+                },
+                new OeVariable {
+                    Name = OeBuilderConstants.OeVarNameConfigurationName, Value = Name
+                }
+            };
             // extra variable FILE_SOURCE_DIRECTORY defined only when computing targets
+            
+            // add the original list back
+            Variables.AddRange(originalVariablesList);
             
             // apply variables on variables
             BuilderUtilities.ApplyVariablesInVariables(Variables);
-            
-            // apply variables in all public string properties
+
+            // apply variables in all public string properties (reverse to apply the last defined variables first)
+            Variables.Reverse();
             BuilderUtilities.ApplyVariablesToProperties(this, Variables);  
         }
 
@@ -216,35 +243,6 @@ namespace Oetools.Builder.Project {
                     e.PropertyName = typeof(OeBuildConfiguration).GetXmlName(propertyNameOf);
                     throw;
                 }
-            }
-        }
-
-        /// <summary>
-        /// Give each build step/variables a unique number to identify it
-        /// </summary>
-        internal void InitIds() {
-            InitIds(PreBuildStepGroup);
-            InitIds(BuildSourceStepGroup);
-            InitIds(BuildOutputStepGroup);
-            InitIds(PostBuildStepGroup);
-            if (Variables != null) {
-                var i = 0;
-                foreach (var variable in Variables.Where(v => v != null)) {
-                    variable.Id = i;
-                    i++;
-                }
-            }
-        }
-        
-        private void InitIds(IEnumerable<OeBuildStep> buildSteps) {
-            if (buildSteps == null) {
-                return;
-            }
-            var i = 0;
-            foreach (var buildStep in buildSteps.Where(s => s != null)) {
-                buildStep.Id = i;
-                buildStep.InitIds();
-                i++;
             }
         }
         

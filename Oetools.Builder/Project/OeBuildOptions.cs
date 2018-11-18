@@ -48,7 +48,7 @@ namespace Oetools.Builder.Project {
             set => _sourceDirectoryPath = value.ToCleanPath();
         }
         [Description("$PWD (current directory)")]
-        public static string GetDefaultSourceDirectoryPath() => Directory.GetCurrentDirectory();
+        public static string GetDefaultSourceDirectoryPath() => Directory.GetCurrentDirectory().ToCleanPath();
         
         /// <summary>
         /// The filtering options for the source files of your application that need to be built.
@@ -68,7 +68,6 @@ namespace Oetools.Builder.Project {
         /// </remarks>
         [XmlElement(ElementName = "IncrementalBuildOptions")]
         public OeIncrementalBuildOptions IncrementalBuildOptions { get; set; }
-        [Description("")]
         public static OeIncrementalBuildOptions GetDefaultIncrementalBuildOptions() => new OeIncrementalBuildOptions();
                 
         /// <summary>
@@ -80,7 +79,6 @@ namespace Oetools.Builder.Project {
         /// </remarks>
         [XmlElement(ElementName = "SourceToBuildGitFilter")]
         public OeGitFilterOptions SourceToBuildGitFilter { get; set; }    
-        [Description("")]
         public static OeGitFilterOptions GetDefaultSourceToBuildGitFilter() => new OeGitFilterOptions();
         
         /// <summary>
@@ -151,6 +149,16 @@ namespace Oetools.Builder.Project {
         [XmlElement(ElementName = "ShutdownCompilationDatabasesAfterBuild")]
         public bool? ShutdownCompilationDatabasesAfterBuild { get; set; }
         public static bool GetDefaultShutdownCompilationDatabasesAfterBuild() => true;
+        
+        /// <summary>
+        /// Sets whether or not the tool is allowed to shutdown temporary databases by killing the _mprosrv.
+        /// </summary>
+        /// <remarks>
+        /// Shutting down an openedge database is a really slow process, this option speeds up the shutdown drastically. The database broker is kill instead of being properly shutdown. Since the tool uses temporary databases and since those databases are only used to compiled code, this is completely safe.
+        /// </remarks>
+        [XmlElement(ElementName = "AllowDatabaseShutdownByProcessKill")]
+        public bool? AllowDatabaseShutdownByProcessKill { get; set; }
+        public static bool GetDefaultAllowDatabaseShutdownByProcessKill() => true;
         
         /// <summary>
         /// Sets whether or not to run the build in "test mode". In test mode, the tasks are not actually executed. It should be used as a preview of the actual build process.

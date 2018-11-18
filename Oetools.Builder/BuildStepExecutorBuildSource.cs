@@ -8,6 +8,7 @@ using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder {
@@ -20,7 +21,7 @@ namespace Oetools.Builder {
 
         private bool UseIncrementalBuild => Properties.BuildOptions?.IncrementalBuildOptions?.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled();
         
-        private string SourceDirectory => Properties.BuildOptions?.SourceDirectoryPath;
+        private string SourceDirectory => (Properties.BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath());
         
         private bool FullRebuild => Properties.BuildOptions?.FullRebuild ?? OeBuildOptions.GetDefaultFullRebuild();
         

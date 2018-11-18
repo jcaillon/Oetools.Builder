@@ -32,7 +32,7 @@ namespace Oetools.Builder.Project.Task {
     /// A task that operates on directories.
     /// </summary>
     /// <inheritdoc cref="AOeTaskFilter"/>
-    public abstract class AOeTaskDirectory : AOeTaskFilter, IOeTaskDirectory {
+    public abstract class AOeTaskDirectory : AOeTaskFilterAttributes, IOeTaskDirectory {
 
         /// <summary>
         /// Not applicable.

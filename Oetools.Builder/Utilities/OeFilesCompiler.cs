@@ -25,6 +25,7 @@ using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Execution;
 using Oetools.Utilities.Openedge.Execution.Exceptions;
 
@@ -74,7 +75,7 @@ namespace Oetools.Builder.Utilities {
                 throw new ArgumentNullException(nameof(properties));
             }
 
-            _compiler = properties.GetParallelCompiler(properties.BuildOptions?.SourceDirectoryPath);
+            _compiler = properties.GetParallelCompiler((properties.BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()));
             _compiler.FilesToCompile = paths;
             log?.ReportProgress(paths.Count, 0, $"Compiling {paths.Count} openedge files");
             _compiler.Start();

@@ -66,8 +66,8 @@ namespace Oetools.Builder.Project.Task {
         /// ((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).
         /// </para>
         /// </example>
-        [XmlAttribute(AttributeName = "Include")]
-        public string Include {
+        [XmlIgnore]
+        public virtual string Include {
             get => _include;
             set {
                 _includeRegexes = null; 
@@ -78,7 +78,7 @@ namespace Oetools.Builder.Project.Task {
         /// <summary>
         /// A regular expression path pattern that describes paths that should be processed by this task.
         /// </summary>
-        [XmlAttribute(AttributeName = "IncludeRegex")]
+        [XmlIgnore]
         public virtual string IncludeRegex {
             get => _includeRegex;
             set {
@@ -91,8 +91,8 @@ namespace Oetools.Builder.Project.Task {
         /// A path pattern that describes paths that should be excluded from being processed by this task.
         /// </summary>
         /// <inheritdoc cref="Include"/>
-        [XmlAttribute(AttributeName = "Exclude")]
-        public string Exclude {
+        [XmlIgnore]
+        public virtual string Exclude {
             get => _exclude;
             set {
                 _excludeRegexes = null; 
@@ -103,8 +103,8 @@ namespace Oetools.Builder.Project.Task {
         /// <summary>
         /// A regular expression path pattern that describes paths that should be excluded from being processed by this task.
         /// </summary>
-        [XmlAttribute(AttributeName = "ExcludeRegex")]
-        public string ExcludeRegex {
+        [XmlIgnore]
+        public virtual string ExcludeRegex {
             get => _excludeRegex;
             set {
                 _excludeRegexes = null; 

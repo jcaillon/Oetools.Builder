@@ -21,33 +21,70 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
+using Oetools.Builder.Utilities;
+using Oetools.Utilities.Openedge;
 
 namespace Oetools.Builder.Test.Project {
     
     [TestClass]
     public class OeBuildConfigurationTest {
 
-        public void Test() {
-            var project = OeProject.GetStandardProject();
-            var bc = project.GetDefaultBuildConfigurationCopy();
+        [TestMethod]
+        public void ApplyVariables_DefaultVariables() {
+            var bc = new OeBuildConfiguration();
+            bc.ApplyVariables();
             
-            bc.PostBuildStepGroup = new List<OeBuildStepClassic> {
-                new OeBuildStepClassic {
-                    Tasks = new List<AOeTask> {
-                        
+            Assert.IsTrue(bc.Variables.Exists(v => v.Name.Equals(OeBuilderConstants.OeVarNameSourceDirectory)));
+            Assert.IsTrue(bc.Variables.Exists(v => v.Name.Equals(OeBuilderConstants.OeVarNameProjectDirectory)));
+            Assert.IsTrue(bc.Variables.Exists(v => v.Name.Equals(OeBuilderConstants.OeVarNameProjectLocalDirectory)));
+            Assert.IsTrue(bc.Variables.Exists(v => v.Name.Equals(UoeConstants.OeDlcEnvVar)));
+            Assert.IsTrue(bc.Variables.Exists(v => v.Name.Equals(OeBuilderConstants.OeVarNameOutputDirectory)));
+            Assert.IsTrue(bc.Variables.Exists(v => v.Name.Equals(OeBuilderConstants.OeVarNameConfigurationName)));
+            Assert.IsTrue(bc.Variables.Exists(v => v.Name.Equals(OeBuilderConstants.OeVarNameCurrentDirectory)));
+        }
+        
+        [TestMethod]
+        public void ApplyVariables() {
+            var bc = new OeBuildConfiguration {
+                Variables = new List<OeVariable> {
+                    new OeVariable {
+                        Name = "var1",
+                        Value = "value3"
+                    },
+                    new OeVariable {
+                        Name = "var2",
+                        Value = "{{var1}}"
+                    },
+                    new OeVariable {
+                        Name = "var3",
+                        Value = "{{var2}}"
+                    },
+                    new OeVariable {
+                        Name = "var4",
+                        Value = "value4"
+                    },
+                    new OeVariable {
+                        Name = "var4",
+                        Value = "value4-bis"
+                    },
+                    new OeVariable {
+                        Name = OeBuilderConstants.OeVarNameCurrentDirectory,
+                        Value = "value-cd"
                     }
+                },
+                Properties = new OeProperties {
+                    ProcedureToExecuteAfterAnyProgressExecutionFilePath = "{{var4}}",
+                    ProcedureToExecuteBeforeAnyProgressExecutionFilePath = "{{var1}}",
+                    IniFilePath = "{{" + OeBuilderConstants.OeVarNameCurrentDirectory + "}}"
                 }
             };
             
-            bc.Variables = new List<OeVariable> {
-                new OeVariable {
-                    Name = "cool",
-                    Value = "<zefzef"
-                }
-            };
-            
-            bc.ApplyVariables("directory");
+            bc.ApplyVariables();
 
+            Assert.AreEqual("value4-bis", bc.Properties.ProcedureToExecuteAfterAnyProgressExecutionFilePath, "Should take the last defined value for identical variables.");
+            Assert.AreEqual("value3", bc.Properties.ProcedureToExecuteBeforeAnyProgressExecutionFilePath, "Should have replaced variables within variables.");
+            Assert.AreEqual("value-cd", bc.Properties.IniFilePath, "Default variables do not have the priority.");
+            
         }
     }
 }

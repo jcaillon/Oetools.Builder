@@ -36,16 +36,6 @@ if not "!ERRORLEVEL!"=="0" (
 	GOTO ENDINERROR
 )
 
-"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\xsd.exe" -t:OeBuildConfiguration "Oetools.Builder\bin\Any Cpu\Release\net461\Oetools.Builder.dll"
-if not "!ERRORLEVEL!"=="0" (
-	GOTO ENDINERROR
-)
-
-move /y "schema0.xsd" "Oetools.Builder\Resources\Xsd\BuildConfiguration.xsd"
-if not "!ERRORLEVEL!"=="0" (
-	GOTO ENDINERROR
-)
-
 echo.=========================
 echo.[%time:~0,8% INFO] BUILDING XSD ANNOTATION PROJECT
 
@@ -61,8 +51,6 @@ echo.=========================
 echo.[%time:~0,8% INFO] ANNOTATING GENERATED XSD WITH DOCUMENTATION
 
 "build\XsdAnnotation\XsdAnnotator.exe" "Oetools.Builder\Resources\Xsd\Project.xsd" "Oetools.Builder\bin\Any Cpu\Release\net461"
-
-"build\XsdAnnotation\XsdAnnotator.exe" "Oetools.Builder\Resources\Xsd\BuildConfiguration.xsd" "Oetools.Builder\bin\Any Cpu\Release\net461"
 
 :DONE
 echo.=========================

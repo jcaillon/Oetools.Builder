@@ -44,7 +44,5 @@ namespace Oetools.Builder.Project {
         public List<AOeTask> Tasks { get; set; }
 
         public override List<AOeTask> GetTaskList() => Tasks;
-        
-        internal override void InitIds() => InitIds(Tasks);
     }
 }

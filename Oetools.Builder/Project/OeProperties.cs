@@ -218,13 +218,11 @@ namespace Oetools.Builder.Project {
         /// <inheritdoc cref="OeCompilationOptions"/>
         [XmlElement(ElementName = "CompilationOptions")]
         public OeCompilationOptions CompilationOptions { get; set; }
-        [Description("")]
         public static OeCompilationOptions GetDefaultCompilationOptions() => new OeCompilationOptions();
         
         /// <inheritdoc cref="OeBuildOptions"/>
         [XmlElement(ElementName = "BuildOptions")]
         public OeBuildOptions BuildOptions { get; set; }
-        [Description("")]
         public static OeBuildOptions GetDefaultBuildOptions() => new OeBuildOptions();
 
         /// <summary>

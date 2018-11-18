@@ -19,35 +19,38 @@
 #endregion
 
 using System;
+using System.IO;
+using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Report.Html;
 using Oetools.Builder.Utilities;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder {
     
     public class BuilderAuto : Builder {
 
+        private ProjectDatabaseAdministrator _projectDbAdmin;
+
         public BuilderAuto(OeProject project, string buildConfigurationName = null) : base(project, buildConfigurationName) { }
 
         public BuilderAuto(OeBuildConfiguration buildConfiguration) : base(buildConfiguration) { }
 
-//        BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath = BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath ?? Path.Combine(SourceDirectory, "bin");
-//        public static string GetDefaultBuildHistoryOutputFilePath(string sourceDirectory) => Path.Combine(OeBuilderConstants.GetProjectDirectoryBuild(sourceDirectory), "latest.xml");
-//        public static string GetDefaultBuildHistoryInputFilePath(string sourceDirectory) => Path.Combine(OeBuilderConstants.GetProjectDirectoryBuild(sourceDirectory), "latest.xml");
-//        public static string GetDefaultReportHtmlFilePath(string sourceDirectory) => Path.Combine(OeBuilderConstants.GetProjectDirectoryBuild(sourceDirectory), "latest.html");
-        
         public override void Dispose() {
-            base.Dispose();
             try {
-                // stop the started databases
-                if (BuildConfiguration.Properties?.BuildOptions?.ShutdownCompilationDatabasesAfterBuild ?? OeBuildOptions.GetDefaultShutdownCompilationDatabasesAfterBuild()) {
-                    Log?.Debug("Shutting down database after the build [OPTION]");
-                    using (var dbAdmin = new ProjectDatabaseAdministrator(BuildConfiguration, SourceDirectory)) {
-                        dbAdmin.ShutdownAllDatabases();
+                base.Dispose();
+            } finally {
+                try {
+                    // stop the started databases
+                    if (BuildConfiguration.Properties?.BuildOptions?.ShutdownCompilationDatabasesAfterBuild ?? OeBuildOptions.GetDefaultShutdownCompilationDatabasesAfterBuild()) {
+                        Log?.Info("Shutting down database after the build [OPTION]. This can take some time.");
+                        _projectDbAdmin.ShutdownAllDatabases();
                     }
+                } catch (Exception e) {
+                    Log?.Error($"Error while shutting down the project databases : {e.Message}", e);
+                } finally {
+                    _projectDbAdmin.Dispose();
                 }
-            } catch (Exception e) {
-                Log?.Error($"Error while shutting down the project databases : {e.Message}", e);
             }
         }
 
@@ -55,14 +58,26 @@ namespace Oetools.Builder {
             base.PreBuild();
             
             // Prepare all the project databases
-            using (var dbAdmin = new ProjectDatabaseAdministrator(BuildConfiguration, SourceDirectory)) {
-                var projectDbConnectionStrings = dbAdmin.SetupProjectDatabases();
-                if (projectDbConnectionStrings != null && projectDbConnectionStrings.Count > 0) {
-                    Log?.Debug("Adding project databases connection strings to the execution environment");
-                    var env = BuildConfiguration.Properties.GetEnv();
-                    env.DatabaseConnectionString = $"{env.DatabaseConnectionString ?? ""} {string.Join(" ", projectDbConnectionStrings)}";
-                    Log?.Debug($"The connection string is now {env.DatabaseConnectionString}");
-                }
+            var dlcDirectory = BuildConfiguration.Properties.DlcDirectory.TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectory());
+            var databasesBaseDir = Path.Combine(OeBuilderConstants.GetProjectDirectoryLocalDb(BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath), BuildConfiguration.Id.ToString());
+            _projectDbAdmin = new ProjectDatabaseAdministrator(dlcDirectory, BuildConfiguration.Properties.ProjectDatabases, databasesBaseDir) {
+                Log = Log,
+                AllowsDatabaseShutdownWithKill = BuildConfiguration.Properties.BuildOptions.AllowDatabaseShutdownByProcessKill,
+                NumberOfUsersPerDatabase = OeCompilationOptions.GetNumberOfProcessesToUse(BuildConfiguration.Properties.CompilationOptions)
+            };
+            
+            var projectDbConnectionStrings = _projectDbAdmin.SetupProjectDatabases();
+            if (projectDbConnectionStrings != null && projectDbConnectionStrings.Count > 0) {
+                Log?.Debug("Adding project databases connection strings to the execution environment.");
+                var env = BuildConfiguration.Properties.GetEnv();
+                env.DatabaseConnectionString = $"{env.DatabaseConnectionString ?? ""} {string.Join(" ", projectDbConnectionStrings)}";
+                Log?.Debug($"The connection string is now {env.DatabaseConnectionString}.");
+            }
+            
+            // load build history
+            if (UseIncrementalBuild && BuildSourceHistory == null && File.Exists(BuildConfiguration.Properties.BuildOptions.BuildHistoryInputFilePath)) {
+                Log?.Debug("Loading the build history.");
+                BuildSourceHistory = OeBuildHistory.Load(BuildConfiguration.Properties.BuildOptions.BuildHistoryInputFilePath, BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath, BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath);
             }
         }
 
@@ -70,12 +85,12 @@ namespace Oetools.Builder {
             base.PostBuild();
             
             // output files
-            if (!string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions?.ReportHtmlFilePath)) {
+            if (!string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.ReportHtmlFilePath)) {
                 OutputReport(BuildConfiguration.Properties.BuildOptions.ReportHtmlFilePath);
             }
 
-            if (UseIncrementalBuild && !string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions?.BuildHistoryOutputFilePath)) {
-                Log?.Debug("Create the output history file [OPTION]");
+            if (UseIncrementalBuild && !string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath)) {
+                Log?.Debug("Create the output history file [OPTION].");
                 OutputHistory(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath);
             }
         }
@@ -90,6 +105,7 @@ namespace Oetools.Builder {
                 return;
             }
             // BuildHistory
+            BuildSourceHistory.Save(outputHistoryFilePath, BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath, BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath);
         }
     }
 }

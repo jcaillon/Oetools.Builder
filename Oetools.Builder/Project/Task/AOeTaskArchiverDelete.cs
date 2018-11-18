@@ -10,7 +10,7 @@ namespace Oetools.Builder.Project.Task {
     /// Base task class that allows to delete files within archives.
     /// </summary>
     /// <inheritdoc cref="AOeTaskFilter"/>
-    public abstract class AOeTaskArchiverDelete : AOeTaskFilter {
+    public abstract class AOeTaskArchiverDelete : AOeTaskFilterAttributes {
         
         /// <summary>
         /// The path of archive to modify.

@@ -46,22 +46,7 @@ namespace Oetools.Builder.Project {
                 }
             }
         }
-        
-        /// <summary>
-        /// Give each task a unique number to identify it
-        /// </summary>
-        internal virtual void InitIds() { }
 
-        protected void InitIds(List<AOeTask> tasks) {
-            if (tasks != null) {
-                var i = 0;
-                foreach (var task in tasks.Where(v => v != null)) {
-                    task.Id = i;
-                    i++;
-                }
-            }
-        }
-        
         public override string ToString() => $"Step [{Id}]{(string.IsNullOrEmpty(Name) ? "" : $" {Name}")}";
     }
 }

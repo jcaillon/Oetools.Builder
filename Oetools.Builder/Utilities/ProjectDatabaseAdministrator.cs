@@ -20,7 +20,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project;
@@ -30,41 +33,61 @@ using Oetools.Utilities.Openedge.Database;
 
 namespace Oetools.Builder.Utilities {
     
+    /// <summary>
+    /// Allows to administrate the databases of a build configuration.
+    /// </summary>
     public class ProjectDatabaseAdministrator : IDisposable {
-        
-        public ILogger Log { protected get; set; }
 
-        public string SourceDirectory { get; }
+        private const int DefaultNumberOfUsersPerDatabase = 20;
+        private const bool DefaultAllowsDatabaseShutdownWithKill = true;
         
-        public int ConfigurationId { get; }
+        /// <summary>
+        /// The max number of users for each database (will impact the start up parameters).
+        /// </summary>
+        public int? NumberOfUsersPerDatabase { get; set; }
+
+        /// <summary>
+        /// Are we allowed to use a process kill instead of a classic proshut?
+        /// </summary>
+        public bool? AllowsDatabaseShutdownWithKill { get; set; }
         
-        public OeProperties Properties { get; }
+        /// <summary>
+        /// The logger to use.
+        /// </summary>
+        public ILogger Log { protected get; set; }
         
-        public UoeDatabaseAdministrator DbAdmin { get; }
+        /// <summary>
+        /// The databases to handle.
+        /// </summary>
+        protected List<OeProjectDatabase> ProjectDatabases { get; }
         
-        public string ProjectDatabaseDirectory => OeBuilderConstants.GetProjectDirectoryLocalDb(SourceDirectory);
+        /// <summary>
+        /// The base directory where to store the databases.
+        /// </summary>
+        protected string ProjectDatabaseDirectory { get; }
+        
+        protected UoeDatabaseAdministrator DbAdmin { get; }
 
         /// <summary>
         /// constructor
         /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="sourceDirectory"></param>
+        /// <param name="dlcDirectory"></param>
+        /// <param name="projectDatabases"></param>
+        /// <param name="projectDatabaseDirectory"></param>
         /// <exception cref="ProjectDatabaseAdministratorException"></exception>
-        public ProjectDatabaseAdministrator(OeBuildConfiguration configuration, string sourceDirectory) {
-            if (string.IsNullOrEmpty(sourceDirectory)) {
-                throw new ArgumentNullException(nameof(sourceDirectory));
+        public ProjectDatabaseAdministrator(string dlcDirectory, List<OeProjectDatabase> projectDatabases, string projectDatabaseDirectory) {
+            if (string.IsNullOrEmpty(projectDatabaseDirectory)) {
+                throw new ArgumentNullException(nameof(projectDatabaseDirectory));
             }
-
-            if (!Directory.Exists(sourceDirectory)) {
-                throw new ProjectDatabaseAdministratorException($"The source directory must exist : {sourceDirectory}");
+            if (!Directory.Exists(projectDatabaseDirectory)) {
+                Directory.CreateDirectory(projectDatabaseDirectory);
             }
-            SourceDirectory = sourceDirectory;
-            Properties = configuration.Properties;
-            ConfigurationId = configuration.Id;
+            ProjectDatabases = projectDatabases;
+            ProjectDatabaseDirectory = projectDatabaseDirectory;
             try {
-                DbAdmin = new UoeDatabaseAdministrator((Properties?.DlcDirectory).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectory()));
+                DbAdmin = new UoeDatabaseAdministrator(dlcDirectory);
             } catch (Exception e) {
-                throw new ProjectDatabaseAdministratorException($"Error initiating the database administrator for the projet : {e.Message}", e);
+                throw new ProjectDatabaseAdministratorException($"Error initiating the database administrator for the project: {e.Message}.", e);
             }
         }
 
@@ -78,13 +101,13 @@ namespace Oetools.Builder.Utilities {
         /// <exception cref="ProjectDatabaseAdministratorException"></exception>
         public void ValidateProjectDatabases() {
             var uniqueLogicalNames = new HashSet<string>();
-            foreach (var db in (Properties?.ProjectDatabases).ToNonNullList()) {
+            foreach (var db in ProjectDatabases.ToNonNullList()) {
                 if (!uniqueLogicalNames.Add(db.LogicalName)) {
-                    throw new ProjectDatabaseAdministratorException($"The logical database name {db.LogicalName} is defined twice, it should be unique");
+                    throw new ProjectDatabaseAdministratorException($"The logical database name {db.LogicalName.PrettyQuote()} is defined twice, it should be unique.");
                 }
                 UoeDatabaseOperator.ValidateLogicalName(db.LogicalName);
                 if (!File.Exists(db.DataDefinitionFilePath)) {
-                    throw new ProjectDatabaseAdministratorException($"The data definition file for the database {db.LogicalName} does not exist {db.DataDefinitionFilePath}");
+                    throw new ProjectDatabaseAdministratorException($"The data definition file for the database {db.LogicalName.PrettyQuote()} does not exist {db.DataDefinitionFilePath.PrettyQuote()}.");
                 }
             }
         }
@@ -94,11 +117,11 @@ namespace Oetools.Builder.Utilities {
         /// </summary>
         /// <returns></returns>
         public List<string> SetupProjectDatabases() {
-            if (Properties?.ProjectDatabases == null || Properties.ProjectDatabases.Count == 0) {
+            if (ProjectDatabases == null || ProjectDatabases.Count == 0) {
                 return null;
             }
             ValidateProjectDatabases();
-            var nbProcessesToUse = OeCompilationOptions.GetNumberOfProcessesToUse(Properties?.CompilationOptions);
+            var nbProcessesToUse = NumberOfUsersPerDatabase ?? DefaultNumberOfUsersPerDatabase;
             DeleteOutdatedDatabases();
             CreateInexistingProjectDatabases();
             ServeUnstartedDatabases(nbProcessesToUse);
@@ -112,7 +135,7 @@ namespace Oetools.Builder.Utilities {
         /// <returns></returns>
         public List<string> GetDatabasesConnectionStrings(bool? multiUserConnection = null) {
             var output = new List<string>();
-            foreach (var db in (Properties?.ProjectDatabases).ToNonNullList()) {
+            foreach (var db in ProjectDatabases.ToNonNullList()) {
                 var dbName = GetPhysicalNameFromLogicalName(db.LogicalName);
                 var dbPath = GetDatabasePathFromPhysicalName(dbName);
                 if (multiUserConnection == null && DbAdmin.GetBusyMode(dbPath) == DatabaseBusyMode.MultiUser || multiUserConnection.HasValue && multiUserConnection.Value) {
@@ -122,32 +145,44 @@ namespace Oetools.Builder.Utilities {
                 }}
             return output;
         }
-        
+
         /// <summary>
         /// Starts all the project databases
         /// </summary>
-        /// <param name="nbUsers"></param>
-        public void ServeUnstartedDatabases(int? nbUsers = null) {
-            foreach (var db in (Properties?.ProjectDatabases).ToNonNullList()) {
+        /// <param name="numberOfUsersPerDatabase"></param>
+        public void ServeUnstartedDatabases(int? numberOfUsersPerDatabase = null) {
+            int nbUsers = numberOfUsersPerDatabase ?? DefaultNumberOfUsersPerDatabase;
+            foreach (var db in ProjectDatabases.ToNonNullList()) {
                 var dbName = GetPhysicalNameFromLogicalName(db.LogicalName);
                 var dbPath = GetDatabasePathFromPhysicalName(dbName);
                 var maxNbUsersFile = GetMaxNbUsersFileFromDatabaseFilePath(dbPath);
+                var startTimeFile = GetProcessStartTimeFileFromDatabaseFilePath(dbPath);
                 int currentMaxNbUsers = 0;
                 if (File.Exists(maxNbUsersFile)) {
                     int.TryParse(File.ReadAllText(maxNbUsersFile), out currentMaxNbUsers);
                 }
                 var busyMode = DbAdmin.GetBusyMode(dbPath);
                 
-                if (busyMode != DatabaseBusyMode.MultiUser || currentMaxNbUsers != (nbUsers ?? 20)) {
+                if (busyMode != DatabaseBusyMode.MultiUser || currentMaxNbUsers != nbUsers) {
                     if (busyMode == DatabaseBusyMode.MultiUser) {
-                        Log?.Debug($"Shutting down database {dbPath}, the number of max users has changed from {currentMaxNbUsers} to {nbUsers ?? 20}");
-                        DbAdmin.Proshut(dbPath);
+                        Log?.Debug($"Shutting down database {dbPath.PrettyQuote()}, the number of max users has changed from {currentMaxNbUsers} to {nbUsers}.");
+                        ShutdownDatabase(dbPath);
                     }
-                    Log?.Debug($"Starting database {dbPath} for {nbUsers ?? 20} max users");
-                    DbAdmin.ProServe(dbPath, nbUsers);
-                    File.WriteAllText(maxNbUsersFile, (nbUsers ?? 20).ToString());
-                 } else {
-                    Log?.Debug($"The database {dbPath} is already started with the right number of max users");
+                    var startTime = DateTime.Now;
+
+                    Log?.Debug($"Starting database {dbPath} for {nbUsers} max users.");
+                    var startParameters = DbAdmin.ProServe(dbPath, null, null, nbUsers);
+                    Log?.Debug($"Startup parameters are: {startParameters.PrettyQuote()}.");
+
+                    var newProcess = Process.GetProcesses().FirstOrDefault(p => p.ProcessName.Contains("_mprosrv") && p.StartTime.CompareTo(startTime) > 0);
+                    if (newProcess != null) {
+                        Log?.Debug($"Database started with process id {newProcess.Id}.");
+                        File.WriteAllText(startTimeFile, startTime.ToString("yyyy-MM-dd HH:mm:ss,fff", CultureInfo.InvariantCulture));
+                    }
+
+                    File.WriteAllText(maxNbUsersFile, nbUsers.ToString());
+                } else {
+                    Log?.Debug($"The database {dbPath.PrettyQuote()} is already started with the right number of max users.");
                 }
             }
         }        
@@ -156,11 +191,11 @@ namespace Oetools.Builder.Utilities {
         /// Shutdown all the project databases
         /// </summary>
         public void ShutdownAllDatabases() {
-            foreach (var db in (Properties?.ProjectDatabases).ToNonNullList()) {
+            foreach (var db in ProjectDatabases.ToNonNullList()) {
                 var dbName = GetPhysicalNameFromLogicalName(db.LogicalName);
                 var dbPath = GetDatabasePathFromPhysicalName(dbName);
-                Log?.Debug($"shutting down the database {dbPath}");
-                DbAdmin.Proshut(dbPath);
+                Log?.Debug($"Shutting down the database {dbPath}.");
+                ShutdownDatabase(dbPath);
             }
         }
 
@@ -169,23 +204,23 @@ namespace Oetools.Builder.Utilities {
         /// create it is different than the current .df (MD5 hash used)
         /// </summary>
         public void DeleteOutdatedDatabases() {
-            foreach (var db in (Properties?.ProjectDatabases).ToNonNullList()) {
+            foreach (var db in ProjectDatabases.ToNonNullList()) {
                 var dbName = GetPhysicalNameFromLogicalName(db.LogicalName);
                 var dbPath = GetDatabasePathFromPhysicalName(dbName);
                 var md5Path = GetMd5FileFromDatabaseFilePath(dbPath);
                 
                 if (File.Exists(md5Path) && File.ReadAllText(md5Path, Encoding.Default).Equals(GetHashFromDfFile(db.DataDefinitionFilePath))) {
-                    Log?.Debug($"The database {dbPath} is up to date");
+                    Log?.Debug($"The database {dbPath} is up to date.");
                     continue;
                 }
                 
                 if (File.Exists(dbPath)) {
                     if (DbAdmin.GetBusyMode(dbPath) != DatabaseBusyMode.NotBusy) {
-                        Log?.Debug($"Shutting down database {dbPath} before deletion");
-                        DbAdmin.Proshut(dbPath);
+                        Log?.Debug($"Shutting down database {dbPath.PrettyQuote()} before deletion.");
+                        ShutdownDatabase(dbPath);
                     }
                     
-                    Log?.Debug($"Deleting the database {dbPath}");
+                    Log?.Debug($"Deleting the database {dbPath.PrettyQuote()}.");
                     DbAdmin.Delete(dbPath);
                 }
                 Utils.DeleteDirectoryIfExists(Path.GetDirectoryName(dbPath), true);
@@ -193,27 +228,49 @@ namespace Oetools.Builder.Utilities {
         }
         
         /// <summary>
-        /// 
+        /// Create needed databases that do not exist yet.
         /// </summary>
         public void CreateInexistingProjectDatabases() {
-            foreach (var db in (Properties?.ProjectDatabases).ToNonNullList()) {
+            foreach (var db in ProjectDatabases.ToNonNullList()) {
                 var dbName = GetPhysicalNameFromLogicalName(db.LogicalName);
                 var dbPath = GetDatabasePathFromPhysicalName(dbName);
 
                 if (!File.Exists(dbPath)) {
-                    Log?.Debug($"Creating a new database {dbPath} for the logical name {db.LogicalName} with the data definition file {db.DataDefinitionFilePath}");
+                    Log?.Debug($"Creating a new database {dbPath.PrettyQuote()} for the logical name {db.LogicalName} with the data definition file {db.DataDefinitionFilePath.PrettyQuote()}.");
                     DbAdmin.CreateCompilationDatabaseFromDf(dbPath, db.DataDefinitionFilePath);
 
                     // write a file next to the database which identifies uniquely the .df file that was used to create the db
                     File.WriteAllText(GetMd5FileFromDatabaseFilePath(dbPath), GetHashFromDfFile(db.DataDefinitionFilePath), Encoding.Default);
                 } else {
-                    Log?.Debug($"The database {dbPath} for the logical name {db.LogicalName} already exists");
+                    Log?.Debug($"The database {dbPath.PrettyQuote()} for the logical name {db.LogicalName} already exists.");
                 }
             }
         }
 
+        private void ShutdownDatabase(string dbPath) {
+            if (AllowsDatabaseShutdownWithKill ?? DefaultAllowsDatabaseShutdownWithKill) {
+                var startTimeFile = GetProcessStartTimeFileFromDatabaseFilePath(dbPath);
+                if (File.Exists(startTimeFile)) {
+                    var startTimeText = File.ReadAllText(startTimeFile);
+                    if (DateTime.TryParseExact(startTimeText, "yyyy-MM-dd HH:mm:ss,fff", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime time)) {
+                        try {
+                            Process.GetProcesses()
+                                .Where(p => p.ProcessName.Contains("_mprosrv") && p.StartTime.CompareTo(time) > 0 && p.StartTime.CompareTo(time.AddSeconds(10)) < 0)
+                                .OrderBy(p => p.StartTime)
+                                .FirstOrDefault()
+                                ?.Kill();
+                            return;
+                        } catch (Exception e) {
+                            Log?.Warn($"Failed to shutdown the database using process kill: {dbPath.PrettyQuote()}.", e);
+                        }
+                    }
+                }
+            }
+            DbAdmin.Proshut(dbPath);
+        }
+
         private string GetDatabasePathFromPhysicalName(string physicalName) {
-            return Path.Combine(ProjectDatabaseDirectory, ConfigurationId.ToString(), physicalName, $"{physicalName}.db");
+            return Path.Combine(ProjectDatabaseDirectory, physicalName, $"{physicalName}.db");
         }
 
         private string GetMaxNbUsersFileFromDatabaseFilePath(string dbPath) {
@@ -222,6 +279,10 @@ namespace Oetools.Builder.Utilities {
 
         private string GetMd5FileFromDatabaseFilePath(string dbPath) {
             return Path.ChangeExtension(dbPath, "md5");
+        }
+
+        private string GetProcessStartTimeFileFromDatabaseFilePath(string dbPath) {
+            return Path.ChangeExtension(dbPath, "starttime");
         }
         
         private string GetPhysicalNameFromLogicalName(string logicalName) {
