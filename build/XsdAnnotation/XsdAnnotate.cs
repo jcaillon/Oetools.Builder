@@ -77,6 +77,23 @@ namespace XsdAnnotator {
                         new XElement(_xsNs + "documentation", new XCData(documentationStr))
                     ));
                 }
+
+                // Correct the minOccurs for nullable elements!
+                var nillableAttr = element.Attribute("nillable");
+                if (nillableAttr != null && nillableAttr.Value.Equals("true")) {
+                    var minOccursAttr = element.Attribute("minOccurs");
+                    if (minOccursAttr != null) {
+                        minOccursAttr.Value = "0";
+                    }
+                }
+            }
+            
+            // replace xs:sequence by xs:all to be able to input elements in any order!
+            foreach (var element in doc.Descendants(_xsNs + "sequence")) {
+                var parentTypeName = GetParentTypeName(element);
+                if (!string.IsNullOrEmpty(parentTypeName) && !parentTypeName.StartsWith("ArrayOf")) {
+                    element.Name = _xsNs + "all";
+                }
             }
 
             doc.Save(outputXsdPath);
@@ -94,11 +111,11 @@ namespace XsdAnnotator {
                 }
                 if (!string.IsNullOrEmpty(propertyName) && _defaultValues.ContainsKey(propertyName)) {
                     output.Append("\n");
-                    output.Append($"Defaults to \"{_defaultValues[propertyName]}\".");
+                    output.Append($"Defaults to: {_defaultValues[propertyName]}.");
                 }
                 if (!string.IsNullOrEmpty(propertyName) && _enumOptions.ContainsKey(propertyName)) {
                     output.Append("\n");
-                    output.Append($"Options are \"{_enumOptions[propertyName]}\".");
+                    output.Append($"Options are: {_enumOptions[propertyName]}.");
                 }
                 var remarksNode = memberNode.Element("remarks");
                 if (incRemarks && remarksNode != null) {
@@ -174,13 +191,14 @@ namespace XsdAnnotator {
                     var propertyName = methodInfo.Name.Replace(DefaultMethodPrefix, "");
                     var prop = existingType.GetProperty(propertyName);
                     if (prop != null) {
-                        string defaultValue;
+                        string defaultValue = null;
                         if (Attribute.GetCustomAttribute(methodInfo, typeof(DescriptionAttribute), true) is DescriptionAttribute description) {
                             defaultValue = description.Description;
                         } else {
-                            defaultValue = methodInfo.Invoke(null, null).ToString();
+                            if (!prop.PropertyType.IsClass || prop.PropertyType == typeof(string)) {
+                                defaultValue = methodInfo.Invoke(null, null).ToString();
+                            }
                         }
-
                         if (!string.IsNullOrEmpty(defaultValue) && !_defaultValues.ContainsKey(propertyName)) {
                             _defaultValues.Add(propertyName, defaultValue);
                         }
