@@ -19,11 +19,13 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Report.Html;
 using Oetools.Builder.Utilities;
+using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder {
@@ -42,14 +44,27 @@ namespace Oetools.Builder {
             } finally {
                 try {
                     // stop the started databases
-                    if (BuildConfiguration.Properties?.BuildOptions?.ShutdownCompilationDatabasesAfterBuild ?? OeBuildOptions.GetDefaultShutdownCompilationDatabasesAfterBuild()) {
+                    if (BuildConfiguration.Properties.BuildOptions.ShutdownCompilationDatabasesAfterBuild ?? OeBuildOptions.GetDefaultShutdownCompilationDatabasesAfterBuild()) {
                         Log?.Info("Shutting down database after the build [OPTION]. This can take some time.");
                         _projectDbAdmin.ShutdownAllDatabases();
                     }
                 } catch (Exception e) {
-                    Log?.Error($"Error while shutting down the project databases : {e.Message}", e);
+                    Log?.Error($"Error while shutting down the project databases: {e.Message}.", e);
                 } finally {
                     _projectDbAdmin.Dispose();
+                }
+                try {
+                    if (!string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.BuildConfigurationExportFilePath)) {
+                        var exportProject = new OeProject {
+                            BuildConfigurations = new List<OeBuildConfiguration> {
+                                BuildConfiguration
+                            }
+                        };
+                        Utils.CreateDirectoryIfNeeded(Path.GetDirectoryName(BuildConfiguration.Properties.BuildOptions.BuildConfigurationExportFilePath));
+                        exportProject.Save(BuildConfiguration.Properties.BuildOptions.BuildConfigurationExportFilePath);
+                    }
+                } catch (Exception e) {
+                    Log?.Error($"Error while writing the build configuration used: {e.Message}.", e);
                 }
             }
         }
@@ -58,9 +73,8 @@ namespace Oetools.Builder {
             base.PreBuild();
             
             // Prepare all the project databases
-            var dlcDirectory = BuildConfiguration.Properties.DlcDirectory.TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectory());
             var databasesBaseDir = Path.Combine(OeBuilderConstants.GetProjectDirectoryLocalDb(BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath), BuildConfiguration.Id.ToString());
-            _projectDbAdmin = new ProjectDatabaseAdministrator(dlcDirectory, BuildConfiguration.Properties.ProjectDatabases, databasesBaseDir) {
+            _projectDbAdmin = new ProjectDatabaseAdministrator(BuildConfiguration.Properties.DlcDirectory, BuildConfiguration.Properties.ProjectDatabases, databasesBaseDir) {
                 Log = Log,
                 AllowsDatabaseShutdownWithKill = BuildConfiguration.Properties.BuildOptions.AllowDatabaseShutdownByProcessKill,
                 NumberOfUsersPerDatabase = OeCompilationOptions.GetNumberOfProcessesToUse(BuildConfiguration.Properties.CompilationOptions)
@@ -105,6 +119,7 @@ namespace Oetools.Builder {
                 return;
             }
             // BuildHistory
+            Utils.CreateDirectoryIfNeeded(Path.GetDirectoryName(outputHistoryFilePath));
             BuildSourceHistory.Save(outputHistoryFilePath, BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath, BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath);
         }
     }

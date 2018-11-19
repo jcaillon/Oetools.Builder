@@ -254,12 +254,21 @@ namespace Oetools.Builder.Utilities {
                     var startTimeText = File.ReadAllText(startTimeFile);
                     if (DateTime.TryParseExact(startTimeText, "yyyy-MM-dd HH:mm:ss,fff", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime time)) {
                         try {
-                            Process.GetProcesses()
-                                .Where(p => p.ProcessName.Contains("_mprosrv") && p.StartTime.CompareTo(time) > 0 && p.StartTime.CompareTo(time.AddSeconds(10)) < 0)
+                            var processToKill = Process.GetProcesses()
+                                .Where(p => {
+                                    try {
+                                        return p.ProcessName.Contains("_mprosrv") && p.StartTime.CompareTo(time) > 0 && p.StartTime.CompareTo(time.AddSeconds(10)) < 0;
+                                    } catch(Exception) {
+                                        return false;
+                                    }
+                                })
                                 .OrderBy(p => p.StartTime)
-                                .FirstOrDefault()
-                                ?.Kill();
-                            return;
+                                .FirstOrDefault();
+                            if (processToKill != null) {
+                                // because of the way we started the database, we know for sure 
+                                processToKill.Kill();
+                                return;
+                            }
                         } catch (Exception e) {
                             Log?.Warn($"Failed to shutdown the database using process kill: {dbPath.PrettyQuote()}.", e);
                         }

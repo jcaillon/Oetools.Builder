@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Oetools.Utilities.Openedge.Execution.Exceptions;
 
 namespace Oetools.Builder.Exceptions {
@@ -32,7 +33,20 @@ namespace Oetools.Builder.Exceptions {
             HandledExceptions = handledExceptions;
         }
         
-        public override string Message => $"Compiler exception{(HandledExceptions != null && HandledExceptions.Count > 0 ? $" :\n- {string.Join("\n- ", HandledExceptions.Select(e => e.Message))}" : "")}";
+        public override string Message {
+            get {
+                var sb = new StringBuilder("Compiler exceptions: ");
+                if (HandledExceptions != null && HandledExceptions.Count > 0) {
+                    foreach (var ex in HandledExceptions) {
+                        sb.AppendLine();
+                        sb.Append("* ").Append(ex.Message);
+                    }
+                } else {
+                    sb.Append("empty exception list.");
+                }
+                return sb.ToString();
+            }
+        }
         
     }
 }

@@ -64,7 +64,7 @@ namespace Oetools.Builder {
         private PathList<IOeFileBuilt> PreviouslyBuiltPaths {
             get {
                 if (_previouslyBuiltPaths == null && BuildSourceHistory?.BuiltFiles != null) {
-                    _previouslyBuiltPaths = BuildSourceHistory.BuiltFiles.Cast<IOeFileBuilt>().ToFileList();
+                    _previouslyBuiltPaths = BuildSourceHistory.BuiltFiles.OfType<IOeFileBuilt>().ToFileList();
                 }
                 return _previouslyBuiltPaths;
             }
@@ -82,19 +82,12 @@ namespace Oetools.Builder {
         public Builder(OeProject project, string buildConfigurationName = null) {
             // make a copy of the build configuration
             BuildConfiguration = project.GetBuildConfigurationCopy(buildConfigurationName) ?? project.GetDefaultBuildConfigurationCopy();
-            ConstructorInitialization();
+            BuildConfiguration.SetDefaultValues();
         }
 
         public Builder(OeBuildConfiguration buildConfiguration) {
             BuildConfiguration = buildConfiguration;
-            ConstructorInitialization();
-        }
-
-        private void ConstructorInitialization() {
-            if (BuildConfiguration.Properties == null) {
-                BuildConfiguration.Properties = new OeProperties();
-            }
-            BuildConfiguration.Properties.SetDefaultValues();
+            BuildConfiguration.SetDefaultValues();
         }
 
         public virtual void Dispose() {

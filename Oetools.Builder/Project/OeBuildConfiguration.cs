@@ -92,6 +92,7 @@ namespace Oetools.Builder.Project {
         /// </remarks>
         [XmlElement("Properties")]
         public OeProperties Properties { get; set; }
+        public static OeProperties GetDefaultProperties() => new OeProperties();
         
         /// <summary>
         /// A list of steps/tasks that will be executed before anything else.
@@ -149,6 +150,14 @@ namespace Oetools.Builder.Project {
         [XmlArrayItem("Configuration", typeof(OeBuildConfiguration))]
         [DeepCopy(Ignore = true)]
         public List<OeBuildConfiguration> BuildConfigurations { get; set; }
+        
+        /// <summary>
+        /// Sets default values to all the properties (and recursively) of this object, using the GetDefault[Property] methods.
+        /// Only replaces non null values.
+        /// </summary>
+        public void SetDefaultValues() {
+            Utils.SetDefaultValues(this);
+        }
                     
         /// <summary>
         /// Add the default variables and apply the variables on all public properties of type string

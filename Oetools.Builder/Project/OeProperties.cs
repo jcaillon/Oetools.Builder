@@ -224,13 +224,6 @@ namespace Oetools.Builder.Project {
         [XmlElement(ElementName = "BuildOptions")]
         public OeBuildOptions BuildOptions { get; set; }
         public static OeBuildOptions GetDefaultBuildOptions() => new OeBuildOptions();
-
-        /// <summary>
-        /// Sets default values to all the properties (and recursively) of this object, using the GetDefault... methods
-        /// </summary>
-        public void SetDefaultValues() {
-            Utils.SetDefaultValues(this);
-        }
         
         /// <summary>
         /// Validate that is object is correct
@@ -262,13 +255,14 @@ namespace Oetools.Builder.Project {
         /// </summary>
         public void SanitizePathInPublicProperties() {
             Utils.ForEachPublicPropertyStringInObject(typeof(OeProperties), this, (propInfo, value) => {
-                if (!propInfo.Name.Contains("Path")) {
+                if (!propInfo.Name.Contains("Path") && !propInfo.Name.Contains("Directory")) {
                     return value;
                 }
                 if (string.IsNullOrEmpty(value)) {
                     return value;
                 }
-                return value.ToCleanPath();
+                // BUG: does not work correctly for Database Df file path
+                return value.MakePathAbsolute().ToCleanPath();
             });
         }
 

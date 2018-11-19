@@ -51,5 +51,6 @@ namespace Oetools.Builder.Utilities {
         public static string GetDefaultBuildHistoryInputFilePath() => Path.Combine($"{{{{{OeVarNameProjectLocalDirectory}}}}}", OeProjectBuildDirectory, "latest.xml");
         public static string GetDefaultBuildHistoryOutputFilePath() => Path.Combine($"{{{{{OeVarNameProjectLocalDirectory}}}}}", OeProjectBuildDirectory, "latest.xml");
         public static string GetDefaultReportHtmlFilePath() => Path.Combine($"{{{{{OeVarNameProjectLocalDirectory}}}}}", OeProjectBuildDirectory, "latest.html");
+        public static string GetDefaultBuildConfigurationExportFilePath() => Path.Combine($"{{{{{OeVarNameProjectLocalDirectory}}}}}", OeProjectBuildDirectory, $"latest{OeProjectExtension}");
     }
 }

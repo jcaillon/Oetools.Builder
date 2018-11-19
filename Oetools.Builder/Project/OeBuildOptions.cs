@@ -118,6 +118,13 @@ namespace Oetools.Builder.Project {
         [XmlElement(ElementName = "ReportHtmlFilePath")]
         public string ReportHtmlFilePath { get; set; }
         public static string GetDefaultReportHtmlFilePath() => OeBuilderConstants.GetDefaultReportHtmlFilePath();
+        
+        /// <summary>
+        /// The path to an xml file that will contain the exported build configuration for this build.
+        /// </summary>
+        [XmlElement(ElementName = "BuildConfigurationExportFilePath")]
+        public string BuildConfigurationExportFilePath { get; set; }
+        public static string GetDefaultBuildConfigurationExportFilePath() => OeBuilderConstants.GetDefaultBuildConfigurationExportFilePath();
 
         /// <summary>
         /// Sets whether or not build warnings must be considered as errors and stop the build.
