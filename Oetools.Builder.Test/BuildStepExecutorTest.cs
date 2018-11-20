@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Test.Project.Task;
 using Oetools.Builder.Utilities;
@@ -108,7 +109,7 @@ namespace Oetools.Builder.Test {
             
             taskExecutor.Properties = new OeProperties {
                 BuildOptions = new OeBuildOptions {
-                    TreatWarningsAsErrors = true
+                    StopBuildOnTaskWarning = true
                 }
             };
             try {

@@ -29,7 +29,7 @@ namespace Oetools.Builder.Project {
     /// The list of files in your source directory is done at the beginning of each step.
     /// </summary>
     [Serializable]
-    public class OeBuildStepBuildSource : OeBuildStep {
+    public class OeBuildStepBuildSource : AOeBuildStep {
                 
         /// <summary>
         /// A list of tasks to build your source files.
@@ -41,8 +41,6 @@ namespace Oetools.Builder.Project {
         [XmlArrayItem("Compile", typeof(OeTaskFileCompile))]
         [XmlArrayItem("CompileInProlib", typeof(OeTaskFileArchiverArchiveProlibCompile))]
         [XmlArrayItem("CompileInCab", typeof(OeTaskFileArchiverArchiveCabCompile))]
-        public List<AOeTask> Tasks { get; set; }
-
-        public override List<AOeTask> GetTaskList() => Tasks;
+        public override List<AOeTask> Tasks { get; set; }
     }
 }

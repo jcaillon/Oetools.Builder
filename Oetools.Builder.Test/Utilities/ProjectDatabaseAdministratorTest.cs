@@ -18,11 +18,14 @@
 // ========================================================================
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Openedge.Execution;
@@ -140,7 +143,15 @@ namespace Oetools.Builder.Test.Utilities {
                     dbAdmin.ShutdownAllDatabases();
                 }
 
-                Utils.DeleteDirectoryIfExists(sourceDirectory, true);
+                var i = 0;
+                while (Directory.Exists(sourceDirectory) && i < 5) {
+                    try {
+                        Directory.Delete(sourceDirectory, true);
+                    } catch(Exception) {
+                        Thread.Sleep(100);
+                    }
+                    i++;
+                }
 
             }
         }

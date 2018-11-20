@@ -5,14 +5,14 @@ namespace Oetools.Builder.Exceptions {
     
     public class BuildStepException : BuilderException {
         
-        public OeBuildStep BuildStep { get; }
+        public AOeBuildStep BuildStep { get; }
         
         public string PropertyName { get; set; }
        
-        public BuildStepException(OeBuildStep buildStep, string message) : base(message) {
+        public BuildStepException(AOeBuildStep buildStep, string message) : base(message) {
             BuildStep = buildStep;
         }
-        public BuildStepException(OeBuildStep buildStep, string message, Exception innerException) : base(message, innerException) {
+        public BuildStepException(AOeBuildStep buildStep, string message, Exception innerException) : base(message, innerException) {
             BuildStep = buildStep;
         }
 

@@ -18,6 +18,8 @@
 // ========================================================================
 #endregion
 
+using Oetools.Builder.Project.Properties;
+
 namespace Oetools.Builder.Project.Task {
     
     /// <summary>

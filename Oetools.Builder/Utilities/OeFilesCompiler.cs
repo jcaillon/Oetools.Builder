@@ -24,6 +24,7 @@ using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Execution;
@@ -89,8 +90,11 @@ namespace Oetools.Builder.Utilities {
                 _compiler.KillProcess();
                 _compiler.WaitForExecutionEnd();
             }
-            if (_compiler.ExecutionFailed || _compiler.ExecutionHandledExceptions) {
-                if (_compiler.HandledExceptions.Exists(e => e is UoeExecutionCompilationStoppedException) || _compiler.ExecutionFailed || (properties.BuildOptions?.TreatWarningsAsErrors ?? OeBuildOptions.GetDefaultTreatWarningsAsErrors())) {
+            if (_compiler.ExecutionFailed) {
+                throw new CompilerException(_compiler.HandledExceptions);
+            }
+            if (_compiler.ExecutionHandledExceptions) {
+                if (_compiler.HandledExceptions.Exists(e => e is UoeExecutionCompilationStoppedException) || (properties.BuildOptions?.StopBuildOnTaskWarning ?? OeBuildOptions.GetDefaultStopBuildOnTaskWarning())) {
                     throw new CompilerException(_compiler.HandledExceptions);
                 }
             }

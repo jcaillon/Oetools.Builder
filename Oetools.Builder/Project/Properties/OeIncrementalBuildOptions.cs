@@ -17,10 +17,11 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
 using System;
 using System.Xml.Serialization;
 
-namespace Oetools.Builder.Project {
+namespace Oetools.Builder.Project.Properties {
     
     /// <inheritdoc cref="OeBuildOptions.IncrementalBuildOptions"/>
     [Serializable]
@@ -34,9 +35,9 @@ namespace Oetools.Builder.Project {
         /// If true, an analysis is done on compiled files to find referenced tables and files. The build history is stored to be able to know which file was modified/added since the last build. And the MD5 checksum of each source file can be computed and saved to improve modification detection.
         /// Depending on your build and your intentions, this can significantly improve the build performances or slow down systematic full rebuilds.
         /// </remarks>
-        [XmlElement(ElementName = "Enabled")]
-        public bool? Enabled { get; set; }
-        public static bool GetDefaultEnabled() => true;
+        [XmlElement(ElementName = "EnabledIncrementalBuild")]
+        public bool? EnabledIncrementalBuild { get; set; }
+        public static bool GetDefaultEnabledIncrementalBuild() => true;
             
         /// <summary>
         /// Use a cheapest analysis mode (performance wise) to identify the database references of a compiled file.
@@ -101,6 +102,6 @@ namespace Oetools.Builder.Project {
         /// Is this incremental build active?
         /// </summary>
         /// <returns></returns>
-        internal bool IsActive() => Enabled ?? GetDefaultEnabled();
+        internal bool IsActive() => EnabledIncrementalBuild ?? GetDefaultEnabledIncrementalBuild();
     }
 }

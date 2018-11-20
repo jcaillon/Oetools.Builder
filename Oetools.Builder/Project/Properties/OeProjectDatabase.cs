@@ -17,10 +17,11 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
 using System;
 using System.Xml.Serialization;
 
-namespace Oetools.Builder.Project {
+namespace Oetools.Builder.Project.Properties {
     
     /// <summary>
     /// An openedge database representation, consisting of a data definition file and the database logical name.

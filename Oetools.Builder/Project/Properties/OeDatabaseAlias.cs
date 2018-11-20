@@ -17,11 +17,12 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
 using System;
 using System.Xml.Serialization;
 using Oetools.Utilities.Openedge.Execution;
 
-namespace Oetools.Builder.Project {
+namespace Oetools.Builder.Project.Properties {
     
     /// <summary>
     /// A database logical name / alias couple.

@@ -17,15 +17,16 @@
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 
-namespace Oetools.Builder.Test.Project {
+namespace Oetools.Builder.Test.Project.Properties {
     
     [TestClass]
     public class OeProjectPropertiesTest {
@@ -46,24 +47,53 @@ namespace Oetools.Builder.Test.Project {
             Utils.DeleteDirectoryIfExists(TestFolder, true);
         }
 
-
         [TestMethod]
-        public void SetDefaultValues_Test() {
-            var prop = new OeProperties();
-            prop.SetDefaultValues();
-            Assert.AreEqual(OeGitFilterOptions.GetDefaultIncludeSourceFilesCommittedOnlyOnCurrentBranch(), prop.BuildOptions.SourceToBuildGitFilter.IncludeSourceFilesCommittedOnlyOnCurrentBranch);
-            Assert.AreEqual(OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput(), prop.BuildOptions?.IncrementalBuildOptions?.MirrorDeletedSourceFileToOutput);
-            Assert.AreEqual(OeCompilationOptions.GetDefaultCompileWithDebugList(), prop.CompilationOptions.CompileWithDebugList);
-            Assert.AreEqual(OeBuildOptions.GetDefaultTreatWarningsAsErrors(), prop.BuildOptions.TreatWarningsAsErrors);
+        public void SetPropertiesFromKeyValuePairs() {
+            var prop = new OeProperties {
+                IniFilePath = "file.ini",
+                BuildOptions = new OeBuildOptions {
+                    OutputDirectoryPath = "output",
+                    ReportHtmlFilePath = "html"
+                },
+                ProjectDatabases = new List<OeProjectDatabase> {
+                    new OeProjectDatabase {
+                        LogicalName = "lg",
+                        DataDefinitionFilePath = "file.df"
+                    }
+                }
+            };
             
-            if (!TestHelper.GetDlcPath(out string _)) {
-                return;
-            }
-            Assert.AreEqual(OeProperties.GetDefaultDlcDirectory(), prop.DlcDirectory);
+            prop.SetPropertiesFromKeyValuePairs(new Dictionary<string, string> { {"IniFilePath", "new.ini"} });
+            
+            Assert.AreEqual("new.ini", prop.IniFilePath);
         }
 
         [TestMethod]
-        public void GetPropath_Test() {
+        public void SanitizePathInPublicProperties() {
+            var prop = new OeProperties {
+                IniFilePath = "file.ini",
+                BuildOptions = new OeBuildOptions {
+                    OutputDirectoryPath = "output",
+                    ReportHtmlFilePath = "html"
+                },
+                ProjectDatabases = new List<OeProjectDatabase> {
+                    new OeProjectDatabase {
+                        LogicalName = "lg",
+                        DataDefinitionFilePath = "file.df"
+                    }
+                }
+            };
+            
+            prop.SanitizePathInPublicProperties();
+            
+            Assert.IsTrue(Path.Combine(Directory.GetCurrentDirectory(), "file.ini").PathEquals(prop.IniFilePath));
+            Assert.IsTrue(Path.Combine(Directory.GetCurrentDirectory(), "output").PathEquals(prop.BuildOptions.OutputDirectoryPath));
+            Assert.IsTrue(Path.Combine(Directory.GetCurrentDirectory(), "html").PathEquals(prop.BuildOptions.ReportHtmlFilePath));
+            Assert.IsTrue(Path.Combine(Directory.GetCurrentDirectory(), "file.df").PathEquals(prop.ProjectDatabases[0].DataDefinitionFilePath));
+        }
+        
+        [TestMethod]
+        public void GetPropath() {
             if (!TestHelper.GetDlcPath(out string _)) {
                 return;
             }
@@ -109,7 +139,7 @@ namespace Oetools.Builder.Test.Project {
             Assert.AreEqual(6 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
             Assert.IsTrue(list.Contains(Path.Combine(TestFolder, "test3", "subtest3")));
             
-            prop.PropathSourceDirectoriesFilter = new OeFilterOptions {
+            prop.PropathSourceDirectoriesFilter = new OePropathFilterOptions() {
                 Exclude = "**sub**",
                 ExcludeRegex = "[hH][Ii][Dd]"
             };

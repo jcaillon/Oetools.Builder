@@ -17,6 +17,7 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -25,11 +26,9 @@ using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib;
 
-namespace Oetools.Builder.Project {
+namespace Oetools.Builder.Project.Properties {
     
-    /// <summary>
-    /// The options used when building your application.
-    /// </summary>
+    /// <inheritdoc cref="OeProperties.BuildOptions"/>
     [Serializable]
     public class OeBuildOptions {
         
@@ -57,7 +56,7 @@ namespace Oetools.Builder.Project {
         /// For instance, this allows to exclude path from being considered as source files (e.g. a docs/ directory). Non source files will not be built during the source build tasks.
         /// </remarks>
         [XmlElement(ElementName = "SourceToBuildFilter")]
-        public OeFilterOptions SourceToBuildFilter { get; set; }
+        public OeSourceFilterOptions SourceToBuildFilter { get; set; }
         
         /// <summary>
         /// The options for an incremental build.
@@ -127,11 +126,18 @@ namespace Oetools.Builder.Project {
         public static string GetDefaultBuildConfigurationExportFilePath() => OeBuilderConstants.GetDefaultBuildConfigurationExportFilePath();
 
         /// <summary>
-        /// Sets whether or not build warnings must be considered as errors and stop the build.
+        /// Sets whether or not the build must be stopped if a task generates warnings.
         /// </summary>
-        [XmlElement(ElementName = "TreatWarningsAsErrors")]
-        public bool? TreatWarningsAsErrors { get; set; }
-        public static bool GetDefaultTreatWarningsAsErrors() => false;
+        [XmlElement(ElementName = "StopBuildOnTaskError")]
+        public bool? StopBuildOnTaskError { get; set; }
+        public static bool GetDefaultStopBuildOnTaskError() => true;
+
+        /// <summary>
+        /// Sets whether or not the build must be stopped if a task generates warnings.
+        /// </summary>
+        [XmlElement(ElementName = "StopBuildOnTaskWarning")]
+        public bool? StopBuildOnTaskWarning { get; set; }
+        public static bool GetDefaultStopBuildOnTaskWarning() => false;
         
         /// <summary>
         /// Sets whether or not the build must be stopped if a file fails to compile.
@@ -161,7 +167,7 @@ namespace Oetools.Builder.Project {
         /// Sets whether or not the tool is allowed to shutdown temporary databases by killing the _mprosrv.
         /// </summary>
         /// <remarks>
-        /// Shutting down an openedge database is a really slow process, this option speeds up the shutdown drastically. The database broker is kill instead of being properly shutdown. Since the tool uses temporary databases and since those databases are only used to compiled code, this is completely safe.
+        /// Shutting down an openedge database is a really slow process, this option speeds up the shutdown drastically. The database broker is killed instead of being properly shutdown. Since the tool uses temporary databases and since those databases are only used to compiled code, this is completely safe.
         /// </remarks>
         [XmlElement(ElementName = "AllowDatabaseShutdownByProcessKill")]
         public bool? AllowDatabaseShutdownByProcessKill { get; set; }

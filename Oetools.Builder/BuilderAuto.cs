@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Report.Html;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;

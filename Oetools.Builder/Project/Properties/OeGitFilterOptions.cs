@@ -17,17 +17,13 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
 using System;
 using System.Xml.Serialization;
 
-namespace Oetools.Builder.Project {
+namespace Oetools.Builder.Project.Properties {
     
-    /// <summary>
-    /// GIT filtering options.
-    /// </summary>
-    /// <remarks>
-    /// This option required GIT to be installed and available in your system PATH.
-    /// </remarks>
+    /// <inheritdoc cref="OeBuildOptions.SourceToBuildGitFilter"/>
     [Serializable]
     public class OeGitFilterOptions {
             

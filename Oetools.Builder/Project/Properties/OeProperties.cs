@@ -17,11 +17,14 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
@@ -30,11 +33,12 @@ using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Attributes;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge;
 using Oetools.Utilities.Openedge.Execution;
 
-namespace Oetools.Builder.Project {
+namespace Oetools.Builder.Project.Properties {
     
     /// <inheritdoc cref="OeBuildConfiguration.Properties"/>
     /// <code>
@@ -144,7 +148,7 @@ namespace Oetools.Builder.Project {
         /// The filtering options for the automatic listing of directories in the source directory (to use as propath).
         /// </summary>
         [XmlElement(ElementName = "PropathSourceDirectoriesFilter")]
-        public OeFilterOptions PropathSourceDirectoriesFilter { get; set; }
+        public OePropathFilterOptions PropathSourceDirectoriesFilter { get; set; }
 
         /// <summary>
         /// Force the use of the openedge character mode on windows platform.
@@ -215,12 +219,16 @@ namespace Oetools.Builder.Project {
         [Description("$TEMP/.oe_tmp-xxx (temporary folder)")]
         public static string GetDefaultOpenedgeTemporaryDirectory() => Path.Combine(Path.GetTempPath(), $".oe_tmp-{Utils.GetRandomName()}");
                   
-        /// <inheritdoc cref="OeCompilationOptions"/>
+        /// <summary>
+        /// The options to use to compile your application.
+        /// </summary>
         [XmlElement(ElementName = "CompilationOptions")]
         public OeCompilationOptions CompilationOptions { get; set; }
         public static OeCompilationOptions GetDefaultCompilationOptions() => new OeCompilationOptions();
         
-        /// <inheritdoc cref="OeBuildOptions"/>
+        /// <summary>
+        /// The options used when building your application.
+        /// </summary>
         [XmlElement(ElementName = "BuildOptions")]
         public OeBuildOptions BuildOptions { get; set; }
         public static OeBuildOptions GetDefaultBuildOptions() => new OeBuildOptions();
@@ -251,7 +259,7 @@ namespace Oetools.Builder.Project {
         }
 
         /// <summary>
-        /// Clean the path of all path properties
+        /// Clean the path of all path properties and make them absolute.
         /// </summary>
         public void SanitizePathInPublicProperties() {
             Utils.ForEachPublicPropertyStringInObject(typeof(OeProperties), this, (propInfo, value) => {
@@ -265,7 +273,46 @@ namespace Oetools.Builder.Project {
                 return value.MakePathAbsolute().ToCleanPath();
             });
         }
+        
+        /// <summary>
+        /// Allows to set values in this object through a list of key/value pairs.
+        /// </summary>
+        /// <param name="keyValue"></param>
+        public void SetPropertiesFromKeyValuePairs(Dictionary<string, string> keyValue) {
 
+            var objectsToInit = new Queue<Tuple<Type, object>>();
+            objectsToInit.Enqueue(new Tuple<Type, object>(GetType(), this));
+            while (objectsToInit.Count > 0) {
+                var objectToInit = objectsToInit.Dequeue();
+                var objectType = objectToInit.Item1;
+                var objectInstance = objectToInit.Item2;
+                
+                foreach (var property in objectType.GetProperties()) {
+                    if (!property.CanRead || !property.CanWrite) {
+                        continue;
+                    }
+                    var xmlName = objectType.GetXmlName(property.Name);
+                    if (keyValue.ContainsKey(xmlName)) {
+                        TypeConverter typeConverter = TypeDescriptor.GetConverter(property.PropertyType);
+                        object propValue = typeConverter.ConvertFromString(keyValue[xmlName]);
+                        property.SetValue(objectInstance, propValue);
+                        continue;
+                    } 
+                    
+                    var obj = property.GetValue(objectInstance);
+                    if (obj is IEnumerable enumerable) {
+                        foreach (var item in enumerable) {
+                            if (item != null) {
+                                objectsToInit.Enqueue(new Tuple<Type, object>(item.GetType(), item));
+                            }
+                        }
+                    } else if (property.PropertyType.IsClass && property.PropertyType != typeof(string) && obj != null) {
+                        objectsToInit.Enqueue(new Tuple<Type, object>(property.PropertyType, obj));
+                    }
+                }
+            }
+        }
+        
         /// <summary>
         /// Returns the propath that should be used considering all the options of this class
         /// </summary>
@@ -368,7 +415,7 @@ namespace Oetools.Builder.Project {
         /// <returns></returns>
         public UoeExecutionParallelCompile GetParallelCompiler(string workingDirectory) =>
             new UoeExecutionParallelCompile(GetEnv()) {
-                CompileInAnalysisMode = BuildOptions?.IncrementalBuildOptions?.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled(),
+                CompileInAnalysisMode = BuildOptions?.IncrementalBuildOptions?.EnabledIncrementalBuild ?? OeIncrementalBuildOptions.GetDefaultEnabledIncrementalBuild(),
                 WorkingDirectory = workingDirectory,
                 NeedDatabaseConnection = true,
                 AnalysisModeSimplifiedDatabaseReferences = BuildOptions?.IncrementalBuildOptions?.UseSimplerAnalysisForDatabaseReference ?? OeIncrementalBuildOptions.GetDefaultUseSimplerAnalysisForDatabaseReference(),

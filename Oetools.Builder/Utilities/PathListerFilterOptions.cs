@@ -21,37 +21,46 @@
 using System;
 using System.Xml.Serialization;
 using Oetools.Builder.Project.Task;
-using Oetools.Builder.Utilities;
 
-namespace Oetools.Builder.Project {
+namespace Oetools.Builder.Utilities {
     
     /// <summary>
     /// Path filtering options.
     /// </summary>
     [Serializable]
-    public class OeFilterOptions : AOeTaskFilterElements {
+    public class PathListerFilterOptions : AOeTaskFilter {
         
         /// <summary>
         /// Whether or not to ignore hidden directories during the listing.
         /// </summary>
-        [XmlElement(ElementName = "ExcludeHiddenDirectories")]
-        public bool? ExcludeHiddenDirectories { get; set; }
+        [XmlIgnore]
+        public virtual bool? ExcludeHiddenDirectories { get; set; }
         public static bool GetDefaultExcludeHiddenDirectories() => false;
         
         /// <summary>
         /// Whether or not to include the content of subdirectories when listing.
         /// </summary>
-        [XmlElement(ElementName = "RecursiveListing")]
-        public bool? RecursiveListing { get; set; } = true;
+        [XmlIgnore]
+        public virtual bool? RecursiveListing { get; set; }
         public static bool GetDefaultRecursiveListing() => true;
 
         /// <summary>
         /// Extra patterns of path to exclude during a listing, corresponds to typical svn/git directories that we don't want to include in builds.
         /// </summary>
-        [XmlElement(ElementName = "ExtraVcsPatternExclusion")]
-        public string ExtraVcsPatternExclusion { get; set; }
+        [XmlIgnore]
+        public virtual string ExtraVcsPatternExclusion { get; set; }
         public static string GetDefaultExtraVcsPatternExclusion() => OeBuilderConstants.VcsDirectoryExclusions;
 
+        /// <summary>
+        /// The paths to use as results for this filter.
+        /// </summary>
+        /// <remarks>
+        /// Several paths can be given by separating them with a semi-colon (i.e. ;).
+        /// This option overrides every other options in this filter, the paths listed here are directly used as results of this filter.
+        /// Non existing paths are simply ignored.
+        /// </remarks>
+        [XmlIgnore]
+        public virtual string OverrideOutputList { get; set; }
        
         /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
         protected override void ExecuteInternal() {

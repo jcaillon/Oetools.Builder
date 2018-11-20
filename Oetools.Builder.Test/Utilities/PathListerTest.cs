@@ -24,6 +24,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
@@ -64,13 +65,13 @@ namespace Oetools.Builder.Test.Utilities {
             
             Assert.AreEqual(5, lister.GetDirectoryList().Count(), "the default filters should catch .git and .svn");
 
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 Include = @"**sub**"
             };
 
             Assert.AreEqual(2, lister.GetDirectoryList().Count(), "2 included");
             
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 Include = @"**sub**",
                 Exclude = @"**special**"
             };
@@ -78,7 +79,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(1, lister.GetDirectoryList().Count(), "1 included");
             
             
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 Exclude = @"**special**"
             };
             
@@ -88,12 +89,20 @@ namespace Oetools.Builder.Test.Utilities {
             
             Assert.AreEqual(5, lister.GetDirectoryList().Count(), "list all but .git");
 
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 ExtraVcsPatternExclusion = ""
             };
 
             Assert.AreEqual(7, lister.GetDirectoryList().Count(), "list all");
+            
+            lister.FilterOptions = new PathListerFilterOptions {
+                ExtraVcsPatternExclusion = "",
+                OverrideOutputList = Path.Combine(repoDir, "folder1", "sub") + ";" + Path.Combine(repoDir, "folder_special")
+            };
+            
+            Assert.AreEqual(2, lister.GetDirectoryList().Count(), "use the override list, should list only what is given and exist");
 
+            lister.FilterOptions.OverrideOutputList = null;
             lister.FilterOptions.ExcludeHiddenDirectories = true;
 
             Assert.AreEqual(6, lister.GetDirectoryList().Count(), "list all but hidden");
@@ -118,33 +127,33 @@ namespace Oetools.Builder.Test.Utilities {
             
             Assert.AreEqual(2, lister.FilterSourceFiles(files).Count(), "the default filters should catch .git and .svn");
 
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 Exclude = @"**\legit*1"
             };
             
             Assert.AreEqual(1, lister.FilterSourceFiles(files).Count(), "filter file1");
 
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 ExcludeRegex = ".*[fF](ile)?2"
             };
             
             
             Assert.AreEqual(1, lister.FilterSourceFiles(files).Count(), "file2");
 
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 Exclude = @"**\legit*1",
                 ExcludeRegex = ".*[fF](ile)?2"
             };
             
             Assert.AreEqual(0, lister.FilterSourceFiles(files).Count(), "all filtered");
             
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 Include = @"**sub**"
             };
 
             Assert.AreEqual(1, lister.FilterSourceFiles(files).Count(), "1 file included");
             
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 IncludeRegex = @".*",
                 ExcludeRegex = ".*[fF](ile)?2"
             };
@@ -318,7 +327,7 @@ namespace Oetools.Builder.Test.Utilities {
             File.WriteAllText(Path.Combine(repoDir, ".svn", "testsvn.txt"), "");
             
             var lister = new PathLister(repoDir) {
-                FilterOptions = new OeFilterOptions {
+                FilterOptions = new PathListerFilterOptions {
                     Exclude = "**((*)).pls"
                 }
             };
@@ -330,20 +339,20 @@ namespace Oetools.Builder.Test.Utilities {
             
             Assert.AreEqual(2, lister.GetFileList().Count, "all files now");
 
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 ExcludeRegex = "\\.[tT][xX][tT]"
             };
             
             Assert.AreEqual(1, lister.GetFileList().Count, "no .txt file");
             Assert.AreEqual(Path.Combine(repoDir, "subfolder", "monfichier.pls"), lister.GetFileList().ElementAt(0).Path, "check my pls file");
             
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 Include = "**"
             };
             
             Assert.AreEqual(2, lister.GetFileList().Count, "all files again");
             
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 Include = "**.txt"
             };
             
@@ -353,12 +362,17 @@ namespace Oetools.Builder.Test.Utilities {
 
             Assert.AreEqual(3, lister.GetFileList().Count, "all .txt even in .git and .svn");
 
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 ExtraVcsPatternExclusion = ""
             };
 
             Assert.AreEqual(4, lister.GetFileList().Count(), "list all");
+            
+            lister.FilterOptions.OverrideOutputList = Path.Combine(repoDir, ".svn", "testsvn.txt") + ";" + Path.Combine(repoDir, "monfichier.txt");
+            
+            Assert.AreEqual(2, lister.GetFileList().Count(), "use the override list, should list only what is given and exist");            
 
+            lister.FilterOptions.OverrideOutputList = null;
             lister.FilterOptions.ExcludeHiddenDirectories = true;
 
             Assert.AreEqual(3, lister.GetFileList().Count(), "list all but hidden");
@@ -490,13 +504,13 @@ namespace Oetools.Builder.Test.Utilities {
             
             Assert.AreEqual(5, lister.GetFileList().Count, "with both filter, we should see 5 files");
             
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 Exclude = "**file5"
             };
             
             Assert.AreEqual(4, lister.GetFileList().Count, "we applied a source path filter");
             
-            lister.FilterOptions = new OeFilterOptions {
+            lister.FilterOptions = new PathListerFilterOptions {
                 Include = "**file5"
             };
             

@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Task;
+using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.Test.Project.Task {
     
@@ -31,7 +32,7 @@ namespace Oetools.Builder.Test.Project.Task {
         
         [TestMethod]
         public void OeTaskFilter_Test_IsFileIncluded() {
-            var filter = new OeFilterOptions();
+            var filter = new PathListerFilterOptions();
 
             Assert.AreEqual(true, filter.IsPathIncluded("myderpfile"));
 
@@ -55,7 +56,7 @@ namespace Oetools.Builder.Test.Project.Task {
         
         [TestMethod]
         public void OeTaskFilter_Test_IsFileExcluded() {
-            var filter = new OeFilterOptions {
+            var filter = new PathListerFilterOptions {
                 Exclude = "**.txt;**derp**"
             };
 
@@ -67,7 +68,7 @@ namespace Oetools.Builder.Test.Project.Task {
         
         [TestMethod]
         public void OeTaskFilter_Test_IsFilePassingFilter() {
-            var filter = new OeFilterOptions {
+            var filter = new PathListerFilterOptions {
                 Include = "**/subfolder/**",
                 IncludeRegex = ".*cool.*",
                 Exclude = "**derp**",
@@ -83,7 +84,7 @@ namespace Oetools.Builder.Test.Project.Task {
 
         [TestMethod]
         public void OeTaskFilter_Test_GetRegexIncludeStrings() {
-            var filter = new OeFilterOptions();
+            var filter = new PathListerFilterOptions();
             Assert.AreEqual(0, filter.GetRegexIncludeStrings().Count);
             Assert.AreEqual(0, filter.GetRegexExcludeStrings().Count);
             Assert.AreEqual(0, filter.GetIncludeStrings().Count);
@@ -112,7 +113,7 @@ namespace Oetools.Builder.Test.Project.Task {
         [DataRow(@"**||", false)]
         [DataRow("\nverg", true)]
         public void OeTaskFilter_Validate_pathWildCard_Test(string pathWildCard, bool throws) {
-            var filter = new OeFilterOptions {
+            var filter = new PathListerFilterOptions {
                 Exclude = pathWildCard
             };
             if (throws) {
@@ -127,7 +128,7 @@ namespace Oetools.Builder.Test.Project.Task {
         [DataRow(@"(derp", true)]
         [DataRow(@"invalidregex)", true)]
         public void OeTaskFilter_Validate_regex_Test(string regex, bool throws) {
-            var filter = new OeFilterOptions {
+            var filter = new PathListerFilterOptions {
                 ExcludeRegex = regex
             };
             if (throws) {

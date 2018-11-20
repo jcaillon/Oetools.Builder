@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib;
@@ -241,7 +242,7 @@ namespace Oetools.Builder.Project {
             ValidateStepsList(PostBuildStepGroup, nameof(PostBuildStepGroup), false);
         }
         
-        private void ValidateStepsList(IEnumerable<OeBuildStep> steps, string propertyNameOf, bool buildFromList) {
+        private void ValidateStepsList(IEnumerable<AOeBuildStep> steps, string propertyNameOf, bool buildFromList) {
             if (steps == null) {
                 return;
             }

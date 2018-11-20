@@ -20,13 +20,11 @@
 
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Xml.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
@@ -59,14 +57,14 @@ namespace Oetools.Builder.Test.Project {
                             DlcDirectory = "globaldlc",
                             BuildOptions = new OeBuildOptions {
                                 OutputDirectoryPath = "globaloutput",
-                                SourceToBuildFilter = new OeFilterOptions {
+                                SourceToBuildFilter = new OeSourceFilterOptions {
                                     Include = "include"
                                 },
                                 IncrementalBuildOptions = new OeIncrementalBuildOptions {
-                                    Enabled = true
+                                    EnabledIncrementalBuild = true
                                 }
                             },
-                            PropathSourceDirectoriesFilter = new OeFilterOptions {
+                            PropathSourceDirectoriesFilter = new OePropathFilterOptions() {
                                 Include = "inc"
                             }
                         },
@@ -95,11 +93,11 @@ namespace Oetools.Builder.Test.Project {
                                 },
                                 Properties = new OeProperties {
                                     DlcDirectory = "localdlc",
-                                    PropathSourceDirectoriesFilter = new OeFilterOptions {
+                                    PropathSourceDirectoriesFilter = new OePropathFilterOptions {
                                         Exclude = "exclude"
                                     },
                                     BuildOptions = new OeBuildOptions {
-                                        SourceToBuildFilter = new OeFilterOptions {
+                                        SourceToBuildFilter = new OeSourceFilterOptions {
                                             Exclude = "exclude"
                                         }
                                     }
@@ -135,7 +133,7 @@ namespace Oetools.Builder.Test.Project {
             Assert.AreEqual("exclude", conf.Properties.BuildOptions.SourceToBuildFilter.Exclude);
             Assert.AreEqual("include", conf.Properties.BuildOptions.SourceToBuildFilter.Include);
             Assert.AreEqual("inc", conf.Properties.PropathSourceDirectoriesFilter.Include);
-            Assert.AreEqual(true, conf.Properties.BuildOptions.IncrementalBuildOptions.Enabled);
+            Assert.AreEqual(true, conf.Properties.BuildOptions.IncrementalBuildOptions.EnabledIncrementalBuild);
             
             Assert.AreEqual(2, conf.BuildSourceStepGroup.Count);
 
@@ -155,7 +153,7 @@ namespace Oetools.Builder.Test.Project {
             var loadedProject = OeProject.Load(Path.Combine(TestFolder, "project_default.xml"));
 
             // should load null values
-            Assert.AreEqual(null, loadedProject.BuildConfigurations[0].Properties.UseCharacterModeExecutable);
+            Assert.AreEqual(null, ((OeTaskFileCompile) loadedProject.BuildConfigurations[0].BuildSourceStepGroup[0].Tasks[0]).Exclude);
         }
 
         [TestMethod]
@@ -171,14 +169,15 @@ namespace Oetools.Builder.Test.Project {
                                 BuildHistoryOutputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
                                 OutputDirectoryPath = "D:\\output",
                                 ReportHtmlFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.html"),
-                                SourceToBuildFilter = new OeFilterOptions {
-                                    Exclude = "**/derp", ExcludeRegex = "\\\\[D][d]"
+                                SourceToBuildFilter = new OeSourceFilterOptions {
+                                    Exclude = "**/derp", 
+                                    ExcludeRegex = "\\\\[D][d]"
                                 },
                                 SourceToBuildGitFilter = new OeGitFilterOptions {
                                     CurrentBranchName = null, CurrentBranchOriginCommit = null, IncludeSourceFilesCommittedOnlyOnCurrentBranch = true, IncludeSourceFilesModifiedSinceLastCommit = true
                                 },
                                 IncrementalBuildOptions = new OeIncrementalBuildOptions {
-                                    Enabled = false, MirrorDeletedSourceFileToOutput = true, UseCheckSumComparison = false, UseSimplerAnalysisForDatabaseReference = true
+                                    EnabledIncrementalBuild = false, MirrorDeletedSourceFileToOutput = true, UseCheckSumComparison = false, UseSimplerAnalysisForDatabaseReference = true
                                 }
                             },
                             CompilationOptions = new OeCompilationOptions {
@@ -218,7 +217,7 @@ namespace Oetools.Builder.Test.Project {
                             PropathEntries = new List<string> {
                                 "entry1", "fezef/zef/zefzef", "C:\\zefzefzef\\"
                             },
-                            PropathSourceDirectoriesFilter = new OeFilterOptions {
+                            PropathSourceDirectoriesFilter = new OePropathFilterOptions() {
                                 Exclude = "**/derp", ExcludeRegex = "\\\\[D][d]"
                             },
                             OpenedgeTemporaryDirectory = "{{TEMP}}"

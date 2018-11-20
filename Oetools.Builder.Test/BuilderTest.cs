@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
@@ -86,12 +87,12 @@ namespace Oetools.Builder.Test {
                 Properties = new OeProperties {
                     BuildOptions = new OeBuildOptions {
                         SourceDirectoryPath = sourceDirectory,
-                        TreatWarningsAsErrors = true,
+                        StopBuildOnTaskWarning = true,
                         StopBuildOnCompilationError = false,
                         StopBuildOnCompilationWarning = false,
                         TestMode = true,
                         IncrementalBuildOptions = new OeIncrementalBuildOptions {
-                            Enabled = true,
+                            EnabledIncrementalBuild = true,
                             UseCheckSumComparison = true,
                             MirrorDeletedTargetsToOutput = true,
                             MirrorDeletedSourceFileToOutput = true,
@@ -272,7 +273,7 @@ namespace Oetools.Builder.Test {
                     BuildOptions = new OeBuildOptions {
                         SourceDirectoryPath = sourceDirectory,
                         OutputDirectoryPath = sourceDirectory,
-                        TreatWarningsAsErrors = true
+                        StopBuildOnTaskWarning = true
                     }
                 }
             });
@@ -392,7 +393,7 @@ namespace Oetools.Builder.Test {
                     }
                 }
             };
-            Assert.AreEqual(true, builder.BuildConfiguration.Properties.BuildOptions.IncrementalBuildOptions.Enabled);
+            Assert.AreEqual(true, builder.BuildConfiguration.Properties.BuildOptions.IncrementalBuildOptions.EnabledIncrementalBuild);
 
             builder.Build();
             

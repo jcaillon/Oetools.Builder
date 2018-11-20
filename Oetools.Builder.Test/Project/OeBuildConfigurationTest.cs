@@ -20,6 +20,7 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Openedge;
@@ -41,6 +42,22 @@ namespace Oetools.Builder.Test.Project {
             Assert.IsTrue(bc.Variables.Exists(v => v.Name.Equals(OeBuilderConstants.OeVarNameOutputDirectory)));
             Assert.IsTrue(bc.Variables.Exists(v => v.Name.Equals(OeBuilderConstants.OeVarNameConfigurationName)));
             Assert.IsTrue(bc.Variables.Exists(v => v.Name.Equals(OeBuilderConstants.OeVarNameCurrentDirectory)));
+        }
+        
+        
+        [TestMethod]
+        public void SetDefaultValues() {
+            var bc = new OeBuildConfiguration();
+            bc.SetDefaultValues();
+            Assert.AreEqual(OeGitFilterOptions.GetDefaultIncludeSourceFilesCommittedOnlyOnCurrentBranch(), bc.Properties.BuildOptions.SourceToBuildGitFilter.IncludeSourceFilesCommittedOnlyOnCurrentBranch);
+            Assert.AreEqual(OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput(), bc.Properties.BuildOptions?.IncrementalBuildOptions?.MirrorDeletedSourceFileToOutput);
+            Assert.AreEqual(OeCompilationOptions.GetDefaultCompileWithDebugList(), bc.Properties.CompilationOptions.CompileWithDebugList);
+            Assert.AreEqual(OeBuildOptions.GetDefaultStopBuildOnTaskWarning(), bc.Properties.BuildOptions.StopBuildOnTaskWarning);
+            
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
+            Assert.AreEqual(OeProperties.GetDefaultDlcDirectory(), bc.Properties.DlcDirectory);
         }
         
         [TestMethod]

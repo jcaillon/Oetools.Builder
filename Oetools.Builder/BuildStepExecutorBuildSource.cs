@@ -5,6 +5,7 @@ using System.Linq;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
@@ -19,7 +20,7 @@ namespace Oetools.Builder {
         
         public PathList<IOeFileBuilt> PreviouslyBuiltPaths { private get; set; }
 
-        private bool UseIncrementalBuild => Properties?.BuildOptions?.IncrementalBuildOptions?.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled();
+        private bool UseIncrementalBuild => Properties?.BuildOptions?.IncrementalBuildOptions?.EnabledIncrementalBuild ?? OeIncrementalBuildOptions.GetDefaultEnabledIncrementalBuild();
         
         private string SourceDirectory => (Properties?.BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath());
         

@@ -7,7 +7,10 @@ using Oetools.Builder.Project.Task;
 
 namespace Oetools.Builder.Project {
     
-    public abstract class OeBuildStep {
+    /// <summary>
+    /// A build step.
+    /// </summary>
+    public abstract class AOeBuildStep {
         
         [XmlIgnore]
         internal int Id { get; set; }
@@ -17,8 +20,9 @@ namespace Oetools.Builder.Project {
         /// </summary>
         [XmlAttribute("Name")]
         public string Name { get; set; }
-
-        public virtual List<AOeTask> GetTaskList() => null;
+        
+        [XmlIgnore]
+        public virtual List<AOeTask> Tasks { get; set; }
 
         /// <summary>
         /// Validate tasks in this step
@@ -26,11 +30,10 @@ namespace Oetools.Builder.Project {
         /// <param name="buildFromIncludeList">should the task also be validated with <see cref="IOeTaskFile.ValidateCanGetFilesToProcessFromIncludes"/></param>
         /// <exception cref="BuildStepException"></exception>
         public void Validate(bool buildFromIncludeList) {
-            var tasks = GetTaskList();
-            if (tasks == null) {
+            if (Tasks == null) {
                 return;
             }
-            foreach (var task in tasks) {
+            foreach (var task in Tasks) {
                 try {
                     task.Validate();
                     if (buildFromIncludeList) {

@@ -28,7 +28,7 @@ namespace Oetools.Builder.Project {
     /// A step (list of tasks) to build your application.
     /// </summary>
     [Serializable]
-    public class OeBuildStepClassic : OeBuildStep {
+    public class OeBuildStepClassic : AOeBuildStep {
                 
         /// <summary>
         /// A list of tasks.
@@ -38,8 +38,6 @@ namespace Oetools.Builder.Project {
         [XmlArrayItem("RemoveDirectory", typeof(OeTaskDirectoryDelete))]
         [XmlArrayItem("Delete", typeof(OeTaskFileDelete))]
         [XmlArrayItem("Cab", typeof(OeTaskFileArchiverArchiveCab))]
-        public List<AOeTask> Tasks { get; set; }
-
-        public override List<AOeTask> GetTaskList() => Tasks;
+        public override List<AOeTask> Tasks { get; set; }
     }
 }

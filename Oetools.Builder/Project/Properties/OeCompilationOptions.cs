@@ -17,15 +17,14 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+
 using System;
 using System.Xml.Serialization;
 using Oetools.Builder.Utilities;
 
-namespace Oetools.Builder.Project {
+namespace Oetools.Builder.Project.Properties {
     
-    /// <summary>
-    /// The options to use to compile your application.
-    /// </summary>
+    /// <inheritdoc cref="OeProperties.CompilationOptions"/>
     [Serializable]
     public class OeCompilationOptions {
 

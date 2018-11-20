@@ -19,6 +19,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -79,7 +80,7 @@ namespace Oetools.Builder.Test.Project {
         }
         
         /// <summary>
-        /// We need every single public property in the <see cref="Oetools.Builder.Project"/> namespace to be nullable
+        /// We need every single public property in the <see cref="Oetools.Builder.Project"/> to have an xml name defined
         /// </summary>
         [TestMethod]
         public void CheckForXmlPropertiesOnEachPublicProperties() {
@@ -95,6 +96,33 @@ namespace Oetools.Builder.Test.Project {
                         Attribute.GetCustomAttribute(propertyInfo, typeof(XmlIgnoreAttribute), true) != null ||
                         Attribute.GetCustomAttribute(propertyInfo, typeof(XmlAttributeAttribute), true) != null, 
                         $"{type.Name}.{propertyInfo.Name} does not have an xml attribute!");
+                }
+            }
+        }
+        
+        [TestMethod]
+        public void CheckUniqueXmlNameOnEachPublicProperties() {
+            var xmlLeafName = new HashSet<string>();
+            foreach (var type in TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}.{nameof(Oetools.Builder.Project.Properties)}")) {
+                if (!type.IsPublic || type.IsAbstract) {
+                    continue;
+                }
+                foreach (var propertyInfo in type.GetProperties()) {
+                    if (propertyInfo.PropertyType == typeof(string) || propertyInfo.PropertyType.GenericTypeArguments.Length == 1 && propertyInfo.PropertyType.GenericTypeArguments[0].IsValueType) {
+                        string name = null;
+                        if (Attribute.GetCustomAttribute(propertyInfo, typeof(XmlElementAttribute), true) is XmlElementAttribute attr2) {
+                            name = attr2.ElementName;
+                        }
+                        if (Attribute.GetCustomAttribute(propertyInfo, typeof(XmlAttributeAttribute), true) is XmlAttributeAttribute attr3) {
+                            name = attr3.AttributeName;
+                        }                       
+                        Assert.IsFalse(string.IsNullOrEmpty(name), $"Xml name null for {type.FullName}.{propertyInfo.Name}.");
+                        if (!string.IsNullOrEmpty(name) && name.Equals("Name")) {
+                            continue;
+                        }
+                        Assert.IsFalse(xmlLeafName.Contains(name), $"The xml name {name} is duplicated! {type.FullName}.{propertyInfo.Name}.");
+                        xmlLeafName.Add(name);
+                    }
                 }
             }
         }

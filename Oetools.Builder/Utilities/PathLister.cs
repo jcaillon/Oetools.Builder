@@ -25,7 +25,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
-using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
@@ -57,7 +57,7 @@ namespace Oetools.Builder.Utilities {
         /// <summary>
         /// Full filtering options for this listing.
         /// </summary>
-        public OeFilterOptions FilterOptions {
+        public PathListerFilterOptions FilterOptions {
             get => _filterOptions;
             set {
                 if (_filter != null) {
@@ -90,7 +90,7 @@ namespace Oetools.Builder.Utilities {
         private CancellationToken? CancelToken { get; }
         
         private List<Regex> _defaultFilters;
-        private OeFilterOptions _filterOptions;
+        private PathListerFilterOptions _filterOptions;
         private IOeTaskFilter _filter;
 
         /// <summary>
@@ -111,10 +111,24 @@ namespace Oetools.Builder.Utilities {
         /// <exception cref="OperationCanceledException"></exception>
         public PathList<IOeFile> GetFileList() {
             PathList<IOeFile> listedFiles;
-            if (GitFilter != null && GitFilter.IsActive()) {
-                listedFiles = GetBaseFileListFromGit();
+            
+            if (!string.IsNullOrEmpty(FilterOptions?.OverrideOutputList)) {
+                Log?.Trace?.Write("Using pre-calculated list of files.");
+                
+                listedFiles = new PathList<IOeFile>();
+                foreach (var path in FilterOptions?.OverrideOutputList.Split(';')) {
+                    if (File.Exists(path)) {
+                        if (!listedFiles.TryAdd(new OeFile(path))) {
+                            Log?.Trace?.Write($"Duplicated path: {path}.");
+                        }
+                    }
+                }
             } else {
-                listedFiles = GetBaseFileList();
+                if (GitFilter != null && GitFilter.IsActive()) {
+                    listedFiles = GetBaseFileListFromGit();
+                } else {
+                    listedFiles = GetBaseFileList();
+                }
             }
 
             if (OutputOptions != null) {
@@ -138,8 +152,22 @@ namespace Oetools.Builder.Utilities {
         /// <exception cref="Exception"></exception>
         /// <exception cref="OperationCanceledException"></exception>
         public PathList<IOeDirectory> GetDirectoryList() {
+            if (!string.IsNullOrEmpty(FilterOptions?.OverrideOutputList)) {
+                Log?.Trace?.Write("Using pre-calculated list of directories.");
+                
+                var listedDirectories = new PathList<IOeDirectory>();
+                foreach (var path in FilterOptions?.OverrideOutputList.Split(';')) {
+                    if (Directory.Exists(path)) {
+                        if (!listedDirectories.TryAdd(new OeDirectory(path))) {
+                            Log?.Trace?.Write($"Duplicated path: {path}.");
+                        }
+                    }
+                }
+                return listedDirectories;
+            }
+            
             var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(Filter);
-            return Utils.EnumerateAllFolders(BaseDirectory, FilterOptions?.RecursiveListing ?? OeFilterOptions.GetDefaultRecursiveListing() ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly, sourcePathExcludeRegexStrings, FilterOptions?.ExcludeHiddenDirectories ?? OeFilterOptions.GetDefaultExcludeHiddenDirectories(), CancelToken)
+            return Utils.EnumerateAllFolders(BaseDirectory, FilterOptions?.RecursiveListing ?? PathListerFilterOptions.GetDefaultRecursiveListing() ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly, sourcePathExcludeRegexStrings, FilterOptions?.ExcludeHiddenDirectories ?? PathListerFilterOptions.GetDefaultExcludeHiddenDirectories(), CancelToken)
                 .Where(IsFileIncludedBySourcePathFilters)
                 .Select(d => new OeDirectory(d) as IOeDirectory)
                 .ToFileList();
@@ -151,7 +179,7 @@ namespace Oetools.Builder.Utilities {
         /// <returns></returns>
         private PathList<IOeFile> GetBaseFileList() {
             var sourcePathExcludeRegexStrings = GetExclusionRegexStringsFromFilters(Filter);
-            return Utils.EnumerateAllFiles(BaseDirectory, FilterOptions?.RecursiveListing ?? OeFilterOptions.GetDefaultRecursiveListing() ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly, sourcePathExcludeRegexStrings, FilterOptions?.ExcludeHiddenDirectories ?? OeFilterOptions.GetDefaultExcludeHiddenDirectories(), CancelToken)
+            return Utils.EnumerateAllFiles(BaseDirectory, FilterOptions?.RecursiveListing ?? PathListerFilterOptions.GetDefaultRecursiveListing() ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly, sourcePathExcludeRegexStrings, FilterOptions?.ExcludeHiddenDirectories ?? PathListerFilterOptions.GetDefaultExcludeHiddenDirectories(), CancelToken)
                 .Where(IsFileIncludedBySourcePathFilters)
                 .Select(f => new OeFile(f) as IOeFile)
                 .ToFileList();
@@ -318,7 +346,7 @@ namespace Oetools.Builder.Utilities {
             if (FilterOptions?.ExtraVcsPatternExclusion != null && string.IsNullOrWhiteSpace(FilterOptions.ExtraVcsPatternExclusion)) {
                 return Enumerable.Empty<string>();
             }
-            return (FilterOptions?.ExtraVcsPatternExclusion ?? OeFilterOptions.GetDefaultExtraVcsPatternExclusion())?.Split(';').Select(s => Path.Combine(BaseDirectory, s).PathWildCardToRegex());
+            return (FilterOptions?.ExtraVcsPatternExclusion ?? PathListerFilterOptions.GetDefaultExtraVcsPatternExclusion())?.Split(';').Select(s => Path.Combine(BaseDirectory, s).PathWildCardToRegex());
         }
         
         /// <summary>

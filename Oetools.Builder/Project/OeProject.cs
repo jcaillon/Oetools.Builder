@@ -105,11 +105,6 @@ namespace Oetools.Builder.Project {
             var output = new OeProject {
                 BuildConfigurations = new List<OeBuildConfiguration> {
                     new OeBuildConfiguration {
-                        Properties = new OeProperties {
-                            BuildOptions = new OeBuildOptions {
-                                OutputDirectoryPath = OeBuilderConstants.GetDefaultOutputDirectory()
-                            }
-                        },
                         BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
                             new OeBuildStepBuildSource {
                                 Name = "Compile all files next to their source",

@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 
@@ -84,10 +85,10 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual("value_var_1", buildConf.Properties.BuildOptions.BuildHistoryInputFilePath);
             Assert.AreEqual("replace stuff value_env_1", buildConf.Properties.CompilationOptions.CompilableFileExtensionPattern);
             Assert.AreEqual("replace wtf! here", buildConf.BuildSourceStepGroup[0].Name);
-            Assert.AreEqual("replace missing '' by empty", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].GetTaskList()[0]).Include);
-            Assert.AreEqual("keep missing '{{missingvar}}' variables!", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].GetTaskList()[0]).TargetDirectory);
-            Assert.AreEqual("2 replace missing '' by empty", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].GetTaskList()[1]).Exclude);
-            Assert.AreEqual("2 keep missing '{{missingvar}}' variables!", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].GetTaskList()[1]).TargetFilePath);
+            Assert.AreEqual("replace missing '' by empty", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].Tasks[0]).Include);
+            Assert.AreEqual("keep missing '{{missingvar}}' variables!", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].Tasks[0]).TargetDirectory);
+            Assert.AreEqual("2 replace missing '' by empty", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].Tasks[1]).Exclude);
+            Assert.AreEqual("2 keep missing '{{missingvar}}' variables!", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].Tasks[1]).TargetFilePath);
             
         }
     }

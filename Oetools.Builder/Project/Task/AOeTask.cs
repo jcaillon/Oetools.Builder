@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib.Extension;
 

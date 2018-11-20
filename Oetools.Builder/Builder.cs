@@ -24,6 +24,7 @@ using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
@@ -70,7 +71,7 @@ namespace Oetools.Builder {
             }
         }
 
-        protected bool UseIncrementalBuild => BuildConfiguration.Properties.BuildOptions?.IncrementalBuildOptions?.Enabled ?? OeIncrementalBuildOptions.GetDefaultEnabled();
+        protected bool UseIncrementalBuild => BuildConfiguration.Properties.BuildOptions?.IncrementalBuildOptions?.EnabledIncrementalBuild ?? OeIncrementalBuildOptions.GetDefaultEnabledIncrementalBuild();
 
         private bool StoreSourceHash => BuildConfiguration.Properties.BuildOptions?.IncrementalBuildOptions?.UseCheckSumComparison ?? OeIncrementalBuildOptions.GetDefaultUseCheckSumComparison();
 
@@ -158,7 +159,7 @@ namespace Oetools.Builder {
         /// <summary>
         /// Executes a build step
         /// </summary>
-        private void ExecuteBuildStep<T>(IEnumerable<OeBuildStep> steps, string oeBuildConfigurationPropertyName) where T : BuildStepExecutor, new() {
+        private void ExecuteBuildStep<T>(IEnumerable<AOeBuildStep> steps, string oeBuildConfigurationPropertyName) where T : BuildStepExecutor, new() {
             var executionName = typeof(OeBuildConfiguration).GetXmlName(oeBuildConfigurationPropertyName);
             
             Log?.ReportGlobalProgress(TotalNumberOfTasks, NumberOfTasksDone, $"Executing {executionName}");
@@ -174,7 +175,7 @@ namespace Oetools.Builder {
                 var executor = new T {
                     Name = executionName,
                     Id = i,
-                    Tasks = (step.GetTaskList()?.Cast<IOeTask>()).ToNonNullList(),
+                    Tasks = (step.Tasks?.Cast<IOeTask>()).ToNonNullList(),
                     Properties = BuildConfiguration.Properties,
                     Log = Log,
                     CancelToken = CancelToken
@@ -198,7 +199,7 @@ namespace Oetools.Builder {
         /// <param name="buildSourceExecutor"></param>
         /// <param name="stepsList"></param>
         /// <param name="currentStep"></param>
-        private void ConfigureBuildSource(BuildStepExecutorBuildSource buildSourceExecutor, List<OeBuildStep> stepsList, int currentStep) {
+        private void ConfigureBuildSource(BuildStepExecutorBuildSource buildSourceExecutor, List<AOeBuildStep> stepsList, int currentStep) {
             if (buildSourceExecutor == null) {
                 return;
             }
@@ -245,7 +246,7 @@ namespace Oetools.Builder {
 
                 if (unchangedOrModifiedFiles != null && unchangedOrModifiedFiles.Count > 0) {
                     Log?.Debug("For all the unchanged or modified files, set all the targets that should be built in this build");
-                    foreach (var task in stepsList.SelectMany(step1 => (step1.GetTaskList()?.OfType<IOeTaskFileToBuild>()).ToNonNullList())) {
+                    foreach (var task in stepsList.SelectMany(step1 => (step1.Tasks?.OfType<IOeTaskFileToBuild>()).ToNonNullList())) {
                         task.SetTargets(unchangedOrModifiedFiles, BuildConfiguration.Properties?.BuildOptions?.OutputDirectoryPath, true);
                     }
 

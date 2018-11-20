@@ -24,6 +24,7 @@ using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
@@ -50,7 +51,7 @@ namespace Oetools.Builder {
 
         public event EventHandler<StepExecutorProgressEventArgs> OnTaskStart;
 
-        protected bool ThrowIfWarning => Properties?.BuildOptions?.TreatWarningsAsErrors ?? OeBuildOptions.GetDefaultTreatWarningsAsErrors();
+        protected bool StopBuildOnTaskWarning => Properties?.BuildOptions?.StopBuildOnTaskWarning ?? OeBuildOptions.GetDefaultStopBuildOnTaskWarning();
 
         protected bool TestMode => Properties?.BuildOptions?.TestMode ?? OeBuildOptions.GetDefaultTestMode();
 
@@ -157,7 +158,7 @@ namespace Oetools.Builder {
         private void TaskOnPublishException(object sender, TaskWarningEventArgs e) {
             var publishedException = new TaskExecutorException(this, e.Exception.Message, e.Exception);
             Log?.Warn($"Task warning: {publishedException.Message}", publishedException);
-            if (ThrowIfWarning) {
+            if (StopBuildOnTaskWarning) {
                 throw e.Exception;
             }
         }

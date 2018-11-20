@@ -27,6 +27,7 @@ using System.Linq;
 using System.Text;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project;
+using Oetools.Builder.Project.Properties;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Database;

@@ -58,9 +58,20 @@ namespace Oetools.Builder.History {
         /// <inheritdoc cref="IOeFile.Checksum"/>
         [XmlAttribute(AttributeName = "Checksum")]
         public string Checksum { get; set; }
+
+        /// <inheritdoc cref="IOeFile.State"/>
+        [XmlAttribute(AttributeName = "State")]
+        public string StateString {
+            get => State.ToString();
+            set {
+                if (Enum.TryParse(value, true, out OeFileState state)) {
+                    State = state;
+                }
+            }
+        }
         
         /// <inheritdoc cref="IOeFile.State"/>
-        [XmlElement(ElementName = "State")]
+        [XmlIgnore]
         public OeFileState State { get; set; }
 
         private string _sourcePathForTaskExecution;
