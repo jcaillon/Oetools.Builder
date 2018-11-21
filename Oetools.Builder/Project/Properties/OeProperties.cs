@@ -24,12 +24,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
-using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib;
@@ -42,7 +40,7 @@ namespace Oetools.Builder.Project.Properties {
     
     /// <inheritdoc cref="OeBuildConfiguration.Properties"/>
     /// <code>
-    /// Every public property string not marked with the <see cref="ReplaceVariables"/> attribute is allowed
+    /// Every public property string not marked with the <see cref="ReplaceVariablesAttribute"/> attribute is allowed
     /// to use {{VARIABLE}} which will be replace at the beginning of the build by <see cref="OeBuildConfiguration.Variables"/>
     /// </code>
     [Serializable]
@@ -55,10 +53,11 @@ namespace Oetools.Builder.Project.Properties {
         /// <remarks>
         /// It should contain, among many other things, a "bin" directory where the openedge executables are located.
         /// </remarks>
-        [XmlElement(ElementName = "DlcDirectory")]
-        public string DlcDirectory { get; set; }
+        [XmlElement(ElementName = "DlcDirectoryPath")]
+        [DefaultValueMethod(nameof(GetDefaultDlcDirectoryPath))]
+        public string DlcDirectoryPath { get; set; }
         [Description("$DLC (openedge installation directory)")]
-        public static string GetDefaultDlcDirectory() => UoeUtilities.GetDlcPathFromEnv().ToCleanPath();
+        public static string GetDefaultDlcDirectoryPath() => UoeUtilities.GetDlcPathFromEnv().ToCleanPath();
         
         /// <summary>
         /// The code page to use for input/output with openedge processes.
@@ -130,9 +129,9 @@ namespace Oetools.Builder.Project.Properties {
         /// This typically include pro library (.pl) file path or directories.
         /// Relative path are resolved with the current directory but you can use {{SOURCE_DIRECTORY}} to target the source directory.
         /// </remarks>
-        [XmlArrayItem("Path", typeof(string))]
+        [XmlArrayItem("Entry", typeof(OePropathEntry))]
         [XmlArray("PropathEntries")]
-        public List<string> PropathEntries { get; set; }
+        public List<OePropathEntry> PropathEntries { get; set; }
         
         /// <summary>
         /// Indicates if all the directories in the source directory should be added to the compilation propath.
@@ -141,6 +140,7 @@ namespace Oetools.Builder.Project.Properties {
         /// The idea is to use this option instead of manually specifying the compilation propath (for lazy people only).
         /// </remarks>
         [XmlElement(ElementName = "AddAllSourceDirectoriesToPropath")]
+        [DefaultValueMethod(nameof(GetDefaultAddAllSourceDirectoriesToPropath))]
         public bool? AddAllSourceDirectoriesToPropath { get; set; }
         public static bool GetDefaultAddAllSourceDirectoriesToPropath() => true;
             
@@ -157,6 +157,7 @@ namespace Oetools.Builder.Project.Properties {
         /// Typically, this option will make the build process use the "_progres.exe" executable instead of "prowin.exe".
         /// </remarks>
         [XmlElement(ElementName = "UseCharacterModeExecutable")]
+        [DefaultValueMethod(nameof(GetDefaultUseCharacterModeExecutable))]
         public bool? UseCharacterModeExecutable { get; set; }
         public static bool GetDefaultUseCharacterModeExecutable() => false;
         
@@ -169,6 +170,7 @@ namespace Oetools.Builder.Project.Properties {
         /// This is the equivalent of the default propath set by openedge.
         /// </remarks>
         [XmlElement(ElementName = "AddDefaultOpenedgePropath")]
+        [DefaultValueMethod(nameof(GetDefaultAddDefaultOpenedgePropath))]
         public bool? AddDefaultOpenedgePropath { get; set; }
         public static bool GetDefaultAddDefaultOpenedgePropath() => true;
 
@@ -214,15 +216,17 @@ namespace Oetools.Builder.Project.Properties {
         /// This is the directory used in the -T startup parameter for the openedge session.
         /// This directory is also used to store temporary files needed for the compilation and for the interface between openedge and this tool.
         /// </remarks>
-        [XmlElement(ElementName = "OpenedgeTemporaryDirectory")]
-        public string OpenedgeTemporaryDirectory { get; set; }
+        [XmlElement(ElementName = "OpenedgeTemporaryDirectoryPath")]
+        [DefaultValueMethod(nameof(GetDefaultOpenedgeTemporaryDirectoryPath))]
+        public string OpenedgeTemporaryDirectoryPath { get; set; }
         [Description("$TEMP/.oe_tmp-xxx (temporary folder)")]
-        public static string GetDefaultOpenedgeTemporaryDirectory() => Path.Combine(Path.GetTempPath(), $".oe_tmp-{Utils.GetRandomName()}");
+        public static string GetDefaultOpenedgeTemporaryDirectoryPath() => Path.Combine(Path.GetTempPath(), $".oe_tmp-{Utils.GetRandomName()}");
                   
         /// <summary>
         /// The options to use to compile your application.
         /// </summary>
         [XmlElement(ElementName = "CompilationOptions")]
+        [DefaultValueMethod(nameof(GetDefaultCompilationOptions))]
         public OeCompilationOptions CompilationOptions { get; set; }
         public static OeCompilationOptions GetDefaultCompilationOptions() => new OeCompilationOptions();
         
@@ -230,46 +234,33 @@ namespace Oetools.Builder.Project.Properties {
         /// The options used when building your application.
         /// </summary>
         [XmlElement(ElementName = "BuildOptions")]
+        [DefaultValueMethod(nameof(GetDefaultBuildOptions))]
         public OeBuildOptions BuildOptions { get; set; }
         public static OeBuildOptions GetDefaultBuildOptions() => new OeBuildOptions();
         
         /// <summary>
-        /// Validate that is object is correct
+        /// Validate that is object is correct.
         /// </summary>
-        /// <exception cref="BuildConfigurationException"></exception>
+        /// <exception cref="PropertiesException"></exception>
         public void Validate() {
-            ValidateFilters(PropathSourceDirectoriesFilter, nameof(PropathSourceDirectoriesFilter));
-            if ((CompilationOptions?.NumberProcessPerCore ?? 0) > 10) {
-                throw new PropertiesException($"The property {typeof(OeCompilationOptions).GetXmlName(nameof(OeCompilationOptions.NumberProcessPerCore))} should not exceed 10.");
+            try {
+                PropathSourceDirectoriesFilter?.Validate();
+            } catch (Exception e) {
+                throw new PropertiesException($"The property {GetType().GetXmlName(nameof(PropathSourceDirectoriesFilter))} has errors: {e.Message}", e);
             }
-            if (BuildOptions != null) {
-                ValidateFilters(BuildOptions.SourceToBuildFilter, nameof(BuildOptions.SourceToBuildFilter));
-                if ((BuildOptions?.IncrementalBuildOptions?.IsActive() ?? false) && (BuildOptions.SourceToBuildGitFilter?.IsActive() ?? false)) {
-                    throw new PropertiesException($"The {GetType().GetXmlName(nameof(BuildOptions.IncrementalBuildOptions))} can not be active when the {GetType().GetXmlName(nameof(BuildOptions.SourceToBuildGitFilter))} is active because the two options serve contradictory purposes. {GetType().GetXmlName(nameof(BuildOptions.IncrementalBuildOptions))} should be used when the goal is to build the latest modifications on top of a previous build. {GetType().GetXmlName(nameof(BuildOptions.SourceToBuildGitFilter))} should be used when the goal is to verify that recent commits to the git repo did not introduce bugs.");
-                }
-            }
+            CompilationOptions?.Validate();
+            BuildOptions?.Validate();
         }
         
-        private void ValidateFilters(AOeTaskFilter filter, string propertyNameOf) {
-            try {
-                filter?.Validate();
-            } catch (Exception e) {
-                throw new PropertiesException($"Filter property {propertyNameOf} : {e.Message}", e);
-            }
-        }
-
         /// <summary>
         /// Clean the path of all path properties and make them absolute.
+        /// Goes through all STRING properties with "Path" in the name.
         /// </summary>
         public void SanitizePathInPublicProperties() {
             Utils.ForEachPublicPropertyStringInObject(typeof(OeProperties), this, (propInfo, value) => {
-                if (!propInfo.Name.Contains("Path") && !propInfo.Name.Contains("Directory")) {
+                if (!propInfo.Name.Contains("Path") || value == null) {
                     return value;
                 }
-                if (string.IsNullOrEmpty(value)) {
-                    return value;
-                }
-                // BUG: does not work correctly for Database Df file path
                 return value.MakePathAbsolute().ToCleanPath();
             });
         }
@@ -324,8 +315,8 @@ namespace Oetools.Builder.Project.Properties {
             var currentDirectory = Directory.GetCurrentDirectory();
             
             var output = new PathList<IOeDirectory>();
-            if (PropathEntries != null) {
-                foreach (var propathEntry in PropathEntries) {
+            if (PropathEntries != null && PropathEntries.Count > 0) {
+                foreach (var propathEntry in PropathEntries.Select(e => e.Path).SelectMany(p => p.Split(';'))) {
                     var entry = propathEntry.ToCleanPath();
                     try {
                         // need to take into account relative paths
@@ -357,7 +348,7 @@ namespace Oetools.Builder.Project.Properties {
             }
             if (AddDefaultOpenedgePropath ?? GetDefaultAddDefaultOpenedgePropath()) {
                 // %DLC%/tty or %DLC%/gui + %DLC% + %DLC%/bin
-                foreach (var file in UoeUtilities.GetProgressSessionDefaultPropath(DlcDirectory.TakeDefaultIfNeeded(GetDefaultDlcDirectory()), UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable())) {
+                foreach (var file in UoeUtilities.GetProgressSessionDefaultPropath(DlcDirectoryPath.TakeDefaultIfNeeded(GetDefaultDlcDirectoryPath()), UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable())) {
                     output.TryAdd(new OeDirectory(file));
                 }
             }
@@ -387,12 +378,12 @@ namespace Oetools.Builder.Project.Properties {
         public UoeExecutionEnv GetEnv() {
             if (_env == null) {
                 _env = new UoeExecutionEnv {
-                    TempDirectory = OpenedgeTemporaryDirectory.TakeDefaultIfNeeded(GetDefaultOpenedgeTemporaryDirectory()),
+                    TempDirectory = OpenedgeTemporaryDirectoryPath.TakeDefaultIfNeeded(GetDefaultOpenedgeTemporaryDirectoryPath()),
                     UseProgressCharacterMode = UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable(),
                     DatabaseAliases = DatabaseAliases,
                     DatabaseConnectionString = ExtraDatabaseConnectionString,
                     DatabaseConnectionStringAppendMaxTryOne = true,
-                    DlcDirectoryPath = DlcDirectory.TakeDefaultIfNeeded(GetDefaultDlcDirectory()),
+                    DlcDirectoryPath = DlcDirectoryPath.TakeDefaultIfNeeded(GetDefaultDlcDirectoryPath()),
                     IniFilePath = IniFilePath,
                     PostExecutionProgramPath = ProcedureToExecuteAfterAnyProgressExecutionFilePath,
                     PreExecutionProgramPath = ProcedureToExecuteBeforeAnyProgressExecutionFilePath,

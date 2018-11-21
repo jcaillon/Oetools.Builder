@@ -18,16 +18,14 @@
 // ========================================================================
 #endregion
 using System;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Exceptions {
     
     public class FilterValidationException : BuilderException {
-        
         public int FilterNumber { get; set; }
-
         public FilterValidationException(string message) : base(message) { }
         public FilterValidationException(string message, Exception innerException) : base(message, innerException) { }
-        
-        public override string Message => $"Filter {FilterNumber.ToString()} : {base.Message ?? ""}";
+        public override string Message => $"Filter expression [{FilterNumber.ToString()}]: {base.Message ?? "null"}";
     }
 }

@@ -51,5 +51,13 @@ namespace Oetools.Builder.History {
         [XmlArrayItem("Sequence", typeof(OeDatabaseReferenceSequence))]
         public List<OeDatabaseReference> RequiredDatabaseReferences { get; set; }
         
+        /// <summary>
+        /// Compilations problems for this compiled file.
+        /// </summary>
+        [XmlArray("CompilationProblems")]
+        [XmlArrayItem("Error", typeof(OeCompilationError))]
+        [XmlArrayItem("Warning", typeof(OeCompilationWarning))]
+        public List<AOeCompilationProblem> CompilationProblems { get; set; }
+        
     }
 }

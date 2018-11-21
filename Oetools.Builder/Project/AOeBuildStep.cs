@@ -25,18 +25,23 @@ namespace Oetools.Builder.Project {
         public virtual List<AOeTask> Tasks { get; set; }
 
         /// <summary>
+        /// Should each task also be validated with <see cref="IOeTaskFile.ValidateCanGetFilesToProcessFromIncludes"/>.
+        /// </summary>
+        /// <returns></returns>
+        protected abstract bool AreTasksBuiltFromIncludeList();
+
+        /// <summary>
         /// Validate tasks in this step
         /// </summary>
-        /// <param name="buildFromIncludeList">should the task also be validated with <see cref="IOeTaskFile.ValidateCanGetFilesToProcessFromIncludes"/></param>
         /// <exception cref="BuildStepException"></exception>
-        public void Validate(bool buildFromIncludeList) {
+        public void Validate() {
             if (Tasks == null) {
                 return;
             }
             foreach (var task in Tasks) {
                 try {
                     task.Validate();
-                    if (buildFromIncludeList) {
+                    if (AreTasksBuiltFromIncludeList()) {
                         if (task is IOeTaskFile taskFile) {
                             taskFile.ValidateCanGetFilesToProcessFromIncludes();
                         }

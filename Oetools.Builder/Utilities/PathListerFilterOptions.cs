@@ -28,7 +28,7 @@ namespace Oetools.Builder.Utilities {
     /// Path filtering options.
     /// </summary>
     [Serializable]
-    public class PathListerFilterOptions : AOeTaskFilter {
+    public abstract class PathListerFilterOptions : AOeTaskFilter {
         
         /// <summary>
         /// Whether or not to ignore hidden directories during the listing.

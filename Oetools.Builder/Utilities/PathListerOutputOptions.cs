@@ -2,6 +2,7 @@
 using Oetools.Builder.History;
 
 namespace Oetools.Builder.Utilities {
+    
     public class PathListerOutputOptions {
 
         /// <summary>

@@ -70,7 +70,7 @@ namespace Oetools.Builder.Utilities {
         /// <summary>
         /// A git based filter.
         /// </summary>
-        public OeGitFilterOptions GitFilter { get; set; }
+        public PathListerGitFilterOptions GitFilter { get; set; }
         
         /// <summary>
         /// <para>

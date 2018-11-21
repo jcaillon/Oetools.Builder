@@ -63,10 +63,6 @@ namespace Oetools.Builder.History {
         [XmlArrayItem("BuiltFileCompiled", typeof(OeFileBuiltCompiled))]
         public List<OeFileBuilt> BuiltFiles { get; set; }
         
-        [XmlArray("CompilationProblems")]
-        [XmlArrayItem("File", typeof(OeCompiledFile))]
-        public List<OeCompiledFile> CompiledFiles { get; set; }
-        
         /// <summary>
         /// Converts certain public string property (representing path) into relative path
         /// </summary>
@@ -75,7 +71,7 @@ namespace Oetools.Builder.History {
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public void ToRelativePath(string sourceDirectory, string outputDirectory) {
             Utils.ForEachPublicPropertyStringInObject(typeof(OeBuildHistory), this, (propInfo, value) => {
-                if (!(Attribute.GetCustomAttribute(propInfo, typeof(BaseDirectory), true) is BaseDirectory attr)) {
+                if (!(Attribute.GetCustomAttribute(propInfo, typeof(BaseDirectoryAttribute), true) is BaseDirectoryAttribute attr)) {
                     return value;
                 }
                 switch (attr.Type) {
@@ -97,7 +93,7 @@ namespace Oetools.Builder.History {
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public void ToAbsolutePath(string sourceDirectory, string outputDirectory) {
             Utils.ForEachPublicPropertyStringInObject(typeof(OeBuildHistory), this, (propInfo, value) => {
-                if (!(Attribute.GetCustomAttribute(propInfo, typeof(BaseDirectory), true) is BaseDirectory attr)) {
+                if (!(Attribute.GetCustomAttribute(propInfo, typeof(BaseDirectoryAttribute), true) is BaseDirectoryAttribute attr)) {
                     return value;
                 }
                 switch (attr.Type) {

@@ -25,19 +25,20 @@ using Oetools.Builder.Project.Task;
 namespace Oetools.Builder.Project {
     
     /// <summary>
-    /// A step (list of tasks) to build your application.
+    /// A list of steps/tasks that should affect the files in your project output directory.
     /// </summary>
+    /// <remarks>
+    /// Tasks are executed sequentially in the given order.
+    /// These tasks should be used to "post-process" the files built from your source directory into the output directory.
+    /// For instance, it can be used to build a release zip file containing all the .pl and other configuration files of your release.
+    /// A listing of the files in the output directory is made at each step. Which means it would not be efficient to create 10 steps of 1 task each if those files will not change between steps.
+    /// </remarks>
     [Serializable]
-    public class OeBuildStepClassic : AOeBuildStep {
-                
-        /// <summary>
-        /// A list of tasks.
-        /// </summary>
-        [XmlArray("Tasks")]
-        [XmlArrayItem("Execute", typeof(OeTaskExec))]
-        [XmlArrayItem("RemoveDirectory", typeof(OeTaskDirectoryDelete))]
-        [XmlArrayItem("Delete", typeof(OeTaskFileDelete))]
-        [XmlArrayItem("Cab", typeof(OeTaskFileArchiverArchiveCab))]
-        public override List<AOeTask> Tasks { get; set; }
+    public class OeBuildStepBuildOutput : OeBuildStepFree {
+        
+        /// <inheritdoc cref="AOeBuildStep.AreTasksBuiltFromIncludeList"/>
+        protected override bool AreTasksBuiltFromIncludeList() => false;
+        
     }
+    
 }

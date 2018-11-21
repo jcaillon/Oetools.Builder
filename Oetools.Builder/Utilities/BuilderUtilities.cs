@@ -65,7 +65,7 @@ namespace Oetools.Builder.Utilities {
                     return value;
                 }
                 try {
-                    var attr = Attribute.GetCustomAttribute(propInfo, typeof(ReplaceVariables), true) as ReplaceVariables;
+                    var attr = Attribute.GetCustomAttribute(propInfo, typeof(ReplaceVariablesAttribute), true) as ReplaceVariablesAttribute;
                     if (attr == null || !attr.SkipReplace) {
                         return value.ReplacePlaceHolders(s => GetVariableValue(s, variables, attr == null || !attr.LeaveUnknownUntouched ? string.Empty : null));
                     }

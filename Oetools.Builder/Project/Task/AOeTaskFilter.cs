@@ -128,8 +128,8 @@ namespace Oetools.Builder.Project.Task {
 
         /// <inheritdoc cref="IOeTask.Validate"/>
         public override void Validate() {
-            CheckWildCards(GetIncludeStrings());
-            CheckWildCards(GetExcludeStrings());
+            CheckWildCardsFilterExpression(GetIncludeStrings(), () => GetType().GetXmlName(nameof(Include)));
+            CheckWildCardsFilterExpression(GetExcludeStrings(), () => GetType().GetXmlName(nameof(Exclude)));
             InitRegex();
         }
 
@@ -185,18 +185,24 @@ namespace Oetools.Builder.Project.Task {
             return _includeRegexes;
         }
         
-        private void InitRegex() {
-            _excludeRegexes = ToRegexes(GetRegexExcludeStrings());
-            _includeRegexes = ToRegexes(GetRegexIncludeStrings());
-        }
-        
         /// <summary>
-        /// Converts a list of regex strings to regex(es)
+        /// Converts the regex strings to regex(es).
         /// </summary>
-        /// <param name="regexStrings"></param>
         /// <returns></returns>
         /// <exception cref="TaskValidationException"></exception>
-        private List<Regex> ToRegexes(List<string> regexStrings) {
+        private void InitRegex() {
+            _includeRegexes = ToRegexes(GetRegexIncludeStrings(), "include");
+            _excludeRegexes = ToRegexes(GetRegexExcludeStrings(), "exclude");
+        }
+
+        /// <summary>
+        /// Converts a list of regex strings to regex(es).
+        /// </summary>
+        /// <param name="regexStrings"></param>
+        /// <param name="propertyType"></param>
+        /// <returns></returns>
+        /// <exception cref="TaskValidationException"></exception>
+        private List<Regex> ToRegexes(List<string> regexStrings, string propertyType) {
             if (regexStrings == null) {
                 return new List<Regex>();
             }
@@ -206,7 +212,7 @@ namespace Oetools.Builder.Project.Task {
                 try {
                     output.Add(new Regex(regexString));
                 } catch (Exception e) {
-                    var ex = new FilterValidationException($"Invalid filter regex expression {regexString.PrettyQuote()}. {e.Message}", e) {
+                    var ex = new FilterValidationException($"Invalid {propertyType} regex expression {regexString.PrettyQuote()} = {regexString.PrettyQuote()}: {e.Message}", e) {
                         FilterNumber = i
                     };
                     throw ex;
@@ -217,12 +223,13 @@ namespace Oetools.Builder.Project.Task {
         }
 
         /// <summary>
-        /// Check that a list of string are valid wild card path
+        /// Check that a list of string are valid wild card path.
         /// </summary>
         /// <param name="originalStrings"></param>
+        /// <param name="getPropertyName"></param>
         /// <returns></returns>
         /// <exception cref="TaskValidationException"></exception>
-        private void CheckWildCards(IEnumerable<string> originalStrings) {
+        private void CheckWildCardsFilterExpression(IEnumerable<string> originalStrings, Func<string> getPropertyName) {
             if (originalStrings == null) {
                 return;
             }
@@ -231,7 +238,7 @@ namespace Oetools.Builder.Project.Task {
                 try {
                     Utils.ValidatePathWildCard(originalString);
                 } catch (Exception e) {
-                    var ex = new FilterValidationException($"Invalid path expression {originalString.PrettyQuote()}. {e.Message}", e) {
+                    var ex = new FilterValidationException($"Invalid path expression for {getPropertyName?.Invoke() ?? "null"} = {originalString.PrettyQuote()}: {e.Message}", e) {
                         FilterNumber = i
                     };
                     throw ex;
@@ -329,10 +336,10 @@ namespace Oetools.Builder.Project.Task {
                     target = Path.Combine(baseTargetDirectory, target);
                     isPathRooted = true;
                 } else if (!mustBeRelativePath) {
-                    throw new TaskExecutionException(this, $"This task is not allowed to target a relative path because no base target directory is defined for this task, the error occured for : {targetPathWithPlaceholders.PrettyQuote()}.");
+                    throw new TaskExecutionException(this, $"This task is not allowed to target a relative path, the error occured for: {targetPathWithPlaceholders.PrettyQuote()}.");
                 }
             } else if (mustBeRelativePath) {
-                throw new TaskExecutionException(this, $"The following path should resolve to a relative path : {targetPathWithPlaceholders.PrettyQuote()}.");
+                throw new TaskExecutionException(this, $"The following path should resolve to a relative path: {targetPathWithPlaceholders.PrettyQuote()}.");
             }
             
             // get the real full path name of the target
@@ -340,7 +347,7 @@ namespace Oetools.Builder.Project.Task {
                 try {
                     target = Path.GetFullPath(target);
                 } catch (Exception e) {
-                    throw new TaskExecutionException(this, $"Could not convert the target path to an absolute path, the original path pattern was {targetPathWithPlaceholders.PrettyQuote()}, it was resolved into the target {target.PrettyQuote()} but failed. {e.Message}", e);
+                    throw new TaskExecutionException(this, $"Could not convert the target path to an absolute path, the original path pattern was {targetPathWithPlaceholders.PrettyQuote()}, it was resolved into the target {target.PrettyQuote()} but failed: {e.Message}", e);
                 }
             }
 
@@ -368,7 +375,7 @@ namespace Oetools.Builder.Project.Task {
                     }
                     originalString.ValidatePlaceHolders();
                 } catch (Exception e) {
-                    var ex = new TargetValidationException(this, $"Property {getPropertyName?.Invoke() ?? "?"}, invalid path expression {originalString.PrettyQuote()}. {e.Message}", e) {
+                    var ex = new TargetValidationException(this, $"Invalid path expression for {getPropertyName?.Invoke() ?? "null"} = {originalString.PrettyQuote()}: {e.Message}", e) {
                         TargetNumber = i
                     };
                     throw ex;

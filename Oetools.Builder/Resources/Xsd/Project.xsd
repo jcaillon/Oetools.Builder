@@ -91,44 +91,12 @@ These properties are used as default values for this project but can be overload
 For instance, this allows to define a DLC (v11) path for the project but you can define a build configuration that will use another DLC (v9) path.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="PreBuildTasks" type="ArrayOfOeBuildStepClassic">
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildSteps" type="ArrayOfChoice3">
         <xs:annotation>
-          <xs:documentation><![CDATA[A list of steps/tasks that will be executed before anything else.
+          <xs:documentation><![CDATA[A list of steps to build your application. Each step contains a list of tasks. The sequential execution of these steps/tasks is called a build.
 
 Remarks:
-These tasks can be used to "prepare" the build. For instance, by downloading dependencies or packages. Or by modifying certain source files.
-Steps and tasks within steps are executed sequentially in the given order.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildSourceTasks" type="ArrayOfOeBuildStepBuildSource">
-        <xs:annotation>
-          <xs:documentation><![CDATA[A list of steps/tasks that will build the files in your project source directory.
-
-Remarks:
-This is the main tasks list, where openedge files should be compiled.
-The history of files built here can be saved to enable an incremental build.
-A listing of the source files is made at each step. Which means it would not be efficient to create 10 steps of 1 task each if the files in your source directory will not change between steps.
-Steps and tasks within steps are executed sequentially in the given order.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildOutputTasks" type="ArrayOfOeBuildStepClassic">
-        <xs:annotation>
-          <xs:documentation><![CDATA[A list of steps/tasks that should affect the files in your project output directory.
-
-Remarks:
-These tasks should be used to "post-process" the files built from your source directory into the output directory.
-For instance, it can be used to build a release zip file containing all the .pl and other configuration files of your release.
-A listing of the files in the output directory is made at each step. Which means it would not be efficient to create 10 steps of 1 task each if those files will not change between steps.
-Steps and tasks within steps are executed sequentially in the given order.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="PostBuildTasks" type="ArrayOfOeBuildStepClassic">
-        <xs:annotation>
-          <xs:documentation><![CDATA[A list of steps/tasks that will be executed after anything else.
-
-Remarks:
-These tasks can be used to "deploy" a build. For instance, by uploading a release zip file to a distant http or ftp server.
-Steps and tasks within steps are executed sequentially in the given order.]]></xs:documentation>
+Steps (and tasks within them) are executed sequentially in their defined order.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ChildrenBuildConfigurations" type="ArrayOfOeBuildConfiguration">
@@ -198,7 +166,7 @@ Special variables are already defined and available:
   </xs:complexType>
   <xs:complexType name="OeProperties">
     <xs:all>
-      <xs:element minOccurs="0" maxOccurs="1" name="DlcDirectory" type="xs:string">
+      <xs:element minOccurs="0" maxOccurs="1" name="DlcDirectoryPath" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[The path to the directory containing the installation of openedge.
 Commonly known as the DLC directory.
@@ -263,7 +231,7 @@ It is advised to version a neutral .ini file with a blank propath in order to al
 Relative path are resolved with the current directory but you can use {{SOURCE_DIRECTORY}} to target the source directory.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="PropathEntries" type="ArrayOfString">
+      <xs:element minOccurs="0" maxOccurs="1" name="PropathEntries" type="ArrayOfOePropathEntry">
         <xs:annotation>
           <xs:documentation><![CDATA[A list of paths to add to the propath during the build.
 
@@ -282,7 +250,7 @@ Remarks:
 The idea is to use this option instead of manually specifying the compilation propath (for lazy people only).]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="PropathSourceDirectoriesFilter" type="OeFilterOptions">
+      <xs:element minOccurs="0" maxOccurs="1" name="PropathSourceDirectoriesFilter" type="OePropathFilterOptions">
         <xs:annotation>
           <xs:documentation><![CDATA[The filtering options for the automatic listing of directories in the source directory (to use as propath).]]></xs:documentation>
         </xs:annotation>
@@ -339,7 +307,7 @@ This procedure is called with a simple RUN statement and must not have any param
 It should be used to "clean up" any custom logic put in place with the procedure execution at the beginning of the session.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeTemporaryDirectory" type="xs:string">
+      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeTemporaryDirectoryPath" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[The temporary directory to use for an openedge session.
 Defaults to: $TEMP/.oe_tmp-xxx (temporary folder).
@@ -409,99 +377,105 @@ From this file, the tool is able to generate a temporary database used to compil
       </xs:annotation>
     </xs:attribute>
   </xs:complexType>
-  <xs:complexType name="ArrayOfString">
+  <xs:complexType name="ArrayOfOePropathEntry">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Path" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Entry" nillable="true" type="OePropathEntry">
+        <xs:annotation>
+          <xs:documentation><![CDATA[An entry to add to the propath.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
-  <xs:complexType name="OeFilterOptions">
+  <xs:complexType name="OePropathEntry">
+    <xs:simpleContent>
+      <xs:extension base="xs:string" />
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="OePropathFilterOptions">
     <xs:complexContent mixed="false">
-      <xs:extension base="AOeTaskFilterElements">
+      <xs:extension base="PathListerFilterOptions">
         <xs:all>
-          <xs:element minOccurs="0" maxOccurs="1" name="ExcludeHiddenDirectories" nillable="true" type="xs:boolean">
+          <xs:element minOccurs="0" maxOccurs="1" name="PropathInclude" type="xs:string">
             <xs:annotation>
-              <xs:documentation><![CDATA[Whether or not to ignore hidden directories during the listing.
-Defaults to: False.]]></xs:documentation>
+              <xs:documentation><![CDATA[A path pattern that describes paths that should be included by this filter.
+
+Remarks:
+Several pattern can be used, separate them with a semi-colon (i.e. ;).
+Internally, each pattern is turned into a valid regular expression.
+If a file is matched by several patterns, only the first one will be used.
+
+The following symbols can be used in patterns:
+
+- ** will match any char any number of time (corresponds to a regex greedy match)
+- * will match only non path separators any time (can be used to match any file name)
+- ? matches non path separators exactly 1 time
+- (( will start capturing characters (equivalent to regex capturing parenthesis)
+- )) will stop capturing characters
+- || will corresponds to a "or" in a captured context (equivalent to | in regex)
+
+Examples:
+** will match any path.
+((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
             </xs:annotation>
           </xs:element>
-          <xs:element minOccurs="0" maxOccurs="1" name="RecursiveListing" nillable="true" type="xs:boolean">
+          <xs:element minOccurs="0" maxOccurs="1" name="PropathIncludeRegex" type="xs:string">
             <xs:annotation>
-              <xs:documentation><![CDATA[Whether or not to include the content of subdirectories when listing.
-Defaults to: True.]]></xs:documentation>
+              <xs:documentation><![CDATA[A regular expression that describes paths that should be included by this filter.]]></xs:documentation>
             </xs:annotation>
           </xs:element>
-          <xs:element minOccurs="0" maxOccurs="1" name="ExtraVcsPatternExclusion" type="xs:string">
+          <xs:element minOccurs="0" maxOccurs="1" name="PropathExclude" type="xs:string">
             <xs:annotation>
-              <xs:documentation><![CDATA[Extra patterns of path to exclude during a listing, corresponds to typical svn/git directories that we don't want to include in builds.
-Defaults to: .git**;.svn**.]]></xs:documentation>
+              <xs:documentation><![CDATA[A path pattern that describes paths that should be excluded by this filter.
+
+Remarks:
+Several pattern can be used, separate them with a semi-colon (i.e. ;).
+Internally, each pattern is turned into a valid regular expression.
+If a file is matched by several patterns, only the first one will be used.
+
+The following symbols can be used in patterns:
+
+- ** will match any char any number of time (corresponds to a regex greedy match)
+- * will match only non path separators any time (can be used to match any file name)
+- ? matches non path separators exactly 1 time
+- (( will start capturing characters (equivalent to regex capturing parenthesis)
+- )) will stop capturing characters
+- || will corresponds to a "or" in a captured context (equivalent to | in regex)
+
+Examples:
+** will match any path.
+((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="PropathExcludeRegex" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[A regular expression that describes paths that should be excluded by this filter.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="PropathExcludeHiddenDirectories" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[
+Defaults to: False.Whether or not to ignore hidden directories during the listing.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="PropathRecursiveListing" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[
+Defaults to: True.Whether or not to include the content of subdirectories when listing.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="PropathExtraVcsPatternExclusion" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[
+Defaults to: .git**;.svn**.Extra patterns of path to exclude during a listing, corresponds to typical svn/git directories that we don't want to include in builds.]]></xs:documentation>
             </xs:annotation>
           </xs:element>
         </xs:all>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="AOeTaskFilterElements" abstract="true">
+  <xs:complexType name="PathListerFilterOptions" abstract="true">
     <xs:complexContent mixed="false">
-      <xs:extension base="AOeTaskFilter">
-        <xs:all>
-          <xs:element minOccurs="0" maxOccurs="1" name="Include" type="xs:string">
-            <xs:annotation>
-              <xs:documentation><![CDATA[A path pattern that describes paths that should be processed by this task.
-
-Remarks:
-Several pattern can be used, separate them with a semi-colon (i.e. ;).
-Internally, each pattern is turned into a valid regular expression.
-If a file is matched by several patterns, only the first one will be used.
-
-The following symbols can be used in patterns:
-
-- ** will match any char any number of time (corresponds to a regex greedy match)
-- * will match only non path separators any time (can be used to match any file name)
-- ? matches non path separators exactly 1 time
-- (( will start capturing characters (equivalent to regex capturing parenthesis)
-- )) will stop capturing characters
-- || will corresponds to a "or" in a captured context (equivalent to | in regex)
-
-Examples:
-** will match any path.
-((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
-            </xs:annotation>
-          </xs:element>
-          <xs:element minOccurs="0" maxOccurs="1" name="IncludeRegex" type="xs:string">
-            <xs:annotation>
-              <xs:documentation><![CDATA[A regular expression path pattern that describes paths that should be processed by this task.]]></xs:documentation>
-            </xs:annotation>
-          </xs:element>
-          <xs:element minOccurs="0" maxOccurs="1" name="Exclude" type="xs:string">
-            <xs:annotation>
-              <xs:documentation><![CDATA[A path pattern that describes paths that should be excluded from being processed by this task.
-
-Remarks:
-Several pattern can be used, separate them with a semi-colon (i.e. ;).
-Internally, each pattern is turned into a valid regular expression.
-If a file is matched by several patterns, only the first one will be used.
-
-The following symbols can be used in patterns:
-
-- ** will match any char any number of time (corresponds to a regex greedy match)
-- * will match only non path separators any time (can be used to match any file name)
-- ? matches non path separators exactly 1 time
-- (( will start capturing characters (equivalent to regex capturing parenthesis)
-- )) will stop capturing characters
-- || will corresponds to a "or" in a captured context (equivalent to | in regex)
-
-Examples:
-** will match any path.
-((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
-            </xs:annotation>
-          </xs:element>
-          <xs:element minOccurs="0" maxOccurs="1" name="ExcludeRegex" type="xs:string">
-            <xs:annotation>
-              <xs:documentation><![CDATA[A regular expression path pattern that describes paths that should be excluded from being processed by this task.]]></xs:documentation>
-            </xs:annotation>
-          </xs:element>
-        </xs:all>
-      </xs:extension>
+      <xs:extension base="AOeTaskFilter" />
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="AOeTaskFilter" abstract="true">
@@ -837,6 +811,98 @@ Options are: None, Fastest, Optimal.]]></xs:documentation>
       <xs:extension base="AOeTaskDirectory" />
     </xs:complexContent>
   </xs:complexType>
+  <xs:complexType name="OeSourceFilterOptions">
+    <xs:complexContent mixed="false">
+      <xs:extension base="PathListerFilterOptions">
+        <xs:all>
+          <xs:element minOccurs="0" maxOccurs="1" name="SourceInclude" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[A path pattern that describes paths that should be included by this filter.
+
+Remarks:
+Several pattern can be used, separate them with a semi-colon (i.e. ;).
+Internally, each pattern is turned into a valid regular expression.
+If a file is matched by several patterns, only the first one will be used.
+
+The following symbols can be used in patterns:
+
+- ** will match any char any number of time (corresponds to a regex greedy match)
+- * will match only non path separators any time (can be used to match any file name)
+- ? matches non path separators exactly 1 time
+- (( will start capturing characters (equivalent to regex capturing parenthesis)
+- )) will stop capturing characters
+- || will corresponds to a "or" in a captured context (equivalent to | in regex)
+
+Examples:
+** will match any path.
+((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="SourceIncludeRegex" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[A regular expression that describes paths that should be included by this filter.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="SourceExclude" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[A path pattern that describes paths that should be excluded by this filter.
+
+Remarks:
+Several pattern can be used, separate them with a semi-colon (i.e. ;).
+Internally, each pattern is turned into a valid regular expression.
+If a file is matched by several patterns, only the first one will be used.
+
+The following symbols can be used in patterns:
+
+- ** will match any char any number of time (corresponds to a regex greedy match)
+- * will match only non path separators any time (can be used to match any file name)
+- ? matches non path separators exactly 1 time
+- (( will start capturing characters (equivalent to regex capturing parenthesis)
+- )) will stop capturing characters
+- || will corresponds to a "or" in a captured context (equivalent to | in regex)
+
+Examples:
+** will match any path.
+((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="SourceExcludeRegex" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[A regular expression that describes paths that should be excluded by this filter.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="SourceExcludeHiddenDirectories" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[
+Defaults to: False.Whether or not to ignore hidden directories during the listing.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="SourceRecursiveListing" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[
+Defaults to: True.Whether or not to include the content of subdirectories when listing.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="SourceExtraVcsPatternExclusion" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[
+Defaults to: .git**;.svn**.Extra patterns of path to exclude during a listing, corresponds to typical svn/git directories that we don't want to include in builds.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="SourceOverrideFileList" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[A direct list of files to use as sources.
+
+Remarks:
+Several paths can be given by separating them with a semi-colon (i.e. ;).
+This option overrides every other options in this filter, the paths listed here are directly used as results of this filter.
+Non existing paths are simply ignored.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:all>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
   <xs:complexType name="OeCompilationOptions">
     <xs:all>
       <xs:element minOccurs="0" maxOccurs="1" name="CompileWithDebugList" nillable="true" type="xs:boolean">
@@ -989,7 +1055,7 @@ Remarks:
 You cannot use variables in this property.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildFilter" type="OeFilterOptions">
+      <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildFilter" type="OeSourceFilterOptions">
         <xs:annotation>
           <xs:documentation><![CDATA[The filtering options for the source files of your application that need to be built.
 
@@ -1048,9 +1114,21 @@ Defaults to: {{PROJECT_LOCAL_DIRECTORY}}\build\latest.xml.]]></xs:documentation>
 Defaults to: {{PROJECT_LOCAL_DIRECTORY}}\build\latest.html.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="TreatWarningsAsErrors" nillable="true" type="xs:boolean">
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildConfigurationExportFilePath" type="xs:string">
         <xs:annotation>
-          <xs:documentation><![CDATA[Sets whether or not build warnings must be considered as errors and stop the build.
+          <xs:documentation><![CDATA[The path to an xml file that will contain the exported build configuration for this build.
+Defaults to: {{PROJECT_LOCAL_DIRECTORY}}\build\latest.oeproj.xml.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="StopBuildOnTaskError" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Sets whether or not the build must be stopped if a task generates warnings.
+Defaults to: True.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="StopBuildOnTaskWarning" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Sets whether or not the build must be stopped if a task generates warnings.
 Defaults to: False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
@@ -1081,7 +1159,7 @@ Shutting down an openedge database is a really slow process and it should be avo
 Defaults to: True.
 
 Remarks:
-Shutting down an openedge database is a really slow process, this option speeds up the shutdown drastically. The database broker is kill instead of being properly shutdown. Since the tool uses temporary databases and since those databases are only used to compiled code, this is completely safe.]]></xs:documentation>
+Shutting down an openedge database is a really slow process, this option speeds up the shutdown drastically. The database broker is killed instead of being properly shutdown. Since the tool uses temporary databases and since those databases are only used to compiled code, this is completely safe.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="TestMode" nillable="true" type="xs:boolean">
@@ -1094,7 +1172,7 @@ Defaults to: False.]]></xs:documentation>
   </xs:complexType>
   <xs:complexType name="OeIncrementalBuildOptions">
     <xs:all>
-      <xs:element minOccurs="0" maxOccurs="1" name="Enabled" nillable="true" type="xs:boolean">
+      <xs:element minOccurs="0" maxOccurs="1" name="EnabledIncrementalBuild" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether or not the incremental build should be used.
 An incremental build improves the build process by only compiling and building files that were modified or added since the last build. It is the opposite of a full rebuild.
@@ -1162,60 +1240,116 @@ On the first build, the file "A" was compiled and copied to location "/bin". A n
     </xs:all>
   </xs:complexType>
   <xs:complexType name="OeGitFilterOptions">
-    <xs:all>
-      <xs:element minOccurs="0" maxOccurs="1" name="IncludeSourceFilesModifiedSinceLastCommit" nillable="true" type="xs:boolean">
-        <xs:annotation>
-          <xs:documentation><![CDATA[Build source files that were modified/added/deleted since the last commit.
-Defaults to: False.
+    <xs:complexContent mixed="false">
+      <xs:extension base="PathListerGitFilterOptions">
+        <xs:all>
+          <xs:element minOccurs="0" maxOccurs="1" name="IncludeSourceFilesModifiedSinceLastCommit" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[
+Defaults to: False.Build source files that were modified/added/deleted since the last commit.
 
 Remarks:
 This include all the files in staging area as well as untracked files in the working directory. Basically, any file listed in a `git status` command.
 This is a good filter to build all the files you are about to commit (and thus check if they compile).]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="IncludeSourceFilesCommittedOnlyOnCurrentBranch" nillable="true" type="xs:boolean">
-        <xs:annotation>
-          <xs:documentation><![CDATA[Build source files that were modified/added/deleted in a commit that is exclusive to the current branch.
-Defaults to: False.
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="IncludeSourceFilesCommittedOnlyOnCurrentBranch" nillable="true" type="xs:boolean">
+            <xs:annotation>
+              <xs:documentation><![CDATA[
+Defaults to: False.Build source files that were modified/added/deleted in a commit that is exclusive to the current branch.
 
 Remarks:
 The `git log` is used to identify which commits are referenced only by the current branch (or reference only by the any remote reference of the current branch). The files modified/added/deleted in these commits are then build.
 To rephrase this, we consider the commits from HEAD to the first commit that has a reference different than current_branch or any_remote/current_branch (aforementioned commit is not included).
 This option is useful to check if the changes you introduced with several commits in your branch do not break the build of your application.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchName" type="xs:string">
-        <xs:annotation>
-          <xs:documentation><![CDATA[The branch reference name for the current branch. To be used with IncludeSourceFilesCommittedOnlyOnCurrentBranch.
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchName" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[The branch reference name for the current branch. To be used with IncludeSourceFilesCommittedOnlyOnCurrentBranch.
 
 Remarks:
 This can be useful in CI builds where the CI checks out a repo in detached mode (it checks out a commit, not a branch).
 However, by default, if in detached mode, this tool tries to deduce the current branch by checking the first remote reference of the currently checked out commit. This will be sufficient in most cases, so this option can often be left empty.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchOriginCommit" type="xs:string">
-        <xs:annotation>
-          <xs:documentation><![CDATA[The reference or SHA1 of the commit from which the current branch originated. To be used with IncludeSourceFilesCommittedOnlyOnCurrentBranch.
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchOriginCommit" type="xs:string">
+            <xs:annotation>
+              <xs:documentation><![CDATA[The reference or SHA1 of the commit from which the current branch originated. To be used with IncludeSourceFilesCommittedOnlyOnCurrentBranch.
 
 Remarks:
 Read the description of IncludeSourceFilesCommittedOnlyOnCurrentBranch to understand this option.
 This commit is generally found automatically but you can set its value to force a build between HEAD and a given commit.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-    </xs:all>
+            </xs:annotation>
+          </xs:element>
+        </xs:all>
+      </xs:extension>
+    </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="ArrayOfOeBuildStepClassic">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Step" nillable="true" type="OeBuildStepClassic">
+  <xs:complexType name="PathListerGitFilterOptions" abstract="true" />
+  <xs:complexType name="ArrayOfChoice3">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildSource" nillable="true" type="OeBuildStepBuildSource">
         <xs:annotation>
-          <xs:documentation><![CDATA[A step (list of tasks) to build your application.]]></xs:documentation>
+          <xs:documentation><![CDATA[A list of steps/tasks that will build the files in your project source directory.
+This type of step should be for all the tasks that are affecting files in your source directory.
+
+Remarks:
+Tasks are executed sequentially in the given order.
+For this type of step, the openedge compilation is sped up by compiling all the files required at the beginning of the step.
+This is the main tasks list, where openedge files should be compiled.
+The history of files built here can be saved to enable an incremental build.
+A listing of the source files is made at each step. Which means it would not be efficient to create 10 steps of 1 task each if the files in your source directory will not change between steps.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-    </xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildOutput" nillable="true" type="OeBuildStepBuildOutput">
+        <xs:annotation>
+          <xs:documentation><![CDATA[A list of steps/tasks that should affect the files in your project output directory.
+
+Remarks:
+Tasks are executed sequentially in the given order.
+These tasks should be used to "post-process" the files built from your source directory into the output directory.
+For instance, it can be used to build a release zip file containing all the .pl and other configuration files of your release.
+A listing of the files in the output directory is made at each step. Which means it would not be efficient to create 10 steps of 1 task each if those files will not change between steps.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="Free" nillable="true" type="OeBuildStepFree">
+        <xs:annotation>
+          <xs:documentation><![CDATA[A step (list of tasks) to build your application.
+
+Remarks:
+Tasks are executed sequentially in the given order.
+
+Examples:
+These tasks can be used to "prepare" the build. For instance, by downloading dependencies or packages. Or by modifying certain source files.
+These tasks can be used to "deploy" a build. For instance, by uploading a release zip file to a distant http or ftp server.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:choice>
   </xs:complexType>
-  <xs:complexType name="OeBuildStepClassic">
+  <xs:complexType name="OeBuildStepBuildSource">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeBuildStep">
+      <xs:extension base="AOeBuildStep">
+        <xs:all>
+          <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice2">
+            <xs:annotation>
+              <xs:documentation><![CDATA[A list of tasks to build your source files.]]></xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:all>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="AOeBuildStep" abstract="true">
+    <xs:attribute name="Name" type="xs:string">
+      <xs:annotation>
+        <xs:documentation><![CDATA[The name of this build step. Purely informative.]]></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="OeBuildStepFree">
+    <xs:complexContent mixed="false">
+      <xs:extension base="AOeBuildStep">
         <xs:all>
           <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice1">
             <xs:annotation>
@@ -1226,24 +1360,33 @@ This commit is generally found automatically but you can set its value to force 
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:complexType name="OeBuildStep" abstract="true">
-    <xs:attribute name="Name" type="xs:string">
-      <xs:annotation>
-        <xs:documentation><![CDATA[The name of this build step. Purely informative.]]></xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
+  <xs:complexType name="ArrayOfChoice1">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element minOccurs="0" maxOccurs="1" name="Execute" nillable="true" type="OeTaskExec">
+        <xs:annotation>
+          <xs:documentation><![CDATA[This task starts a new external process.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="Delete" nillable="true" type="OeTaskFileDelete">
+        <xs:annotation>
+          <xs:documentation><![CDATA[This task deletes files.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="Cab" nillable="true" type="OeTaskFileArchiverArchiveCab">
+        <xs:annotation>
+          <xs:documentation><![CDATA[This task adds files into cabinet files.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="RemoveDirectory" nillable="true" type="OeTaskDirectoryDelete">
+        <xs:annotation>
+          <xs:documentation><![CDATA[This task deletes directories.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:choice>
   </xs:complexType>
-  <xs:complexType name="OeBuildStepBuildSource">
+  <xs:complexType name="OeBuildStepBuildOutput">
     <xs:complexContent mixed="false">
-      <xs:extension base="OeBuildStep">
-        <xs:all>
-          <xs:element minOccurs="0" maxOccurs="1" name="Tasks" type="ArrayOfChoice2">
-            <xs:annotation>
-              <xs:documentation><![CDATA[A list of tasks to build your source files.]]></xs:documentation>
-            </xs:annotation>
-          </xs:element>
-        </xs:all>
-      </xs:extension>
+      <xs:extension base="OeBuildStepFree" />
     </xs:complexContent>
   </xs:complexType>
   <xs:complexType name="ArrayOfChoice2">
@@ -1279,39 +1422,5 @@ This commit is generally found automatically but you can set its value to force 
         </xs:annotation>
       </xs:element>
     </xs:choice>
-  </xs:complexType>
-  <xs:complexType name="ArrayOfChoice1">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element minOccurs="0" maxOccurs="1" name="Execute" nillable="true" type="OeTaskExec">
-        <xs:annotation>
-          <xs:documentation><![CDATA[This task starts a new external process.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="Delete" nillable="true" type="OeTaskFileDelete">
-        <xs:annotation>
-          <xs:documentation><![CDATA[This task deletes files.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="Cab" nillable="true" type="OeTaskFileArchiverArchiveCab">
-        <xs:annotation>
-          <xs:documentation><![CDATA[This task adds files into cabinet files.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="RemoveDirectory" nillable="true" type="OeTaskDirectoryDelete">
-        <xs:annotation>
-          <xs:documentation><![CDATA[This task deletes directories.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-    </xs:choice>
-  </xs:complexType>
-  <xs:complexType name="ArrayOfOeBuildStepBuildSource">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="Step" nillable="true" type="OeBuildStepBuildSource">
-        <xs:annotation>
-          <xs:documentation><![CDATA[A step to build your source files.
-The list of files in your source directory is done at the beginning of each step.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-    </xs:sequence>
   </xs:complexType>
 </xs:schema>

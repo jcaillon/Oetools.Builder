@@ -20,7 +20,10 @@
 
 using System;
 using System.Xml.Serialization;
+using Oetools.Builder.Exceptions;
 using Oetools.Builder.Utilities;
+using Oetools.Utilities.Lib.Attributes;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Properties {
     
@@ -35,6 +38,7 @@ namespace Oetools.Builder.Project.Properties {
         /// If true, the compilation process will generate a debugfile (.dbg) that consists of a line-numbered listing of the procedure with the text of all preprocessor include files, names, and parameters inserted.
         /// </remarks>
         [XmlElement(ElementName = "CompileWithDebugList")]
+        [DefaultValueMethod(nameof(GetDefaultCompileWithDebugList))]
         public bool? CompileWithDebugList { get; set; }
         public static bool GetDefaultCompileWithDebugList() => false;
 
@@ -45,6 +49,7 @@ namespace Oetools.Builder.Project.Properties {
         /// If true, the compilation process will generate an xref file (.xrf) that contains reference information on ABL elements, cross-references between procedures and ABL objects, and cross-references between class or interface definition files and ABL objects.
         /// </remarks>
         [XmlElement(ElementName = "CompileWithXref")]
+        [DefaultValueMethod(nameof(GetDefaultCompileWithXref))]
         public bool? CompileWithXref { get; set; }
         public static bool GetDefaultCompileWithXref() => false;
 
@@ -57,6 +62,7 @@ namespace Oetools.Builder.Project.Properties {
         /// This option cannot be used simultaneously with the XREF option.
         /// </remarks>
         [XmlElement(ElementName = "CompileWithXmlXref")]
+        [DefaultValueMethod(nameof(GetDefaultCompileWithXmlXref))]
         public bool? CompileWithXmlXref { get; set; }
         public static bool GetDefaultCompileWithXmlXref() => false;
 
@@ -72,6 +78,7 @@ namespace Oetools.Builder.Project.Properties {
         /// - The complete text of all include files (except encrypted include files) and the names of any sub-procedures and user-defined functions 
         /// </remarks>
         [XmlElement(ElementName = "CompileWithListing")]
+        [DefaultValueMethod(nameof(GetDefaultCompileWithListing))]
         public bool? CompileWithListing { get; set; }
         public static bool GetDefaultCompileWithListing() => false;
 
@@ -82,6 +89,7 @@ namespace Oetools.Builder.Project.Properties {
         /// If true, the compilation process will generate a file (.preprocessed) that contains a final version of your source code after all include files have been inserted and all text substitutions have been performed.
         /// </remarks>
         [XmlElement(ElementName = "CompileWithPreprocess")]
+        [DefaultValueMethod(nameof(GetDefaultCompileWithPreprocess))]
         public bool? CompileWithPreprocess { get; set; }
         public static bool GetDefaultCompileWithPreprocess() => false;
         
@@ -94,6 +102,7 @@ namespace Oetools.Builder.Project.Properties {
         /// When set to FALSE, ABL compiles all class definition files in the inherited class hierarchy. ABL also clears the cache of any classes or interfaces compiled during the session. The default value is FALSE.
         /// </remarks>
         [XmlElement(ElementName = "UseCompilerMultiCompile")]
+        [DefaultValueMethod(nameof(GetDefaultUseCompilerMultiCompile))]
         public bool? UseCompilerMultiCompile { get; set; }
         public static bool GetDefaultUseCompilerMultiCompile() => false;
 
@@ -133,6 +142,7 @@ namespace Oetools.Builder.Project.Properties {
         /// By default, all rcode generated are saved in the temporary directory and then moved to the different target locations. This might result in unnecessary delays and can be avoided by saving the rcode directly to the target location. This option allows the tool to make this small simplification when it makes sense.
         /// </remarks>
         [XmlElement(ElementName = "TryToOptimizeCompilationDirectory")]
+        [DefaultValueMethod(nameof(GetDefaultTryToOptimizeCompilationDirectory))]
         public bool? TryToOptimizeCompilationDirectory { get; set; }
         public static bool GetDefaultTryToOptimizeCompilationDirectory() => true;
 
@@ -143,6 +153,7 @@ namespace Oetools.Builder.Project.Properties {
         /// This is a default filter that is used for each "compile" task and which allows to process only certain types of files. 
         /// </remarks>
         [XmlElement(ElementName = "CompilableFileExtensionPattern")]
+        [DefaultValueMethod(nameof(GetDefaultCompilableFileExtensionPattern))]
         public string CompilableFileExtensionPattern { get; set; }
         public static string GetDefaultCompilableFileExtensionPattern() => OeBuilderConstants.CompilableExtensionsPattern;
                 
@@ -154,6 +165,7 @@ namespace Oetools.Builder.Project.Properties {
         /// This option allows to fine tune the number of processes to start.
         /// </remarks>
         [XmlElement(ElementName = "NumberProcessPerCore")]
+        [DefaultValueMethod(nameof(GetDefaultNumberProcessPerCore))]
         public byte? NumberProcessPerCore { get; set; }
         public static byte GetDefaultNumberProcessPerCore() => 1;
         
@@ -165,6 +177,7 @@ namespace Oetools.Builder.Project.Properties {
         /// This can be useful for low end machines or when connecting to a database in mono-user (-1 parameter).
         /// </remarks>
         [XmlElement(ElementName = "ForceSingleProcess")]
+        [DefaultValueMethod(nameof(GetDefaultForceSingleProcess))]
         public bool? ForceSingleProcess { get; set; }
         public static bool GetDefaultForceSingleProcess() => false;
         
@@ -177,7 +190,18 @@ namespace Oetools.Builder.Project.Properties {
         /// This option exists because there would be an important overhead to start 2 openedge processes to compile only 2 files.
         /// </remarks>
         [XmlElement(ElementName = "MinimumNumberOfFilesPerProcess")]
+        [DefaultValueMethod(nameof(GetDefaultMinimumNumberOfFilesPerProcess))]
         public int? MinimumNumberOfFilesPerProcess { get; set; }
         public static int GetDefaultMinimumNumberOfFilesPerProcess() => 10;
+        
+        /// <summary>
+        /// Validate that is object is correct.
+        /// </summary>
+        /// <exception cref="PropertiesException"></exception>
+        public void Validate() {
+            if ((NumberProcessPerCore ?? 0) > 10) {
+                throw new PropertiesException($"The property {GetType().GetXmlName(nameof(NumberProcessPerCore))} should not exceed 10 (value is {NumberProcessPerCore}).");
+            }
+        }
     }
 }

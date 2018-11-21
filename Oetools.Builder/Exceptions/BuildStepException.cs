@@ -16,6 +16,6 @@ namespace Oetools.Builder.Exceptions {
             BuildStep = buildStep;
         }
 
-        public override string Message => $"{(string.IsNullOrEmpty(PropertyName) ? "" : $"{PropertyName} ")}{BuildStep} : {base.Message ?? ""}";
+        public override string Message => $"{(string.IsNullOrEmpty(PropertyName) ? "" : $"{PropertyName}: ")}{BuildStep}: {base.Message ?? ""}";
     }
 }

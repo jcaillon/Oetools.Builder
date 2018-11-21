@@ -20,6 +20,7 @@
 
 using System;
 using System.Xml.Serialization;
+using Oetools.Utilities.Lib.Attributes;
 
 namespace Oetools.Builder.Project.Properties {
     
@@ -36,6 +37,7 @@ namespace Oetools.Builder.Project.Properties {
         /// Depending on your build and your intentions, this can significantly improve the build performances or slow down systematic full rebuilds.
         /// </remarks>
         [XmlElement(ElementName = "EnabledIncrementalBuild")]
+        [DefaultValueMethod(nameof(GetDefaultEnabledIncrementalBuild))]
         public bool? EnabledIncrementalBuild { get; set; }
         public static bool GetDefaultEnabledIncrementalBuild() => true;
             
@@ -48,6 +50,7 @@ namespace Oetools.Builder.Project.Properties {
         /// This option can be used on low-end computers but it is not advised to use this mode if it is not necessary.
         /// </remarks>
         [XmlElement(ElementName = "UseSimplerAnalysisForDatabaseReference")]
+        [DefaultValueMethod(nameof(GetDefaultUseSimplerAnalysisForDatabaseReference))]
         public bool? UseSimplerAnalysisForDatabaseReference { get; set; }
         public static bool GetDefaultUseSimplerAnalysisForDatabaseReference() => false;
                 
@@ -59,6 +62,7 @@ namespace Oetools.Builder.Project.Properties {
         /// By default, a file is considered unmodified if its size and last modified date has not changed since the previous build. This option also compute and consider the file checksum using the MD5 checksum computation.
         /// </remarks>
         [XmlElement(ElementName = "UseCheckSumComparison")]
+        [DefaultValueMethod(nameof(GetDefaultUseCheckSumComparison))]
         public bool? UseCheckSumComparison { get; set; }
         public static bool GetDefaultUseCheckSumComparison() => false;
             
@@ -71,6 +75,7 @@ namespace Oetools.Builder.Project.Properties {
         /// - If not, nothing happens
         /// </example>
         [XmlElement(ElementName = "MirrorDeletedSourceFileToOutput")]
+        [DefaultValueMethod(nameof(GetDefaultMirrorDeletedSourceFileToOutput))]
         public bool? MirrorDeletedSourceFileToOutput { get; set; }
         public static bool GetDefaultMirrorDeletedSourceFileToOutput() => false;
             
@@ -83,6 +88,7 @@ namespace Oetools.Builder.Project.Properties {
         /// - If not, nothing happens and the file "A" is not recompiled
         /// </example>
         [XmlElement(ElementName = "MirrorDeletedTargetsToOutput")]
+        [DefaultValueMethod(nameof(GetDefaultMirrorDeletedTargetsToOutput))]
         public bool? MirrorDeletedTargetsToOutput { get; set; }
         public static bool GetDefaultMirrorDeletedTargetsToOutput() => false;
             
@@ -95,6 +101,7 @@ namespace Oetools.Builder.Project.Properties {
         /// - If not, nothing happens (the file "A" has not been changed since the last build)
         /// </example>
         [XmlElement(ElementName = "RebuildFilesWithNewTargets")]
+        [DefaultValueMethod(nameof(GetDefaultRebuildFilesWithNewTargets))]
         public bool? RebuildFilesWithNewTargets { get; set; }
         public static bool GetDefaultRebuildFilesWithNewTargets() => false;
         

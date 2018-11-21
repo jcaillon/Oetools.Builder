@@ -32,6 +32,9 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder {
     
+    /// <summary>
+    /// A builder to build an openedge project.
+    /// </summary>
     public class Builder : IDisposable {
         
         private PathList<IOeFileBuilt> _previouslyBuiltPaths;
@@ -104,7 +107,7 @@ namespace Oetools.Builder {
                 PreBuild();
                 try {
                     Log?.Info($"Start building {BuildConfiguration}");
-                    ExecuteBuildConfiguration();
+                    ExecuteBuildSteps();
                 } catch (OperationCanceledException) {
                     Log?.Debug("Build canceled");
                     throw;
@@ -142,78 +145,69 @@ namespace Oetools.Builder {
         /// <summary>
         /// Executes the build
         /// </summary>
-        private void ExecuteBuildConfiguration() {
+        private void ExecuteBuildSteps() {
             // compute the total number of tasks to execute
-            TotalNumberOfTasks += BuildConfiguration.PreBuildStepGroup?.SelectMany(step => step.Tasks).Count() ?? 0;
-            TotalNumberOfTasks += BuildConfiguration.BuildSourceStepGroup?.SelectMany(step => step.Tasks).Count() ?? 0;
-            TotalNumberOfTasks += BuildConfiguration.BuildOutputStepGroup?.SelectMany(step => step.Tasks).Count() ?? 0;
-            TotalNumberOfTasks += BuildConfiguration.PostBuildStepGroup?.SelectMany(step => step.Tasks).Count() ?? 0;
+            TotalNumberOfTasks += BuildConfiguration.BuildSteps?.SelectMany(step => step.Tasks).Count() ?? 0;
             TotalNumberOfTasks += PreviouslyBuiltPaths != null ? 2 : 0; // potential extra tasks for removal
             
-            ExecuteBuildStep<BuildStepExecutor>(BuildConfiguration.PreBuildStepGroup, nameof(OeBuildConfiguration.PreBuildStepGroup));
-            ExecuteBuildStep<BuildStepExecutorBuildSource>(BuildConfiguration.BuildSourceStepGroup, nameof(OeBuildConfiguration.BuildSourceStepGroup));
-            ExecuteBuildStep<BuildStepExecutorBuildOutput>(BuildConfiguration.BuildOutputStepGroup, nameof(OeBuildConfiguration.BuildOutputStepGroup));
-            ExecuteBuildStep<BuildStepExecutor>(BuildConfiguration.PostBuildStepGroup, nameof(OeBuildConfiguration.PostBuildStepGroup));
-        }
+            Log?.ReportGlobalProgress(TotalNumberOfTasks, NumberOfTasksDone, "Starting step execution.");
+            if (BuildConfiguration.BuildSteps != null) {
+                var buildSourceStepList = BuildConfiguration.BuildSteps.OfType<OeBuildStepBuildSource>().ToList();
+                var buildSourceStepCount = 0;
+                
+                foreach (var step in BuildConfiguration.BuildSteps) {
+                    Log?.Info($"Executing {step}");
+                    
+                    BuildStepExecutor executor;
+                    switch (step) {
+                        case OeBuildStepBuildSource _:
+                            executor = new BuildStepExecutorBuildSource();
+                            break;
+                        case OeBuildStepBuildOutput _:
+                            executor = new BuildStepExecutorBuildOutput();
+                            break;
+                        default:
+                            executor = new BuildStepExecutor();
+                            break;
+                    }
 
-        /// <summary>
-        /// Executes a build step
-        /// </summary>
-        private void ExecuteBuildStep<T>(IEnumerable<AOeBuildStep> steps, string oeBuildConfigurationPropertyName) where T : BuildStepExecutor, new() {
-            var executionName = typeof(OeBuildConfiguration).GetXmlName(oeBuildConfigurationPropertyName);
-            
-            Log?.ReportGlobalProgress(TotalNumberOfTasks, NumberOfTasksDone, $"Executing {executionName}");
-
-            if (steps == null) {
-                return;
+                    executor.Name = step.ToString();
+                    executor.Tasks = step.Tasks.ToNonNullEnumerable().OfType<IOeTask>().ToList();
+                    executor.Properties = BuildConfiguration.Properties;
+                    executor.Log = Log;
+                    executor.CancelToken = CancelToken;
+                    
+                    BuildStepExecutors.Add(executor);
+                    
+                    if (executor is BuildStepExecutorBuildSource buildSourceExecutor) {
+                        Log?.Debug("Is build source step.");
+                        buildSourceExecutor.PreviouslyBuiltPaths = PreviouslyBuiltPaths;
+                        if (buildSourceStepCount == buildSourceStepList.Count - 1) {
+                            Log?.Debug("Is the last build source step.");
+                            AddRemovalTasksToBuildSourceStep(buildSourceExecutor, buildSourceStepList);
+                        }
+                        buildSourceStepCount++;
+                    }
+                    
+                    executor.OnTaskStart += ExecutorOnOnTaskStart;
+                    executor.Execute();
+                    executor.OnTaskStart -= ExecutorOnOnTaskStart;
+                    NumberOfTasksDone += executor.NumberOfTasksDone;
+                }
             }
-
-            var stepsList = steps.ToList();
-            var i = 0;
-            foreach (var step in stepsList) {
-                Log?.Info($"Starting {executionName} - {step}");
-                var executor = new T {
-                    Name = executionName,
-                    Id = i,
-                    Tasks = (step.Tasks?.Cast<IOeTask>()).ToNonNullList(),
-                    Properties = BuildConfiguration.Properties,
-                    Log = Log,
-                    CancelToken = CancelToken
-                };
-                executor.OnTaskStart += ExecutorOnOnTaskStart;
-                BuildStepExecutors.Add(executor);
-                ConfigureBuildSource(executor as BuildStepExecutorBuildSource, stepsList, i);
-                executor.Execute();
-                NumberOfTasksDone += executor.NumberOfTasksDone;
-                i++;
-            }
+            Log?.ReportGlobalProgress(TotalNumberOfTasks, TotalNumberOfTasks, "Ending step execution.");
         }
 
         private void ExecutorOnOnTaskStart(object sender, StepExecutorProgressEventArgs e) {
-            Log?.ReportGlobalProgress(TotalNumberOfTasks, TotalNumberOfTasks + e.NumberOfTasksDone, $"Starting task {e.CurrentTask}");
+            Log?.ReportGlobalProgress(TotalNumberOfTasks, TotalNumberOfTasks + e.NumberOfTasksDone, $"Executing {e.CurrentTask}");
         }
 
         /// <summary>
-        /// Configure the source build, allowing to delete obsolete files there were previously built.
+        /// Allow to delete obsolete files/targets there were previously built.
         /// </summary>
         /// <param name="buildSourceExecutor"></param>
         /// <param name="stepsList"></param>
-        /// <param name="currentStep"></param>
-        private void ConfigureBuildSource(BuildStepExecutorBuildSource buildSourceExecutor, List<AOeBuildStep> stepsList, int currentStep) {
-            if (buildSourceExecutor == null) {
-                return;
-            }
-
-            Log?.Debug("Is build source step");
-            
-            buildSourceExecutor.PreviouslyBuiltPaths = PreviouslyBuiltPaths;
-
-            if (currentStep < stepsList.Count - 1) {
-                return;
-            }
-
-            Log?.Debug("Is the last step");
-
+        private void AddRemovalTasksToBuildSourceStep(BuildStepExecutorBuildSource buildSourceExecutor, List<OeBuildStepBuildSource> stepsList) {
             if (PreviouslyBuiltPaths == null) {
                 return;
             }
@@ -275,42 +269,9 @@ namespace Oetools.Builder {
                     }
                     return new OeFileBuilt(f);
                 }).ToList(),
-                CompiledFiles = GetSourceCompilationProblems().ToList(),
                 WebclientPackageInfo = null // TODO : webclient package info
             };
             return history;
-        }
-
-        /// <summary>
-        /// List all the compilation problems of all the compile tasks
-        /// </summary>
-        /// <returns></returns>
-        private PathList<OeCompiledFile> GetSourceCompilationProblems() {
-            var output = new PathList<OeCompiledFile>();
-            
-            // add all compilation problems
-            foreach (var file in BuildStepExecutors
-                .Where(te => te is BuildStepExecutorBuildSource)
-                .SelectMany(exec => exec.Tasks.ToNonNullList())
-                .OfType<IOeTaskCompile>()
-                .SelectMany(task => task.GetCompiledFiles().ToNonNullList())) {
-                if (file.CompilationErrors == null || file.CompilationErrors.Count == 0) {
-                    continue;
-                }
-                if (output.Contains(file.Path)) {
-                    continue;
-                }
-                var compiledFile = new OeCompiledFile {
-                    Path = file.Path,
-                    CompilationProblems = new List<AOeCompilationProblem>()
-                };
-                foreach (var problem in file.CompilationErrors) {
-                    compiledFile.CompilationProblems.Add(AOeCompilationProblem.New(problem));
-                }
-                output.Add(compiledFile);
-            }
-            
-            return output;
         }
 
         /// <summary>
@@ -335,7 +296,7 @@ namespace Oetools.Builder {
                     .ToList();
                 
                 if (!builtFiles.Contains(fileBuilt)) {
-                    builtFiles.Add(new OeFileBuilt(fileBuilt));
+                    builtFiles.Add((IOeFileBuilt) fileBuilt.DeepCopyToNew(fileBuilt.GetType()));
                 } else {
                     var historyFileBuilt = builtFiles[fileBuilt];
                     if (historyFileBuilt.Targets == null) {
@@ -346,12 +307,42 @@ namespace Oetools.Builder {
                 }
             }
             
+            // add all compilation problems
+            foreach (var file in BuildStepExecutors
+                .Where(te => te is BuildStepExecutorBuildSource)
+                .SelectMany(exec => exec.Tasks.ToNonNullList())
+                .OfType<IOeTaskCompile>()
+                .SelectMany(task => task.GetCompiledFiles().ToNonNullList())) {
+                if (file.CompilationProblems == null || file.CompilationProblems.Count == 0) {
+                    continue;
+                }
+                if (!builtFiles.Contains(file.Path)) {
+                    var builtFileCompiled = new OeFileBuiltCompiled {
+                        Path = file.Path,
+                        Size = -1,
+                        State = OeFileState.Added,
+                        CompilationProblems = new List<AOeCompilationProblem>()
+                    };
+                    foreach (var compilationProblem in file.CompilationProblems) {
+                        builtFileCompiled.CompilationProblems.Add(AOeCompilationProblem.New(compilationProblem));
+                    }
+                    builtFiles.Add(builtFileCompiled);
+                }
+                if (builtFiles[file.Path] is OeFileBuiltCompiled compiledFile) {
+                    compiledFile.CompilationProblems = new List<AOeCompilationProblem>();
+                    foreach (var problem in file.CompilationProblems) {
+                        compiledFile.CompilationProblems.Add(AOeCompilationProblem.New(problem));
+                    }
+                } else {
+                    Log?.Error($"Compilation problems found for a file which does not seem to have been compiled: {file.Path.PrettyQuote()}");
+                }
+            }
+            
             // add all the files that were not rebuild from the previous build history
             if (PreviouslyBuiltPaths != null) {
                 foreach (var previousFile in PreviouslyBuiltPaths.Where(oldFile => oldFile.State != OeFileState.Deleted && !builtFiles.Contains(oldFile))) {
-                    var previousFileCopy = new OeFileBuilt(previousFile) {
-                        State = OeFileState.Unchanged
-                    };
+                    var previousFileCopy = (IOeFileBuilt) previousFile.DeepCopyToNew(previousFile.GetType());
+                    previousFileCopy.State = OeFileState.Unchanged;
                     builtFiles.Add(previousFileCopy);
                 }
             }

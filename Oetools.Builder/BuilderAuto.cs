@@ -31,6 +31,9 @@ using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder {
     
+    /// <summary>
+    /// Add key features to a <see cref="Builder"/>.
+    /// </summary>
     public class BuilderAuto : Builder {
 
         private ProjectDatabaseAdministrator _projectDbAdmin;
@@ -75,7 +78,7 @@ namespace Oetools.Builder {
             
             // Prepare all the project databases
             var databasesBaseDir = Path.Combine(OeBuilderConstants.GetProjectDirectoryLocalDb(BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath), BuildConfiguration.Id.ToString());
-            _projectDbAdmin = new ProjectDatabaseAdministrator(BuildConfiguration.Properties.DlcDirectory, BuildConfiguration.Properties.ProjectDatabases, databasesBaseDir) {
+            _projectDbAdmin = new ProjectDatabaseAdministrator(BuildConfiguration.Properties.DlcDirectoryPath, BuildConfiguration.Properties.ProjectDatabases, databasesBaseDir) {
                 Log = Log,
                 AllowsDatabaseShutdownWithKill = BuildConfiguration.Properties.BuildOptions.AllowDatabaseShutdownByProcessKill,
                 NumberOfUsersPerDatabase = OeCompilationOptions.GetNumberOfProcessesToUse(BuildConfiguration.Properties.CompilationOptions)

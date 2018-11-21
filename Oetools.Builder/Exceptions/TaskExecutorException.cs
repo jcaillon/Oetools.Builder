@@ -32,6 +32,6 @@ namespace Oetools.Builder.Exceptions {
             BuildStepExecutor = buildStepExecutor;
         }
         
-        public override string Message => $"{BuildStepExecutor?.ToString() ?? ""} : {base.Message ?? ""}";
+        public override string Message => $"{BuildStepExecutor?.ToString() ?? ""}: {base.Message ?? ""}";
     }
 }

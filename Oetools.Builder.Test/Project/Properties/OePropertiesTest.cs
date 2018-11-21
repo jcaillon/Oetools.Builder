@@ -113,11 +113,10 @@ namespace Oetools.Builder.Test.Project.Properties {
             dirInfo.Attributes |= FileAttributes.Hidden;
 
             var prop = new OeProperties {
-                PropathEntries = !Utils.IsRuntimeWindowsPlatform ? null : new List<string> {
-                    "{{DLC}}",
-                    "C:\\Windows\\System32",
-                    "C:\\Windows\\System32\\drivers",
-                    "test1"
+                PropathEntries = !Utils.IsRuntimeWindowsPlatform ? null : new List<OePropathEntry> {
+                    new OePropathEntry { Path = "{{DLC}}"},
+                    new OePropathEntry { Path = "C:\\Windows\\System32"},
+                    new OePropathEntry { Path = "C:\\Windows\\System32\\drivers;test1"}
                 },
                 IniFilePath = iniPath,
                 AddAllSourceDirectoriesToPropath = false,
@@ -155,7 +154,7 @@ namespace Oetools.Builder.Test.Project.Properties {
                 return;
             }
 
-            prop.DlcDirectory = dlcPath;
+            prop.DlcDirectoryPath = dlcPath;
             prop.AddDefaultOpenedgePropath = true;
             
             list = prop.GetPropath(TestFolder, false);

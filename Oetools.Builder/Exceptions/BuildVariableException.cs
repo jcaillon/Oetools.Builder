@@ -32,7 +32,7 @@ namespace Oetools.Builder.Exceptions {
             Variable = variable;
         }
         
-        public override string Message => $"{Variable?.ToString() ?? ""} : {base.Message ?? ""}";
+        public override string Message => $"{Variable?.ToString() ?? ""}: {base.Message ?? ""}";
         
     }
 }

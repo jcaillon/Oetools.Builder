@@ -43,7 +43,7 @@ namespace Oetools.Builder.Test.Utilities {
                         CompilableFileExtensionPattern = "replace stuff {{env{{env2}}}}"
                     }
                 },
-                BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
+                BuildSteps = new List<AOeBuildStep> {
                     new OeBuildStepBuildSource {
                         Name = "replace {{anything}} here",
                         Tasks = new List<AOeTask> {
@@ -84,11 +84,11 @@ namespace Oetools.Builder.Test.Utilities {
             BuilderUtilities.ApplyVariablesToProperties(buildConf, buildConf.Variables);
             Assert.AreEqual("value_var_1", buildConf.Properties.BuildOptions.BuildHistoryInputFilePath);
             Assert.AreEqual("replace stuff value_env_1", buildConf.Properties.CompilationOptions.CompilableFileExtensionPattern);
-            Assert.AreEqual("replace wtf! here", buildConf.BuildSourceStepGroup[0].Name);
-            Assert.AreEqual("replace missing '' by empty", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].Tasks[0]).Include);
-            Assert.AreEqual("keep missing '{{missingvar}}' variables!", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].Tasks[0]).TargetDirectory);
-            Assert.AreEqual("2 replace missing '' by empty", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].Tasks[1]).Exclude);
-            Assert.AreEqual("2 keep missing '{{missingvar}}' variables!", ((OeTaskFileCopy) buildConf.BuildSourceStepGroup[0].Tasks[1]).TargetFilePath);
+            Assert.AreEqual("replace wtf! here", buildConf.BuildSteps[0].Name);
+            Assert.AreEqual("replace missing '' by empty", ((OeTaskFileCopy) buildConf.BuildSteps[0].Tasks[0]).Include);
+            Assert.AreEqual("keep missing '{{missingvar}}' variables!", ((OeTaskFileCopy) buildConf.BuildSteps[0].Tasks[0]).TargetDirectory);
+            Assert.AreEqual("2 replace missing '' by empty", ((OeTaskFileCopy) buildConf.BuildSteps[0].Tasks[1]).Exclude);
+            Assert.AreEqual("2 keep missing '{{missingvar}}' variables!", ((OeTaskFileCopy) buildConf.BuildSteps[0].Tasks[1]).TargetFilePath);
             
         }
     }

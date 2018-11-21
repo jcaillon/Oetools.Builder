@@ -49,15 +49,21 @@ namespace Oetools.Builder.Test.Project {
         public void SetDefaultValues() {
             var bc = new OeBuildConfiguration();
             bc.SetDefaultValues();
-            Assert.AreEqual(OeGitFilterOptions.GetDefaultIncludeSourceFilesCommittedOnlyOnCurrentBranch(), bc.Properties.BuildOptions.SourceToBuildGitFilter.IncludeSourceFilesCommittedOnlyOnCurrentBranch);
+            Assert.IsNotNull(bc.Properties);
+            Assert.AreEqual(PathListerGitFilterOptions.GetDefaultIncludeSourceFilesCommittedOnlyOnCurrentBranch(), bc.Properties.BuildOptions.SourceToBuildGitFilter.IncludeSourceFilesCommittedOnlyOnCurrentBranch);
             Assert.AreEqual(OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput(), bc.Properties.BuildOptions?.IncrementalBuildOptions?.MirrorDeletedSourceFileToOutput);
             Assert.AreEqual(OeCompilationOptions.GetDefaultCompileWithDebugList(), bc.Properties.CompilationOptions.CompileWithDebugList);
             Assert.AreEqual(OeBuildOptions.GetDefaultStopBuildOnTaskWarning(), bc.Properties.BuildOptions.StopBuildOnTaskWarning);
+
+            Assert.IsNotNull(bc.Properties.BuildOptions);
+            Assert.IsNotNull(bc.Properties.BuildOptions.IncrementalBuildOptions);
+            Assert.IsNotNull(bc.Properties.BuildOptions.IncrementalBuildOptions.MirrorDeletedTargetsToOutput);
+            Assert.IsNotNull(bc.Properties.CompilationOptions);
             
             if (!TestHelper.GetDlcPath(out string _)) {
                 return;
             }
-            Assert.AreEqual(OeProperties.GetDefaultDlcDirectory(), bc.Properties.DlcDirectory);
+            Assert.AreEqual(OeProperties.GetDefaultDlcDirectoryPath(), bc.Properties.DlcDirectoryPath);
         }
         
         [TestMethod]

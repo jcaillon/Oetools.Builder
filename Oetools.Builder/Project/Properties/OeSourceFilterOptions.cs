@@ -22,6 +22,7 @@ using System;
 using System.Xml.Serialization;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
+using Oetools.Utilities.Lib.Attributes;
 
 namespace Oetools.Builder.Project.Properties {
     
@@ -71,6 +72,7 @@ namespace Oetools.Builder.Project.Properties {
         
         /// <inheritdoc cref="PathListerFilterOptions.ExcludeHiddenDirectories"/>
         [XmlElement(ElementName = "SourceExcludeHiddenDirectories")]
+        [DefaultValueMethod(nameof(GetDefaultExcludeHiddenDirectories))]
         public override bool? ExcludeHiddenDirectories {
             get => base.ExcludeHiddenDirectories;
             set => base.ExcludeHiddenDirectories = value;
@@ -78,6 +80,7 @@ namespace Oetools.Builder.Project.Properties {
         
         /// <inheritdoc cref="PathListerFilterOptions.RecursiveListing"/>
         [XmlElement(ElementName = "SourceRecursiveListing")]
+        [DefaultValueMethod(nameof(GetDefaultRecursiveListing))]
         public override bool? RecursiveListing {
             get => base.RecursiveListing;
             set => base.RecursiveListing = value;
@@ -85,6 +88,7 @@ namespace Oetools.Builder.Project.Properties {
 
         /// <inheritdoc cref="PathListerFilterOptions.ExtraVcsPatternExclusion"/>
         [XmlElement(ElementName = "SourceExtraVcsPatternExclusion")]
+        [DefaultValueMethod(nameof(GetDefaultExtraVcsPatternExclusion))]
         public override string ExtraVcsPatternExclusion {
             get => base.ExtraVcsPatternExclusion;
             set => base.ExtraVcsPatternExclusion = value;

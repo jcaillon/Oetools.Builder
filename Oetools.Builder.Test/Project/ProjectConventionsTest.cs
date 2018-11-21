@@ -21,8 +21,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Xml.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Oetools.Utilities.Lib.Attributes;
 
 namespace Oetools.Builder.Test.Project {
     
@@ -46,20 +48,33 @@ namespace Oetools.Builder.Test.Project {
             }
         }
         
-
-        private const string DefaultMethodPrefix = "GetDefault";
-        
         [TestMethod]
         public void CheckForGetDefaultMethodsAssociatedWithProperties() {
-            foreach (var type in TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}")) {
+            foreach (var type in TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}.{nameof(Oetools.Builder.Project.Properties)}")) {
                 if (!type.IsPublic) {
                     continue;
                 }
-                foreach (var methodInfo in type.GetMethods().ToList().Where(m => m.IsStatic && m.Name.StartsWith(DefaultMethodPrefix))) {                   
-                    var prop = type.GetProperty(methodInfo.Name.Replace(DefaultMethodPrefix, ""));
-                    Assert.IsNotNull(prop, $"if {methodInfo.Name} exists, we should find the property {methodInfo.Name.Replace(DefaultMethodPrefix, "")} which is not the case...");
-                    //Assert.AreEqual(methodInfo.ReturnType, prop.PropertyType, $"The method {methodInfo.Name} should return the same type as {methodInfo.Name.Replace(DefaultMethodPrefix, "")}");
-                    Assert.IsTrue(prop.PropertyType.IsAssignableFrom(methodInfo.ReturnType), $"The method {methodInfo.Name} should return the same type as {methodInfo.Name.Replace(DefaultMethodPrefix, "")}");
+                foreach (var property in type.GetProperties()) {
+                    if (!property.CanRead || !property.CanWrite || property.PropertyType.IsNotPublic) {
+                        continue;
+                    }
+                    if (property.Name.Equals("Name")) {
+                        continue;
+                    }
+                    if (Attribute.GetCustomAttribute(property, typeof(DefaultValueMethodAttribute), true) is DefaultValueMethodAttribute attribute) {
+                        if (string.IsNullOrEmpty(attribute.MethodName)) {
+                            throw new Exception($"The property {type.Name}.{property.Name} which is of value type has a {nameof(DefaultValueMethodAttribute)} attribute defined to return null.");
+                        }
+                        var methodInfo = type.GetMethod(attribute.MethodName, BindingFlags.Public | BindingFlags.Static| BindingFlags.FlattenHierarchy);
+                        Assert.IsNotNull(methodInfo, $"Can't find method {attribute.MethodName} in {type.Name}.");
+                        Assert.IsTrue(property.PropertyType.IsAssignableFrom(methodInfo.ReturnType), $"The method {methodInfo.Name} should return the same type as {methodInfo.Name}");
+                        Assert.AreEqual($"GetDefault{property.Name}", methodInfo.Name, "The default method should be GetDefault{property}");
+                    } else {
+                        if (property.PropertyType.GenericTypeArguments.Length == 1 && property.PropertyType.GenericTypeArguments[0].IsValueType) {
+                            throw new Exception($"The property {type.Name}.{property.Name} which is of value type, does not have a {nameof(DefaultValueMethodAttribute)} attribute defined to get its default value.");
+                        }
+                    }
+                    
                 }
             }
         }
@@ -94,6 +109,7 @@ namespace Oetools.Builder.Test.Project {
                         Attribute.GetCustomAttribute(propertyInfo, typeof(XmlArrayAttribute), true) != null ||
                         Attribute.GetCustomAttribute(propertyInfo, typeof(XmlElementAttribute), true) != null ||
                         Attribute.GetCustomAttribute(propertyInfo, typeof(XmlIgnoreAttribute), true) != null ||
+                        Attribute.GetCustomAttribute(propertyInfo, typeof(XmlTextAttribute), true) != null ||
                         Attribute.GetCustomAttribute(propertyInfo, typeof(XmlAttributeAttribute), true) != null, 
                         $"{type.Name}.{propertyInfo.Name} does not have an xml attribute!");
                 }
@@ -116,7 +132,10 @@ namespace Oetools.Builder.Test.Project {
                         if (Attribute.GetCustomAttribute(propertyInfo, typeof(XmlAttributeAttribute), true) is XmlAttributeAttribute attr3) {
                             name = attr3.AttributeName;
                         }                       
-                        Assert.IsFalse(string.IsNullOrEmpty(name), $"Xml name null for {type.FullName}.{propertyInfo.Name}.");
+                        if (string.IsNullOrEmpty(name)) {
+                            Console.WriteLine($"Xml name null for {type.FullName}.{propertyInfo.Name}.");
+                            continue;
+                        }
                         if (!string.IsNullOrEmpty(name) && name.Equals("Name")) {
                             continue;
                         }

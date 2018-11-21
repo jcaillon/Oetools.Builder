@@ -70,7 +70,7 @@ namespace Oetools.Builder.Test.Utilities {
 
             var build = new OeBuildConfiguration {
                 Properties = new OeProperties {
-                    DlcDirectory = dlcPath,
+                    DlcDirectoryPath = dlcPath,
                     ProjectDatabases = new List<OeProjectDatabase> {
                         new OeProjectDatabase {
                             LogicalName = "db1",

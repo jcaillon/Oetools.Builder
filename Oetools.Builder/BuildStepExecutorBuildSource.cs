@@ -109,6 +109,8 @@ namespace Oetools.Builder {
 
                         Log?.Debug("Add files to rebuild because one of their dependencies (think include files) has changed since the previous build");
                         _sourceDirectoryPathListToBuild.AddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(_sourceDirectoryPathListToBuild, previouslyBuiltCompiled));
+                        
+                        // TODO: add files to rebuild because they did not compiled on last build!
 
                     } else {
 

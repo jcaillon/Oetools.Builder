@@ -104,7 +104,7 @@ namespace Oetools.Builder.Utilities {
         private UoeExecutionParallelCompile _compiler;
 
         public void Dispose() {
-            _compiler.Dispose();
+            _compiler?.Dispose();
         }
     }
 }

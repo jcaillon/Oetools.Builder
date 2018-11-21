@@ -22,9 +22,12 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Xml.Serialization;
+using Oetools.Builder.Exceptions;
 using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Attributes;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Properties {
     
@@ -42,6 +45,7 @@ namespace Oetools.Builder.Project.Properties {
         /// </remarks>
         [XmlElement(ElementName = "SourceDirectoryPath")]
         [ReplaceVariables(SkipReplace = true)]
+        [DefaultValueMethod(nameof(GetDefaultSourceDirectoryPath))]
         public string SourceDirectoryPath {
             get => _sourceDirectoryPath;
             set => _sourceDirectoryPath = value.ToCleanPath();
@@ -66,6 +70,7 @@ namespace Oetools.Builder.Project.Properties {
         /// These options (and the incremental process in general) are only applicable to the tasks that are building your application sources.
         /// </remarks>
         [XmlElement(ElementName = "IncrementalBuildOptions")]
+        [DefaultValueMethod(nameof(GetDefaultIncrementalBuildOptions))]
         public OeIncrementalBuildOptions IncrementalBuildOptions { get; set; }
         public static OeIncrementalBuildOptions GetDefaultIncrementalBuildOptions() => new OeIncrementalBuildOptions();
                 
@@ -77,6 +82,7 @@ namespace Oetools.Builder.Project.Properties {
         /// The idea behind this option is to build files depending on the changes made in GIT. For instance, rebuilding files modified/added since the last commit. It allows to check if recent changes in a GIT repository introduces bugs.
         /// </remarks>
         [XmlElement(ElementName = "SourceToBuildGitFilter")]
+        [DefaultValueMethod(nameof(GetDefaultSourceToBuildGitFilter))]
         public OeGitFilterOptions SourceToBuildGitFilter { get; set; }    
         public static OeGitFilterOptions GetDefaultSourceToBuildGitFilter() => new OeGitFilterOptions();
         
@@ -84,6 +90,7 @@ namespace Oetools.Builder.Project.Properties {
         /// Build all the source files, ignoring the incremental build options and the GIT filter options.
         /// </summary>
         [XmlElement(ElementName = "FullRebuild")]
+        [DefaultValueMethod(nameof(GetDefaultFullRebuild))]
         public bool? FullRebuild { get; set; }
         public static bool GetDefaultFullRebuild() => false;
         
@@ -94,6 +101,7 @@ namespace Oetools.Builder.Project.Properties {
         /// Relative paths in the targets of tasks will be resolved from this directory. This is only available when building the source or the output.
         /// </remarks>
         [XmlElement(ElementName = "OutputDirectoryPath")]
+        [DefaultValueMethod(nameof(GetDefaultOutputDirectoryPath))]
         public string OutputDirectoryPath { get; set; }
         public static string GetDefaultOutputDirectoryPath() => OeBuilderConstants.GetDefaultOutputDirectory();
             
@@ -101,6 +109,7 @@ namespace Oetools.Builder.Project.Properties {
         /// The path to an xml file containing the information of a previous build. This is necessary for an incremental build.
         /// </summary>
         [XmlElement(ElementName = "BuildHistoryInputFilePath")]
+        [DefaultValueMethod(nameof(GetDefaultBuildHistoryInputFilePath))]
         public string BuildHistoryInputFilePath { get; set; }
         public static string GetDefaultBuildHistoryInputFilePath() => OeBuilderConstants.GetDefaultBuildHistoryInputFilePath();
 
@@ -108,6 +117,7 @@ namespace Oetools.Builder.Project.Properties {
         /// The path to an xml file that will be created by this build and will contain the information of that build. This is necessary for an incremental build.
         /// </summary>
         [XmlElement(ElementName = "BuildHistoryOutputFilePath")]
+        [DefaultValueMethod(nameof(GetDefaultBuildHistoryOutputFilePath))]
         public string BuildHistoryOutputFilePath { get; set; }
         public static string GetDefaultBuildHistoryOutputFilePath() => OeBuilderConstants.GetDefaultBuildHistoryOutputFilePath();
         
@@ -115,6 +125,7 @@ namespace Oetools.Builder.Project.Properties {
         /// The path to an html report file that will contain human-readable information about this build.
         /// </summary>
         [XmlElement(ElementName = "ReportHtmlFilePath")]
+        [DefaultValueMethod(nameof(GetDefaultReportHtmlFilePath))]
         public string ReportHtmlFilePath { get; set; }
         public static string GetDefaultReportHtmlFilePath() => OeBuilderConstants.GetDefaultReportHtmlFilePath();
         
@@ -122,6 +133,7 @@ namespace Oetools.Builder.Project.Properties {
         /// The path to an xml file that will contain the exported build configuration for this build.
         /// </summary>
         [XmlElement(ElementName = "BuildConfigurationExportFilePath")]
+        [DefaultValueMethod(nameof(GetDefaultBuildConfigurationExportFilePath))]
         public string BuildConfigurationExportFilePath { get; set; }
         public static string GetDefaultBuildConfigurationExportFilePath() => OeBuilderConstants.GetDefaultBuildConfigurationExportFilePath();
 
@@ -129,6 +141,7 @@ namespace Oetools.Builder.Project.Properties {
         /// Sets whether or not the build must be stopped if a task generates warnings.
         /// </summary>
         [XmlElement(ElementName = "StopBuildOnTaskError")]
+        [DefaultValueMethod(nameof(GetDefaultStopBuildOnTaskError))]
         public bool? StopBuildOnTaskError { get; set; }
         public static bool GetDefaultStopBuildOnTaskError() => true;
 
@@ -136,6 +149,7 @@ namespace Oetools.Builder.Project.Properties {
         /// Sets whether or not the build must be stopped if a task generates warnings.
         /// </summary>
         [XmlElement(ElementName = "StopBuildOnTaskWarning")]
+        [DefaultValueMethod(nameof(GetDefaultStopBuildOnTaskWarning))]
         public bool? StopBuildOnTaskWarning { get; set; }
         public static bool GetDefaultStopBuildOnTaskWarning() => false;
         
@@ -143,6 +157,7 @@ namespace Oetools.Builder.Project.Properties {
         /// Sets whether or not the build must be stopped if a file fails to compile.
         /// </summary>
         [XmlElement(ElementName = "StopBuildOnCompilationError")]
+        [DefaultValueMethod(nameof(GetDefaultStopBuildOnCompilationError))]
         public bool? StopBuildOnCompilationError { get; set; }
         public static bool GetDefaultStopBuildOnCompilationError() => true;
         
@@ -150,6 +165,7 @@ namespace Oetools.Builder.Project.Properties {
         /// Sets whether or not the build must be stopped if a file compiles with warnings.
         /// </summary>
         [XmlElement(ElementName = "StopBuildOnCompilationWarning")]
+        [DefaultValueMethod(nameof(GetDefaultStopBuildOnCompilationWarning))]
         public bool? StopBuildOnCompilationWarning { get; set; }
         public static bool GetDefaultStopBuildOnCompilationWarning() => false;
         
@@ -160,6 +176,7 @@ namespace Oetools.Builder.Project.Properties {
         /// Shutting down an openedge database is a really slow process and it should be avoided if you intent to build files several times consecutively.
         /// </remarks>
         [XmlElement(ElementName = "ShutdownCompilationDatabasesAfterBuild")]
+        [DefaultValueMethod(nameof(GetDefaultShutdownCompilationDatabasesAfterBuild))]
         public bool? ShutdownCompilationDatabasesAfterBuild { get; set; }
         public static bool GetDefaultShutdownCompilationDatabasesAfterBuild() => true;
         
@@ -170,6 +187,7 @@ namespace Oetools.Builder.Project.Properties {
         /// Shutting down an openedge database is a really slow process, this option speeds up the shutdown drastically. The database broker is killed instead of being properly shutdown. Since the tool uses temporary databases and since those databases are only used to compiled code, this is completely safe.
         /// </remarks>
         [XmlElement(ElementName = "AllowDatabaseShutdownByProcessKill")]
+        [DefaultValueMethod(nameof(GetDefaultAllowDatabaseShutdownByProcessKill))]
         public bool? AllowDatabaseShutdownByProcessKill { get; set; }
         public static bool GetDefaultAllowDatabaseShutdownByProcessKill() => true;
         
@@ -177,8 +195,23 @@ namespace Oetools.Builder.Project.Properties {
         /// Sets whether or not to run the build in "test mode". In test mode, the tasks are not actually executed. It should be used as a preview of the actual build process.
         /// </summary>
         [XmlElement(ElementName = "TestMode")]
+        [DefaultValueMethod(nameof(GetDefaultTestMode))]
         public bool? TestMode { get; set; }
         public static bool GetDefaultTestMode() => false;
         
+        /// <summary>
+        /// Validate that is object is correct.
+        /// </summary>
+        /// <exception cref="PropertiesException"></exception>
+        public void Validate() {
+            try {
+                SourceToBuildFilter?.Validate();
+            } catch (Exception e) {
+                throw new PropertiesException($"The property {nameof(SourceToBuildFilter)} has errors: {e.Message}", e);
+            }
+            if ((IncrementalBuildOptions?.IsActive() ?? false) && (SourceToBuildGitFilter?.IsActive() ?? false)) {
+                throw new PropertiesException($"The {GetType().GetXmlName(nameof(IncrementalBuildOptions))} can not be active when the {GetType().GetXmlName(nameof(SourceToBuildGitFilter))} is active because the two options serve contradictory purposes. {GetType().GetXmlName(nameof(IncrementalBuildOptions))} should be used when the goal is to build the latest modifications on top of a previous build. {GetType().GetXmlName(nameof(SourceToBuildGitFilter))} should be used when the goal is to verify that recent commits to the git repo did not introduce bugs.");
+            }
+        }
     }
 }

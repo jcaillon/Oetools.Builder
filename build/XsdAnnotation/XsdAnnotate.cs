@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
 using System.Xml.Serialization;
@@ -187,7 +188,10 @@ namespace XsdAnnotator {
         
         private void FindDefaultValues() {
             foreach (var existingType in _existingTypes) {
-                foreach (var methodInfo in existingType.GetMethods().ToList().Where(m => m.IsStatic && m.Name.StartsWith(DefaultMethodPrefix))) {
+                foreach (var methodInfo in existingType
+                    .GetMethods(BindingFlags.Public | BindingFlags.Static| BindingFlags.FlattenHierarchy)
+                    .ToList()
+                    .Where(m => m.IsStatic && m.Name.StartsWith(DefaultMethodPrefix))) {
                     var propertyName = methodInfo.Name.Replace(DefaultMethodPrefix, "");
                     var prop = existingType.GetProperty(propertyName);
                     if (prop != null) {

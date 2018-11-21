@@ -70,7 +70,7 @@ namespace Oetools.Builder.Test {
             File.WriteAllText(Path.Combine(sourceDirectory, "subfolder", "resource.ext"), "ok");
             
             var buildConfiguration1 = new OeBuildConfiguration {
-                BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
+                BuildSteps = new List<AOeBuildStep> {
                     new OeBuildStepBuildSource {
                         Tasks = new List<AOeTask> {
                             new OeTaskFileCompile { Include = "**/subfolder/**", TargetDirectory = "subfolder;copy_subfolder" },
@@ -110,9 +110,6 @@ namespace Oetools.Builder.Test {
 
                 Assert.AreEqual(5, builder.BuildSourceHistory.BuiltFiles.Count, "5 unique files built in total");
                 Assert.AreEqual(10, builder.BuildSourceHistory.BuiltFiles.SelectMany(f => f.Targets).Count(), "10 targets in total");
-
-                // can't check compilation since it is test mode
-                Assert.AreEqual(0, builder.BuildSourceHistory.CompiledFiles.Count);
 
                 // check each file in history
                 foreach (var file in builder.BuildSourceHistory.BuiltFiles) {
@@ -173,7 +170,7 @@ namespace Oetools.Builder.Test {
             
             // delete a file, and delete some targets
             File.Delete(Path.Combine(sourceDirectory, "file2.w"));
-            ((OeTaskFileCompile) buildConfiguration1.BuildSourceStepGroup[0].Tasks[0]).TargetDirectory = "subfolder";
+            ((OeTaskFileCompile) buildConfiguration1.BuildSteps[0].Tasks[0]).TargetDirectory = "subfolder";
             
             using (var builder = new Builder(buildConfiguration1) {
                 BuildSourceHistory = firstBuildHistory
@@ -254,16 +251,14 @@ namespace Oetools.Builder.Test {
             File.WriteAllText(Path.Combine(sourceDirectory, "file3.ext"), "");
             
             var builder = new Builder(new OeBuildConfiguration {
-                PreBuildStepGroup = new List<OeBuildStepClassic> {
-                    new OeBuildStepClassic {
+                BuildSteps = new List<AOeBuildStep> {
+                    new OeBuildStepFree {
                         Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCopy2 { Include = "{{SOURCE_DIRECTORY}}/**.w", TargetDirectory = "{{SOURCE_DIRECTORY}}/copied_w" },
                             new OeTaskFileTargetArchiveProlibCompileProlib2 { Include = "{{SOURCE_DIRECTORY}}/**file1**", TargetArchivePath = "{{SOURCE_DIRECTORY}}/my.pl", TargetDirectory = "" }
                         }
-                    }
-                },
-                PostBuildStepGroup = new List<OeBuildStepClassic> {
-                    new OeBuildStepClassic {
+                    },
+                    new OeBuildStepFree {
                         Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCopy2 { Include = "{{SOURCE_DIRECTORY}}/**", Exclude = "**((.p||.w))", TargetDirectory = "{{SOURCE_DIRECTORY}}/copied_ext" }
                         }
@@ -305,14 +300,14 @@ namespace Oetools.Builder.Test {
             File.WriteAllText(Path.Combine(sourceDirectory, "file3.ext"), "");
             
             var builder = new Builder(new OeBuildConfiguration {
-                BuildOutputStepGroup = new List<OeBuildStepClassic> {
-                    new OeBuildStepClassic {
+                BuildSteps = new List<AOeBuildStep> {
+                    new OeBuildStepBuildSource {
                         Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCopy2 { Include = "**.w", TargetDirectory = "copied_w" },
                             new OeTaskFileTargetArchiveProlibCompileProlib2 { Include = "**file1**", TargetArchivePath = "my.pl", TargetDirectory = "" }
                         }
                     },
-                    new OeBuildStepClassic {
+                    new OeBuildStepBuildSource {
                         Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCopy2 { Include = "**", Exclude = "**((.p||.w))", TargetDirectory = "copied_ext" }
                         }
@@ -353,7 +348,7 @@ namespace Oetools.Builder.Test {
 
 
             var builder = new Builder(new OeBuildConfiguration {
-                BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
+                BuildSteps = new List<AOeBuildStep> {
                     new OeBuildStepBuildSource {
                         Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCompile2 { Include = "**file1**", TargetDirectory = "first;/random/folder" },
@@ -424,7 +419,7 @@ namespace Oetools.Builder.Test {
             File.WriteAllText(Path.Combine(sourceDirectory, "file3.p"), "nof sense, will not compile"); // compile with errors
 
             var builder = new Builder(new OeBuildConfiguration {
-                BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
+                BuildSteps = new List<AOeBuildStep> {
                     new OeBuildStepBuildSource {
                         Tasks = new List<AOeTask> {
                             new OeTaskFileTargetFileCompile2 { Include = "**file1**", TargetDirectory = "first;/random/folder" },
@@ -451,8 +446,8 @@ namespace Oetools.Builder.Test {
             
             Assert.AreEqual(2, builder.BuildSourceHistory.BuiltFiles.Count, "only 2 files built because file3 doesn't compile");
             
-            Assert.AreEqual(3, builder.BuildSourceHistory.CompiledFiles.SelectMany(f => f.CompilationProblems).Count(), $"builder.BuildSourceHistory.CompiledFiles.Count : {builder.BuildSourceHistory.CompiledFiles.Count}, ");
-            Assert.AreEqual(1, builder.BuildSourceHistory.CompiledFiles.SelectMany(f => f.CompilationProblems).Count(p => p is OeCompilationWarning));
+            Assert.AreEqual(3, builder.BuildSourceHistory.BuiltFiles.OfType<OeFileBuiltCompiled>().SelectMany(f => f.CompilationProblems).Count(), $"builder.BuildSourceHistory.CompiledFiles.Count : {builder.BuildSourceHistory.BuiltFiles.OfType<OeFileBuiltCompiled>().Count()}, ");
+            Assert.AreEqual(1, builder.BuildSourceHistory.BuiltFiles.OfType<OeFileBuiltCompiled>().SelectMany(f => f.CompilationProblems).Count(p => p is OeCompilationWarning));
 
             builder.Dispose();        
             
@@ -505,20 +500,13 @@ namespace Oetools.Builder.Test {
             }
             
             var builder = new Builder(new OeBuildConfiguration {
-                PreBuildStepGroup = new List<OeBuildStepClassic> {
-                    new OeBuildStepClassic {
+                BuildSteps = new List<AOeBuildStep> {
+                    new OeBuildStepFree {
                         Tasks = new List<AOeTask> {
                             new OeTaskExec2()
                         }
                     },
-                    new OeBuildStepClassic {
-                        Tasks = new List<AOeTask> {
-                            new OeTaskExec2()
-                        }
-                    }
-                },
-                BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
-                    new OeBuildStepBuildSource {
+                    new OeBuildStepFree {
                         Tasks = new List<AOeTask> {
                             new OeTaskExec2()
                         }
@@ -527,27 +515,28 @@ namespace Oetools.Builder.Test {
                         Tasks = new List<AOeTask> {
                             new OeTaskExec2()
                         }
-                    }
-                },
-                BuildOutputStepGroup = new List<OeBuildStepClassic> {
-                    new OeBuildStepClassic {
+                    },
+                    new OeBuildStepBuildSource {
                         Tasks = new List<AOeTask> {
                             new OeTaskExec2()
                         }
                     },
-                    new OeBuildStepClassic {
-                        Tasks = new List<AOeTask> {
-                            new OeTaskExec2()
-                        }
-                    }
-                },
-                PostBuildStepGroup = new List<OeBuildStepClassic> {
-                    new OeBuildStepClassic {
+                    new OeBuildStepFree {
                         Tasks = new List<AOeTask> {
                             new OeTaskExec2()
                         }
                     },
-                    new OeBuildStepClassic {
+                    new OeBuildStepFree {
+                        Tasks = new List<AOeTask> {
+                            new OeTaskExec2()
+                        }
+                    },
+                    new OeBuildStepFree {
+                        Tasks = new List<AOeTask> {
+                            new OeTaskExec2()
+                        }
+                    },
+                    new OeBuildStepFree {
                         Tasks = new List<AOeTask> {
                             new OeTaskExec2()
                         }
@@ -580,8 +569,8 @@ namespace Oetools.Builder.Test {
             
             var cancel = new CancellationTokenSource();
             var builder = new Builder(new OeBuildConfiguration {
-                PreBuildStepGroup = new List<OeBuildStepClassic> {
-                    new OeBuildStepClassic {
+                BuildSteps = new List<AOeBuildStep> {
+                    new OeBuildStepFree {
                         Tasks = new List<AOeTask> {
                             new TaskWaitForCancel()
                         }

@@ -105,7 +105,7 @@ namespace Oetools.Builder.Project {
             var output = new OeProject {
                 BuildConfigurations = new List<OeBuildConfiguration> {
                     new OeBuildConfiguration {
-                        BuildSourceStepGroup = new List<OeBuildStepBuildSource> {
+                        BuildSteps = new List<AOeBuildStep> {
                             new OeBuildStepBuildSource {
                                 Name = "Compile all files next to their source",
                                 Tasks = new List<AOeTask> {

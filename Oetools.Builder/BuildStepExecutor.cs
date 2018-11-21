@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
-using Oetools.Builder.Project;
 using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
@@ -34,8 +33,6 @@ namespace Oetools.Builder {
     public class BuildStepExecutor {
  
         internal string Name { get; set; }
-
-        internal int Id { get; set; }
 
         public List<IOeTask> Tasks { get; set; }
 
@@ -162,7 +159,7 @@ namespace Oetools.Builder {
                 throw e.Exception;
             }
         }
-
-        public override string ToString() => $"{(!string.IsNullOrEmpty(Name) ? $"{Name} ": "")}step {Id}";
+        
+        public override string ToString() => Name ?? "Unnamed step executor.";
     }
 }

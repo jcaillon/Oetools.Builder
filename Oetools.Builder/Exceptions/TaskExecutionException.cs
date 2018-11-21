@@ -33,6 +33,6 @@ namespace Oetools.Builder.Exceptions {
             Task = task;
         }
         
-        public override string Message => $"{Task?.ToString() ?? "Unknown task"} : {base.Message ?? ""}";
+        public override string Message => $"{Task?.ToString() ?? "Unknown task"}: {base.Message ?? ""}";
     }
 }

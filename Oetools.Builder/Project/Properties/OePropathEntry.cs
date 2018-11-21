@@ -1,7 +1,7 @@
-﻿#region header
+#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (ReplacePlaceHolder.cs) is part of Oetools.Builder.
+// This file (OePropathEntry.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,21 +17,25 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
-using System;
-using Oetools.Utilities.Lib.Attributes;
 
-namespace Oetools.Builder.Utilities.Attributes {
+using System.Xml.Serialization;
+
+namespace Oetools.Builder.Project.Properties {
     
     /// <summary>
-    /// Special attribute that allows to decide wether or not variables should be replaced in a property of type string
-    /// and wether or not it should be replaced by an empty string (or left as is) if the variable value is not found
+    /// An entry to add to the propath.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
-    public class ReplaceVariables : ReplaceStringProperty {
-            
+    public class OePropathEntry {
+        
         /// <summary>
-        /// Replace unknown values by an empty string
+        /// The path of this propath entry.
         /// </summary>
-        public bool LeaveUnknownUntouched { get; set;  }
+        /// <remarks>
+        /// This typically is a pro library (.pl) file path or a directory path.
+        /// Relative path are resolved with the current directory but you can use {{SOURCE_DIRECTORY}} to target the source directory.
+        /// You can use semi-colons (i.e. ;) to separate several path values.
+        /// </remarks>
+        [XmlText]
+        public string Path { get; set; }
     }
 }

@@ -26,6 +26,6 @@ namespace Oetools.Builder.Exceptions {
         public int TargetNumber { get; set; }
         public TargetValidationException(AOeTask task, string message) : base(task, message) { }
         public TargetValidationException(AOeTask task, string message, Exception innerException) : base(task, message, innerException) { }
-        public override string Message => $"Target {TargetNumber.ToString()}: {base.Message ?? ""}";
+        public override string Message => $"Target expression {TargetNumber.ToString()}: {base.Message ?? "null"}";
     }
 }

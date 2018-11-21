@@ -32,6 +32,6 @@ namespace Oetools.Builder.Exceptions {
             BuildConfiguration = buildConfiguration;
         }
 
-        public override string Message => $"{BuildConfiguration?.ToString() ?? ""} : {base.Message ?? ""}";
+        public override string Message => $"{BuildConfiguration?.ToString() ?? "null"}: {base.Message ?? "null"}";
     }
 }

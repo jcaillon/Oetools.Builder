@@ -27,7 +27,7 @@ namespace Oetools.Builder.Utilities.Attributes {
     /// and wether or not it should be replaced by an empty string (or left as is) if the variable value is not found
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class BaseDirectory : ReplaceStringProperty {
+    public class BaseDirectoryAttribute : ReplaceStringPropertyAttribute {
 
         public BaseDirectoryType Type { get; set; }
     }

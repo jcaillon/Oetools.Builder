@@ -20,7 +20,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project.Properties;
@@ -38,7 +37,7 @@ namespace Oetools.Builder.Project {
     /// </summary>
     /// <inheritdoc cref="OeProject.BuildConfigurations"/>
     /// <code>
-    /// Every public property string not marked with the <see cref="ReplaceVariables"/> attribute is allowed
+    /// Every public property string not marked with the <see cref="ReplaceVariablesAttribute"/> attribute is allowed
     /// to use {{VARIABLE}} which will be replace at the beginning of the build by <see cref="Variables"/>.
     /// </code>
     [Serializable]
@@ -92,56 +91,21 @@ namespace Oetools.Builder.Project {
         /// For instance, this allows to define a DLC (v11) path for the project but you can define a build configuration that will use another DLC (v9) path.
         /// </remarks>
         [XmlElement("Properties")]
+        [DefaultValueMethod(nameof(GetDefaultProperties))]
         public OeProperties Properties { get; set; }
         public static OeProperties GetDefaultProperties() => new OeProperties();
         
         /// <summary>
-        /// A list of steps/tasks that will be executed before anything else.
+        /// A list of steps to build your application. Each step contains a list of tasks. The sequential execution of these steps/tasks is called a build.
         /// </summary>
         /// <remarks>
-        /// These tasks can be used to "prepare" the build. For instance, by downloading dependencies or packages. Or by modifying certain source files.
-        /// Steps and tasks within steps are executed sequentially in the given order.
+        /// Steps (and tasks within them) are executed sequentially in their defined order.
         /// </remarks>
-        [XmlArray("PreBuildTasks")]
-        [XmlArrayItem("Step", typeof(OeBuildStepClassic))]
-        public List<OeBuildStepClassic> PreBuildStepGroup { get; set; }
-
-        /// <summary>
-        /// A list of steps/tasks that will build the files in your project source directory.
-        /// </summary>
-        /// <remarks>
-        /// This is the main tasks list, where openedge files should be compiled.
-        /// The history of files built here can be saved to enable an incremental build.
-        /// A listing of the source files is made at each step. Which means it would not be efficient to create 10 steps of 1 task each if the files in your source directory will not change between steps.
-        /// Steps and tasks within steps are executed sequentially in the given order.
-        /// </remarks>
-        [XmlArray("BuildSourceTasks")]
-        [XmlArrayItem("Step", typeof(OeBuildStepBuildSource))]
-        public List<OeBuildStepBuildSource> BuildSourceStepGroup { get; set; }
-            
-        /// <summary>
-        /// A list of steps/tasks that should affect the files in your project output directory.
-        /// </summary>
-        /// <remarks>
-        /// These tasks should be used to "post-process" the files built from your source directory into the output directory.
-        /// For instance, it can be used to build a release zip file containing all the .pl and other configuration files of your release.
-        /// A listing of the files in the output directory is made at each step. Which means it would not be efficient to create 10 steps of 1 task each if those files will not change between steps.
-        /// Steps and tasks within steps are executed sequentially in the given order.
-        /// </remarks>
-        [XmlArray("BuildOutputTasks")]
-        [XmlArrayItem("Step", typeof(OeBuildStepClassic))]
-        public List<OeBuildStepClassic> BuildOutputStepGroup { get; set; }
-        
-        /// <summary>
-        /// A list of steps/tasks that will be executed after anything else.
-        /// </summary>
-        /// <remarks>
-        /// These tasks can be used to "deploy" a build. For instance, by uploading a release zip file to a distant http or ftp server.
-        /// Steps and tasks within steps are executed sequentially in the given order.
-        /// </remarks>
-        [XmlArray("PostBuildTasks")]
-        [XmlArrayItem("Step", typeof(OeBuildStepClassic))]
-        public List<OeBuildStepClassic> PostBuildStepGroup { get; set; }
+        [XmlArray("BuildSteps")]
+        [XmlArrayItem("Free", typeof(OeBuildStepFree))]
+        [XmlArrayItem("BuildOutput", typeof(OeBuildStepBuildOutput))]
+        [XmlArrayItem("BuildSource", typeof(OeBuildStepBuildSource))]
+        public List<AOeBuildStep> BuildSteps { get; set; }
         
         /// <summary>
         /// A list of children build configurations, each will inherit the properties defined in this one.
@@ -195,7 +159,7 @@ namespace Oetools.Builder.Project {
                     Name = OeBuilderConstants.OeVarNameProjectLocalDirectory, Value = OeBuilderConstants.GetProjectDirectoryLocal(sourceDirectory)
                 },
                 new OeVariable {
-                    Name = UoeConstants.OeDlcEnvVar, Value = (Properties?.DlcDirectory).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectory())
+                    Name = UoeConstants.OeDlcEnvVar, Value = (Properties?.DlcDirectoryPath).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectoryPath())
                 },
                 new OeVariable {
                     Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = (Properties?.BuildOptions?.OutputDirectoryPath).TakeDefaultIfNeeded(OeBuilderConstants.GetDefaultOutputDirectory())
@@ -218,41 +182,19 @@ namespace Oetools.Builder.Project {
         }
 
         /// <summary>
-        /// 
+        /// Validates the <see cref="Properties"/> as well as all the <see cref="AOeBuildStep"/> in this config.
         /// </summary>
         /// <exception cref="BuildConfigurationException"></exception>
         public void Validate() {
             try {
-                ValidateAllTasks();
+                if (BuildSteps != null) {
+                    foreach (var step in BuildSteps) {
+                        step.Validate();
+                    }
+                }
                 Properties?.Validate();
             } catch (Exception e) {
                 throw new BuildConfigurationException(this, e.Message, e);
-            }
-        }
-            
-        /// <summary>
-        /// Recursively validates that the build configuration is correct
-        /// </summary>
-        /// <exception cref="Exception"></exception>
-        /// <exception cref="BuildStepException"></exception>
-        public void ValidateAllTasks() {
-            ValidateStepsList(PreBuildStepGroup, nameof(PreBuildStepGroup), false);
-            ValidateStepsList(BuildSourceStepGroup, nameof(BuildSourceStepGroup), true);
-            ValidateStepsList(BuildOutputStepGroup, nameof(BuildOutputStepGroup), true);
-            ValidateStepsList(PostBuildStepGroup, nameof(PostBuildStepGroup), false);
-        }
-        
-        private void ValidateStepsList(IEnumerable<AOeBuildStep> steps, string propertyNameOf, bool buildFromList) {
-            if (steps == null) {
-                return;
-            }
-            foreach (var step in steps) {
-                try {
-                    step.Validate(buildFromList);
-                } catch (BuildStepException e) {
-                    e.PropertyName = typeof(OeBuildConfiguration).GetXmlName(propertyNameOf);
-                    throw;
-                }
             }
         }
         
