@@ -34,13 +34,11 @@ using Oetools.Utilities.Lib.Extension;
 namespace Oetools.Builder.Project {
     
     /// <summary>
-    /// An openedge project (i.e. an application).
+    /// An Openedge project (typically, your project is your application, they are synonyms).
     /// </summary>
     /// <remarks>
-    /// A project has:
-    /// - properties, that are used to describe your application (for instance, the database needed to compile) and are also used to describe options to build your application (for instance, if the compilation should also generate the xref files).
-    /// - variables, that make your build process dynamic. You can use variables almost anywhere in this xml and dynamically overload their values when running the build.
-    /// - build configurations, which describe a succession of tasks that build your application. Build configurations can also have their own properties and variables which will overload the ones defined at the project level.
+    /// A project is composed of one or several build configurations.
+    /// A build configuration describe how to build your project.
     /// </remarks>
     [Serializable]
     [XmlRoot("Project")]
@@ -82,16 +80,16 @@ namespace Oetools.Builder.Project {
         /// A list of build configurations for this project.
         /// </summary>
         /// <remarks>
-        /// A build configuration describe how to build your application.
-        /// It is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.
-        /// Each build configuration has properties, that are used to describe your application (for instance, the database needed to compile your code) and are also used to describe options to build your application (for instance, if the compilation should also generate the xref files).
-        /// Each build configuration can also have variables, that make your build process dynamic. You can use variables almost anywhere in this xml and dynamically overload their values when running the build.
-        /// Several build configurations can be defined for a single project.
-        /// 
-        /// Each build configuration can define "children" build configurations.
-        /// Each child inherits its parent properties following these rules:
-        /// - If the same leaf is defined for both, the child value is prioritized (leaf = an xml element with no descendant elements).
-        /// - If the xml element is a list, the elements if the child (if any) will be added to the elements of the parent (if any). For instance, the tasks list has this behavior.
+        /// * A build configuration describe how to build your application.
+        /// * It is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.
+        /// * Each build configuration also has properties, which are used to customize the build.
+        /// * Each build configuration can also have variables that make your build process dynamic. You can use variables anywhere in this xml. Their value can be changed dynamically without modifying this xml when running the build.
+        ///
+        /// Inheritance (aka russian dolls):
+        /// * Each build configuration can define "children" build configurations.
+        /// * Each child inherits its parent properties following these rules:
+        /// -   If the same leaf is defined for both, the child value is prioritized (leaf = an xml element with no descendant elements).
+        /// -   If the xml element is a list, the elements of the child (if any) will be added to the elements of the parent (if any). For instance, the tasks list has this behavior. This means that the tasks of a child will be added to the defined tasks of its predecessors.
         /// </remarks>
         [XmlArray("BuildConfigurations")]
         [XmlArrayItem("Configuration", typeof(OeBuildConfiguration))]

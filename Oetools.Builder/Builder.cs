@@ -57,8 +57,7 @@ namespace Oetools.Builder {
         public List<BuildStepExecutor> BuildStepExecutors { get; } = new List<BuildStepExecutor>();
         
         public List<TaskExecutionException> TaskExecutionExceptions => BuildStepExecutors
-            .SelectMany(exec => (exec?.Tasks).ToNonNullList())
-            .SelectMany(task => task.GetRuntimeExceptionList().ToNonNullList())
+            .SelectMany(exec => exec.TaskExecutionExceptions)
             .ToList();
         
         private int TotalNumberOfTasks { get; set; }

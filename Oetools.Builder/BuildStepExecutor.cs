@@ -48,7 +48,11 @@ namespace Oetools.Builder {
 
         public event EventHandler<StepExecutorProgressEventArgs> OnTaskStart;
 
+        public List<TaskExecutionException> TaskExecutionExceptions;
+        
         protected bool StopBuildOnTaskWarning => Properties?.BuildOptions?.StopBuildOnTaskWarning ?? OeBuildOptions.GetDefaultStopBuildOnTaskWarning();
+        
+        protected bool StopBuildOnTaskError => Properties?.BuildOptions?.StopBuildOnTaskError ?? OeBuildOptions.GetDefaultStopBuildOnTaskError();
 
         protected bool TestMode => Properties?.BuildOptions?.TestMode ?? OeBuildOptions.GetDefaultTestMode();
 
@@ -105,7 +109,10 @@ namespace Oetools.Builder {
                 } catch (OperationCanceledException) {
                     throw;
                 } catch (TaskExecutionException e) {
-                    throw new TaskExecutorException(this, e.Message, e);
+                    SaveTaskExecutionException(e);
+                    if (StopBuildOnTaskError) {
+                        throw new TaskExecutorException(this, e.Message, e);
+                    }
                 } catch (Exception e) {
                     throw new TaskExecutorException(this, $"Unexpected exception for {task}: {e.Message}", e);
                 } finally {
@@ -155,11 +162,20 @@ namespace Oetools.Builder {
         private void TaskOnPublishException(object sender, TaskWarningEventArgs e) {
             var publishedException = new TaskExecutorException(this, e.Exception.Message, e.Exception);
             Log?.Warn($"Task warning: {publishedException.Message}", publishedException);
+            
+            SaveTaskExecutionException(e.Exception);
             if (StopBuildOnTaskWarning) {
                 throw e.Exception;
             }
         }
-        
+
+        private void SaveTaskExecutionException(TaskExecutionException exception) {
+            if (TaskExecutionExceptions == null) {
+                TaskExecutionExceptions = new List<TaskExecutionException>();
+            }
+            TaskExecutionExceptions.Add(exception);
+        }
+
         public override string ToString() => Name ?? "Unnamed step executor.";
     }
 }

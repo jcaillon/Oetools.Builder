@@ -44,22 +44,22 @@ namespace XsdAnnotator {
             string assemblyFolderPath = args[1];
 
             if (!Directory.Exists(assemblyFolderPath)) {
-                Console.Error.WriteLine($"The directory does not exist : {assemblyFolderPath}");
+                Console.Error.WriteLine($"The directory does not exist: {assemblyFolderPath}");
                 return 1;
             }
-            Console.WriteLine($"The assemblies directory used is : {assemblyFolderPath}");
+            Console.WriteLine($"The assemblies directory used is: {assemblyFolderPath}");
 
             if (!File.Exists(xsdPath)) {
-                Console.Error.WriteLine($"The file does not exist : {xsdPath}");
+                Console.Error.WriteLine($"The file does not exist: {xsdPath}");
                 return 1;
             }
-            Console.WriteLine($"The xsd to annotate is : {xsdPath}");
+            Console.WriteLine($"The xsd to annotate is: {xsdPath}");
 
 
             _loadedAssemblies = new List<Assembly>();
             foreach (var dllPath in Directory.EnumerateFiles(assemblyFolderPath, "*.dll", SearchOption.TopDirectoryOnly)) {
                 _loadedAssemblies.Add(Assembly.Load(File.ReadAllBytes(dllPath)));
-                Console.WriteLine($"Loaded assembly into memory : {_loadedAssemblies.Last().GetName().FullName}");
+                Console.WriteLine($"Loaded assembly into memory: {_loadedAssemblies.Last().GetName().FullName}");
             }
 
             var xmlElementsList = new List<XElement>();
@@ -76,6 +76,8 @@ namespace XsdAnnotator {
             var annotator = new XsdAnnotate(existingTypes, xmlElementsList);
             try {
                 annotator.Annotate(xsdPath, $"{xsdPath}");
+                
+                Console.WriteLine($"Done: {xsdPath}");
             } catch (Exception e) {
                 Console.Error.WriteLine(e);
                 return 1;

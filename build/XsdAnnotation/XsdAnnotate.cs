@@ -30,20 +30,17 @@ using System.Xml.Linq;
 using System.Xml.Serialization;
 
 namespace XsdAnnotator {
-    
     /// <summary>
     /// This class needs to be refactored and generalized... quick and dirty work indeed...
     /// </summary>
     internal class XsdAnnotate {
-        
-        private const string DefaultMethodPrefix = "GetDefault";
         private const string EnumMethodPrefix = "GetEnum";
-        
+        private const string DefaultMethodPrefix = "GetDefault";
+
         private readonly List<Type> _existingTypes;
         private readonly List<XElement> _xmlDocElementsList;
         private XNamespace _xsNs;
-        private Dictionary<string, string> _enumOptions = new Dictionary<string, string>();
-        private Dictionary<string, string> _defaultValues = new Dictionary<string, string>();
+        private Dictionary<string, Documentation> _xmlNameDocumentation = new Dictionary<string, Documentation>();
         
         public XsdAnnotate(List<Type> existingTypes, List<XElement> xmlDocElementsList) {
             _existingTypes = existingTypes;
@@ -51,32 +48,47 @@ namespace XsdAnnotator {
         }
 
         public void Annotate(string xsdPath, string outputXsdPath) {
-            var doc = XDocument.Load(xsdPath);
-            _xsNs = ((XElement) doc.FirstNode).GetNamespaceOfPrefix("xs");
+            var xsdDocument = XDocument.Load(xsdPath);
+            _xsNs = ((XElement) xsdDocument.FirstNode).GetNamespaceOfPrefix("xs");
 
-            FindEnumOptions();
-            FindDefaultValues();
-            
-            foreach (var element in doc.Descendants(_xsNs + "element").Concat(doc.Descendants(_xsNs + "attribute")).Concat(doc.Descendants(_xsNs + "enumeration"))) {
-                string documentationStr;
+            GetXmlDocumentation();
+
+            foreach (var element in xsdDocument.Descendants(_xsNs + "element").Concat(xsdDocument.Descendants(_xsNs + "attribute")).Concat(xsdDocument.Descendants(_xsNs + "enumeration"))) {
+                Documentation documentation = null;
+                
                 var parentTypeName = GetParentTypeName(element);
-                string propertyName = null;
-                if (!string.IsNullOrEmpty(parentTypeName) && !parentTypeName.StartsWith("ArrayOf")) {
-                    // case of a property
-                    Type correspondingType = _existingTypes.FirstOrDefault(type => type.Name.Equals(parentTypeName));
-                    propertyName = GetTypePropertyNameFromXmlMemberName(correspondingType, element.Attribute("name")?.Value ?? element.Attribute("value")?.Value);
-                    documentationStr = GetDocumentationFromXmlComment(parentTypeName, propertyName);
+                
+                // case of a property
+                var xmlNameQualifiedWithClassName = $"{parentTypeName}.{element.Attribute("name")?.Value ?? ""}";
+                if (_xmlNameDocumentation.ContainsKey(xmlNameQualifiedWithClassName)) {
+                    documentation = _xmlNameDocumentation[xmlNameQualifiedWithClassName];
                 } else {
                     // case of a type
-                    documentationStr = GetDocumentationFromXmlComment(element.Attribute("type")?.Value, null);
+                    var typeName = element.Attribute("type")?.Value;
+                    if (!string.IsNullOrEmpty(typeName) && _xmlNameDocumentation.ContainsKey(typeName)) {
+                        documentation = _xmlNameDocumentation[typeName];
+                    }
                 }
 
-                if (string.IsNullOrEmpty(documentationStr)) {
-                    Console.Error.WriteLine($"Can't find a description for xml name {element.Attribute("name")}: {parentTypeName}{(string.IsNullOrEmpty(propertyName) ? "" : $".{propertyName}")}.");
+                if (documentation == null) {
+                    Console.Error.WriteLine($"Can't find a description for xml name: {element.Attribute("name")?.Value ??  element.Attribute("type")?.Value ?? "unknown"}.");
                 } else {
-                    element.Add(new XElement(_xsNs + "annotation",
-                        new XElement(_xsNs + "documentation", new XCData(documentationStr))
-                    ));
+                    var sb = new StringBuilder();
+                    sb.Append(documentation.Summary);
+                    if (!string.IsNullOrEmpty(documentation.DefaultValue)) {
+                        sb.Append("\n").Append("\n").Append("<b>Defaults to:</b> ").Append(documentation.DefaultValue).Append(".");
+                    }
+                    if (!string.IsNullOrEmpty(documentation.AcceptableValues)) {
+                        sb.Append("\n").Append("\n").Append("<b>Available options are:</b> ").Append(documentation.AcceptableValues).Append(".");
+                    }
+                    if (!string.IsNullOrEmpty(documentation.Remarks)) {
+                        sb.Append("\n").Append("\n").Append("<b>Remarks:</b>").Append("\n").Append(documentation.Remarks);
+                    }
+                    if (!string.IsNullOrEmpty(documentation.Examples)) {
+                        sb.Append("\n").Append("\n").Append("<b>Examples:</b>").Append("\n").Append(documentation.Examples);
+                    }
+                    sb.Replace("\n", "<br>\n");
+                    element.Add(new XElement(_xsNs + "annotation", new XElement(_xsNs + "documentation", new XCData(sb.ToString()))));
                 }
 
                 // Correct the minOccurs for nullable elements!
@@ -88,88 +100,16 @@ namespace XsdAnnotator {
                     }
                 }
             }
-            
+
             // replace xs:sequence by xs:all to be able to input elements in any order!
-            foreach (var element in doc.Descendants(_xsNs + "sequence")) {
+            foreach (var element in xsdDocument.Descendants(_xsNs + "sequence")) {
                 var parentTypeName = GetParentTypeName(element);
                 if (!string.IsNullOrEmpty(parentTypeName) && !parentTypeName.StartsWith("ArrayOf")) {
                     element.Name = _xsNs + "all";
                 }
             }
 
-            doc.Save(outputXsdPath);
-        } 
-
-        private string GetDocumentationFromXmlComment(string parentTypeName, string propertyName, bool incSummary = true, bool incRemarks = true, bool incExamples = true) {
-            var qualifiedMemberName = $"{parentTypeName ?? ""}{(!string.IsNullOrEmpty(parentTypeName) && !string.IsNullOrEmpty(propertyName) ? "." : "")}{propertyName ?? ""}";
-            StringBuilder output = new StringBuilder();
-            var memberNode = _xmlDocElementsList.FirstOrDefault(elem => elem.Attribute("name")?.Value.EndsWith(qualifiedMemberName) ?? false);
-            if (memberNode != null) {
-                var summaryNode = memberNode.Element("summary");
-                if (incSummary && summaryNode != null) {
-                    var paraNode = summaryNode.Element("para");
-                    output.Append(CliCompactWhitespaces(new StringBuilder(paraNode?.Value ?? summaryNode.Value)));
-                }
-                if (!string.IsNullOrEmpty(propertyName) && _defaultValues.ContainsKey(propertyName)) {
-                    output.Append("\n");
-                    output.Append($"Defaults to: {_defaultValues[propertyName]}.");
-                }
-                if (!string.IsNullOrEmpty(propertyName) && _enumOptions.ContainsKey(propertyName)) {
-                    output.Append("\n");
-                    output.Append($"Options are: {_enumOptions[propertyName]}.");
-                }
-                var remarksNode = memberNode.Element("remarks");
-                if (incRemarks && remarksNode != null) {
-                    output.Append("\n");
-                    output.Append("\n");
-                    output.Append("Remarks:");
-                    output.Append("\n");
-                    output.Append(CliCompactWhitespaces(new StringBuilder(remarksNode.Value)));
-                }
-                var exampleNode = memberNode.Element("example");
-                if (incExamples && exampleNode != null) {
-                    output.Append("\n");
-                    output.Append("\n");
-                    output.Append("Examples:");
-                    output.Append("\n");
-                    output.Append(CliCompactWhitespaces(new StringBuilder(exampleNode.Value)));
-                }
-                var inheritdocNode = memberNode.Element("inheritdoc");
-                if (inheritdocNode != null) {
-                    var cref = inheritdocNode.Attribute("cref");
-                    if (cref != null) {
-                        output.Append(GetDocumentationFromXmlComment(cref.Value, null, memberNode.Element("summary") == null, memberNode.Element("remarks") == null, memberNode.Element("example") == null));
-                    }
-                }
-            }
-            return output.ToString();
-        }        
-
-        private string GetTypePropertyNameFromXmlMemberName(Type correspondingType, string methodName) {
-            if (correspondingType != null) {
-                foreach (var propertyInfo in correspondingType.GetMembers()) {
-                    if (Attribute.GetCustomAttribute(propertyInfo, typeof(XmlArrayAttribute), true) is XmlArrayAttribute attr && attr.ElementName.Equals(methodName)) {
-                        methodName = propertyInfo.Name;
-                        break;
-                    }
-
-                    if (Attribute.GetCustomAttribute(propertyInfo, typeof(XmlElementAttribute), true) is XmlElementAttribute attr2 && attr2.ElementName.Equals(methodName)) {
-                        methodName = propertyInfo.Name;
-                        break;
-                    }
-
-                    if (Attribute.GetCustomAttribute(propertyInfo, typeof(XmlAttributeAttribute), true) is XmlAttributeAttribute attr3 && attr3.AttributeName.Equals(methodName)) {
-                        methodName = propertyInfo.Name;
-                        break;
-                    }
-
-                    if (Attribute.GetCustomAttribute(propertyInfo, typeof(XmlEnumAttribute), true) is XmlEnumAttribute attr4 && attr4.Name.Equals(methodName)) {
-                        methodName = propertyInfo.Name;
-                        break;
-                    }
-                }
-            }
-            return methodName;
+            xsdDocument.Save(outputXsdPath);
         }
 
         private static string GetParentTypeName(XElement element) {
@@ -181,42 +121,56 @@ namespace XsdAnnotator {
                     parentTypeName = attrName.Value;
                     break;
                 }
+
                 parent = parent.Parent;
             }
             return parentTypeName;
         }
-        
-        private void FindDefaultValues() {
+
+        private void GetXmlDocumentation() {
             foreach (var existingType in _existingTypes) {
-                foreach (var methodInfo in existingType
-                    .GetMethods(BindingFlags.Public | BindingFlags.Static| BindingFlags.FlattenHierarchy)
-                    .ToList()
-                    .Where(m => m.IsStatic && m.Name.StartsWith(DefaultMethodPrefix))) {
-                    var propertyName = methodInfo.Name.Replace(DefaultMethodPrefix, "");
-                    var prop = existingType.GetProperty(propertyName);
-                    if (prop != null) {
-                        string defaultValue = null;
+                
+                var typeDoc = GetDocumentation(existingType.FullName);
+                if (typeDoc != null && !_xmlNameDocumentation.ContainsKey(existingType.Name)) {
+                    _xmlNameDocumentation.Add(existingType.Name, typeDoc);
+                }
+                
+                foreach (var propertyInfo in existingType.GetProperties()) {
+                    string xmlName;
+                    if (Attribute.GetCustomAttribute(propertyInfo, typeof(XmlArrayAttribute), true) is XmlArrayAttribute attr1) {
+                        xmlName = attr1.ElementName;
+                    } else if (Attribute.GetCustomAttribute(propertyInfo, typeof(XmlElementAttribute), true) is XmlElementAttribute attr2) {
+                        xmlName = attr2.ElementName;
+                    } else if (Attribute.GetCustomAttribute(propertyInfo, typeof(XmlAttributeAttribute), true) is XmlAttributeAttribute attr3) {
+                        xmlName = attr3.AttributeName;
+                    } else {
+                        continue;
+                    }
+
+                    var xsdName = $"{existingType.Name}.{xmlName}";
+
+                    if (_xmlNameDocumentation.ContainsKey(xsdName)) {
+                        continue;
+                    }
+
+                    var doc = GetDocumentation($"{existingType.FullName}.{propertyInfo.Name}");
+                    if (doc == null) {
+                        continue;
+                    }
+                    
+                    // default
+                    var methodInfo = existingType.GetMethod($"{DefaultMethodPrefix}{propertyInfo.Name}", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+                    if (methodInfo != null) {
                         if (Attribute.GetCustomAttribute(methodInfo, typeof(DescriptionAttribute), true) is DescriptionAttribute description) {
-                            defaultValue = description.Description;
-                        } else {
-                            if (!prop.PropertyType.IsClass || prop.PropertyType == typeof(string)) {
-                                defaultValue = methodInfo.Invoke(null, null).ToString();
-                            }
-                        }
-                        if (!string.IsNullOrEmpty(defaultValue) && !_defaultValues.ContainsKey(propertyName)) {
-                            _defaultValues.Add(propertyName, defaultValue);
+                            doc.DefaultValue = description.Description;
+                        } else if (!propertyInfo.PropertyType.IsClass || propertyInfo.PropertyType == typeof(string)) {
+                            doc.DefaultValue = methodInfo.Invoke(null, null).ToString();
                         }
                     }
-                }
-            }
-        }
 
-        private void FindEnumOptions() {
-            foreach (var existingType in _existingTypes) {
-                foreach (var methodInfo in existingType.GetMethods().ToList().Where(m => m.Name.StartsWith(EnumMethodPrefix))) {
-                    var propertyName = methodInfo.Name.Replace(EnumMethodPrefix, "");
-                    var prop = existingType.GetProperty(propertyName);
-                    if (prop != null && methodInfo.ReturnType.GenericTypeArguments.Length > 0) {
+                    // enum
+                    methodInfo = existingType.GetMethod($"{EnumMethodPrefix}{propertyInfo.Name}", BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+                    if (methodInfo != null && methodInfo.ReturnType.GenericTypeArguments.Length > 0) {
                         var enumType = methodInfo.ReturnType.GenericTypeArguments[0];
                         if (!enumType.IsEnum) {
                             continue;
@@ -225,19 +179,70 @@ namespace XsdAnnotator {
                         var i = 0;
                         foreach (var name in Enum.GetNames(enumType)) {
                             if (i > 0) {
-                                optionsList.Append(", ");
+                                optionsList.Append(" or ");
                             }
                             optionsList.Append(name);
                             i++;
                         }
-                        if (!_enumOptions.ContainsKey(propertyName)) {
-                            _enumOptions.Add(propertyName, optionsList.ToString());
-                        }
+                        doc.AcceptableValues = optionsList.ToString();
                     }
+                    
+                    _xmlNameDocumentation.Add(xsdName, doc);
                 }
             }
         }
-        
+
+        private class Documentation {
+            public string Summary { get; set; }
+            public string Remarks { get; set; }
+            public string Examples { get; set; }
+            public string DefaultValue { get; set; }
+            public string AcceptableValues { get; set; }
+        }
+
+        private Documentation GetDocumentation(string memberName, Documentation doc = null) {
+            var memberNode = _xmlDocElementsList.FirstOrDefault(elem => elem.Attribute("name")?.Value.EndsWith(memberName) ?? false);
+            if (memberNode == null) {
+                return null;
+            }
+
+            if (doc == null) {
+                doc = new Documentation();
+            }
+
+            if (string.IsNullOrEmpty(doc.Summary)) {
+                var summaryNode = memberNode.Element("summary");
+                if (summaryNode != null) {
+                    var paraNode = summaryNode.Element("para");
+                    doc.Summary = CliCompactWhitespaces(new StringBuilder(paraNode?.Value ?? summaryNode.Value)).ToString();
+                }
+            }
+
+            if (string.IsNullOrEmpty(doc.Remarks)) {
+                var remarksNode = memberNode.Element("remarks");
+                if (remarksNode != null) {
+                    var paraNode = remarksNode.Element("para");
+                    doc.Remarks = CliCompactWhitespaces(new StringBuilder(paraNode?.Value ?? remarksNode.Value)).ToString();
+                }
+            }
+
+            if (string.IsNullOrEmpty(doc.Examples)) {
+                var exampleNode = memberNode.Element("example");
+                if (exampleNode != null) {
+                    var paraNode = exampleNode.Element("para");
+                    doc.Examples = CliCompactWhitespaces(new StringBuilder(paraNode?.Value ?? exampleNode.Value)).ToString();
+                }
+            }
+
+            var inheritdocNode = memberNode.Element("inheritdoc");
+            var cref = inheritdocNode?.Attribute("cref");
+            if (cref != null) {
+                doc = GetDocumentation(cref.Value, doc);
+            }
+
+            return doc;
+        }
+
         /// <summary>
         /// handle all whitespace chars not only spaces, trim both leading and trailing whitespaces, remove extra internal whitespaces,
         /// and all whitespaces are replaced to space char (so we have uniform space separator)
@@ -290,7 +295,7 @@ namespace XsdAnnotator {
                     dest++;
                 }
             }
-            
+
             sb.Length = dest;
             return sb;
         }
