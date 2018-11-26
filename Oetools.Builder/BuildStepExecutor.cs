@@ -64,6 +64,8 @@ namespace Oetools.Builder {
             if (Tasks == null) {
                 return;
             }
+            TaskExecutionExceptions = null;
+            NumberOfTasksDone = 0;
             try {
                 Log?.Debug("Injecting task properties.");
                 foreach (var task in Tasks) {

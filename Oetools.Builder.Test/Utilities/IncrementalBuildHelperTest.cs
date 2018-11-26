@@ -297,6 +297,42 @@ namespace Oetools.Builder.Test.Utilities {
         }
 
         [TestMethod]
+        public void GetSourceFilesToRebuildBecauseOfCompilationErrors() {
+            var prevBuilt = new PathList<OeFileBuiltCompiled> {
+                new OeFileBuiltCompiled {
+                    Path = "source1",
+                    CompilationProblems = new List<AOeCompilationProblem> {
+                        new OeCompilationWarning(),
+                        new OeCompilationWarning()
+                    }
+                },
+                new OeFileBuiltCompiled {
+                    Path = "source2",
+                    CompilationProblems = new List<AOeCompilationProblem> {
+                        new OeCompilationWarning(),
+                        new OeCompilationError()
+                    }
+                },
+                new OeFileBuiltCompiled {
+                    Path = "source3"
+                },
+                new OeFileBuiltCompiled {
+                    Path = "source4",
+                    CompilationProblems = new List<AOeCompilationProblem> {
+                        new OeCompilationError()
+                    }
+                }
+            };
+            
+            var output = IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfCompilationErrors(prevBuilt).ToList();
+            
+            Assert.AreEqual(2, output.Count);
+            Assert.AreEqual("source2", output[0].Path);
+            Assert.AreEqual("source4", output[1].Path);
+
+        }
+
+        [TestMethod]
         public void GetListOfFileToCompileBecauseOfTableCrcChanges_Test() {
             var env = new EnvExecution2();
             var previouslyBuiltFiles = new List<OeFileBuiltCompiled>();

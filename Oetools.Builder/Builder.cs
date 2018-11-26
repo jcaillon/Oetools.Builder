@@ -319,7 +319,6 @@ namespace Oetools.Builder {
                     var builtFileCompiled = new OeFileBuiltCompiled {
                         Path = file.Path,
                         Size = -1,
-                        State = OeFileState.Added,
                         CompilationProblems = new List<AOeCompilationProblem>()
                     };
                     foreach (var compilationProblem in file.CompilationProblems) {
@@ -333,7 +332,7 @@ namespace Oetools.Builder {
                         compiledFile.CompilationProblems.Add(AOeCompilationProblem.New(problem));
                     }
                 } else {
-                    Log?.Error($"Compilation problems found for a file which does not seem to have been compiled: {file.Path.PrettyQuote()}");
+                    Log?.Error($"Compilation problems found for a file which does not seem to have been compiled: {file.Path.PrettyQuote()}.");
                 }
             }
             

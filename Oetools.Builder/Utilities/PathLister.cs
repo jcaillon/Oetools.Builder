@@ -197,13 +197,13 @@ namespace Oetools.Builder.Utilities {
             };
             gitManager.SetCurrentDirectory(BaseDirectory);
             
-            if (GitFilter.IncludeSourceFilesModifiedSinceLastCommit ?? OeGitFilterOptions.GetDefaultIncludeSourceFilesModifiedSinceLastCommit()) {
+            if (GitFilter.IncludeSourceFilesModifiedSinceLastCommit ?? PathListerGitFilterOptions.GetDefaultIncludeSourceFilesModifiedSinceLastCommit()) {
                 output.AddRange(gitManager.GetAllModifiedFilesSinceLastCommit()
                     .Select(f => new OeFile(f.MakePathAbsolute(BaseDirectory).ToCleanPath()))
                     .ToFileList());
             }
             
-            if (GitFilter.IncludeSourceFilesCommittedOnlyOnCurrentBranch ?? OeGitFilterOptions.GetDefaultIncludeSourceFilesCommittedOnlyOnCurrentBranch()) {
+            if (GitFilter.IncludeSourceFilesCommittedOnlyOnCurrentBranch ?? PathListerGitFilterOptions.GetDefaultIncludeSourceFilesCommittedOnlyOnCurrentBranch()) {
                 try {
                     output.AddRange(gitManager.GetAllCommittedFilesExclusiveToCurrentBranch(GitFilter.CurrentBranchOriginCommit, GitFilter.CurrentBranchName)
                         .Select(f => new OeFile(f.MakePathAbsolute(BaseDirectory).ToCleanPath()))

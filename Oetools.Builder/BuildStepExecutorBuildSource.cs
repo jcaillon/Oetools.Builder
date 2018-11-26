@@ -103,15 +103,16 @@ namespace Oetools.Builder {
                         var previouslyBuiltCompiled = PreviouslyBuiltPaths.OfType<OeFileBuiltCompiled>().ToList();
 
                         if (Properties != null) {
-                            Log?.Debug("Add files to rebuild because one of the reference table or sequence have changed since the previous build");
+                            Log?.Debug("Add files to rebuild because one of the reference table or sequence have changed since the previous build.");
                             _sourceDirectoryPathListToBuild.AddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfTableCrcChanges(Properties.GetEnv(), previouslyBuiltCompiled));
                         }
 
-                        Log?.Debug("Add files to rebuild because one of their dependencies (think include files) has changed since the previous build");
+                        Log?.Debug("Add files to rebuild because one of their dependencies (think include files) has changed since the previous build.");
                         _sourceDirectoryPathListToBuild.AddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(_sourceDirectoryPathListToBuild, previouslyBuiltCompiled));
                         
-                        // TODO: add files to rebuild because they did not compiled on last build!
-
+                        Log?.Debug("Add files to rebuild because they did not compile correctly in the previous build.");
+                        // they actually are already in the list because file that did not compile have a size of -1 in the output xml.
+                        _sourceDirectoryPathListToBuild.AddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfCompilationErrors(previouslyBuiltCompiled));
                     } else {
 
                         Log?.Debug("Build every source file");

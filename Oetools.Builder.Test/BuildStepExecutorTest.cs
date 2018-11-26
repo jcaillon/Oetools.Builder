@@ -27,10 +27,8 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
-using Oetools.Builder.Project;
 using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
-using Oetools.Builder.Test.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
@@ -118,6 +116,34 @@ namespace Oetools.Builder.Test {
                 e = ex;
             }
             Assert.IsNotNull(e);
+        }
+
+        [TestMethod]
+        public void TaskExecutor_Test_task_error() {
+            var taskExecutor = new BuildStepExecutor {
+                Tasks = new List<IOeTask> {
+                    new TaskWarning(),
+                    new TaskError(),
+                    new TaskWarning()
+                },
+                Properties = new OeProperties {
+                    BuildOptions = new OeBuildOptions {
+                        StopBuildOnTaskError = false
+                    }
+                }
+            };
+            taskExecutor.Execute();
+            Assert.AreEqual(3, taskExecutor.TaskExecutionExceptions.Count);
+
+            taskExecutor.Properties.BuildOptions.StopBuildOnTaskError = true;
+            TaskExecutorException e = null;
+            try {
+                taskExecutor.Execute();
+            } catch (TaskExecutorException ex) {
+                e = ex;
+            }
+            Assert.IsNotNull(e);
+            Assert.AreEqual(2, taskExecutor.TaskExecutionExceptions.Count);
         }
 
         [TestMethod]
@@ -316,6 +342,16 @@ namespace Oetools.Builder.Test {
             public override void Validate() { }
             protected override void ExecuteInternal() {
                 AddExecutionWarning(new TaskExecutionException(this, "oups warning!"));
+            }
+            protected override void ExecuteTestModeInternal() {
+                // nothing to do
+            }
+        }
+        
+        private class TaskError : AOeTask {
+            public override void Validate() { }
+            protected override void ExecuteInternal() {
+                throw new TaskExecutionException(this, "oups error!");
             }
             protected override void ExecuteTestModeInternal() {
                 // nothing to do

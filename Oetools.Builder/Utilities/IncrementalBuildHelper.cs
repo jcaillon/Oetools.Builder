@@ -36,7 +36,7 @@ namespace Oetools.Builder.Utilities {
 
         /// <summary>
         /// Returns a raw list of files that need to be rebuilt because one of their dependencies (source file, include) has been modified (modified/deleted)
-        /// This list must then be filtered considering files that do not exist anymore or files that were already added to the rebuild list
+        /// This list must then be filtered considering files that do not exist anymore or files that were already added to the rebuild list.
         /// </summary>
         /// <param name="pathsModified"></param>
         /// <param name="previousFilesBuilt"></param>
@@ -60,7 +60,7 @@ namespace Oetools.Builder.Utilities {
         
         /// <summary>
         /// Returns a raw list of files that need to be rebuilt because one of their database references (table or sequence) has been modified (modified/deleted)
-        /// This list must then be filtered considering files that do not exist anymore or files that were already added to the rebuild list
+        /// This list must then be filtered considering files that do not exist anymore or files that were already added to the rebuild list.
         /// </summary>
         /// <param name="env"></param>
         /// <param name="previousFilesBuilt"></param>
@@ -82,6 +82,19 @@ namespace Oetools.Builder.Utilities {
                     }
                 }) ?? true;
                 if (!allReferencesOk) {
+                    yield return new OeFile(previousFile);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Returns a raw list of files that need to be rebuilt they did not correctly compile last build.
+        /// </summary>
+        /// <param name="previousFilesBuilt"></param>
+        /// <returns></returns>
+        internal static IEnumerable<IOeFile> GetSourceFilesToRebuildBecauseOfCompilationErrors(IEnumerable<OeFileBuiltCompiled> previousFilesBuilt) {
+            foreach (var previousFile in previousFilesBuilt) {
+                if (previousFile.CompilationProblems?.Exists(cp => cp is OeCompilationError) ?? false) {
                     yield return new OeFile(previousFile);
                 }
             }
