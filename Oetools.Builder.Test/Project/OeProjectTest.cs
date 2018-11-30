@@ -20,6 +20,7 @@
 
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -45,6 +46,160 @@ namespace Oetools.Builder.Test.Project {
         [ClassCleanup]
         public static void Cleanup() {
             Utils.DeleteDirectoryIfExists(TestFolder, true);
+        }
+
+        [TestMethod]
+        public void GetAllBuildConfigurations() {
+            var project = new OeProject {
+                BuildConfigurations = new List<OeBuildConfiguration> {
+                    new OeBuildConfiguration {
+                        Name = "first",
+                        BuildConfigurations = new List<OeBuildConfiguration> {
+                            new OeBuildConfiguration {
+                                Name = "second"
+                            },
+                            new OeBuildConfiguration {
+                                Name = "third",
+                                BuildConfigurations = new List<OeBuildConfiguration> {
+                                    new OeBuildConfiguration {
+                                        Name = "fourth",
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    new OeBuildConfiguration {
+                        Name = "fifth"
+                    }
+                }
+            };
+
+            var cb = project.GetAllBuildConfigurations();
+
+            Assert.AreEqual(5, cb.Count);
+        }
+
+        [TestMethod]
+        public void GetBuildConfigurationCopy_static() {
+            var project1 = new OeProject {
+                BuildConfigurations = new List<OeBuildConfiguration> {
+                    new OeBuildConfiguration {
+                        Name = "first",
+                        Properties = new OeProperties {
+                            DlcDirectoryPath = "globaldlc",
+                            BuildOptions = new OeBuildOptions {
+                                OutputDirectoryPath = "globaloutput",
+                                SourceToBuildFilter = new OeSourceFilterOptions {
+                                    Include = "include"
+                                },
+                                IncrementalBuildOptions = new OeIncrementalBuildOptions {
+                                    EnabledIncrementalBuild = true
+                                }
+                            },
+                            PropathSourceDirectoriesFilter = new OePropathFilterOptions() {
+                                Include = "inc"
+                            }
+                        },
+                        Variables = new List<OeVariable> {
+                            new OeVariable {
+                                Name = "globalname1"
+                            }
+                        },
+                        BuildSteps = new List<AOeBuildStep> {
+                            new OeBuildStepBuildSource {
+                                Tasks = new List<AOeTask> {
+                                    new OeTaskFileCopy()
+                                }
+                            }    
+                        }
+                    },
+                    new OeBuildConfiguration {
+                        Name = "fifth"
+                    }
+                }
+            };
+            var project2 = new OeProject {
+                BuildConfigurations = new List<OeBuildConfiguration> {
+                    new OeBuildConfiguration {
+                        Name = "second"
+                    },
+                    new OeBuildConfiguration {
+                        Name = "third",
+                        Variables = new List<OeVariable> {
+                            new OeVariable {
+                                Name = "localname1"
+                            }
+                        },
+                        Properties = new OeProperties {
+                            DlcDirectoryPath = "localdlc",
+                            PropathSourceDirectoriesFilter = new OePropathFilterOptions {
+                                Exclude = "exclude"
+                            },
+                            BuildOptions = new OeBuildOptions {
+                                SourceToBuildFilter = new OeSourceFilterOptions {
+                                    Exclude = "exclude"
+                                }
+                            }
+                        },
+                        BuildConfigurations = new List<OeBuildConfiguration> {
+                            new OeBuildConfiguration {
+                                Name = "fourth",
+                                BuildSteps = new List<AOeBuildStep> {
+                                    new OeBuildStepBuildSource {
+                                        Tasks = new List<AOeTask> {
+                                            new OeTaskFileCopy()
+                                        }
+                                    }    
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            var project3 = new OeProject {
+                BuildConfigurations = new List<OeBuildConfiguration> {
+                    new OeBuildConfiguration {
+                        Name = "sixth",
+                        BuildSteps = new List<AOeBuildStep> {
+                            new OeBuildStepBuildSource {
+                                Tasks = new List<AOeTask> {
+                                    new OeTaskFileCopy()
+                                }
+                            }    
+                        }
+                    }
+                }
+            };
+
+            var project1Path = Path.Combine(TestFolder, "project1");
+            var project2Path = Path.Combine(TestFolder, "project2");
+            var project3Path = Path.Combine(TestFolder, "project3");
+            project1.Save(project1Path);
+            project2.Save(project2Path);
+            project3.Save(project3Path);
+
+            var queue = new Queue<Tuple<string, string>>();
+            queue.Enqueue(new Tuple<string, string>(project1Path, "first"));
+            queue.Enqueue(new Tuple<string, string>(project2Path, "fourth"));
+            queue.Enqueue(new Tuple<string, string>(project3Path, "sixth"));
+
+            OeBuildConfiguration conf = OeProject.GetBuildConfigurationCopy(queue);
+            
+            Assert.AreEqual(2, conf.Variables.Count);
+            Assert.AreEqual("sixth", conf.Name);
+            Assert.AreEqual("localdlc", conf.Properties.DlcDirectoryPath);
+            Assert.AreEqual("globaloutput", conf.Properties.BuildOptions.OutputDirectoryPath);
+            Assert.AreEqual("exclude", conf.Properties.PropathSourceDirectoriesFilter.Exclude);
+            Assert.AreEqual("exclude", conf.Properties.BuildOptions.SourceToBuildFilter.Exclude);
+            Assert.AreEqual("include", conf.Properties.BuildOptions.SourceToBuildFilter.Include);
+            Assert.AreEqual("inc", conf.Properties.PropathSourceDirectoriesFilter.Include);
+            Assert.AreEqual(true, conf.Properties.BuildOptions.IncrementalBuildOptions.EnabledIncrementalBuild);
+        
+            Assert.AreEqual(3, conf.BuildSteps.Count);
+
+            Assert.AreEqual("globaldlc", project1.BuildConfigurations[0].Properties.DlcDirectoryPath, "This should not modified the global properties.");
+            Assert.AreEqual(null, project1.BuildConfigurations[1].Properties?.BuildOptions?.IncrementalBuildOptions, "This should also not modified the properties of the original build configurations.");
+            
         }
 
         [TestMethod]
@@ -123,22 +278,28 @@ namespace Oetools.Builder.Test.Project {
                 }
             };
 
-            var conf = project.GetBuildConfigurationCopy("fourth");
+            project.InitIds();
 
-            Assert.AreEqual(2, conf.Variables.Count);
-            Assert.AreEqual("fourth", conf.Name);
-            Assert.AreEqual("localdlc", conf.Properties.DlcDirectoryPath);
-            Assert.AreEqual("globaloutput", conf.Properties.BuildOptions.OutputDirectoryPath);
-            Assert.AreEqual("exclude", conf.Properties.PropathSourceDirectoriesFilter.Exclude);
-            Assert.AreEqual("exclude", conf.Properties.BuildOptions.SourceToBuildFilter.Exclude);
-            Assert.AreEqual("include", conf.Properties.BuildOptions.SourceToBuildFilter.Include);
-            Assert.AreEqual("inc", conf.Properties.PropathSourceDirectoriesFilter.Include);
-            Assert.AreEqual(true, conf.Properties.BuildOptions.IncrementalBuildOptions.EnabledIncrementalBuild);
+            for (int i = 0; i < 2; i++) {
+                OeBuildConfiguration conf = project.GetBuildConfigurationCopy(i == 0 ? "fourth" : "4");
+
+                Assert.IsNotNull(conf, i == 0 ? "Can find a configuration from name." : "Can find a configuration from id.");
+                
+                Assert.AreEqual(2, conf.Variables.Count);
+                Assert.AreEqual("fourth", conf.Name);
+                Assert.AreEqual("localdlc", conf.Properties.DlcDirectoryPath);
+                Assert.AreEqual("globaloutput", conf.Properties.BuildOptions.OutputDirectoryPath);
+                Assert.AreEqual("exclude", conf.Properties.PropathSourceDirectoriesFilter.Exclude);
+                Assert.AreEqual("exclude", conf.Properties.BuildOptions.SourceToBuildFilter.Exclude);
+                Assert.AreEqual("include", conf.Properties.BuildOptions.SourceToBuildFilter.Include);
+                Assert.AreEqual("inc", conf.Properties.PropathSourceDirectoriesFilter.Include);
+                Assert.AreEqual(true, conf.Properties.BuildOptions.IncrementalBuildOptions.EnabledIncrementalBuild);
             
-            Assert.AreEqual(2, conf.BuildSteps.Count);
+                Assert.AreEqual(2, conf.BuildSteps.Count);
 
-            Assert.AreEqual("globaldlc", project.BuildConfigurations[0].Properties.DlcDirectoryPath, "This should not modified the global properties.");
-            Assert.AreEqual(null, project.BuildConfigurations[1].Properties?.BuildOptions?.IncrementalBuildOptions, "This should also not modified the properties of the original build configurations.");
+                Assert.AreEqual("globaldlc", project.BuildConfigurations[0].Properties.DlcDirectoryPath, "This should not modified the global properties.");
+                Assert.AreEqual(null, project.BuildConfigurations[1].Properties?.BuildOptions?.IncrementalBuildOptions, "This should also not modified the properties of the original build configurations.");
+            }
         }
 
         [TestMethod]

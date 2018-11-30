@@ -90,7 +90,7 @@ namespace Oetools.Builder {
                         if (PreviouslyBuiltPaths != null) {
                             
                             Log?.Debug("Add files to rebuild because one of their dependencies (think include files) has changed");
-                            _sourceDirectoryPathListToBuild.AddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(_sourceDirectoryPathListToBuild, PreviouslyBuiltPaths.OfType<OeFileBuiltCompiled>().ToList()));
+                            _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(_sourceDirectoryPathListToBuild, PreviouslyBuiltPaths.OfType<OeFileBuiltCompiled>().ToList()));
                         }
 
                     } else if (!FullRebuild && UseIncrementalBuild && PreviouslyBuiltPaths != null) {
@@ -104,15 +104,15 @@ namespace Oetools.Builder {
 
                         if (Properties != null) {
                             Log?.Debug("Add files to rebuild because one of the reference table or sequence have changed since the previous build.");
-                            _sourceDirectoryPathListToBuild.AddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfTableCrcChanges(Properties.GetEnv(), previouslyBuiltCompiled));
+                            _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfTableCrcChanges(Properties.GetEnv(), previouslyBuiltCompiled));
                         }
 
                         Log?.Debug("Add files to rebuild because one of their dependencies (think include files) has changed since the previous build.");
-                        _sourceDirectoryPathListToBuild.AddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(_sourceDirectoryPathListToBuild, previouslyBuiltCompiled));
+                        _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(_sourceDirectoryPathListToBuild, previouslyBuiltCompiled));
                         
                         Log?.Debug("Add files to rebuild because they did not compile correctly in the previous build.");
                         // they actually are already in the list because file that did not compile have a size of -1 in the output xml.
-                        _sourceDirectoryPathListToBuild.AddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfCompilationErrors(previouslyBuiltCompiled));
+                        _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfCompilationErrors(previouslyBuiltCompiled));
                     } else {
 
                         Log?.Debug("Build every source file");

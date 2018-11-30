@@ -285,8 +285,12 @@ namespace Oetools.Builder.Project.Properties {
                     var xmlName = objectType.GetXmlName(property.Name);
                     if (keyValue.ContainsKey(xmlName)) {
                         TypeConverter typeConverter = TypeDescriptor.GetConverter(property.PropertyType);
-                        object propValue = typeConverter.ConvertFromString(keyValue[xmlName]);
-                        property.SetValue(objectInstance, propValue);
+                        try {
+                            object propValue = typeConverter.ConvertFromString(keyValue[xmlName]);
+                            property.SetValue(objectInstance, propValue);
+                        } catch (Exception e) {
+                            throw new Exception($"Could not convert {$"{xmlName}={keyValue[xmlName]}".PrettyQuote()} to type {property.PropertyType.Name}: {e.Message}", e);
+                        }
                         continue;
                     } 
                     

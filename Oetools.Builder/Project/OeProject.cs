@@ -24,12 +24,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Resources;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib.Extension;
+using static Oetools.Builder.Project.OeProject;
 
 namespace Oetools.Builder.Project {
     
@@ -46,23 +49,35 @@ namespace Oetools.Builder.Project {
         
         #region static
 
-        private const string XsdName = "Project.xsd";
+        public const string XsdName = "Project.xsd";
 
+        /// <summary>
+        /// Loads a project from a file.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        /// <exception cref="ProjectException"></exception>
         public static OeProject Load(string path) {
-            OeProject interfaceXml;
-            var serializer = new XmlSerializer(typeof(OeProject));
-            using (var reader = new StreamReader(path)) {
-                interfaceXml = (OeProject) serializer.Deserialize(reader);
+            try {
+                OeProject interfaceXml;
+                var serializer = new XmlSerializer(typeof(OeProject));
+                using (var reader = new StreamReader(path)) {
+                    interfaceXml = (OeProject) serializer.Deserialize(reader);
+                }
+                interfaceXml.InitIds();
+                return interfaceXml;
+            } catch (Exception e) {
+                throw new ProjectException($"An error occured when reading the file {path.PrettyQuote()}: {e.Message}", e);
             }
-            interfaceXml.InitIds();
-            return interfaceXml;
         }
 
+        /// <summary>
+        /// Saves the project to a file.
+        /// </summary>
+        /// <param name="path"></param>
         public void Save(string path) {
             var serializer = new XmlSerializer(typeof(OeProject));
-            
             XmlDocumentWriter.Save(path, serializer, this);
-
             File.WriteAllBytes(Path.Combine(Path.GetDirectoryName(path) ?? "", XsdName), XsdResources.GetXsdFromResources(XsdName));
         }
 
@@ -85,7 +100,7 @@ namespace Oetools.Builder.Project {
         /// * Each build configuration also has properties, which are used to customize the build.
         /// * Each build configuration can also have variables that make your build process dynamic. You can use variables anywhere in this xml. Their value can be changed dynamically without modifying this xml when running the build.
         ///
-        /// Inheritance (aka russian dolls):
+        /// Inheritance of build configurations (think of russian dolls):
         /// * Each build configuration can define "children" build configurations.
         /// * Each child inherits its parent properties following these rules:
         /// -   If the same leaf is defined for both, the child value is prioritized (leaf = an xml element with no descendant elements).
@@ -121,13 +136,16 @@ namespace Oetools.Builder.Project {
         }
 
         /// <summary>
-        /// Returns a copy of the first build configuration with the given name, or null by default.
+        /// Returns a copy of the first build configuration with the given name, or null if not found.
         /// </summary>
         /// <param name="configurationName"></param>
         /// <returns></returns>
         public OeBuildConfiguration GetBuildConfigurationCopy(string configurationName) {
             if (configurationName == null) {
                 return null;
+            }
+            if (!int.TryParse(configurationName, out int id)) {
+                id = -1;
             }
             
             List<OeBuildConfiguration> buildConfigurationsStack = null;
@@ -140,7 +158,7 @@ namespace Oetools.Builder.Project {
                 var parents = parentsAndChildrenList.Item1;
                 var children = parentsAndChildrenList.Item2;
                 foreach (var child in children) {
-                    if (child.Name.Equals(configurationName, StringComparison.CurrentCultureIgnoreCase)) {
+                    if (id >= 0 && child.Id.Equals(id) || child.Name.Equals(configurationName, StringComparison.CurrentCultureIgnoreCase)) {
                         buildConfigurationsStack = parents;
                         buildConfigurationsStack.Add(child);
                         found = true;
@@ -172,6 +190,63 @@ namespace Oetools.Builder.Project {
         /// <returns></returns>
         public OeBuildConfiguration GetDefaultBuildConfigurationCopy() {
             return BuildConfigurations?.FirstOrDefault()?.GetDeepCopy() ?? new OeBuildConfiguration();
+        }
+
+        /// <summary>
+        /// Returns a flat list of all the configurations in this project.
+        /// </summary>
+        /// <returns></returns>
+        public List<OeBuildConfiguration> GetAllBuildConfigurations() {
+            var output = new List<OeBuildConfiguration>(BuildConfigurations);
+            var configurationsToCheck = new Stack<List<OeBuildConfiguration>>();
+            configurationsToCheck.Push(BuildConfigurations);
+            while (configurationsToCheck.Count > 0) {
+                var childrenList = configurationsToCheck.Pop();
+                foreach (var child in childrenList) {
+                    if (child.BuildConfigurations != null && child.BuildConfigurations.Count > 0) {
+                        output.AddRange(child.BuildConfigurations);
+                        configurationsToCheck.Push(child.BuildConfigurations);
+                    }
+                }
+            }
+            return output.OrderBy(b => b.Id).ToList();
+        }
+
+        public static OeBuildConfiguration GetBuildConfigurationCopy(Queue<Tuple<string, string>> buildConfigurationQueue) {
+            if (buildConfigurationQueue.Count == 0) {
+                throw new ProjectException("The build configuration stack cannot be empty.");
+            }
+
+            var nbConf = -1;
+            OeBuildConfiguration rootConf = null;
+            OeBuildConfiguration parentConf = null;
+            while (buildConfigurationQueue.Count > 0) {
+                var tuple = buildConfigurationQueue.Dequeue();
+                var proj = Load(tuple.Item1);
+                var conf = proj.GetBuildConfigurationCopy(tuple.Item2);
+                if (conf == null) {
+                    if (string.IsNullOrEmpty(tuple.Item2)) {
+                        conf = proj.BuildConfigurations?.FirstOrDefault();
+                        if (conf == null) {
+                            throw new ProjectException($"no build configuration found in the project file {tuple.Item1.PrettyQuote()}.");
+                        }
+                    } else {
+                        throw new ProjectException($"The build configuration {tuple.Item2.PrettyQuote()} can't be found in the project file {tuple.Item1.PrettyQuote()}.");
+                    }
+                }
+                conf.Id = ++nbConf;
+                if (rootConf == null) {
+                    rootConf = conf;
+                }
+                if (parentConf != null) {
+                    parentConf.BuildConfigurations = new List<OeBuildConfiguration> { conf };
+                }
+                parentConf = conf;
+            }
+
+            return new OeProject {
+                BuildConfigurations = new List<OeBuildConfiguration> { rootConf }
+            }.GetBuildConfigurationCopy(nbConf.ToString());
         }
 
         /// <summary>

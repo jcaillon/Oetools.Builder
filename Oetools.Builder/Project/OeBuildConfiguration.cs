@@ -200,6 +200,7 @@ namespace Oetools.Builder.Project {
         
         public override string ToString() => $"Configuration [{Id}]{(string.IsNullOrEmpty(Name) ? "" : $" {Name}")}";
 
+        public int GetId() => Id;
     }
 
 }

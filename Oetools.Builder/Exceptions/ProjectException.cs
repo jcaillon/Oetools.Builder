@@ -1,7 +1,7 @@
 ﻿#region header
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
-// This file (XsdResources.cs) is part of Oetools.Builder.
+// This file (BuildConfigurationException.cs) is part of Oetools.Builder.
 // 
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,24 +17,12 @@
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
 #endregion
+using System;
+using Oetools.Builder.Project;
 
-using System.IO;
-using System.Reflection;
-using System.Xml.Linq;
-
-namespace Oetools.Builder.Resources {
-    
-    internal static class XsdResources {
-        
-        internal static byte[] GetXsdFromResources(string fileName) {
-            return Resources.GetBytesFromResource($"{nameof(Oetools)}.{nameof(Builder)}.{nameof(Resources)}.Xsd.{fileName}");
-        }
-
-        internal static XDocument GetXsdDocument(string fileName) {
-            using (Stream resFilestream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"{nameof(Oetools)}.{nameof(Builder)}.{nameof(Resources)}.Xsd.{fileName}")) {
-                return XDocument.Load(resFilestream);
-            }
-        }
-        
+namespace Oetools.Builder.Exceptions {
+    public class ProjectException : BuilderException {
+        public ProjectException(string message) : base(message) { }
+        public ProjectException(string message, Exception innerException) : base(message, innerException) { }
     }
 }

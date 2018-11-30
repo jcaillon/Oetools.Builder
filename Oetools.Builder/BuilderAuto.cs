@@ -49,13 +49,13 @@ namespace Oetools.Builder {
                 try {
                     // stop the started databases
                     if (BuildConfiguration.Properties.BuildOptions.ShutdownCompilationDatabasesAfterBuild ?? OeBuildOptions.GetDefaultShutdownCompilationDatabasesAfterBuild()) {
-                        Log?.Info("Shutting down database after the build [OPTION]. This can take some time.");
+                        Log?.Debug("Shutting down database after the build.");
                         _projectDbAdmin.ShutdownAllDatabases();
                     }
                 } catch (Exception e) {
                     Log?.Error($"Error while shutting down the project databases: {e.Message}.", e);
                 } finally {
-                    _projectDbAdmin.Dispose();
+                    _projectDbAdmin?.Dispose();
                 }
                 try {
                     if (!string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.BuildConfigurationExportFilePath)) {
@@ -108,7 +108,7 @@ namespace Oetools.Builder {
             }
 
             if (UseIncrementalBuild && !string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath)) {
-                Log?.Debug("Create the output history file [OPTION].");
+                Log?.Debug("Create the output history file.");
                 OutputHistory(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath);
             }
         }
