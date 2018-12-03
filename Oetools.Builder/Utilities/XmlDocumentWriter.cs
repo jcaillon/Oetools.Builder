@@ -33,8 +33,8 @@ namespace Oetools.Builder.Utilities {
         /// </summary>
         /// <param name="path"></param>
         /// <param name="serializer"></param>
-        /// <param name="oeProject"></param>
-        internal static void Save(string path, XmlSerializer serializer, object oeProject) {
+        /// <param name="obj"></param>
+        internal static void Save(string path, XmlSerializer serializer, object obj) {
             var schemePrefix = "xsi";
             var namespaces = new XmlSerializerNamespaces();
             namespaces.Add(schemePrefix, XmlSchema.InstanceNamespace);
@@ -42,7 +42,7 @@ namespace Oetools.Builder.Utilities {
             XmlDocument doc = new XmlDocument();
             XPathNavigator nav = doc.CreateNavigator();
             using (XmlWriter w = nav.AppendChild()) {
-                serializer.Serialize(w, oeProject, namespaces);
+                serializer.Serialize(w, obj, namespaces);
             }
 
             if (doc.DocumentElement != null) {
@@ -62,6 +62,14 @@ namespace Oetools.Builder.Utilities {
                         foreach (XmlNode xmlNode in xmlNodeList) {
                             xmlNode.ParentNode?.RemoveChild(xmlNode);
                         }
+                    }
+                }
+                
+                // remove empty nodes
+                var xmlEmptyNodeList = doc.SelectNodes("//*[not(node()) and not(@*) and not(text())]");
+                if (xmlEmptyNodeList != null) {
+                    foreach (XmlNode xmlNode in xmlEmptyNodeList) {
+                        xmlNode.ParentNode?.RemoveChild(xmlNode);
                     }
                 }
             }

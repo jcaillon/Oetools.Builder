@@ -287,7 +287,7 @@ namespace Oetools.Builder.Utilities {
         /// </summary>
         /// <param name="oeFile"></param>
         /// <exception cref="Exception"></exception>
-        private static void SetFileBaseInfo(IOeFile oeFile) {
+        public static void SetFileBaseInfo(IOeFile oeFile) {
             if (oeFile.Size > 0) {
                 return;
             }

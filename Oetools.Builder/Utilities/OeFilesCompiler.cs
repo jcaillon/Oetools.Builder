@@ -78,13 +78,14 @@ namespace Oetools.Builder.Utilities {
 
             _compiler = properties.GetParallelCompiler((properties.BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()));
             _compiler.FilesToCompile = paths;
-            log?.ReportProgress(paths.Count, 0, $"Compiling {paths.Count} openedge files");
+            log?.Debug($"Compiling {paths.Count} openedge files.");
+            log?.ReportProgress(paths.Count, 0, $"Compiling {paths.Count} openedge files.");
             _compiler.Start();
             bool exited;
             do {
-                exited = _compiler.WaitForExecutionEnd(1000, cancelToken);
+                exited = _compiler.WaitForExecutionEnd(500, cancelToken);
                 int nbDone = _compiler.NumberOfFilesTreated;
-                log?.ReportProgress(_compiler.NumberOfFilesToCompile, nbDone, $"Compiling openedge files {nbDone}/{_compiler.NumberOfFilesToCompile} ({_compiler.NumberOfProcessesRunning} process running)");
+                log?.ReportProgress(_compiler.NumberOfFilesToCompile, nbDone, $"Compiling openedge files {nbDone}/{_compiler.NumberOfFilesToCompile} ({_compiler.NumberOfProcessesRunning} process running).");
             } while (!exited && !(cancelToken?.IsCancellationRequested ?? false));
             if (cancelToken?.IsCancellationRequested ?? false) {
                 _compiler.KillProcess();
@@ -98,6 +99,7 @@ namespace Oetools.Builder.Utilities {
                     throw new CompilerException(_compiler.HandledExceptions);
                 }
             }
+            log?.Info($"Compiled {_compiler.CompiledFiles.Count} openedge files in {_compiler.ExecutionTimeSpan?.ConvertToHumanTime() ?? "?"}.");
             return _compiler.CompiledFiles;
         }
 

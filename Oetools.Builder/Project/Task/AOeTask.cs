@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
@@ -79,7 +80,8 @@ namespace Oetools.Builder.Project.Task {
 
         /// <inheritdoc cref="IOeTask.Execute"/>
         public void Execute() {
-            Log?.Debug($"Executing {this}");
+            var stopWatch = Stopwatch.StartNew();
+            Log?.Debug($"Executing {this}.");
             try {
                 if (TestMode) {
                     Log?.Debug("Test mode");
@@ -93,6 +95,9 @@ namespace Oetools.Builder.Project.Task {
                 AddExecutionErrorAndThrow(te);
             } catch (Exception e) {
                 AddExecutionErrorAndThrow(new TaskExecutionException(this, $"Unexpected error : {e.Message}", e));
+            } finally {
+                stopWatch.Stop();
+                Log?.Debug($"Task ended in {stopWatch.Elapsed.ConvertToHumanTime()}.");
             }
         }
 

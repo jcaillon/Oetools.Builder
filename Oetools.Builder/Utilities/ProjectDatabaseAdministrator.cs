@@ -267,6 +267,7 @@ namespace Oetools.Builder.Utilities {
                                 .FirstOrDefault();
                             if (processToKill != null) {
                                 // because of the way we started the database, we know for sure 
+                                Log?.Debug($"Killing _mprosrv {processToKill.Id}.");
                                 processToKill.Kill();
                                 return;
                             }
@@ -276,6 +277,7 @@ namespace Oetools.Builder.Utilities {
                     }
                 }
             }
+            Log?.Debug($"Proshut for {dbPath}.");
             DbAdmin.Proshut(dbPath);
         }
 

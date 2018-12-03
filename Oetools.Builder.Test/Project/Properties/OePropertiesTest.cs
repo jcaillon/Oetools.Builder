@@ -135,7 +135,7 @@ namespace Oetools.Builder.Test.Project.Properties {
             prop.AddAllSourceDirectoriesToPropath = true;
             
             list = prop.GetPropath(TestFolder, false);
-            Assert.AreEqual(6 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
+            Assert.AreEqual(7 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
             Assert.IsTrue(list.Contains(Path.Combine(TestFolder, "test3", "subtest3")));
             
             prop.PropathSourceDirectoriesFilter = new OePropathFilterOptions() {
@@ -144,10 +144,10 @@ namespace Oetools.Builder.Test.Project.Properties {
             };
             
             list = prop.GetPropath(TestFolder, false);
-            Assert.AreEqual(4 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
+            Assert.AreEqual(5 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
             
             list = prop.GetPropath(TestFolder, true);
-            Assert.AreEqual(4 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
+            Assert.AreEqual(5 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
             Assert.IsTrue(list.Contains("test3"));
             
             if (!TestHelper.GetDlcPath(out string dlcPath)) {
@@ -158,7 +158,7 @@ namespace Oetools.Builder.Test.Project.Properties {
             prop.AddDefaultOpenedgePropath = true;
             
             list = prop.GetPropath(TestFolder, false);
-            Assert.IsTrue(list.Count > 7 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0));
+            Assert.IsTrue(list.Count > 8 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0));
         }
         
     }

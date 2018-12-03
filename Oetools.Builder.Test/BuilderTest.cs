@@ -342,7 +342,8 @@ namespace Oetools.Builder.Test {
             
             var sourceDirectory = Path.Combine(TestFolder, "source_test_history");
             Utils.CreateDirectoryIfNeeded(sourceDirectory);
-            File.WriteAllText(Path.Combine(sourceDirectory, "file1.p"), "quit."); // compile ok
+            File.WriteAllText(Path.Combine(sourceDirectory, "file1.p"), "{file1.i}"); // compile ok
+            File.WriteAllText(Path.Combine(sourceDirectory, "file1.i"), "quit.");
             File.WriteAllText(Path.Combine(sourceDirectory, "file2.w"), "quit. quit."); // compile with warnings
             File.WriteAllText(Path.Combine(sourceDirectory, "file3.p"), "nof sense, will not compile"); // compile with errors
 
@@ -357,7 +358,7 @@ namespace Oetools.Builder.Test {
                     },
                     new OeBuildStepBuildSource {
                         Tasks = new List<AOeTask> {
-                            new OeTaskFileTargetFileCompile2 { Include = "**file1**", TargetDirectory = "second" },
+                            new OeTaskFileTargetFileCompile2 { Include = "**file1**", TargetDirectory = "second" }
                         }
                     }
                 },
@@ -392,11 +393,30 @@ namespace Oetools.Builder.Test {
 
             builder.Build();
             
-            Assert.AreEqual(3, builder.BuildSourceHistory.BuiltFiles.Count);
-            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "first", "file1.r"), builder.BuildSourceHistory.BuiltFiles[0].Targets.ToList()[0].GetTargetPath());
-            Assert.AreEqual(Path.Combine("C:\\random\\folder", "file1.r"), builder.BuildSourceHistory.BuiltFiles[0].Targets.ToList()[1].GetTargetPath());
-            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "my.pl", "file2.r"), builder.BuildSourceHistory.BuiltFiles[1].Targets.ToList()[0].GetTargetPath());
-            Assert.AreEqual("derp.out.p", builder.BuildSourceHistory.BuiltFiles[2].Targets.ToList()[0].GetTargetPath());
+            Assert.AreEqual(5, builder.BuildSourceHistory.BuiltFiles.Count);
+
+            // files built
+            var file1 = (OeFileBuiltCompiled) builder.BuildSourceHistory.BuiltFiles[0];
+            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "first", "file1.r"), file1.Targets.ToList()[0].GetTargetPath());
+            Assert.AreEqual(Path.Combine("C:\\random\\folder", "file1.r"), file1.Targets.ToList()[1].GetTargetPath());
+            var file2 = (OeFileBuiltCompiled) builder.BuildSourceHistory.BuiltFiles[1];
+            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "my.pl", "file2.r"), file2.Targets.ToList()[0].GetTargetPath());
+            
+            // compilation problems
+            Assert.AreEqual(1, file2.CompilationProblems.Count);
+            var file3 = (OeFileBuiltCompiled) builder.BuildSourceHistory.BuiltFiles[2];
+            Assert.AreEqual(2, file3.CompilationProblems.Count);
+            Assert.AreEqual(-1, file3.Size);
+            
+            // files from previous build
+            var file4 = builder.BuildSourceHistory.BuiltFiles[3];
+            Assert.AreEqual("myfile.p", file4.Path);
+            Assert.AreEqual("derp.out.p", file4.Targets.ToList()[0].GetTargetPath());
+            
+            // files required
+            var file5 = (OeFileRequired) builder.BuildSourceHistory.BuiltFiles[4];
+            Assert.IsTrue(file5.Path.EndsWith("file1.i"));
+            Assert.AreEqual(5, file5.Size);
             
             // we asked for hash
             Assert.IsFalse(string.IsNullOrEmpty(builder.BuildSourceHistory.BuiltFiles[0].Checksum));

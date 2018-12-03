@@ -60,16 +60,6 @@ namespace Oetools.Builder.Project.Properties {
         public static string GetDefaultDlcDirectoryPath() => UoeUtilities.GetDlcPathFromEnv().ToCleanPath();
         
         /// <summary>
-        /// The code page to use for input/output with openedge processes.
-        /// This will default to the value read for -cpstream or -cpinternal in the file $DLC/startup.pf.
-        /// </summary>
-        /// <remarks>
-        /// This property should be configured if you encounter wrong characters (wrong encoding) in the console.
-        /// </remarks>
-        [XmlElement(ElementName = "OpenedgeCodePage")]
-        public string OpenedgeCodePage { get; set; }
-        
-        /// <summary>
         /// A list of all the openedge databases used by your project (couple of logical name + data definition file path).
         /// This list should contain all the databases necessary to compile your application.
         /// </summary>
@@ -208,6 +198,29 @@ namespace Oetools.Builder.Project.Properties {
         /// </remarks>
         [XmlElement(ElementName = "ProcedurePathToExecuteAfterAnyProgressExecution")]
         public string ProcedureToExecuteAfterAnyProgressExecutionFilePath { get; set; }
+        
+        /// <summary>
+        /// The code page to use for input/output with openedge processes.
+        /// This will default to the value read for -cpstream or -cpinternal in the file $DLC/startup.pf.
+        /// </summary>
+        /// <remarks>
+        /// This property should be configured if you encounter wrong characters (wrong encoding) in the console.
+        /// </remarks>
+        [XmlElement(ElementName = "OpenedgeCodePage")]
+        public string OpenedgeCodePage { get; set; }
+        
+        /// <summary>
+        /// Only on windows, try to hide the prowin.exe process from the windows task bar.
+        /// </summary>
+        /// <remarks>
+        /// For some reasons, the prowin.exe executable started in batch mode (-b) systematically creates a new window. That window is hidden but it still appears in the task bar. Weirdly enough, starting prowin.exe without the -b parameter does not show any window. However we need the batch mode to correctly redirect runtime errors (otherwise it should show the errors in an alert-box).
+        /// As a workaround, we wait for the prowin.exe to start and to create its window and then we hide it using widows API so it does not appear in the task bar.
+        /// This option might not be needed later on, if this behavior is fixed.
+        /// </remarks>
+        [XmlElement(ElementName = "TryToHideProcessFromTaskBarOnWindows")]
+        [DefaultValueMethod(nameof(GetDefaultTryToHideProcessFromTaskBarOnWindows))]
+        public bool? TryToHideProcessFromTaskBarOnWindows { get; set; }
+        public static bool GetDefaultTryToHideProcessFromTaskBarOnWindows() => true;
 
         /// <summary>
         /// The temporary directory to use for an openedge session.
@@ -324,7 +337,7 @@ namespace Oetools.Builder.Project.Properties {
                     var entry = propathEntry.ToCleanPath();
                     try {
                         // need to take into account relative paths
-                        if (!Path.IsPathRooted(entry)) {
+                        if (!Utils.IsPathRooted(entry)) {
                             entry = Path.GetFullPath(Path.Combine(currentDirectory, entry));
                         }
 
@@ -349,6 +362,7 @@ namespace Oetools.Builder.Project.Properties {
                     FilterOptions = PropathSourceDirectoriesFilter
                 };
                 output.TryAddRange(lister.GetDirectoryList());
+                output.TryAdd(new OeDirectory(sourceDirectory));
             }
             if (AddDefaultOpenedgePropath ?? GetDefaultAddDefaultOpenedgePropath()) {
                 // %DLC%/tty or %DLC%/gui + %DLC% + %DLC%/bin
@@ -359,6 +373,9 @@ namespace Oetools.Builder.Project.Properties {
             if (simplifyPathWithWorkingDirectory) {
                 output.ApplyPathTransformation(d => {
                     d.Path = d.Path.FromAbsolutePathToRelativePath(sourceDirectory);
+                    if (string.IsNullOrEmpty(d.Path)) {
+                        d.Path = ".";
+                    }
                     return d;
                 });
             }
@@ -392,7 +409,8 @@ namespace Oetools.Builder.Project.Properties {
                     PostExecutionProgramPath = ProcedureToExecuteAfterAnyProgressExecutionFilePath,
                     PreExecutionProgramPath = ProcedureToExecuteBeforeAnyProgressExecutionFilePath,
                     ProExeCommandLineParameters = ExtraOpenedgeCommandLineParameters,
-                    ProPathList = GetPropath((BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()), true).Select(d => d.Path).ToList()
+                    ProPathList = GetPropath((BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()), true).Select(d => d.Path).ToList(),
+                    TryToHideProcessFromTaskBarOnWindows = TryToHideProcessFromTaskBarOnWindows ?? GetDefaultTryToHideProcessFromTaskBarOnWindows()
                 };
                 if (!string.IsNullOrEmpty(OpenedgeCodePage)) {
                     _env.CodePageName = OpenedgeCodePage;

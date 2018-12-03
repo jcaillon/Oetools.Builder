@@ -162,13 +162,12 @@ namespace Oetools.Builder {
         }
         
         private void TaskOnPublishException(object sender, TaskWarningEventArgs e) {
-            var publishedException = new TaskExecutorException(this, e.Exception.Message, e.Exception);
-            Log?.Warn($"Task warning: {publishedException.Message}", publishedException);
-            
             SaveTaskExecutionException(e.Exception);
             if (StopBuildOnTaskWarning) {
                 throw e.Exception;
             }
+            var publishedException = new TaskExecutorException(this, e.Exception.Message, e.Exception);
+            Log?.Warn($"Task warning: {publishedException.Message}", publishedException);
         }
 
         private void SaveTaskExecutionException(TaskExecutionException exception) {

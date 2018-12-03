@@ -28,6 +28,7 @@ using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Resources;
 using Oetools.Builder.Utilities;
@@ -120,9 +121,10 @@ namespace Oetools.Builder.Project {
                     new OeBuildConfiguration {
                         BuildSteps = new List<AOeBuildStep> {
                             new OeBuildStepBuildSource {
-                                Name = "Compile all files next to their source",
+                                Name = "Source compilation",
                                 Tasks = new List<AOeTask> {
                                     new OeTaskFileCompile {
+                                        Name = "Compile files next to their source",
                                         Include = "((**))*",
                                         TargetDirectory = "{{1}}"
                                     }

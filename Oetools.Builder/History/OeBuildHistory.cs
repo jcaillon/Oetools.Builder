@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
+using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib;
 
@@ -45,9 +46,7 @@ namespace Oetools.Builder.History {
         public void Save(string path, string sourceDirectory, string outputDirectory) {
             ToRelativePath(sourceDirectory, outputDirectory);
             var serializer = new XmlSerializer(typeof(OeBuildHistory));
-            using (TextWriter writer = new StreamWriter(path, false)) {
-                serializer.Serialize(writer, this);
-            }
+            XmlDocumentWriter.Save(path, serializer, this);
         }
         
         #endregion
@@ -59,8 +58,9 @@ namespace Oetools.Builder.History {
         /// Files built during this build
         /// </summary>
         [XmlArray("BuiltFiles")]
-        [XmlArrayItem("BuiltFile", typeof(OeFileBuilt))]
-        [XmlArrayItem("BuiltFileCompiled", typeof(OeFileBuiltCompiled))]
+        [XmlArrayItem("FileBuilt", typeof(OeFileBuilt))]
+        [XmlArrayItem("FileCompiled", typeof(OeFileBuiltCompiled))]
+        [XmlArrayItem("FileRequired", typeof(OeFileRequired))]
         public List<OeFileBuilt> BuiltFiles { get; set; }
         
         /// <summary>

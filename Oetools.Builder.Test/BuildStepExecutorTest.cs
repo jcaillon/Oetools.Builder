@@ -223,6 +223,7 @@ namespace Oetools.Builder.Test {
             public void Info(string message, Exception e = null) {}
             public void Debug(string message, Exception e = null) {}
             public ITraceLogger Trace => null;
+            public ILogger If(bool condition) => null;
             public void ReportProgress(int max, int current, string message) {}
             public void ReportGlobalProgress(int max, int current, string message) {
                 throw new NotImplementedException();

@@ -104,6 +104,18 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultRebuildFilesWithNewTargets))]
         public bool? RebuildFilesWithNewTargets { get; set; }
         public static bool GetDefaultRebuildFilesWithNewTargets() => false;
+            
+        /// <summary>
+        /// Sets whether of not the tool should try to rebuild a file if it had compilation errors in the previous build.
+        /// </summary>
+        /// <remarks>
+        /// If the file has not been modified since the last build, there is little to no chance that it will successfully compile in the current build.
+        /// But this can happen if the file didn't compile because the compilation database was outdated (missing a table needed in the procedure for instance).
+        /// </remarks>
+        [XmlElement(ElementName = "RebuildFilesWithCompilationErrors")]
+        [DefaultValueMethod(nameof(GetDefaultRebuildFilesWithCompilationErrors))]
+        public bool? RebuildFilesWithCompilationErrors { get; set; }
+        public static bool GetDefaultRebuildFilesWithCompilationErrors() => true;
         
         /// <summary>
         /// Is this incremental build active?
