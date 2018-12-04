@@ -103,10 +103,7 @@ namespace Oetools.Builder {
                 CancelToken?.ThrowIfCancellationRequested();
                 try {
                     task.PublishWarning += TaskOnPublishException;
-                    OnTaskStart?.Invoke(this, new StepExecutorProgressEventArgs {
-                        NumberOfTasksDone = NumberOfTasksDone,
-                        CurrentTask = task.ToString()
-                    });
+                    OnTaskStart?.Invoke(this, new StepExecutorProgressEventArgs(NumberOfTasksDone, Tasks.Count, task.ToString()));
                     task.Execute();
                 } catch (OperationCanceledException) {
                     throw;

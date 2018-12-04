@@ -39,7 +39,8 @@ namespace Oetools.Builder {
         
         private PathList<IOeFileBuilt> _previouslyBuiltPaths;
         private OeBuildHistory _buildSourceHistory;
-        
+        private int _stepDoneCount;
+
         public CancellationToken? CancelToken { get; set; }
 
         public ILogger Log { protected get; set; }
@@ -153,9 +154,10 @@ namespace Oetools.Builder {
             if (BuildConfiguration.BuildSteps != null) {
                 var buildSourceStepList = BuildConfiguration.BuildSteps.OfType<OeBuildStepBuildSource>().ToList();
                 var buildSourceStepCount = 0;
+                _stepDoneCount = 0;
                 
                 foreach (var step in BuildConfiguration.BuildSteps) {
-                    Log?.Info($"Executing {step}.");
+                    Log?.Info($"{(_stepDoneCount == BuildConfiguration.BuildSteps.Count - 1 ? "└─ " : "├─ ")}Executing {step}.");
                     
                     BuildStepExecutor executor;
                     switch (step) {
@@ -192,13 +194,14 @@ namespace Oetools.Builder {
                     executor.Execute();
                     executor.OnTaskStart -= ExecutorOnOnTaskStart;
                     NumberOfTasksDone += executor.NumberOfTasksDone;
+                    _stepDoneCount++;
                 }
             }
             Log?.ReportGlobalProgress(TotalNumberOfTasks, TotalNumberOfTasks, "Ending step execution.");
         }
 
         private void ExecutorOnOnTaskStart(object sender, StepExecutorProgressEventArgs e) {
-            Log?.ReportGlobalProgress(TotalNumberOfTasks, TotalNumberOfTasks + e.NumberOfTasksDone, $"Executing {e.CurrentTask}.");
+            Log?.ReportGlobalProgress(TotalNumberOfTasks, NumberOfTasksDone + e.NumberOfTasksDone, $"{(_stepDoneCount == BuildConfiguration.BuildSteps.Count - 1 ? "   " : "|  ")}{(e.NumberOfTasksDone == e.TotalNumberOfTasks - 1 ? "└─ " : "├─ ")}Executing {e.CurrentTask}.");
         }
 
         /// <summary>

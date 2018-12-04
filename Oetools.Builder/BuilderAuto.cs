@@ -57,19 +57,6 @@ namespace Oetools.Builder {
                 } finally {
                     _projectDbAdmin?.Dispose();
                 }
-                try {
-                    if (!string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.BuildConfigurationExportFilePath)) {
-                        var exportProject = new OeProject {
-                            BuildConfigurations = new List<OeBuildConfiguration> {
-                                BuildConfiguration
-                            }
-                        };
-                        Utils.CreateDirectoryIfNeeded(Path.GetDirectoryName(BuildConfiguration.Properties.BuildOptions.BuildConfigurationExportFilePath));
-                        exportProject.Save(BuildConfiguration.Properties.BuildOptions.BuildConfigurationExportFilePath);
-                    }
-                } catch (Exception e) {
-                    Log?.Error($"Error while writing the build configuration used: {e.Message}.", e);
-                }
             }
         }
 
@@ -96,6 +83,17 @@ namespace Oetools.Builder {
             if (UseIncrementalBuild && BuildSourceHistory == null && File.Exists(BuildConfiguration.Properties.BuildOptions.BuildHistoryInputFilePath)) {
                 Log?.Debug("Loading the build history.");
                 BuildSourceHistory = OeBuildHistory.Load(BuildConfiguration.Properties.BuildOptions.BuildHistoryInputFilePath, BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath, BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath);
+            }
+            
+            // log input build configuration
+            if (!string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.BuildConfigurationExportFilePath)) {
+                var exportProject = new OeProject {
+                    BuildConfigurations = new List<OeBuildConfiguration> {
+                        BuildConfiguration
+                    }
+                };
+                Utils.CreateDirectoryIfNeeded(Path.GetDirectoryName(BuildConfiguration.Properties.BuildOptions.BuildConfigurationExportFilePath));
+                exportProject.Save(BuildConfiguration.Properties.BuildOptions.BuildConfigurationExportFilePath);
             }
         }
 

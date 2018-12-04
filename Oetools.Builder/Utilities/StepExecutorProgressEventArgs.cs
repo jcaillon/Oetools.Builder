@@ -24,8 +24,13 @@ namespace Oetools.Builder.Utilities {
     public class StepExecutorProgressEventArgs : EventArgs {
         
         public int NumberOfTasksDone { get; set; }
-        
+        public int TotalNumberOfTasks { get; set; }
         public string CurrentTask { get; set; }
-        
+
+        public StepExecutorProgressEventArgs(int numberOfTasksDone, int totalNumberOfTasks, string currentTask) {
+            NumberOfTasksDone = numberOfTasksDone;
+            TotalNumberOfTasks = totalNumberOfTasks;
+            CurrentTask = currentTask;
+        }
     }
 }
