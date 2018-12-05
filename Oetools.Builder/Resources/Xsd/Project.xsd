@@ -21,7 +21,7 @@ A build configuration describe how to build your project.]]></xs:documentation>
 * Each build configuration also has properties, which are used to customize the build.<br>
 * Each build configuration can also have variables that make your build process dynamic. You can use variables anywhere in this xml. Their value can be changed dynamically without modifying this xml when running the build.<br>
 <br>
-Inheritance (aka russian dolls):<br>
+Inheritance of build configurations (think of russian dolls):<br>
 * Each build configuration can define "children" build configurations.<br>
 * Each child inherits its parent properties following these rules:<br>
 - If the same leaf is defined for both, the child value is prioritized (leaf = an xml element with no descendant elements).<br>
@@ -42,7 +42,7 @@ Inheritance (aka russian dolls):<br>
 * Each build configuration also has properties, which are used to customize the build.<br>
 * Each build configuration can also have variables that make your build process dynamic. You can use variables anywhere in this xml. Their value can be changed dynamically without modifying this xml when running the build.<br>
 <br>
-Inheritance (aka russian dolls):<br>
+Inheritance of build configurations (think of russian dolls):<br>
 * Each build configuration can define "children" build configurations.<br>
 * Each child inherits its parent properties following these rules:<br>
 - If the same leaf is defined for both, the child value is prioritized (leaf = an xml element with no descendant elements).<br>
@@ -107,7 +107,7 @@ Steps (and tasks within them) are executed sequentially in their defined order.]
 * Each build configuration also has properties, which are used to customize the build.<br>
 * Each build configuration can also have variables that make your build process dynamic. You can use variables anywhere in this xml. Their value can be changed dynamically without modifying this xml when running the build.<br>
 <br>
-Inheritance (aka russian dolls):<br>
+Inheritance of build configurations (think of russian dolls):<br>
 * Each build configuration can define "children" build configurations.<br>
 * Each child inherits its parent properties following these rules:<br>
 - If the same leaf is defined for both, the child value is prioritized (leaf = an xml element with no descendant elements).<br>
@@ -173,15 +173,6 @@ Commonly known as the DLC directory.<br>
 <br>
 <b>Remarks:</b><br>
 It should contain, among many other things, a "bin" directory where the openedge executables are located.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeCodePage" type="xs:string">
-        <xs:annotation>
-          <xs:documentation><![CDATA[The code page to use for input/output with openedge processes.<br>
-This will default to the value read for -cpstream or -cpinternal in the file $DLC/startup.pf.<br>
-<br>
-<b>Remarks:</b><br>
-This property should be configured if you encounter wrong characters (wrong encoding) in the console.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ProjectDatabases" type="ArrayOfOeProjectDatabase">
@@ -307,6 +298,27 @@ This feature can be used to connected databases, create aliases or add paths to 
 <b>Remarks:</b><br>
 This procedure is called with a simple RUN statement and must not have any parameters.<br>
 It should be used to "clean up" any custom logic put in place with the procedure execution at the beginning of the session.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeCodePage" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[The code page to use for input/output with openedge processes.<br>
+This will default to the value read for -cpstream or -cpinternal in the file $DLC/startup.pf.<br>
+<br>
+<b>Remarks:</b><br>
+This property should be configured if you encounter wrong characters (wrong encoding) in the console.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="TryToHideProcessFromTaskBarOnWindows" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Only on windows, try to hide the prowin.exe process from the windows task bar.<br>
+<br>
+<b>Defaults to:</b> True.<br>
+<br>
+<b>Remarks:</b><br>
+For some reasons, the prowin.exe executable started in batch mode (-b) systematically creates a new window. That window is hidden but it still appears in the task bar. Weirdly enough, starting prowin.exe without the -b parameter does not show any window. However we need the batch mode to correctly redirect runtime errors (otherwise it should show the errors in an alert-box).<br>
+As a workaround, we wait for the prowin.exe to start and to create its window and then we hide it using widows API so it does not appear in the task bar.<br>
+This option might not be needed later on, if this behavior is fixed.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeTemporaryDirectoryPath" type="xs:string">
@@ -1277,6 +1289,17 @@ On the first build, the file "A" was compiled and copied to location "/bin" as w
 On the first build, the file "A" was compiled and copied to location "/bin". A new target "/bin2" is added and a second build is started:<br>
 - If this option is true, the file "A" is recompiled and built into "/bin2/A"<br>
 - If not, nothing happens (the file "A" has not been changed since the last build)]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="RebuildFilesWithCompilationErrors" nillable="true" type="xs:boolean">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Sets whether of not the tool should try to rebuild a file if it had compilation errors in the previous build.<br>
+<br>
+<b>Defaults to:</b> True.<br>
+<br>
+<b>Remarks:</b><br>
+If the file has not been modified since the last build, there is little to no chance that it will successfully compile in the current build.<br>
+But this can happen if the file didn't compile because the compilation database was outdated (missing a table needed in the procedure for instance).]]></xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:all>
