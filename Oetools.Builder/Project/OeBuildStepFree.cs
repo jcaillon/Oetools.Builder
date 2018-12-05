@@ -24,16 +24,14 @@ using Oetools.Builder.Project.Task;
 
 namespace Oetools.Builder.Project {
     
-    /// <summary>
-    /// A step (list of tasks) to build your application.
-    /// </summary>
-    /// <remarks>
-    /// Tasks are executed sequentially in the given order.
-    ///
-    /// </remarks>
+    /// <inheritdoc cref="OeBuildConfiguration.BuildSteps"/>
     /// <example>
-    /// These tasks can be used to "prepare" the build. For instance, by downloading dependencies or packages. Or by modifying certain source files.
-    /// These tasks can be used to "deploy" a build. For instance, by uploading a release zip file to a distant http or ftp server.
+    /// This build step is referred as 'free' because, contrary other type of build step, it does not require to list the files in the source/output directory prior to running the tasks.
+    /// Instead, tasks in this step can handle files that are not necessarily located in your source directory (nor in your output directory).
+    /// 
+    /// Suggested usage:
+    ///   - These tasks can be used to "prepare" a build: downloading dependencies/packages or modifying certain source files.
+    ///   - These tasks can be used to "deploy" a build: uploading a release zip file to a distant http or ftp server.
     /// </example>
     [Serializable]
     public class OeBuildStepFree : AOeBuildStep {

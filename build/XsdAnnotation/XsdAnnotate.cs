@@ -214,7 +214,8 @@ namespace XsdAnnotator {
                 var summaryNode = memberNode.Element("summary");
                 if (summaryNode != null) {
                     var paraNode = summaryNode.Element("para");
-                    doc.Summary = CliCompactWhitespaces(new StringBuilder(paraNode?.Value ?? summaryNode.Value)).ToString();
+                    //doc.Summary = CliCompactWhitespaces(new StringBuilder(paraNode?.Value ?? summaryNode.Value)).ToString();
+                    doc.Summary = StripIndentation(paraNode?.Value ?? summaryNode.Value);
                 }
             }
 
@@ -222,7 +223,8 @@ namespace XsdAnnotator {
                 var remarksNode = memberNode.Element("remarks");
                 if (remarksNode != null) {
                     var paraNode = remarksNode.Element("para");
-                    doc.Remarks = CliCompactWhitespaces(new StringBuilder(paraNode?.Value ?? remarksNode.Value)).ToString();
+                    //doc.Remarks = CliCompactWhitespaces(new StringBuilder(paraNode?.Value ?? remarksNode.Value)).ToString();
+                    doc.Remarks = StripIndentation(paraNode?.Value ?? remarksNode.Value);
                 }
             }
 
@@ -230,7 +232,8 @@ namespace XsdAnnotator {
                 var exampleNode = memberNode.Element("example");
                 if (exampleNode != null) {
                     var paraNode = exampleNode.Element("para");
-                    doc.Examples = CliCompactWhitespaces(new StringBuilder(paraNode?.Value ?? exampleNode.Value)).ToString();
+                    //doc.Examples = CliCompactWhitespaces(new StringBuilder(paraNode?.Value ?? exampleNode.Value)).ToString();
+                    doc.Examples = StripIndentation(paraNode?.Value ?? exampleNode.Value);
                 }
             }
 
@@ -241,6 +244,17 @@ namespace XsdAnnotator {
             }
 
             return doc;
+        }
+
+        private string StripIndentation(string p0) {
+            var idx = p0.LastIndexOf('\n');
+            if (idx > -1) {
+                var nbSpace = p0.Length - idx;
+                if (nbSpace > 0) {
+                    return p0.Replace("\n".PadRight(nbSpace), "\n").Trim('\n');
+                }
+            }
+            return p0;
         }
 
         /// <summary>

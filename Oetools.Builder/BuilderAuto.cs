@@ -98,14 +98,13 @@ namespace Oetools.Builder {
         }
 
         protected override void PostBuild() {
-            base.PostBuild();
-            
-            // output files
+            // output report
             if (!string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.ReportHtmlFilePath)) {
                 OutputReport(BuildConfiguration.Properties.BuildOptions.ReportHtmlFilePath);
             }
 
-            if (UseIncrementalBuild && !string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath)) {
+            // output build history
+            if (!string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath)) {
                 Log?.Debug("Create the output history file.");
                 OutputHistory(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath);
             }
@@ -118,8 +117,9 @@ namespace Oetools.Builder {
         
         private void OutputHistory(string outputHistoryFilePath) {
             if (BuildSourceHistory == null) {
-                return;
+                BuildSourceHistory = GetBuildHistory();
             }
+            
             // BuildHistory
             Utils.CreateDirectoryIfNeeded(Path.GetDirectoryName(outputHistoryFilePath));
             BuildSourceHistory.Save(outputHistoryFilePath, BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath, BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath);

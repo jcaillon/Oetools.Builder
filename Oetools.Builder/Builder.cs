@@ -137,9 +137,7 @@ namespace Oetools.Builder {
         }
 
         protected virtual void PostBuild() {
-            if (UseIncrementalBuild) {
-                BuildSourceHistory = GetBuildHistory();
-            }
+            BuildSourceHistory = GetBuildHistory();
         }
         
         /// <summary>
@@ -150,14 +148,13 @@ namespace Oetools.Builder {
             TotalNumberOfTasks += BuildConfiguration.BuildSteps?.SelectMany(step => step.Tasks).Count() ?? 0;
             TotalNumberOfTasks += PreviouslyBuiltPaths != null ? 2 : 0; // potential extra tasks for removal
             
-            Log?.ReportGlobalProgress(TotalNumberOfTasks, NumberOfTasksDone, "Starting step execution.");
             if (BuildConfiguration.BuildSteps != null) {
                 var buildSourceStepList = BuildConfiguration.BuildSteps.OfType<OeBuildStepBuildSource>().ToList();
                 var buildSourceStepCount = 0;
                 _stepDoneCount = 0;
                 
                 foreach (var step in BuildConfiguration.BuildSteps) {
-                    Log?.Info($"{(_stepDoneCount == BuildConfiguration.BuildSteps.Count - 1 ? "└─ " : "├─ ")}Executing {step}.");
+                    Log?.Info($"{(_stepDoneCount == BuildConfiguration.BuildSteps.Count - 1 ? "└─ " : "├─ ")}Executing {step.ToString().PrettyQuote()}.");
                     
                     BuildStepExecutor executor;
                     switch (step) {
@@ -201,7 +198,7 @@ namespace Oetools.Builder {
         }
 
         private void ExecutorOnOnTaskStart(object sender, StepExecutorProgressEventArgs e) {
-            Log?.ReportGlobalProgress(TotalNumberOfTasks, NumberOfTasksDone + e.NumberOfTasksDone, $"{(_stepDoneCount == BuildConfiguration.BuildSteps.Count - 1 ? "   " : "|  ")}{(e.NumberOfTasksDone == e.TotalNumberOfTasks - 1 ? "└─ " : "├─ ")}Executing {e.CurrentTask}.");
+            Log?.ReportGlobalProgress(TotalNumberOfTasks, NumberOfTasksDone + e.NumberOfTasksDone, $"{(_stepDoneCount == BuildConfiguration.BuildSteps.Count - 1 ? "   " : "│  ")}{(e.NumberOfTasksDone == e.TotalNumberOfTasks - 1 ? "└─ " : "├─ ")}Executing {e.CurrentTask.PrettyQuote()}.");
         }
 
         /// <summary>
@@ -263,7 +260,7 @@ namespace Oetools.Builder {
             TotalNumberOfTasks -= 2 - tasksAdded;
         }
         
-        private OeBuildHistory GetBuildHistory() {
+        protected OeBuildHistory GetBuildHistory() {
             var history = new OeBuildHistory {
                 BuiltFiles = GetFilesBuiltHistory().Select(f => {
                     if (f is OeFileBuilt fb) {

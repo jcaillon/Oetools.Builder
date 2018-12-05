@@ -33,7 +33,7 @@ using Oetools.Utilities.Openedge;
 namespace Oetools.Builder.Project {
     
     /// <summary>
-    /// Represents the configuration of a build
+    /// Represents the configuration of a build.
     /// </summary>
     /// <inheritdoc cref="OeProject.BuildConfigurations"/>
     /// <code>
@@ -57,24 +57,27 @@ namespace Oetools.Builder.Project {
         /// The variables of this build configurations.
         /// </summary>
         /// <remarks>
-        /// Variables make your build process dynamic by allowing you to change build options without having to modify this xml.
-        /// You can use a variable with the syntax {{variable_name}}.
-        /// Variables will be replaced by their value at run time.
-        /// If the variable exists as an environment variable, its value will be taken in priority (this allows to overload values using environment variables).
-        /// Non existing variables will be replaced by an empty string.
-        /// Variables can be used in any "string type" properties (this exclude numbers/booleans).
-        /// You can use variables in the variables definition but they must be defined in the right order.
-        /// If several variables with the same name exist, the value of the latest defined is used.
-        /// Variable names are case insensitive. 
+        /// Some facts:
+        ///   - Variables make your build process dynamic by allowing you to change build options without having to modify this xml.
+        ///   - You can use a variable with the syntax {{variable_name}}.
+        ///   - Variables will be replaced by their value at run time.
+        ///   - If the variable exists as an environment variable, its value will be taken in priority (this allows to overload values using environment variables).
+        ///   - Non existing variables will be replaced by an empty string.
+        ///   - Variables can be used in any "string type" value (this exclude numbers/booleans).
+        ///   - Variables can be used in the build configuration properties and also in the build tasks.
+        ///   - You can use variables in the variables definition, simply define them in the correct order.
+        ///   - If several variables with the same name exist, the value of the latest defined is used.
+        ///   - As this is a list of variables, child configuration will inherit variables from their parents but variable values defined in children prevail.
+        ///   - Variable names are case insensitive.
         ///
-        /// Special variables are already defined and available:
-        /// - {{SOURCE_DIRECTORY}} the application source directory (defined in properties)
-        /// - {{PROJECT_DIRECTORY}} the project directory ({{SOURCE_DIRECTORY}}/.oe)
-        /// - {{PROJECT_LOCAL_DIRECTORY}} the project local directory ({{SOURCE_DIRECTORY}}/.oe/local)
-        /// - {{DLC}} the dlc path used for the current build
-        /// - {{OUTPUT_DIRECTORY}} the build output directory (default to {{SOURCE_DIRECTORY}}/.oe/bin)
-        /// - {{CONFIGURATION_NAME}} the build configuration name for the current build
-        /// - {{CURRENT_DIRECTORY}} the current directory
+        /// Special variables are already defined and available to use:
+        ///   - {{SOURCE_DIRECTORY}} the application source directory (defined in properties).
+        ///   - {{PROJECT_DIRECTORY}} the project directory ({{SOURCE_DIRECTORY}}/.oe).
+        ///   - {{PROJECT_LOCAL_DIRECTORY}} the project local directory ({{SOURCE_DIRECTORY}}/.oe/local).
+        ///   - {{DLC}} the dlc path used for the current build.
+        ///   - {{OUTPUT_DIRECTORY}} the build output directory (default to {{SOURCE_DIRECTORY}}/.oe/bin).
+        ///   - {{CONFIGURATION_NAME}} the build configuration name for the current build.
+        ///   - {{CURRENT_DIRECTORY}} the current directory.
         /// </remarks>
         [XmlArray("Variables")]
         [XmlArrayItem("Variable", typeof(OeVariable))]
@@ -85,10 +88,11 @@ namespace Oetools.Builder.Project {
         /// The properties of this build configuration.
         /// </summary>
         /// <remarks>
-        /// Properties can describe your application (for instance, the database needed to compile).
-        /// Properties can also describe options to build your application (for instance, if the compilation should also generate the xref files).
-        /// These properties are used as default values for this project but can be overloaded for each individual build configuration.
-        /// For instance, this allows to define a DLC (v11) path for the project but you can define a build configuration that will use another DLC (v9) path.
+        /// Some facts:
+        ///   - Properties can describe your application (for instance, the database needed to compile).
+        ///   - Properties can also describe options to build your application (for instance, if the compilation should also generate the xref files).
+        ///   - Properties are inherited from parent build configuration (if any).
+        ///   - For instance, this allows to define a DLC (v11) path for the project to use as default, and have a child configuration that overload this value using another DLC (v9) path.
         /// </remarks>
         [XmlElement("Properties")]
         [DefaultValueMethod(nameof(GetDefaultProperties))]
@@ -96,10 +100,14 @@ namespace Oetools.Builder.Project {
         public static OeProperties GetDefaultProperties() => new OeProperties();
         
         /// <summary>
-        /// A list of steps to build your application. Each step contains a list of tasks. The sequential execution of these steps/tasks is called a build.
+        /// A list of steps to build your application.
         /// </summary>
         /// <remarks>
-        /// Steps (and tasks within them) are executed sequentially in their defined order.
+        /// Some facts:
+        ///   - Each step contains a list of tasks.
+        ///   - The sequential execution of these steps/tasks is called a build.
+        ///   - Steps (and tasks within them) are executed sequentially in the order they were defined.
+        ///   - A child configuration inherit the steps of its parent: they are executed before its own steps.
         /// </remarks>
         [XmlArray("BuildSteps")]
         [XmlArrayItem("Free", typeof(OeBuildStepFree))]

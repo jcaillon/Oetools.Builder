@@ -25,16 +25,15 @@ using Oetools.Builder.Project.Task;
 namespace Oetools.Builder.Project {
     
     /// <summary>
-    /// A list of steps/tasks that will build the files in your project source directory.
-    /// This type of step should be for all the tasks that are affecting files in your source directory.
+    /// A list of tasks that will build the files in your project source directory.
+    /// This type of step should be used for all the tasks that are affecting files in your source directory.
     /// </summary>
-    /// <remarks>
-    /// Tasks are executed sequentially in the given order.
+    /// <example>
     /// For this type of step, the openedge compilation is sped up by compiling all the files required at the beginning of the step.
     /// This is the main tasks list, where openedge files should be compiled.
     /// The history of files built here can be saved to enable an incremental build.
-    /// A listing of the source files is made at each step. Which means it would not be efficient to create 10 steps of 1 task each if the files in your source directory will not change between steps.
-    /// </remarks>
+    /// A listing of the files in the source directory is done at the beginning of this step. Which means it would not be efficient to create 10 steps of 1 task each if those files are not changing between steps.
+    /// </example>
     [Serializable]
     public class OeBuildStepBuildSource : AOeBuildStep {
         

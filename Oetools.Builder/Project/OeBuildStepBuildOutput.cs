@@ -25,14 +25,16 @@ using Oetools.Builder.Project.Task;
 namespace Oetools.Builder.Project {
     
     /// <summary>
-    /// A list of steps/tasks that should affect the files in your project output directory.
+    /// A list of tasks that should affect the files in your project output directory.
     /// </summary>
-    /// <remarks>
-    /// Tasks are executed sequentially in the given order.
-    /// These tasks should be used to "post-process" the files built from your source directory into the output directory.
-    /// For instance, it can be used to build a release zip file containing all the .pl and other configuration files of your release.
-    /// A listing of the files in the output directory is made at each step. Which means it would not be efficient to create 10 steps of 1 task each if those files will not change between steps.
-    /// </remarks>
+    /// <example>
+    /// These tasks can be used to 'post-process' the files built into the output directory.
+    /// A listing of the files in the output directory is done at the beginning of this step. Which means it would not be efficient to create 10 steps of 1 task each if those files are not changing between steps.
+    /// 
+    /// Suggested usage:
+    ///   - These tasks can be used to modify a configuration file copied from the source directory to the output directory.
+    ///   - These tasks can be used to build a release zip file containing all the .pl of your release.
+    /// </example>
     [Serializable]
     public class OeBuildStepBuildOutput : OeBuildStepFree {
         

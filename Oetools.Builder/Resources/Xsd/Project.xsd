@@ -5,8 +5,22 @@
       <xs:documentation><![CDATA[An Openedge project (typically, your project is your application, they are synonyms).<br>
 <br>
 <b>Remarks:</b><br>
-A project is composed of one or several build configurations.<br>
-A build configuration describe how to build your project.]]></xs:documentation>
+Some facts:<br>
+  - A project is composed of one or several build configurations.<br>
+  - A build configuration describe how to build your project.<br>
+  - To build your project, you need to specify which build configuration to use.<br>
+            <br>
+Below is a simplified representation of a project file:<br>
+  Project<br>
+  ├─ Build configuration 1<br>
+  │  ├─ Child build configuration 2<br>
+  │  │  ├─ Child build configuration 3<br>
+  │  │  └─ Child build configuration x...<br>
+  │  └─ Child build configuration x...<br>
+  └─ Build configuration x...<br>
+<br>
+There are no upper limit for build configuration nesting.<br>
+The idea is that nested build configuration inherit properties from their parent, recursively (more details on the build configuration help).]]></xs:documentation>
     </xs:annotation>
   </xs:element>
   <xs:complexType name="OeProject">
@@ -16,16 +30,52 @@ A build configuration describe how to build your project.]]></xs:documentation>
           <xs:documentation><![CDATA[A list of build configurations for this project.<br>
 <br>
 <b>Remarks:</b><br>
-* A build configuration describe how to build your application.<br>
-* It is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.<br>
-* Each build configuration also has properties, which are used to customize the build.<br>
-* Each build configuration can also have variables that make your build process dynamic. You can use variables anywhere in this xml. Their value can be changed dynamically without modifying this xml when running the build.<br>
+Some facts:<br>
+  - A build configuration describe how to build your application.<br>
+  - A build configuration is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.<br>
+  - Each build configuration also has properties, which are used to customize the build.<br>
+  - Each build configuration can also have variables that make your build process dynamic. You can use variables anywhere in this xml. Their value can be changed dynamically without modifying this xml when running the build.<br>
+            <br>
+Below is a simplified representation of a build configuration:<br>
+  Build configuration<br>
+  ├─ Variables<br>
+  ├─ Properties<br>
+  ├─ Build steps<br>
+  │  ├─ Step 1<br>
+  │  │  ├─ Task 1<br>
+  │  │  └─ Task x...<br>
+  │  └─ Step x...<br>
+  └─ List of children build configuration<br>
+  ├─ Child build configuration 1<br>
+  └─ Child build configuration x...<br>
 <br>
 Inheritance of build configurations (think of russian dolls):<br>
-* Each build configuration can define "children" build configurations.<br>
-* Each child inherits its parent properties following these rules:<br>
-- If the same leaf is defined for both, the child value is prioritized (leaf = an xml element with no descendant elements).<br>
-- If the xml element is a list, the elements of the child (if any) will be added to the elements of the parent (if any). For instance, the tasks list has this behavior. This means that the tasks of a child will be added to the defined tasks of its predecessors.]]></xs:documentation>
+  - Each build configuration can define "children" build configurations.<br>
+  - Each child inherits its parent properties following these rules:<br>
+  - For a given property, the most nested value is used (i.e. child value prioritized over parent value).<br>
+  - If the xml element is a list, the elements of the child (if any) will be added to the elements of the parent (if any). For instance, the steps list has this behavior. This means that the steps of a child will be added to the defined steps of its parents.<br>
+            <br>
+  Practical example:<br>
+    Given the project below:<br>
+   <br>
+    Project<br>
+    └─ Build configuration 1<br>
+       ├─ Properties<br>
+          │  Property1 (x)<br>
+       │  └─ Property2<br>
+       ├─ Steps<br>
+       │  └─ Step1 (x)<br>
+       └─ Child build configuration 2<br>
+          ├─ Properties<br>
+          │  ├─ Property2 (x)<br>
+          │  └─ Property3 (x)<br>
+          └─ Steps<br>
+             └─ Step2 (x)<br>
+ <br>
+    We decide to build 'Child build configuration 2':<br>
+      - Property1 of 'Build configuration 1' will be used.<br>
+      - Property2 and Property 3 of 'Build configuration 2' will be used.<br>
+      - Two steps will be executed: Step1 from 'Build configuration 1' and Step2 from 'Build configuration 2'.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:all>
@@ -34,19 +84,55 @@ Inheritance of build configurations (think of russian dolls):<br>
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="unbounded" name="Configuration" nillable="true" type="OeBuildConfiguration">
         <xs:annotation>
-          <xs:documentation><![CDATA[Represents the configuration of a build<br>
+          <xs:documentation><![CDATA[Represents the configuration of a build.<br>
 <br>
 <b>Remarks:</b><br>
-* A build configuration describe how to build your application.<br>
-* It is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.<br>
-* Each build configuration also has properties, which are used to customize the build.<br>
-* Each build configuration can also have variables that make your build process dynamic. You can use variables anywhere in this xml. Their value can be changed dynamically without modifying this xml when running the build.<br>
+Some facts:<br>
+  - A build configuration describe how to build your application.<br>
+  - A build configuration is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.<br>
+  - Each build configuration also has properties, which are used to customize the build.<br>
+  - Each build configuration can also have variables that make your build process dynamic. You can use variables anywhere in this xml. Their value can be changed dynamically without modifying this xml when running the build.<br>
+            <br>
+Below is a simplified representation of a build configuration:<br>
+  Build configuration<br>
+  ├─ Variables<br>
+  ├─ Properties<br>
+  ├─ Build steps<br>
+  │  ├─ Step 1<br>
+  │  │  ├─ Task 1<br>
+  │  │  └─ Task x...<br>
+  │  └─ Step x...<br>
+  └─ List of children build configuration<br>
+  ├─ Child build configuration 1<br>
+  └─ Child build configuration x...<br>
 <br>
 Inheritance of build configurations (think of russian dolls):<br>
-* Each build configuration can define "children" build configurations.<br>
-* Each child inherits its parent properties following these rules:<br>
-- If the same leaf is defined for both, the child value is prioritized (leaf = an xml element with no descendant elements).<br>
-- If the xml element is a list, the elements of the child (if any) will be added to the elements of the parent (if any). For instance, the tasks list has this behavior. This means that the tasks of a child will be added to the defined tasks of its predecessors.]]></xs:documentation>
+  - Each build configuration can define "children" build configurations.<br>
+  - Each child inherits its parent properties following these rules:<br>
+  - For a given property, the most nested value is used (i.e. child value prioritized over parent value).<br>
+  - If the xml element is a list, the elements of the child (if any) will be added to the elements of the parent (if any). For instance, the steps list has this behavior. This means that the steps of a child will be added to the defined steps of its parents.<br>
+            <br>
+  Practical example:<br>
+    Given the project below:<br>
+   <br>
+    Project<br>
+    └─ Build configuration 1<br>
+       ├─ Properties<br>
+          │  Property1 (x)<br>
+       │  └─ Property2<br>
+       ├─ Steps<br>
+       │  └─ Step1 (x)<br>
+       └─ Child build configuration 2<br>
+          ├─ Properties<br>
+          │  ├─ Property2 (x)<br>
+          │  └─ Property3 (x)<br>
+          └─ Steps<br>
+             └─ Step2 (x)<br>
+ <br>
+    We decide to build 'Child build configuration 2':<br>
+      - Property1 of 'Build configuration 1' will be used.<br>
+      - Property2 and Property 3 of 'Build configuration 2' will be used.<br>
+      - Two steps will be executed: Step1 from 'Build configuration 1' and Step2 from 'Build configuration 2'.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:sequence>
@@ -58,24 +144,27 @@ Inheritance of build configurations (think of russian dolls):<br>
           <xs:documentation><![CDATA[The variables of this build configurations.<br>
 <br>
 <b>Remarks:</b><br>
-Variables make your build process dynamic by allowing you to change build options without having to modify this xml.<br>
-You can use a variable with the syntax {{variable_name}}.<br>
-Variables will be replaced by their value at run time.<br>
-If the variable exists as an environment variable, its value will be taken in priority (this allows to overload values using environment variables).<br>
-Non existing variables will be replaced by an empty string.<br>
-Variables can be used in any "string type" properties (this exclude numbers/booleans).<br>
-You can use variables in the variables definition but they must be defined in the right order.<br>
-If several variables with the same name exist, the value of the latest defined is used.<br>
-Variable names are case insensitive. <br>
-<br>
-Special variables are already defined and available:<br>
-- {{SOURCE_DIRECTORY}} the application source directory (defined in properties)<br>
-- {{PROJECT_DIRECTORY}} the project directory ({{SOURCE_DIRECTORY}}/.oe)<br>
-- {{PROJECT_LOCAL_DIRECTORY}} the project local directory ({{SOURCE_DIRECTORY}}/.oe/local)<br>
-- {{DLC}} the dlc path used for the current build<br>
-- {{OUTPUT_DIRECTORY}} the build output directory (default to {{SOURCE_DIRECTORY}}/.oe/bin)<br>
-- {{CONFIGURATION_NAME}} the build configuration name for the current build<br>
-- {{CURRENT_DIRECTORY}} the current directory]]></xs:documentation>
+Some facts:<br>
+  - Variables make your build process dynamic by allowing you to change build options without having to modify this xml.<br>
+  - You can use a variable with the syntax {{variable_name}}.<br>
+  - Variables will be replaced by their value at run time.<br>
+  - If the variable exists as an environment variable, its value will be taken in priority (this allows to overload values using environment variables).<br>
+  - Non existing variables will be replaced by an empty string.<br>
+  - Variables can be used in any "string type" value (this exclude numbers/booleans).<br>
+  - Variables can be used in the build configuration properties and also in the build tasks.<br>
+  - You can use variables in the variables definition, simply define them in the correct order.<br>
+  - If several variables with the same name exist, the value of the latest defined is used.<br>
+  - As this is a list of variables, child configuration will inherit variables from their parents but variable values defined in children prevail.<br>
+  - Variable names are case insensitive.<br>
+            <br>
+Special variables are already defined and available to use:<br>
+  - {{SOURCE_DIRECTORY}} the application source directory (defined in properties).<br>
+  - {{PROJECT_DIRECTORY}} the project directory ({{SOURCE_DIRECTORY}}/.oe).<br>
+  - {{PROJECT_LOCAL_DIRECTORY}} the project local directory ({{SOURCE_DIRECTORY}}/.oe/local).<br>
+  - {{DLC}} the dlc path used for the current build.<br>
+  - {{OUTPUT_DIRECTORY}} the build output directory (default to {{SOURCE_DIRECTORY}}/.oe/bin).<br>
+  - {{CONFIGURATION_NAME}} the build configuration name for the current build.<br>
+  - {{CURRENT_DIRECTORY}} the current directory.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="Properties" type="OeProperties">
@@ -83,18 +172,23 @@ Special variables are already defined and available:<br>
           <xs:documentation><![CDATA[The properties of this build configuration.<br>
 <br>
 <b>Remarks:</b><br>
-Properties can describe your application (for instance, the database needed to compile).<br>
-Properties can also describe options to build your application (for instance, if the compilation should also generate the xref files).<br>
-These properties are used as default values for this project but can be overloaded for each individual build configuration.<br>
-For instance, this allows to define a DLC (v11) path for the project but you can define a build configuration that will use another DLC (v9) path.]]></xs:documentation>
+Some facts:<br>
+  - Properties can describe your application (for instance, the database needed to compile).<br>
+  - Properties can also describe options to build your application (for instance, if the compilation should also generate the xref files).<br>
+  - Properties are inherited from parent build configuration (if any).<br>
+  - For instance, this allows to define a DLC (v11) path for the project to use as default, and have a child configuration that overload this value using another DLC (v9) path.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="BuildSteps" type="ArrayOfChoice3">
         <xs:annotation>
-          <xs:documentation><![CDATA[A list of steps to build your application. Each step contains a list of tasks. The sequential execution of these steps/tasks is called a build.<br>
+          <xs:documentation><![CDATA[A list of steps to build your application.<br>
 <br>
 <b>Remarks:</b><br>
-Steps (and tasks within them) are executed sequentially in their defined order.]]></xs:documentation>
+Some facts:<br>
+  - Each step contains a list of tasks.<br>
+  - The sequential execution of these steps/tasks is called a build.<br>
+  - Steps (and tasks within them) are executed sequentially in the order they were defined.<br>
+  - A child configuration inherit the steps of its parent: they are executed before its own steps.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ChildrenBuildConfigurations" type="ArrayOfOeBuildConfiguration">
@@ -102,16 +196,52 @@ Steps (and tasks within them) are executed sequentially in their defined order.]
           <xs:documentation><![CDATA[A list of children build configurations, each will inherit the properties defined in this one.<br>
 <br>
 <b>Remarks:</b><br>
-* A build configuration describe how to build your application.<br>
-* It is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.<br>
-* Each build configuration also has properties, which are used to customize the build.<br>
-* Each build configuration can also have variables that make your build process dynamic. You can use variables anywhere in this xml. Their value can be changed dynamically without modifying this xml when running the build.<br>
+Some facts:<br>
+  - A build configuration describe how to build your application.<br>
+  - A build configuration is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.<br>
+  - Each build configuration also has properties, which are used to customize the build.<br>
+  - Each build configuration can also have variables that make your build process dynamic. You can use variables anywhere in this xml. Their value can be changed dynamically without modifying this xml when running the build.<br>
+            <br>
+Below is a simplified representation of a build configuration:<br>
+  Build configuration<br>
+  ├─ Variables<br>
+  ├─ Properties<br>
+  ├─ Build steps<br>
+  │  ├─ Step 1<br>
+  │  │  ├─ Task 1<br>
+  │  │  └─ Task x...<br>
+  │  └─ Step x...<br>
+  └─ List of children build configuration<br>
+  ├─ Child build configuration 1<br>
+  └─ Child build configuration x...<br>
 <br>
 Inheritance of build configurations (think of russian dolls):<br>
-* Each build configuration can define "children" build configurations.<br>
-* Each child inherits its parent properties following these rules:<br>
-- If the same leaf is defined for both, the child value is prioritized (leaf = an xml element with no descendant elements).<br>
-- If the xml element is a list, the elements of the child (if any) will be added to the elements of the parent (if any). For instance, the tasks list has this behavior. This means that the tasks of a child will be added to the defined tasks of its predecessors.]]></xs:documentation>
+  - Each build configuration can define "children" build configurations.<br>
+  - Each child inherits its parent properties following these rules:<br>
+  - For a given property, the most nested value is used (i.e. child value prioritized over parent value).<br>
+  - If the xml element is a list, the elements of the child (if any) will be added to the elements of the parent (if any). For instance, the steps list has this behavior. This means that the steps of a child will be added to the defined steps of its parents.<br>
+            <br>
+  Practical example:<br>
+    Given the project below:<br>
+   <br>
+    Project<br>
+    └─ Build configuration 1<br>
+       ├─ Properties<br>
+          │  Property1 (x)<br>
+       │  └─ Property2<br>
+       ├─ Steps<br>
+       │  └─ Step1 (x)<br>
+       └─ Child build configuration 2<br>
+          ├─ Properties<br>
+          │  ├─ Property2 (x)<br>
+          │  └─ Property3 (x)<br>
+          └─ Steps<br>
+             └─ Step2 (x)<br>
+ <br>
+    We decide to build 'Child build configuration 2':<br>
+      - Property1 of 'Build configuration 1' will be used.<br>
+      - Property2 and Property 3 of 'Build configuration 2' will be used.<br>
+      - Two steps will be executed: Step1 from 'Build configuration 1' and Step2 from 'Build configuration 2'.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:all>
@@ -128,24 +258,27 @@ Inheritance of build configurations (think of russian dolls):<br>
           <xs:documentation><![CDATA[A variable to use in a build configuration.<br>
 <br>
 <b>Remarks:</b><br>
-Variables make your build process dynamic by allowing you to change build options without having to modify this xml.<br>
-You can use a variable with the syntax {{variable_name}}.<br>
-Variables will be replaced by their value at run time.<br>
-If the variable exists as an environment variable, its value will be taken in priority (this allows to overload values using environment variables).<br>
-Non existing variables will be replaced by an empty string.<br>
-Variables can be used in any "string type" properties (this exclude numbers/booleans).<br>
-You can use variables in the variables definition but they must be defined in the right order.<br>
-If several variables with the same name exist, the value of the latest defined is used.<br>
-Variable names are case insensitive. <br>
-<br>
-Special variables are already defined and available:<br>
-- {{SOURCE_DIRECTORY}} the application source directory (defined in properties)<br>
-- {{PROJECT_DIRECTORY}} the project directory ({{SOURCE_DIRECTORY}}/.oe)<br>
-- {{PROJECT_LOCAL_DIRECTORY}} the project local directory ({{SOURCE_DIRECTORY}}/.oe/local)<br>
-- {{DLC}} the dlc path used for the current build<br>
-- {{OUTPUT_DIRECTORY}} the build output directory (default to {{SOURCE_DIRECTORY}}/.oe/bin)<br>
-- {{CONFIGURATION_NAME}} the build configuration name for the current build<br>
-- {{CURRENT_DIRECTORY}} the current directory]]></xs:documentation>
+Some facts:<br>
+  - Variables make your build process dynamic by allowing you to change build options without having to modify this xml.<br>
+  - You can use a variable with the syntax {{variable_name}}.<br>
+  - Variables will be replaced by their value at run time.<br>
+  - If the variable exists as an environment variable, its value will be taken in priority (this allows to overload values using environment variables).<br>
+  - Non existing variables will be replaced by an empty string.<br>
+  - Variables can be used in any "string type" value (this exclude numbers/booleans).<br>
+  - Variables can be used in the build configuration properties and also in the build tasks.<br>
+  - You can use variables in the variables definition, simply define them in the correct order.<br>
+  - If several variables with the same name exist, the value of the latest defined is used.<br>
+  - As this is a list of variables, child configuration will inherit variables from their parents but variable values defined in children prevail.<br>
+  - Variable names are case insensitive.<br>
+            <br>
+Special variables are already defined and available to use:<br>
+  - {{SOURCE_DIRECTORY}} the application source directory (defined in properties).<br>
+  - {{PROJECT_DIRECTORY}} the project directory ({{SOURCE_DIRECTORY}}/.oe).<br>
+  - {{PROJECT_LOCAL_DIRECTORY}} the project local directory ({{SOURCE_DIRECTORY}}/.oe/local).<br>
+  - {{DLC}} the dlc path used for the current build.<br>
+  - {{OUTPUT_DIRECTORY}} the build output directory (default to {{SOURCE_DIRECTORY}}/.oe/bin).<br>
+  - {{CONFIGURATION_NAME}} the build configuration name for the current build.<br>
+  - {{CURRENT_DIRECTORY}} the current directory.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:sequence>
@@ -187,7 +320,7 @@ The idea is to version .df files (data definition files) and to have a fully bui
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ExtraDatabaseConnectionString" type="xs:string">
         <xs:annotation>
-          <xs:documentation><![CDATA[A database connection string that will be used to connect to extra databases before a build.<br>
+          <xs:documentation><![CDATA[A database connection string that will be used to connect to extra databases before a build. <br>
 <br>
 <b>Remarks:</b><br>
 This obviously requires existing databases.<br>
@@ -418,7 +551,7 @@ From this file, the tool is able to generate a temporary database used to compil
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
-<br>
+ <br>
 The following symbols can be used in patterns:<br>
 <br>
 - ** will match any char any number of time (corresponds to a regex greedy match)<br>
@@ -446,7 +579,7 @@ The following symbols can be used in patterns:<br>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
-<br>
+ <br>
 The following symbols can be used in patterns:<br>
 <br>
 - ** will match any char any number of time (corresponds to a regex greedy match)<br>
@@ -544,7 +677,7 @@ The following symbols can be used in patterns:<br>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="FailOnErrorOutput" nillable="true" type="xs:boolean">
             <xs:annotation>
-              <xs:documentation><![CDATA[Finish this task in error if the executable wrote in the error output stream.]]></xs:documentation>
+              <xs:documentation><![CDATA[Finish this task in error if the executable wrote in the error output stream. ]]></xs:documentation>
             </xs:annotation>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="WorkingDirectory" type="xs:string">
@@ -567,7 +700,7 @@ The following symbols can be used in patterns:<br>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
-<br>
+ <br>
 The following symbols can be used in patterns:<br>
 <br>
 - ** will match any char any number of time (corresponds to a regex greedy match)<br>
@@ -595,7 +728,7 @@ The following symbols can be used in patterns:<br>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
-<br>
+ <br>
 The following symbols can be used in patterns:<br>
 <br>
 - ** will match any char any number of time (corresponds to a regex greedy match)<br>
@@ -843,7 +976,7 @@ for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw"
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
-<br>
+ <br>
 The following symbols can be used in patterns:<br>
 <br>
 - ** will match any char any number of time (corresponds to a regex greedy match)<br>
@@ -871,7 +1004,7 @@ The following symbols can be used in patterns:<br>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
-<br>
+ <br>
 The following symbols can be used in patterns:<br>
 <br>
 - ** will match any char any number of time (corresponds to a regex greedy match)<br>
@@ -914,7 +1047,7 @@ The following symbols can be used in patterns:<br>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="SourceOverrideFileList" type="xs:string">
             <xs:annotation>
-              <xs:documentation><![CDATA[A direct list of files to use as sources.<br>
+              <xs:documentation><![CDATA[A direct list of files to use as sources. <br>
 <br>
 <b>Remarks:</b><br>
 Several paths can be given by separating them with a semi-colon (i.e. ;).<br>
@@ -972,7 +1105,7 @@ If true, the compilation process will produce a file (.lis) including:<br>
 - The date and time at the start of the compilation <br>
 - The number of each line in the procedure or class file <br>
 - The block number where each statement belongs <br>
-- The complete text of all include files (except encrypted include files) and the names of any sub-procedures and user-defined functions]]></xs:documentation>
+- The complete text of all include files (except encrypted include files) and the names of any sub-procedures and user-defined functions ]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="CompileWithPreprocess" nillable="true" type="xs:boolean">
@@ -1041,7 +1174,7 @@ By default, all rcode generated are saved in the temporary directory and then mo
 <b>Defaults to:</b> *.p;*.w;*.t;*.cls.<br>
 <br>
 <b>Remarks:</b><br>
-This is a default filter that is used for each "compile" task and which allows to process only certain types of files.]]></xs:documentation>
+This is a default filter that is used for each "compile" task and which allows to process only certain types of files. ]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="NumberProcessPerCore" nillable="true" type="xs:unsignedByte">
@@ -1269,7 +1402,7 @@ On the first build, the file "A" was compiled and copied to location "/bin". The
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="MirrorDeletedTargetsToOutput" nillable="true" type="xs:boolean">
         <xs:annotation>
-          <xs:documentation><![CDATA[Sets whether of not the tool should apply the modifications of a target that has been deleted since the last build.<br>
+          <xs:documentation><![CDATA[Sets whether of not the tool should apply the modifications of a target that has been deleted since the last build. <br>
 <br>
 <b>Defaults to:</b> False.<br>
 <br>
@@ -1358,38 +1491,47 @@ This commit is generally found automatically but you can set its value to force 
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element minOccurs="0" maxOccurs="1" name="BuildSource" nillable="true" type="OeBuildStepBuildSource">
         <xs:annotation>
-          <xs:documentation><![CDATA[A list of steps/tasks that will build the files in your project source directory.<br>
-This type of step should be for all the tasks that are affecting files in your source directory.<br>
+          <xs:documentation><![CDATA[A list of tasks that will build the files in your project source directory.<br>
+This type of step should be used for all the tasks that are affecting files in your source directory.<br>
 <br>
-<b>Remarks:</b><br>
-Tasks are executed sequentially in the given order.<br>
+<b>Examples:</b><br>
 For this type of step, the openedge compilation is sped up by compiling all the files required at the beginning of the step.<br>
 This is the main tasks list, where openedge files should be compiled.<br>
 The history of files built here can be saved to enable an incremental build.<br>
-A listing of the source files is made at each step. Which means it would not be efficient to create 10 steps of 1 task each if the files in your source directory will not change between steps.]]></xs:documentation>
+A listing of the files in the source directory is done at the beginning of this step. Which means it would not be efficient to create 10 steps of 1 task each if those files are not changing between steps.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="BuildOutput" nillable="true" type="OeBuildStepBuildOutput">
         <xs:annotation>
-          <xs:documentation><![CDATA[A list of steps/tasks that should affect the files in your project output directory.<br>
+          <xs:documentation><![CDATA[A list of tasks that should affect the files in your project output directory.<br>
 <br>
-<b>Remarks:</b><br>
-Tasks are executed sequentially in the given order.<br>
-These tasks should be used to "post-process" the files built from your source directory into the output directory.<br>
-For instance, it can be used to build a release zip file containing all the .pl and other configuration files of your release.<br>
-A listing of the files in the output directory is made at each step. Which means it would not be efficient to create 10 steps of 1 task each if those files will not change between steps.]]></xs:documentation>
+<b>Examples:</b><br>
+These tasks can be used to 'post-process' the files built into the output directory.<br>
+A listing of the files in the output directory is done at the beginning of this step. Which means it would not be efficient to create 10 steps of 1 task each if those files are not changing between steps.<br>
+<br>
+Suggested usage:<br>
+  - These tasks can be used to modify a configuration file copied from the source directory to the output directory.<br>
+  - These tasks can be used to build a release zip file containing all the .pl of your release.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="Free" nillable="true" type="OeBuildStepFree">
         <xs:annotation>
-          <xs:documentation><![CDATA[A step (list of tasks) to build your application.<br>
+          <xs:documentation><![CDATA[A list of steps to build your application.<br>
 <br>
 <b>Remarks:</b><br>
-Tasks are executed sequentially in the given order.<br>
+Some facts:<br>
+  - Each step contains a list of tasks.<br>
+  - The sequential execution of these steps/tasks is called a build.<br>
+  - Steps (and tasks within them) are executed sequentially in the order they were defined.<br>
+  - A child configuration inherit the steps of its parent: they are executed before its own steps.<br>
 <br>
 <b>Examples:</b><br>
-These tasks can be used to "prepare" the build. For instance, by downloading dependencies or packages. Or by modifying certain source files.<br>
-These tasks can be used to "deploy" a build. For instance, by uploading a release zip file to a distant http or ftp server.]]></xs:documentation>
+This build step is referred as 'free' because, contrary other type of build step, it does not require to list the files in the source/output directory prior to running the tasks.<br>
+Instead, tasks in this step can handle files that are not necessarily located in your source directory (nor in your output directory).<br>
+<br>
+Suggested usage:<br>
+  - These tasks can be used to "prepare" a build: downloading dependencies/packages or modifying certain source files.<br>
+  - These tasks can be used to "deploy" a build: uploading a release zip file to a distant http or ftp server.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:choice>

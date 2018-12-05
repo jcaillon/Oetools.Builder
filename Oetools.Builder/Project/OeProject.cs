@@ -24,16 +24,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
-using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Resources;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib.Extension;
-using static Oetools.Builder.Project.OeProject;
 
 namespace Oetools.Builder.Project {
     
@@ -41,8 +38,22 @@ namespace Oetools.Builder.Project {
     /// An Openedge project (typically, your project is your application, they are synonyms).
     /// </summary>
     /// <remarks>
-    /// A project is composed of one or several build configurations.
-    /// A build configuration describe how to build your project.
+    /// Some facts:
+    ///   - A project is composed of one or several build configurations.
+    ///   - A build configuration describe how to build your project.
+    ///   - To build your project, you need to specify which build configuration to use.
+    ///
+    /// Below is a simplified representation of a project file:
+    ///   Project
+    ///   ├─ Build configuration 1
+    ///   │  ├─ Child build configuration 2
+    ///   │  │  ├─ Child build configuration 3
+    ///   │  │  └─ Child build configuration x...
+    ///   │  └─ Child build configuration x...
+    ///   └─ Build configuration x...
+    /// 
+    /// There are no upper limit for build configuration nesting.
+    /// The idea is that nested build configuration inherit properties from their parent, recursively (more details on the build configuration help).
     /// </remarks>
     [Serializable]
     [XmlRoot("Project")]
@@ -86,26 +97,62 @@ namespace Oetools.Builder.Project {
         
 #if USESCHEMALOCATION
         /// <summary>
-        /// Only when not generating the build for xsd.exe which has a problem with this attribute
+        /// Only when not generating the build for xsd.exe which has a problem with this attribute.
         /// </summary>
         [XmlAttribute("noNamespaceSchemaLocation", Namespace = XmlSchema.InstanceNamespace)]
         public string SchemaLocation = XsdName;
 #endif
-        
+
         /// <summary>
-        /// A list of build configurations for this project.
-        /// </summary>
+        ///  A list of build configurations for this project.
+        ///  </summary>
         /// <remarks>
-        /// * A build configuration describe how to build your application.
-        /// * It is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.
-        /// * Each build configuration also has properties, which are used to customize the build.
-        /// * Each build configuration can also have variables that make your build process dynamic. You can use variables anywhere in this xml. Their value can be changed dynamically without modifying this xml when running the build.
+        /// Some facts:
+        ///   - A build configuration describe how to build your application.
+        ///   - A build configuration is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.
+        ///   - Each build configuration also has properties, which are used to customize the build.
+        ///   - Each build configuration can also have variables that make your build process dynamic. You can use variables anywhere in this xml. Their value can be changed dynamically without modifying this xml when running the build.
         ///
+        /// Below is a simplified representation of a build configuration:
+        ///   Build configuration
+        ///   ├─ Variables
+        ///   ├─ Properties
+        ///   ├─ Build steps
+        ///   │  ├─ Step 1
+        ///   │  │  ├─ Task 1
+        ///   │  │  └─ Task x...
+        ///   │  └─ Step x...
+        ///   └─ List of children build configuration
+        ///   ├─ Child build configuration 1
+        ///   └─ Child build configuration x...
+        /// 
         /// Inheritance of build configurations (think of russian dolls):
-        /// * Each build configuration can define "children" build configurations.
-        /// * Each child inherits its parent properties following these rules:
-        /// -   If the same leaf is defined for both, the child value is prioritized (leaf = an xml element with no descendant elements).
-        /// -   If the xml element is a list, the elements of the child (if any) will be added to the elements of the parent (if any). For instance, the tasks list has this behavior. This means that the tasks of a child will be added to the defined tasks of its predecessors.
+        ///   - Each build configuration can define "children" build configurations.
+        ///   - Each child inherits its parent properties following these rules:
+        ///   - For a given property, the most nested value is used (i.e. child value prioritized over parent value).
+        ///   - If the xml element is a list, the elements of the child (if any) will be added to the elements of the parent (if any). For instance, the steps list has this behavior. This means that the steps of a child will be added to the defined steps of its parents.
+        ///
+        ///   Practical example:
+        ///     Given the project below:
+        ///    
+        ///     Project
+        ///     └─ Build configuration 1
+        ///        ├─ Properties
+        ///           │  Property1 (x)
+        ///        │  └─ Property2
+        ///        ├─ Steps
+        ///        │  └─ Step1 (x)
+        ///        └─ Child build configuration 2
+        ///           ├─ Properties
+        ///           │  ├─ Property2 (x)
+        ///           │  └─ Property3 (x)
+        ///           └─ Steps
+        ///              └─ Step2 (x)
+        ///  
+        ///     We decide to build 'Child build configuration 2':
+        ///       - Property1 of 'Build configuration 1' will be used.
+        ///       - Property2 and Property 3 of 'Build configuration 2' will be used.
+        ///       - Two steps will be executed: Step1 from 'Build configuration 1' and Step2 from 'Build configuration 2'.
         /// </remarks>
         [XmlArray("BuildConfigurations")]
         [XmlArrayItem("Configuration", typeof(OeBuildConfiguration))]

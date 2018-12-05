@@ -329,6 +329,8 @@ namespace Oetools.Builder.Project.Properties {
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public PathList<IOeDirectory> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory) {
+            // TODO: make this file the propath entries instead, so it can be exported to the latest build configuration.xml (so we can see the propath used)
+            
             var currentDirectory = Directory.GetCurrentDirectory();
             
             var output = new PathList<IOeDirectory>();
