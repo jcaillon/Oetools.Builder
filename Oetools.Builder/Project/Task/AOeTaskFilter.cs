@@ -273,14 +273,14 @@ namespace Oetools.Builder.Project.Task {
                     bool hasArchivePath = !string.IsNullOrEmpty(archivePath);
                     string targetArchiveFilePath = hasArchivePath ? GetSingleTargetPath(archivePath, false, match, filePath, baseTargetDirectory, false) : null;
                     
-                    foreach (var fileTarget in (relativeTargetFilePath?.Split(';')).ToNonNullList()) {
+                    foreach (var fileTarget in (relativeTargetFilePath?.Split(';')).ToNonNullEnumerable()) {
                         var target = getNewTarget();
                         target.ArchiveFilePath = targetArchiveFilePath;
                         target.FilePathInArchive = GetSingleTargetPath(fileTarget, false, match, filePath, hasArchivePath ? null : baseTargetDirectory, hasArchivePath);
                         output.Add(target);
                     }
                     
-                    foreach (var directoryTarget in (relativeTargetDirectory?.Split(';')).ToNonNullList()) {
+                    foreach (var directoryTarget in (relativeTargetDirectory?.Split(';')).ToNonNullEnumerable()) {
                         var target = getNewTarget();
                         target.ArchiveFilePath = targetArchiveFilePath;
                         target.FilePathInArchive = GetSingleTargetPath(directoryTarget, true, match, filePath, hasArchivePath ? null : baseTargetDirectory, hasArchivePath);

@@ -30,5 +30,22 @@ namespace Oetools.Builder.History {
         /// The list of targets built.
         /// </summary>
         List<AOeTarget> Targets { get; set; }
+        
+        /// <summary>
+        /// Represents all the source files that were used when compiling the original source file
+        /// (for instance includes or interfaces)
+        /// </summary>
+        List<string> RequiredFiles { get; set; }
+        
+        /// <summary>
+        /// Represents all the database entities referenced in the original source file and used for the compilation
+        /// (can be sequences or tables)
+        /// </summary>
+        List<OeDatabaseReference> RequiredDatabaseReferences { get; set; }
+        
+        /// <summary>
+        /// Compilations problems for this compiled file.
+        /// </summary>
+        List<AOeCompilationProblem> CompilationProblems { get; set; }
     }
 }

@@ -132,7 +132,7 @@ namespace Oetools.Builder.Test {
                 Assert.AreEqual(0, builder.BuildStepExecutors
                     .SelectMany(te => te.Tasks)
                     .OfType<IOeTaskWithBuiltFiles>()
-                    .SelectMany(t => t.GetBuiltFiles().ToNonNullList())
+                    .SelectMany(t => t.GetBuiltFiles().ToNonNullEnumerable())
                     .Count(), "we expect to have 0 files built this time, nothing has changed");
                 
                 Assert.AreEqual(5, builder.BuildSourceHistory.BuiltFiles.Count, "5 unique files in history in total");
@@ -278,7 +278,7 @@ namespace Oetools.Builder.Test {
             var filesBuilt = builder.BuildStepExecutors
                 .SelectMany(exec => exec?.Tasks)
                 .OfType<IOeTaskWithBuiltFiles>()
-                .SelectMany(t => t.GetBuiltFiles().ToNonNullList())
+                .SelectMany(t => t.GetBuiltFiles().ToNonNullEnumerable())
                 .ToList();
             
             Assert.AreEqual(1, ((IOeTaskCompile) builder.BuildStepExecutors[0].Tasks.ToList()[1]).GetCompiledFiles().Count);
@@ -326,7 +326,7 @@ namespace Oetools.Builder.Test {
             var filesBuilt = builder.BuildStepExecutors
                 .SelectMany(exec => exec?.Tasks)
                 .OfType<IOeTaskWithBuiltFiles>()
-                .SelectMany(t => t.GetBuiltFiles().ToNonNullList())
+                .SelectMany(t => t.GetBuiltFiles().ToNonNullEnumerable())
                 .ToList();
             
             Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "copied_w", "file2.w"), filesBuilt[0].Targets[0].GetTargetPath());
@@ -368,6 +368,7 @@ namespace Oetools.Builder.Test {
                         StopBuildOnCompilationError = false,
                         StopBuildOnCompilationWarning = false,
                         IncrementalBuildOptions = new OeIncrementalBuildOptions {
+                            EnabledIncrementalBuild = true,
                             UseCheckSumComparison = true
                         }
                     }
@@ -396,15 +397,15 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(5, builder.BuildSourceHistory.BuiltFiles.Count);
 
             // files built
-            var file1 = (OeFileBuiltCompiled) builder.BuildSourceHistory.BuiltFiles[0];
+            var file1 = builder.BuildSourceHistory.BuiltFiles[0];
             Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "first", "file1.r"), file1.Targets.ToList()[0].GetTargetPath());
             Assert.AreEqual(Path.Combine("C:\\random\\folder", "file1.r"), file1.Targets.ToList()[1].GetTargetPath());
-            var file2 = (OeFileBuiltCompiled) builder.BuildSourceHistory.BuiltFiles[1];
+            var file2 = builder.BuildSourceHistory.BuiltFiles[1];
             Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "my.pl", "file2.r"), file2.Targets.ToList()[0].GetTargetPath());
             
             // compilation problems
             Assert.AreEqual(1, file2.CompilationProblems.Count);
-            var file3 = (OeFileBuiltCompiled) builder.BuildSourceHistory.BuiltFiles[2];
+            var file3 = builder.BuildSourceHistory.BuiltFiles[2];
             Assert.AreEqual(2, file3.CompilationProblems.Count);
             
             // files from previous build
@@ -413,7 +414,7 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual("derp.out.p", file4.Targets.ToList()[0].GetTargetPath());
             
             // files required
-            var file5 = (OeFileRequired) builder.BuildSourceHistory.BuiltFiles[4];
+            var file5 = builder.BuildSourceHistory.BuiltFiles[4];
             Assert.IsTrue(file5.Path.EndsWith("file1.i"));
             Assert.AreEqual(5, file5.Size);
             
@@ -456,7 +457,10 @@ namespace Oetools.Builder.Test {
                     BuildOptions = new OeBuildOptions {
                         StopBuildOnCompilationError = false,
                         StopBuildOnCompilationWarning = false,
-                        SourceDirectoryPath = sourceDirectory
+                        SourceDirectoryPath = sourceDirectory,
+                        IncrementalBuildOptions = new OeIncrementalBuildOptions {
+                            EnabledIncrementalBuild = true
+                        }
                     }
                 }
             });
@@ -465,8 +469,8 @@ namespace Oetools.Builder.Test {
             
             Assert.AreEqual(3, builder.BuildSourceHistory.BuiltFiles.Count, "3 files in history, only 2 files built because file3 doesn't compile");
             
-            Assert.AreEqual(3, builder.BuildSourceHistory.BuiltFiles.OfType<OeFileBuiltCompiled>().Where(f => f.CompilationProblems != null).SelectMany(f => f.CompilationProblems).Count(), $"builder.BuildSourceHistory.CompiledFiles.Count : {builder.BuildSourceHistory.BuiltFiles.OfType<OeFileBuiltCompiled>().Count()}, ");
-            Assert.AreEqual(1, builder.BuildSourceHistory.BuiltFiles.OfType<OeFileBuiltCompiled>().Where(f => f.CompilationProblems != null).SelectMany(f => f.CompilationProblems).Count(p => p is OeCompilationWarning));
+            Assert.AreEqual(3, builder.BuildSourceHistory.BuiltFiles.Where(f => f.CompilationProblems != null).SelectMany(f => f.CompilationProblems).Count(), $"builder.BuildSourceHistory.CompiledFiles.Count : {builder.BuildSourceHistory.BuiltFiles.Count()}, ");
+            Assert.AreEqual(1, builder.BuildSourceHistory.BuiltFiles.Where(f => f.CompilationProblems != null).SelectMany(f => f.CompilationProblems).Count(p => p is OeCompilationWarning));
 
             builder.Dispose();        
             

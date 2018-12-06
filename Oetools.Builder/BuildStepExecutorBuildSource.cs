@@ -92,7 +92,7 @@ namespace Oetools.Builder {
                         
                         if (PreviouslyBuiltPaths != null) {
                             
-                            var nbAdded = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(_sourceDirectoryPathListToBuild, PreviouslyBuiltPaths.OfType<OeFileBuiltCompiled>().ToList()));
+                            var nbAdded = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(_sourceDirectoryPathListToBuild, PreviouslyBuiltPaths));
                             Log?.If(nbAdded > 0)?.Debug($"Added {nbAdded} files to rebuild because one of their dependencies (i.e. include files) has changed.");
                         }
 
@@ -103,18 +103,16 @@ namespace Oetools.Builder {
                         // in incremental mode, we are not interested in the files that didn't change, we don't need to rebuild them
                         _sourceDirectoryPathListToBuild = _sourceDirectoryPathListToBuild.CopyWhere(f => f.State != OeFileState.Unchanged);
 
-                        var previouslyBuiltCompiled = PreviouslyBuiltPaths.OfType<OeFileBuiltCompiled>().ToList();
-
                         if (Properties != null) {
-                            var nbAdded = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfTableCrcChanges(Properties.GetEnv(), previouslyBuiltCompiled));
+                            var nbAdded = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfTableCrcChanges(Properties.GetEnv(), PreviouslyBuiltPaths));
                             Log?.If(nbAdded > 0)?.Debug($"Added {nbAdded} files to rebuild because one of their referenced table or sequence has changed.");
                         }
 
-                        var nbAddedForDepChange = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(_sourceDirectoryPathListToBuild, previouslyBuiltCompiled));
+                        var nbAddedForDepChange = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(_sourceDirectoryPathListToBuild, PreviouslyBuiltPaths));
                         Log?.If(nbAddedForDepChange > 0)?.Debug($"Added {nbAddedForDepChange} files to rebuild because one of their dependencies (i.e. include files) has changed.");
 
                         if (Properties?.BuildOptions?.IncrementalBuildOptions?.RebuildFilesWithCompilationErrors ?? OeIncrementalBuildOptions.GetDefaultRebuildFilesWithCompilationErrors()) {
-                            var nbAddedForNotCompiled = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfCompilationErrors(previouslyBuiltCompiled));
+                            var nbAddedForNotCompiled = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfCompilationErrors(PreviouslyBuiltPaths));
                             Log?.If(nbAddedForNotCompiled > 0)?.Debug($"Added {nbAddedForNotCompiled} files to rebuild because they did not compile correctly in the previous build.");
                         }
 

@@ -298,25 +298,25 @@ namespace Oetools.Builder.Test.Utilities {
 
         [TestMethod]
         public void GetSourceFilesToRebuildBecauseOfCompilationErrors() {
-            var prevBuilt = new PathList<OeFileBuiltCompiled> {
-                new OeFileBuiltCompiled {
+            var prevBuilt = new PathList<OeFileBuilt> {
+                new OeFileBuilt {
                     Path = "source1",
                     CompilationProblems = new List<AOeCompilationProblem> {
                         new OeCompilationWarning(),
                         new OeCompilationWarning()
                     }
                 },
-                new OeFileBuiltCompiled {
+                new OeFileBuilt {
                     Path = "source2",
                     CompilationProblems = new List<AOeCompilationProblem> {
                         new OeCompilationWarning(),
                         new OeCompilationError()
                     }
                 },
-                new OeFileBuiltCompiled {
+                new OeFileBuilt {
                     Path = "source3"
                 },
-                new OeFileBuiltCompiled {
+                new OeFileBuilt {
                     Path = "source4",
                     CompilationProblems = new List<AOeCompilationProblem> {
                         new OeCompilationError()
@@ -335,22 +335,22 @@ namespace Oetools.Builder.Test.Utilities {
         [TestMethod]
         public void GetListOfFileToCompileBecauseOfTableCrcChanges_Test() {
             var env = new EnvExecution2();
-            var previouslyBuiltFiles = new List<OeFileBuiltCompiled>();
+            var previouslyBuiltFiles = new List<OeFileBuilt>();
 
             var output = IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfTableCrcChanges(env, previouslyBuiltFiles).ToList();
 
             Assert.AreEqual(0, output.Count, "empty for now");
 
-            previouslyBuiltFiles = new List<OeFileBuiltCompiled> {
-                new OeFileBuiltCompiled(new OeFile("source1")) {
+            previouslyBuiltFiles = new List<OeFileBuilt> {
+                new OeFileBuilt(new OeFile("source1")) {
                     RequiredDatabaseReferences = new List<OeDatabaseReference> {
                         new OeDatabaseReferenceSequence {
                             QualifiedName = "sequence1"
                         }
                     }
                 },
-                new OeFileBuiltCompiled(new OeFile("source2")),
-                new OeFileBuiltCompiled(new OeFile("source3")) {
+                new OeFileBuilt(new OeFile("source2")),
+                new OeFileBuilt(new OeFile("source3")) {
                     RequiredDatabaseReferences = new List<OeDatabaseReference> {
                         new OeDatabaseReferenceTable {
                             QualifiedName = "table2",
@@ -403,7 +403,7 @@ namespace Oetools.Builder.Test.Utilities {
         [TestMethod]
         public void GetListOfFileToCompileBecauseOfTableCrcChangesOrDependencesModification_Test() {
             var modifiedFiles = new PathList<IOeFile>();
-            var previouslyBuiltFiles = new List<OeFileBuiltCompiled>();
+            var previouslyBuiltFiles = new PathList<IOeFileBuilt>();
 
             var output = IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(modifiedFiles, previouslyBuiltFiles).ToList();
 
@@ -420,19 +420,19 @@ namespace Oetools.Builder.Test.Utilities {
 
             Assert.AreEqual(0, output.Count, "still empty");
             
-            previouslyBuiltFiles = new List<OeFileBuiltCompiled> {
-                new OeFileBuiltCompiled(new OeFile("source1")) {
+            previouslyBuiltFiles = new PathList<IOeFileBuilt> {
+                new OeFileBuilt(new OeFile("source1")) {
                     RequiredFiles = new List<string> {
                         "file5",
                         "file6"
                     }
                 },
-                new OeFileBuiltCompiled(new OeFile("source2")) {
+                new OeFileBuilt(new OeFile("source2")) {
                     RequiredFiles = new List<string> {
                         "source3"
                     }
                 },
-                new OeFileBuiltCompiled(new OeFile("source3")) {
+                new OeFileBuilt(new OeFile("source3")) {
                     RequiredFiles = new List<string> {
                         "file1"
                     }

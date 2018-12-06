@@ -58,9 +58,7 @@ namespace Oetools.Builder.History {
         /// Files built during this build
         /// </summary>
         [XmlArray("BuiltFiles")]
-        [XmlArrayItem("FileBuilt", typeof(OeFileBuilt))]
-        [XmlArrayItem("FileCompiled", typeof(OeFileBuiltCompiled))]
-        [XmlArrayItem("FileRequired", typeof(OeFileRequired))]
+        [XmlArrayItem("File", typeof(OeFileBuilt))]
         public List<OeFileBuilt> BuiltFiles { get; set; }
         
         /// <summary>

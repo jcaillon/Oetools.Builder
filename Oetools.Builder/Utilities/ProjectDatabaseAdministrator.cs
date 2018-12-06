@@ -102,7 +102,7 @@ namespace Oetools.Builder.Utilities {
         /// <exception cref="ProjectDatabaseAdministratorException"></exception>
         public void ValidateProjectDatabases() {
             var uniqueLogicalNames = new HashSet<string>();
-            foreach (var db in ProjectDatabases.ToNonNullList()) {
+            foreach (var db in ProjectDatabases.ToNonNullEnumerable()) {
                 if (!uniqueLogicalNames.Add(db.LogicalName)) {
                     throw new ProjectDatabaseAdministratorException($"The logical database name {db.LogicalName.PrettyQuote()} is defined twice, it should be unique.");
                 }
@@ -136,7 +136,7 @@ namespace Oetools.Builder.Utilities {
         /// <returns></returns>
         public List<string> GetDatabasesConnectionStrings(bool? multiUserConnection = null) {
             var output = new List<string>();
-            foreach (var db in ProjectDatabases.ToNonNullList()) {
+            foreach (var db in ProjectDatabases.ToNonNullEnumerable()) {
                 var dbName = GetPhysicalNameFromLogicalName(db.LogicalName);
                 var dbPath = GetDatabasePathFromPhysicalName(dbName);
                 if (multiUserConnection == null && DbAdmin.GetBusyMode(dbPath) == DatabaseBusyMode.MultiUser || multiUserConnection.HasValue && multiUserConnection.Value) {
@@ -153,7 +153,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="numberOfUsersPerDatabase"></param>
         public void ServeUnstartedDatabases(int? numberOfUsersPerDatabase = null) {
             int nbUsers = numberOfUsersPerDatabase ?? DefaultNumberOfUsersPerDatabase;
-            foreach (var db in ProjectDatabases.ToNonNullList()) {
+            foreach (var db in ProjectDatabases.ToNonNullEnumerable()) {
                 var dbName = GetPhysicalNameFromLogicalName(db.LogicalName);
                 var dbPath = GetDatabasePathFromPhysicalName(dbName);
                 var maxNbUsersFile = GetMaxNbUsersFileFromDatabaseFilePath(dbPath);
@@ -192,7 +192,7 @@ namespace Oetools.Builder.Utilities {
         /// Shutdown all the project databases
         /// </summary>
         public void ShutdownAllDatabases() {
-            foreach (var db in ProjectDatabases.ToNonNullList()) {
+            foreach (var db in ProjectDatabases.ToNonNullEnumerable()) {
                 var dbName = GetPhysicalNameFromLogicalName(db.LogicalName);
                 var dbPath = GetDatabasePathFromPhysicalName(dbName);
                 Log?.Debug($"Shutting down the database {dbPath}.");
@@ -205,7 +205,7 @@ namespace Oetools.Builder.Utilities {
         /// create it is different than the current .df (MD5 hash used)
         /// </summary>
         public void DeleteOutdatedDatabases() {
-            foreach (var db in ProjectDatabases.ToNonNullList()) {
+            foreach (var db in ProjectDatabases.ToNonNullEnumerable()) {
                 var dbName = GetPhysicalNameFromLogicalName(db.LogicalName);
                 var dbPath = GetDatabasePathFromPhysicalName(dbName);
                 var md5Path = GetMd5FileFromDatabaseFilePath(dbPath);
@@ -232,7 +232,7 @@ namespace Oetools.Builder.Utilities {
         /// Create needed databases that do not exist yet.
         /// </summary>
         public void CreateInexistingProjectDatabases() {
-            foreach (var db in ProjectDatabases.ToNonNullList()) {
+            foreach (var db in ProjectDatabases.ToNonNullEnumerable()) {
                 var dbName = GetPhysicalNameFromLogicalName(db.LogicalName);
                 var dbPath = GetDatabasePathFromPhysicalName(dbName);
 

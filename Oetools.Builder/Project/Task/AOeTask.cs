@@ -132,6 +132,7 @@ namespace Oetools.Builder.Project.Task {
         /// </summary>
         /// <param name="exception"></param>
         protected void AddExecutionWarning(TaskExecutionException exception) {
+            exception.IsWarning = true;
             (_exceptions ?? (_exceptions = new List<TaskExecutionException>())).Add(exception);
             PublishWarning?.Invoke(this, new TaskWarningEventArgs(exception));
         }

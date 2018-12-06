@@ -137,12 +137,12 @@ namespace Oetools.Builder.Test.Project.Properties {
             list = prop.GetPropath(TestFolder, false);
             Assert.AreEqual(7 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
             Assert.IsTrue(list.Contains(Path.Combine(TestFolder, "test3", "subtest3")));
-            
-            prop.PropathSourceDirectoriesFilter = new OePropathFilterOptions() {
-                Exclude = "**sub**",
+
+            prop.PropathSourceDirectoriesFilter = new OePropathFilterOptions {
+                Exclude = "**sub**", 
                 ExcludeRegex = "[hH][Ii][Dd]"
             };
-            
+
             list = prop.GetPropath(TestFolder, false);
             Assert.AreEqual(5 + (Utils.IsRuntimeWindowsPlatform ? 4 : 0), list.Count);
             

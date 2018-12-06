@@ -29,6 +29,7 @@ using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder {
     
@@ -58,7 +59,7 @@ namespace Oetools.Builder {
         public List<BuildStepExecutor> BuildStepExecutors { get; } = new List<BuildStepExecutor>();
         
         public List<TaskExecutionException> TaskExecutionExceptions => BuildStepExecutors
-            .SelectMany(exec => exec.TaskExecutionExceptions)
+            .SelectMany(exec => exec.TaskExecutionExceptions.ToNonNullEnumerable())
             .ToList();
         
         private int TotalNumberOfTasks { get; set; }
@@ -77,7 +78,7 @@ namespace Oetools.Builder {
         protected bool UseIncrementalBuild => BuildConfiguration.Properties.BuildOptions?.IncrementalBuildOptions?.EnabledIncrementalBuild ?? OeIncrementalBuildOptions.GetDefaultEnabledIncrementalBuild();
 
         private bool StoreSourceHash => BuildConfiguration.Properties.BuildOptions?.IncrementalBuildOptions?.UseCheckSumComparison ?? OeIncrementalBuildOptions.GetDefaultUseCheckSumComparison();
-
+        
         /// <summary>
         /// Initialize the build
         /// </summary>
@@ -242,7 +243,7 @@ namespace Oetools.Builder {
 
                 if (unchangedOrModifiedFiles != null && unchangedOrModifiedFiles.Count > 0) {
                     Log?.Debug("For all the unchanged or modified files, set all the targets that should be built in this build");
-                    foreach (var task in stepsList.SelectMany(step1 => (step1.Tasks?.OfType<IOeTaskFileToBuild>()).ToNonNullList())) {
+                    foreach (var task in stepsList.SelectMany(step1 => (step1.Tasks?.OfType<IOeTaskFileToBuild>()).ToNonNullEnumerable())) {
                         task.SetTargets(unchangedOrModifiedFiles, BuildConfiguration.Properties?.BuildOptions?.OutputDirectoryPath, true);
                     }
 
@@ -289,9 +290,9 @@ namespace Oetools.Builder {
             // add all the built files
             foreach (var fileBuilt in BuildStepExecutors
                 .Where(te => te is BuildStepExecutorBuildSource)
-                .SelectMany(exec => exec.Tasks.ToNonNullList())
+                .SelectMany(exec => exec.Tasks.ToNonNullEnumerable())
                 .OfType<IOeTaskWithBuiltFiles>()
-                .SelectMany(t => t.GetBuiltFiles().ToNonNullList())) {
+                .SelectMany(t => t.GetBuiltFiles().ToNonNullEnumerable())) {
                 
                 // keep only the targets that are in the output directory, we won't be able to "undo" the others so it would be useless to keep them
                 var targetsOutputDirectory = fileBuilt.Targets
@@ -313,31 +314,31 @@ namespace Oetools.Builder {
             // add all compilation problems
             foreach (var file in BuildStepExecutors
                 .Where(te => te is BuildStepExecutorBuildSource)
-                .SelectMany(exec => exec.Tasks.ToNonNullList())
+                .SelectMany(exec => exec.Tasks.ToNonNullEnumerable())
                 .OfType<IOeTaskCompile>()
-                .SelectMany(task => task.GetCompiledFiles().ToNonNullList())) {
+                .SelectMany(task => task.GetCompiledFiles().ToNonNullEnumerable())) {
                 if (file.CompilationProblems == null || file.CompilationProblems.Count == 0) {
                     continue;
                 }
                 if (!builtFiles.Contains(file.Path)) {
                     // not yet in the built files list because it was not compiled successfully
-                    OeFileBuiltCompiled fileCompiledWithError;
+                    OeFileBuilt fileCompiledWithError;
                     var sourceFileCompiled = BuildStepExecutors.OfType<BuildStepExecutorBuildSource>().LastOrDefault()?.SourceDirectoryCompletePathList[file.Path];
                     if (sourceFileCompiled == null) {
                         // for git filters, this include file is not listed in SourceDirectoryCompletePathList.
-                        fileCompiledWithError = new OeFileBuiltCompiled {
+                        fileCompiledWithError = new OeFileBuilt {
                             Path = file.Path, 
                             State = OeFileState.Added
                         };
                         PathLister.SetFileBaseInfo(fileCompiledWithError);
                     } else {
-                        fileCompiledWithError = new OeFileBuiltCompiled(sourceFileCompiled);
+                        fileCompiledWithError = new OeFileBuilt(sourceFileCompiled);
                     }
                     fileCompiledWithError.RequiredFiles = file.RequiredFiles?.ToList();
                     fileCompiledWithError.RequiredDatabaseReferences = file.RequiredDatabaseReferences?.Select(OeDatabaseReference.New).ToList();
                     builtFiles.Add(fileCompiledWithError);
                 }
-                if (builtFiles[file.Path] is OeFileBuiltCompiled compiledFile) {
+                if (builtFiles[file.Path] is OeFileBuilt compiledFile) {
                     compiledFile.CompilationProblems = new List<AOeCompilationProblem>();
                     foreach (var problem in file.CompilationProblems) {
                         compiledFile.CompilationProblems.Add(AOeCompilationProblem.New(problem));
@@ -357,16 +358,17 @@ namespace Oetools.Builder {
             // finally, add all the required files
             var lastBuildSourceExecutor = BuildStepExecutors.OfType<BuildStepExecutorBuildSource>().LastOrDefault();
             if (lastBuildSourceExecutor != null) {
-                foreach (var fileBuilt in builtFiles.OfType<OeFileBuiltCompiled>().Where(f => f.RequiredFiles != null).ToList()) {
+                foreach (var fileBuilt in builtFiles.Where(f => f.RequiredFiles != null).ToList()) {
                     foreach (var requiredFile in fileBuilt.RequiredFiles) {
                         if (!builtFiles.Contains(requiredFile)) {
                             var sourceFileRequired = lastBuildSourceExecutor.SourceDirectoryCompletePathList[requiredFile];
                             if (sourceFileRequired != null) {
-                                builtFiles.Add(new OeFileRequired(sourceFileRequired));
+                                builtFiles.Add(new OeFileBuilt(sourceFileRequired));
                             } else if (requiredFile.StartsWith(BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath, StringComparison.OrdinalIgnoreCase)) {
                                 // for git filters, this include file is not listed in SourceDirectoryCompletePathList.
-                                var newRequiredFile = new OeFileRequired {
-                                    Path = requiredFile, State = OeFileState.Added
+                                var newRequiredFile = new OeFileBuilt {
+                                    Path = requiredFile, 
+                                    State = OeFileState.Added
                                 };
                                 PathLister.SetFileBaseInfo(newRequiredFile);
                                 builtFiles.Add(newRequiredFile);

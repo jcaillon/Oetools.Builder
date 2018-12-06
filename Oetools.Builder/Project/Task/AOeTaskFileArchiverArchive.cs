@@ -145,7 +145,7 @@ namespace Oetools.Builder.Project.Task {
         /// <returns></returns>
         protected OeFileBuilt GetNewFileBuilt(IOeFile sourceFile) {
             if (this is IOeTaskCompile thisOeTaskCompile) {
-                var newFileBuilt = new OeFileBuiltCompiled(sourceFile);
+                var newFileBuilt = new OeFileBuilt(sourceFile);
                 var compiledFile = thisOeTaskCompile.GetCompiledFiles()?[sourceFile.Path];
                 if (compiledFile != null) {
                     newFileBuilt.RequiredFiles = compiledFile.RequiredFiles?.ToList();

@@ -104,7 +104,7 @@ namespace Oetools.Builder {
             }
 
             // output build history
-            if (!string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath)) {
+            if (UseIncrementalBuild && !string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath)) {
                 Log?.Debug($"Create the output history file: {BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath}.");
                 if (BuildSourceHistory == null) {
                     BuildSourceHistory = GetBuildHistory();

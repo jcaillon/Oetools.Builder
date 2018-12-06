@@ -116,7 +116,7 @@ namespace Oetools.Builder.Project.Properties {
         public static string GetDefaultBuildHistoryInputFilePath() => OeBuilderConstants.GetDefaultBuildHistoryInputFilePath();
 
         /// <summary>
-        /// The path to an xml file that will be created by this build and will contain the information of that build. This is necessary for an incremental build.
+        /// The path to an xml file that will be created by this build and will contain the information of that build. This is only generated after an incremental build.
         /// </summary>
         [XmlElement(ElementName = "BuildHistoryOutputFilePath")]
         [DefaultValueMethod(nameof(GetDefaultBuildHistoryOutputFilePath))]

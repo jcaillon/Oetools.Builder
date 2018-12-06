@@ -346,7 +346,7 @@ namespace Oetools.Builder.Utilities {
             if (FilterOptions?.ExtraVcsPatternExclusion != null && string.IsNullOrWhiteSpace(FilterOptions.ExtraVcsPatternExclusion)) {
                 return Enumerable.Empty<string>();
             }
-            return (FilterOptions?.ExtraVcsPatternExclusion ?? PathListerFilterOptions.GetDefaultExtraVcsPatternExclusion())?.Split(';').Select(s => s.PathWildCardToRegex());
+            return (FilterOptions?.ExtraVcsPatternExclusion ?? PathListerFilterOptions.GetDefaultExtraVcsPatternExclusion())?.Split(';').Select(s => Path.Combine(BaseDirectory, s).PathWildCardToRegex());
         }
         
         /// <summary>

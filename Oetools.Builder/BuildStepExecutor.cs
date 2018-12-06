@@ -164,7 +164,7 @@ namespace Oetools.Builder {
                 throw e.Exception;
             }
             var publishedException = new TaskExecutorException(this, e.Exception.Message, e.Exception);
-            Log?.Warn($"Task warning: {publishedException.Message}", publishedException);
+            Log?.Debug($"Task warning: {publishedException.Message}", publishedException);
         }
 
         private void SaveTaskExecutionException(TaskExecutionException exception) {

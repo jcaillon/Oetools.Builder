@@ -23,7 +23,7 @@ using System.IO;
 namespace Oetools.Builder.Utilities {
     public static class OeBuilderConstants {
 
-        public const string VcsDirectoryExclusions = "{{SOURCE_DIRECTORY}}/.git**;{{SOURCE_DIRECTORY}}/.svn**;{{SOURCE_DIRECTORY}}/.oe**";
+        public const string VcsDirectoryExclusions = ".git**;.svn**;.oe**";
         
         public const string CompilableExtensionsPattern = "*.p;*.w;*.t;*.cls";
         

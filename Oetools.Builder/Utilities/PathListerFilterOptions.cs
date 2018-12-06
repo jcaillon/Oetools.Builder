@@ -45,8 +45,11 @@ namespace Oetools.Builder.Utilities {
         public static bool GetDefaultRecursiveListing() => true;
 
         /// <summary>
-        /// Extra patterns of path to exclude during a listing, corresponds to typical svn/git directories that we don't want to include in builds.
+        /// Extra patterns of path to exclude during a listing, corresponds to typical svn/git directories that we don't want to include in a build.
         /// </summary>
+        /// <remarks>
+        /// The pattern are relative to the source directory.
+        /// </remarks>
         [XmlIgnore]
         public virtual string ExtraVcsPatternExclusion { get; set; }
         public static string GetDefaultExtraVcsPatternExclusion() => OeBuilderConstants.VcsDirectoryExclusions;

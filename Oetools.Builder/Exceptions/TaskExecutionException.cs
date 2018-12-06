@@ -26,6 +26,11 @@ namespace Oetools.Builder.Exceptions {
         
         public AOeTask Task { get; }
         
+        /// <summary>
+        /// Is the exception a warning?
+        /// </summary>
+        public bool IsWarning { get; set; }
+        
         public TaskExecutionException(AOeTask task, string message) : base(message) {
             Task = task;
         }

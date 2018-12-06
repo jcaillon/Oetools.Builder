@@ -419,7 +419,7 @@ namespace Oetools.Builder.Project.Properties {
                     PostExecutionProgramPath = ProcedureToExecuteAfterAnyProgressExecutionFilePath,
                     PreExecutionProgramPath = ProcedureToExecuteBeforeAnyProgressExecutionFilePath,
                     ProExeCommandLineParameters = ExtraOpenedgeCommandLineParameters,
-                    ProPathList = PropathEntries.Select(d => d.Path).ToList(),
+                    ProPathList = PropathEntries?.Select(d => d.Path).ToList(),
                     TryToHideProcessFromTaskBarOnWindows = TryToHideProcessFromTaskBarOnWindows ?? GetDefaultTryToHideProcessFromTaskBarOnWindows()
                 };
                 if (!string.IsNullOrEmpty(OpenedgeCodePage)) {

@@ -20,6 +20,7 @@
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
+using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.History {
@@ -36,14 +37,30 @@ namespace Oetools.Builder.History {
             sourceFile.DeepCopy(this);
         }
 
-        /// <summary>
-        /// A list of the targets for this file
-        /// </summary>
+        /// <inheritdoc />
         [XmlArray("Targets")]
         [XmlArrayItem("Copied", typeof(OeTargetFile))]
         [XmlArrayItem("Prolibed", typeof(OeTargetProlib))]
         [XmlArrayItem("Zipped", typeof(OeTargetZip))]
         [XmlArrayItem("Cabbed", typeof(OeTargetCab))]
         public List<AOeTarget> Targets { get; set; }
+        
+        /// <inheritdoc />
+        [XmlArray("RequiredFiles")]
+        [XmlArrayItem("RequiredFile", typeof(string))]
+        [BaseDirectory(Type = BaseDirectoryType.SourceDirectory)]
+        public List<string> RequiredFiles { get; set; }
+
+        /// <inheritdoc />
+        [XmlArray("RequiredDatabaseReferences")]
+        [XmlArrayItem("Table", typeof(OeDatabaseReferenceTable))]
+        [XmlArrayItem("Sequence", typeof(OeDatabaseReferenceSequence))]
+        public List<OeDatabaseReference> RequiredDatabaseReferences { get; set; }
+        
+        /// <inheritdoc />
+        [XmlArray("CompilationProblems")]
+        [XmlArrayItem("Error", typeof(OeCompilationError))]
+        [XmlArrayItem("Warning", typeof(OeCompilationWarning))]
+        public List<AOeCompilationProblem> CompilationProblems { get; set; }
     }
 }
