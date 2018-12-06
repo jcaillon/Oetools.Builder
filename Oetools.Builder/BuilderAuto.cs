@@ -105,24 +105,20 @@ namespace Oetools.Builder {
 
             // output build history
             if (!string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath)) {
-                Log?.Debug("Create the output history file.");
-                OutputHistory(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath);
+                Log?.Debug($"Create the output history file: {BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath}.");
+                if (BuildSourceHistory == null) {
+                    BuildSourceHistory = GetBuildHistory();
+                }
+            
+                // BuildHistory
+                Utils.CreateDirectoryIfNeeded(Path.GetDirectoryName(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath));
+                BuildSourceHistory.Save(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath, BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath, BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath);
             }
         }
         
         private void OutputReport(string outputReportPath) {
             var reportExporter = new BuildReportExport(outputReportPath, this);
             //reportExporter.Create();
-        }
-        
-        private void OutputHistory(string outputHistoryFilePath) {
-            if (BuildSourceHistory == null) {
-                BuildSourceHistory = GetBuildHistory();
-            }
-            
-            // BuildHistory
-            Utils.CreateDirectoryIfNeeded(Path.GetDirectoryName(outputHistoryFilePath));
-            BuildSourceHistory.Save(outputHistoryFilePath, BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath, BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath);
         }
     }
 }

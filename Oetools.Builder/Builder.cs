@@ -134,6 +134,9 @@ namespace Oetools.Builder {
             
             Log?.Debug("Sanitizing path properties.");
             BuildConfiguration.Properties.SanitizePathInPublicProperties();
+            
+            Log?.Debug("Computing the propath.");
+            BuildConfiguration.Properties.SetPropathEntries();
         }
 
         protected virtual void PostBuild() {
@@ -339,8 +342,6 @@ namespace Oetools.Builder {
                     foreach (var problem in file.CompilationProblems) {
                         compiledFile.CompilationProblems.Add(AOeCompilationProblem.New(problem));
                     }
-                } else {
-                    Log?.Error($"Compilation problems found for a file which does not seem to have been compiled: {file.Path.PrettyQuote()}.");
                 }
             }
             

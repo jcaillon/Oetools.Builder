@@ -66,10 +66,12 @@ namespace Oetools.Builder.Project.Task {
         public string FilePathCodePage { get; set; }
 
         public ProlibVersion? GetEnumProlibVersion() {
-            if (Enum.TryParse(ProlibVersion, true, out ProlibVersion version)) {
-                return version;
+            if (!string.IsNullOrEmpty(ProlibVersion)) {
+                if (Enum.TryParse(ProlibVersion, true, out ProlibVersion version)) {
+                    return version;
+                }
+                Log?.Warn($"Failed to understand the value {ProlibVersion.PrettyQuote()} for {GetType().GetXmlName(nameof(ProlibVersion))}.");
             }
-            Log?.Warn($"Failed to understand the value {ProlibVersion.PrettyQuote()} for {GetType().GetXmlName(nameof(ProlibVersion))}.");
             return null;
         }
 

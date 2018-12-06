@@ -83,7 +83,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="variables"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static string GetVariableValue(string s, List<OeVariable> variables, string defaultValue) {
+        private static string GetVariableValue(string s, List<OeVariable> variables, string defaultValue) {
             if (string.IsNullOrEmpty(s)) {
                 return string.Empty;
             }
@@ -91,7 +91,9 @@ namespace Oetools.Builder.Utilities {
             if (!string.IsNullOrEmpty(varValue)) {
                 return varValue;
             }
-            return variables?.FirstOrDefault(v => v.Name.EqualsCi(s))?.Value ?? defaultValue;
+            // before-last element or default value
+            //return variables?.Where(v => v.Name.EqualsCi(s)).Reverse().ElementAtOrDefault(1)?.Value ?? defaultValue;
+            return variables?.LastOrDefault(v => v.Name.EqualsCi(s))?.Value ?? defaultValue;
         }
 
     }

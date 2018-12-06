@@ -403,7 +403,6 @@ namespace Oetools.Builder.Test.Project {
                                 },
                                 Properties = null,
                                 BuildSteps = new List<AOeBuildStep> {
-                                    new OeBuildStepFree(),
                                     new OeBuildStepBuildSource {
                                         Name = "step1",
                                         Tasks = new List<AOeTask> {
@@ -461,7 +460,7 @@ namespace Oetools.Builder.Test.Project {
 
             var loadedProject = OeProject.Load(Path.Combine(TestFolder, "project.xml"));
 
-            Assert.AreEqual(1, loadedProject.BuildConfigurations[0].BuildConfigurations[0].BuildSteps[1].Tasks[1].Id);
+            Assert.AreEqual(1, loadedProject.BuildConfigurations[0].BuildConfigurations[0].BuildSteps[0].Tasks[1].Id);
         }
 
         [TestMethod]

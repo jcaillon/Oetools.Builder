@@ -75,17 +75,17 @@ namespace XsdAnnotator {
                 } else {
                     var sb = new StringBuilder();
                     sb.Append(documentation.Summary);
+                    if (!string.IsNullOrEmpty(documentation.Remarks)) {
+                        sb.Append("\n").Append("\n").Append(documentation.Remarks);
+                    }
+                    if (!string.IsNullOrEmpty(documentation.Examples)) {
+                        sb.Append("\n").Append("\n").Append("<b>Examples:</b>").Append("\n").Append("  ").Append(documentation.Examples.Replace("\n", "\n  "));
+                    }
                     if (!string.IsNullOrEmpty(documentation.DefaultValue)) {
                         sb.Append("\n").Append("\n").Append("<b>Defaults to:</b> ").Append(documentation.DefaultValue).Append(".");
                     }
                     if (!string.IsNullOrEmpty(documentation.AcceptableValues)) {
                         sb.Append("\n").Append("\n").Append("<b>Available options are:</b> ").Append(documentation.AcceptableValues).Append(".");
-                    }
-                    if (!string.IsNullOrEmpty(documentation.Remarks)) {
-                        sb.Append("\n").Append("\n").Append("<b>Remarks:</b>").Append("\n").Append(documentation.Remarks);
-                    }
-                    if (!string.IsNullOrEmpty(documentation.Examples)) {
-                        sb.Append("\n").Append("\n").Append("<b>Examples:</b>").Append("\n").Append(documentation.Examples);
                     }
                     sb.Replace("\n", "<br>\n");
                     element.Add(new XElement(_xsNs + "annotation", new XElement(_xsNs + "documentation", new XCData(sb.ToString()))));

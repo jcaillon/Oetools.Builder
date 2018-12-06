@@ -406,7 +406,6 @@ namespace Oetools.Builder.Test {
             Assert.AreEqual(1, file2.CompilationProblems.Count);
             var file3 = (OeFileBuiltCompiled) builder.BuildSourceHistory.BuiltFiles[2];
             Assert.AreEqual(2, file3.CompilationProblems.Count);
-            Assert.AreEqual(-1, file3.Size);
             
             // files from previous build
             var file4 = builder.BuildSourceHistory.BuiltFiles[3];
@@ -464,10 +463,10 @@ namespace Oetools.Builder.Test {
 
             builder.Build();
             
-            Assert.AreEqual(2, builder.BuildSourceHistory.BuiltFiles.Count, "only 2 files built because file3 doesn't compile");
+            Assert.AreEqual(3, builder.BuildSourceHistory.BuiltFiles.Count, "3 files in history, only 2 files built because file3 doesn't compile");
             
-            Assert.AreEqual(3, builder.BuildSourceHistory.BuiltFiles.OfType<OeFileBuiltCompiled>().SelectMany(f => f.CompilationProblems).Count(), $"builder.BuildSourceHistory.CompiledFiles.Count : {builder.BuildSourceHistory.BuiltFiles.OfType<OeFileBuiltCompiled>().Count()}, ");
-            Assert.AreEqual(1, builder.BuildSourceHistory.BuiltFiles.OfType<OeFileBuiltCompiled>().SelectMany(f => f.CompilationProblems).Count(p => p is OeCompilationWarning));
+            Assert.AreEqual(3, builder.BuildSourceHistory.BuiltFiles.OfType<OeFileBuiltCompiled>().Where(f => f.CompilationProblems != null).SelectMany(f => f.CompilationProblems).Count(), $"builder.BuildSourceHistory.CompiledFiles.Count : {builder.BuildSourceHistory.BuiltFiles.OfType<OeFileBuiltCompiled>().Count()}, ");
+            Assert.AreEqual(1, builder.BuildSourceHistory.BuiltFiles.OfType<OeFileBuiltCompiled>().Where(f => f.CompilationProblems != null).SelectMany(f => f.CompilationProblems).Count(p => p is OeCompilationWarning));
 
             builder.Dispose();        
             

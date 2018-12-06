@@ -261,7 +261,14 @@ namespace Oetools.Builder.Project {
             return output.OrderBy(b => b.Id).ToList();
         }
 
-        public static OeBuildConfiguration GetBuildConfigurationCopy(Queue<Tuple<string, string>> buildConfigurationQueue) {
+        /// <summary>
+        /// Returns a copy of a build configuration taking into account inheritance.
+        /// </summary>
+        /// <param name="buildConfigurationQueue"></param>
+        /// <param name="throwIfConfNotFound"></param>
+        /// <returns></returns>
+        /// <exception cref="ProjectException"></exception>
+        public static OeBuildConfiguration GetBuildConfigurationCopy(Queue<Tuple<string, string>> buildConfigurationQueue, bool throwIfConfNotFound = true) {
             if (buildConfigurationQueue.Count == 0) {
                 throw new ProjectException("The build configuration stack cannot be empty.");
             }
@@ -272,16 +279,20 @@ namespace Oetools.Builder.Project {
             while (buildConfigurationQueue.Count > 0) {
                 var tuple = buildConfigurationQueue.Dequeue();
                 var proj = Load(tuple.Item1);
-                var conf = proj.GetBuildConfigurationCopy(tuple.Item2);
-                if (conf == null) {
-                    if (string.IsNullOrEmpty(tuple.Item2)) {
-                        conf = proj.BuildConfigurations?.FirstOrDefault();
-                        if (conf == null) {
-                            throw new ProjectException($"no build configuration found in the project file {tuple.Item1.PrettyQuote()}.");
-                        }
-                    } else {
+                OeBuildConfiguration conf;
+                if (string.IsNullOrEmpty(tuple.Item2)) {
+                    conf = proj.BuildConfigurations?.FirstOrDefault();
+                    if (conf == null && throwIfConfNotFound) {
+                        throw new ProjectException($"no build configuration found in the project file {tuple.Item1.PrettyQuote()}.");
+                    }
+                } else {
+                    conf = proj.GetBuildConfigurationCopy(tuple.Item2);
+                    if (conf == null && throwIfConfNotFound) {
                         throw new ProjectException($"The build configuration {tuple.Item2.PrettyQuote()} can't be found in the project file {tuple.Item1.PrettyQuote()}.");
                     }
+                }
+                if (conf == null) {
+                    continue;
                 }
                 conf.Id = ++nbConf;
                 if (rootConf == null) {
@@ -291,6 +302,10 @@ namespace Oetools.Builder.Project {
                     parentConf.BuildConfigurations = new List<OeBuildConfiguration> { conf };
                 }
                 parentConf = conf;
+            }
+
+            if (rootConf == null) {
+                throw new ProjectException("No build configuration found.");
             }
 
             return new OeProject {

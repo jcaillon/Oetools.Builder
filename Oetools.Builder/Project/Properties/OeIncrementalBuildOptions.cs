@@ -39,7 +39,7 @@ namespace Oetools.Builder.Project.Properties {
         [XmlElement(ElementName = "EnabledIncrementalBuild")]
         [DefaultValueMethod(nameof(GetDefaultEnabledIncrementalBuild))]
         public bool? EnabledIncrementalBuild { get; set; }
-        public static bool GetDefaultEnabledIncrementalBuild() => true;
+        public static bool GetDefaultEnabledIncrementalBuild() => false;
             
         /// <summary>
         /// Use a cheapest analysis mode (performance wise) to identify the database references of a compiled file.
@@ -103,7 +103,7 @@ namespace Oetools.Builder.Project.Properties {
         [XmlElement(ElementName = "RebuildFilesWithNewTargets")]
         [DefaultValueMethod(nameof(GetDefaultRebuildFilesWithNewTargets))]
         public bool? RebuildFilesWithNewTargets { get; set; }
-        public static bool GetDefaultRebuildFilesWithNewTargets() => false;
+        public static bool GetDefaultRebuildFilesWithNewTargets() => true;
             
         /// <summary>
         /// Sets whether of not the tool should try to rebuild a file if it had compilation errors in the previous build.

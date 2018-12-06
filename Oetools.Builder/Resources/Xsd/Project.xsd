@@ -4,7 +4,6 @@
     <xs:annotation>
       <xs:documentation><![CDATA[An Openedge project (typically, your project is your application, they are synonyms).<br>
 <br>
-<b>Remarks:</b><br>
 Some facts:<br>
   - A project is composed of one or several build configurations.<br>
   - A build configuration describe how to build your project.<br>
@@ -29,7 +28,6 @@ The idea is that nested build configuration inherit properties from their parent
         <xs:annotation>
           <xs:documentation><![CDATA[A list of build configurations for this project.<br>
 <br>
-<b>Remarks:</b><br>
 Some facts:<br>
   - A build configuration describe how to build your application.<br>
   - A build configuration is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.<br>
@@ -86,7 +84,6 @@ Inheritance of build configurations (think of russian dolls):<br>
         <xs:annotation>
           <xs:documentation><![CDATA[Represents the configuration of a build.<br>
 <br>
-<b>Remarks:</b><br>
 Some facts:<br>
   - A build configuration describe how to build your application.<br>
   - A build configuration is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.<br>
@@ -143,7 +140,6 @@ Inheritance of build configurations (think of russian dolls):<br>
         <xs:annotation>
           <xs:documentation><![CDATA[The variables of this build configurations.<br>
 <br>
-<b>Remarks:</b><br>
 Some facts:<br>
   - Variables make your build process dynamic by allowing you to change build options without having to modify this xml.<br>
   - You can use a variable with the syntax {{variable_name}}.<br>
@@ -171,7 +167,6 @@ Special variables are already defined and available to use:<br>
         <xs:annotation>
           <xs:documentation><![CDATA[The properties of this build configuration.<br>
 <br>
-<b>Remarks:</b><br>
 Some facts:<br>
   - Properties can describe your application (for instance, the database needed to compile).<br>
   - Properties can also describe options to build your application (for instance, if the compilation should also generate the xref files).<br>
@@ -183,19 +178,22 @@ Some facts:<br>
         <xs:annotation>
           <xs:documentation><![CDATA[A list of steps to build your application.<br>
 <br>
-<b>Remarks:</b><br>
 Some facts:<br>
   - Each step contains a list of tasks.<br>
   - The sequential execution of these steps/tasks is called a build.<br>
   - Steps (and tasks within them) are executed sequentially in the order they were defined.<br>
-  - A child configuration inherit the steps of its parent: they are executed before its own steps.]]></xs:documentation>
+  - A child configuration inherit the steps of its parent: they are executed before its own steps.<br>
+            <br>
+There are 3 kinds of steps:<br>
+  - 'BuildSource' with tasks that will handle the files in your source directory (for instance, to compile procedures or copy configuration files).<br>
+  - 'BuildOutput' with tasks that will handle the files in the build output directory (for instance, to create a .zip release of compiled files).<br>
+  - 'Free' with tasks that will handle files outside of your source or output directory (for instance, to download dependencies before the compilation).]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ChildrenBuildConfigurations" type="ArrayOfOeBuildConfiguration">
         <xs:annotation>
           <xs:documentation><![CDATA[A list of children build configurations, each will inherit the properties defined in this one.<br>
 <br>
-<b>Remarks:</b><br>
 Some facts:<br>
   - A build configuration describe how to build your application.<br>
   - A build configuration is essentially a succession of tasks (grouped into steps) that should be carried on in a sequential manner to build your application.<br>
@@ -257,7 +255,6 @@ Inheritance of build configurations (think of russian dolls):<br>
         <xs:annotation>
           <xs:documentation><![CDATA[A variable to use in a build configuration.<br>
 <br>
-<b>Remarks:</b><br>
 Some facts:<br>
   - Variables make your build process dynamic by allowing you to change build options without having to modify this xml.<br>
   - You can use a variable with the syntax {{variable_name}}.<br>
@@ -302,10 +299,9 @@ Special variables are already defined and available to use:<br>
           <xs:documentation><![CDATA[The path to the directory containing the installation of openedge.<br>
 Commonly known as the DLC directory.<br>
 <br>
-<b>Defaults to:</b> $DLC (openedge installation directory).<br>
+It should contain, among many other things, a "bin" directory where the openedge executables are located.<br>
 <br>
-<b>Remarks:</b><br>
-It should contain, among many other things, a "bin" directory where the openedge executables are located.]]></xs:documentation>
+<b>Defaults to:</b> $DLC (openedge installation directory).]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ProjectDatabases" type="ArrayOfOeProjectDatabase">
@@ -313,7 +309,6 @@ It should contain, among many other things, a "bin" directory where the openedge
           <xs:documentation><![CDATA[A list of all the openedge databases used by your project (couple of logical name + data definition file path).<br>
 This list should contain all the databases necessary to compile your application.<br>
 <br>
-<b>Remarks:</b><br>
 The databases specified in this property will be automatically generated during a build (temporary databases).<br>
 The idea is to version .df files (data definition files) and to have a fully buildable application from a checkout.]]></xs:documentation>
         </xs:annotation>
@@ -322,22 +317,20 @@ The idea is to version .df files (data definition files) and to have a fully bui
         <xs:annotation>
           <xs:documentation><![CDATA[A database connection string that will be used to connect to extra databases before a build. <br>
 <br>
-<b>Remarks:</b><br>
 This obviously requires existing databases.<br>
 Most of the time, it is simpler to use the ProjectDatabase option instead of this one and let the tool generate the necessary databases.<br>
 This property is used in the following openedge statement: CONNECT VALUE(this_property).<br>
 <br>
 <b>Examples:</b><br>
--db base1 -ld mylogicalName1 -H 127.0.0.1 -S 1024<br>
--db C:\wrk\sport2000.db -1 -ld mydb<br>
--pf C:\mypath\db.pf]]></xs:documentation>
+  -db base1 -ld mylogicalName1 -H 127.0.0.1 -S 1024<br>
+  -db C:\wrk\sport2000.db -1 -ld mydb<br>
+  -pf C:\mypath\db.pf]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="DatabaseAliases" type="ArrayOfOeDatabaseAlias">
         <xs:annotation>
           <xs:documentation><![CDATA[A list of database aliases needed in your project (couple of logical name + alias name).<br>
 <br>
-<b>Remarks:</b><br>
 This is useful when your code references several aliases of a single database.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
@@ -345,7 +338,6 @@ This is useful when your code references several aliases of a single database.]]
         <xs:annotation>
           <xs:documentation><![CDATA[The path to the .ini file used by your project.<br>
 <br>
-<b>Remarks:</b><br>
 .ini files are specific to the windows platform.<br>
 .ini files are typically used to define COLORS and FONTS for GUI applications.<br>
 The font definition are required to correctly compiled .w files.<br>
@@ -358,7 +350,6 @@ Relative path are resolved with the current directory but you can use {{SOURCE_D
         <xs:annotation>
           <xs:documentation><![CDATA[A list of paths to add to the propath during the build.<br>
 <br>
-<b>Remarks:</b><br>
 This list should include all the directories containing the include files necessary to compile your application.<br>
 This typically include pro library (.pl) file path or directories.<br>
 Relative path are resolved with the current directory but you can use {{SOURCE_DIRECTORY}} to target the source directory.]]></xs:documentation>
@@ -368,10 +359,9 @@ Relative path are resolved with the current directory but you can use {{SOURCE_D
         <xs:annotation>
           <xs:documentation><![CDATA[Indicates if all the directories in the source directory should be added to the compilation propath.<br>
 <br>
-<b>Defaults to:</b> True.<br>
+The idea is to use this option instead of manually specifying the compilation propath (for lazy people only).<br>
 <br>
-<b>Remarks:</b><br>
-The idea is to use this option instead of manually specifying the compilation propath (for lazy people only).]]></xs:documentation>
+<b>Defaults to:</b> True.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="PropathSourceDirectoriesFilter" type="OePropathFilterOptions">
@@ -383,10 +373,9 @@ The idea is to use this option instead of manually specifying the compilation pr
         <xs:annotation>
           <xs:documentation><![CDATA[Force the use of the openedge character mode on windows platform.<br>
 <br>
-<b>Defaults to:</b> False.<br>
+Typically, this option will make the build process use the "_progres.exe" executable instead of "prowin.exe".<br>
 <br>
-<b>Remarks:</b><br>
-Typically, this option will make the build process use the "_progres.exe" executable instead of "prowin.exe".]]></xs:documentation>
+<b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="AddDefaultOpenedgePropath" nillable="true" type="xs:boolean">
@@ -395,10 +384,9 @@ Typically, this option will make the build process use the "_progres.exe" execut
 Also adds the pro library files in this directory to the propath.<br>
 Also adds the dlc and dlc/bin directories.<br>
 <br>
-<b>Defaults to:</b> True.<br>
+This is the equivalent of the default propath set by openedge.<br>
 <br>
-<b>Remarks:</b><br>
-This is the equivalent of the default propath set by openedge.]]></xs:documentation>
+<b>Defaults to:</b> True.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ExtraOpenedgeCommandLineParameters" type="xs:string">
@@ -407,28 +395,26 @@ This is the equivalent of the default propath set by openedge.]]></xs:documentat
 The available parameters for your version of openedge are available in the reference help, topic "Startup Parameter Descriptions".<br>
 <br>
 <b>Examples:</b><br>
--inp 9999<br>
--s 500<br>
--assemblies "/root/assemblies/"<br>
--NL -cwl -k]]></xs:documentation>
+  -inp 9999<br>
+  -s 500<br>
+  -assemblies "/root/assemblies/"<br>
+  -NL -cwl -k]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ProcedureToExecuteBeforeAnyProgressExecutionFilePath" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[File path to an openedge procedure that will be executed for each new openedge session used (when using _progres or prowin).<br>
 <br>
-<b>Remarks:</b><br>
 This procedure is called with a simple RUN statement and must not have any parameters.<br>
 <br>
 <b>Examples:</b><br>
-This feature can be used to connected databases, create aliases or add paths to the propath before a compilation and using a custom logic.]]></xs:documentation>
+  This feature can be used to connected databases, create aliases or add paths to the propath before a compilation and using a custom logic.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ProcedurePathToExecuteAfterAnyProgressExecution" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[File path to an openedge procedure that will be executed at the end of each new openedge session used (when using _progres or prowin).<br>
 <br>
-<b>Remarks:</b><br>
 This procedure is called with a simple RUN statement and must not have any parameters.<br>
 It should be used to "clean up" any custom logic put in place with the procedure execution at the beginning of the session.]]></xs:documentation>
         </xs:annotation>
@@ -438,7 +424,6 @@ It should be used to "clean up" any custom logic put in place with the procedure
           <xs:documentation><![CDATA[The code page to use for input/output with openedge processes.<br>
 This will default to the value read for -cpstream or -cpinternal in the file $DLC/startup.pf.<br>
 <br>
-<b>Remarks:</b><br>
 This property should be configured if you encounter wrong characters (wrong encoding) in the console.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
@@ -446,23 +431,21 @@ This property should be configured if you encounter wrong characters (wrong enco
         <xs:annotation>
           <xs:documentation><![CDATA[Only on windows, try to hide the prowin.exe process from the windows task bar.<br>
 <br>
-<b>Defaults to:</b> True.<br>
-<br>
-<b>Remarks:</b><br>
 For some reasons, the prowin.exe executable started in batch mode (-b) systematically creates a new window. That window is hidden but it still appears in the task bar. Weirdly enough, starting prowin.exe without the -b parameter does not show any window. However we need the batch mode to correctly redirect runtime errors (otherwise it should show the errors in an alert-box).<br>
 As a workaround, we wait for the prowin.exe to start and to create its window and then we hide it using widows API so it does not appear in the task bar.<br>
-This option might not be needed later on, if this behavior is fixed.]]></xs:documentation>
+This option might not be needed later on, if this behavior is fixed.<br>
+<br>
+<b>Defaults to:</b> True.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeTemporaryDirectoryPath" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[The temporary directory to use for an openedge session.<br>
 <br>
-<b>Defaults to:</b> $TEMP/.oe_tmp-xxx (temporary folder).<br>
-<br>
-<b>Remarks:</b><br>
 This is the directory used in the -T startup parameter for the openedge session.<br>
-This directory is also used to store temporary files needed for the compilation and for the interface between openedge and this tool.]]></xs:documentation>
+This directory is also used to store temporary files needed for the compilation and for the interface between openedge and this tool.<br>
+<br>
+<b>Defaults to:</b> $TEMP/.oe_tmp-xxx (temporary folder).]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="CompilationOptions" type="OeCompilationOptions">
@@ -491,7 +474,6 @@ This directory is also used to store temporary files needed for the compilation 
       <xs:annotation>
         <xs:documentation><![CDATA[The logical name of the database.<br>
 <br>
-<b>Remarks:</b><br>
 This is the database name used in the code.]]></xs:documentation>
       </xs:annotation>
     </xs:attribute>
@@ -499,7 +481,6 @@ This is the database name used in the code.]]></xs:documentation>
       <xs:annotation>
         <xs:documentation><![CDATA[The path to the data definition (.df) file representing the schema of your database.<br>
 <br>
-<b>Remarks:</b><br>
 From this file, the tool is able to generate a temporary database used to compile your application.]]></xs:documentation>
       </xs:annotation>
     </xs:attribute>
@@ -547,7 +528,6 @@ From this file, the tool is able to generate a temporary database used to compil
             <xs:annotation>
               <xs:documentation><![CDATA[A path pattern that describes paths that should be included by this filter.<br>
 <br>
-<b>Remarks:</b><br>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
@@ -562,8 +542,8 @@ The following symbols can be used in patterns:<br>
 - || will corresponds to a "or" in a captured context (equivalent to | in regex)<br>
 <br>
 <b>Examples:</b><br>
-** will match any path.<br>
-((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
+  ** will match any path.<br>
+  ((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
             </xs:annotation>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="PropathIncludeRegex" type="xs:string">
@@ -575,7 +555,6 @@ The following symbols can be used in patterns:<br>
             <xs:annotation>
               <xs:documentation><![CDATA[A path pattern that describes paths that should be excluded by this filter.<br>
 <br>
-<b>Remarks:</b><br>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
@@ -590,8 +569,8 @@ The following symbols can be used in patterns:<br>
 - || will corresponds to a "or" in a captured context (equivalent to | in regex)<br>
 <br>
 <b>Examples:</b><br>
-** will match any path.<br>
-((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
+  ** will match any path.<br>
+  ((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
             </xs:annotation>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="PropathExcludeRegex" type="xs:string">
@@ -696,7 +675,6 @@ The following symbols can be used in patterns:<br>
           <xs:annotation>
             <xs:documentation><![CDATA[A path pattern that describes paths that should be processed by this task.<br>
 <br>
-<b>Remarks:</b><br>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
@@ -711,8 +689,8 @@ The following symbols can be used in patterns:<br>
 - || will corresponds to a "or" in a captured context (equivalent to | in regex)<br>
 <br>
 <b>Examples:</b><br>
-** will match any path.<br>
-((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
+  ** will match any path.<br>
+  ((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="IncludeRegex" type="xs:string">
@@ -724,7 +702,6 @@ The following symbols can be used in patterns:<br>
           <xs:annotation>
             <xs:documentation><![CDATA[A path pattern that describes paths that should be excluded from being processed by this task.<br>
 <br>
-<b>Remarks:</b><br>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
@@ -739,8 +716,8 @@ The following symbols can be used in patterns:<br>
 - || will corresponds to a "or" in a captured context (equivalent to | in regex)<br>
 <br>
 <b>Examples:</b><br>
-** will match any path.<br>
-((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
+  ** will match any path.<br>
+  ((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="ExcludeRegex" type="xs:string">
@@ -768,51 +745,48 @@ The following symbols can be used in patterns:<br>
           <xs:annotation>
             <xs:documentation><![CDATA[The path to the targeted prolib file.<br>
 <br>
-<b>Remarks:</b><br>
 Several target paths can be used, separate them with a semi-colon (i.e. ;).<br>
 Each target path can use special placeholders:<br>
 - {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed<br>
 - {{group_name}} will be replaced by the value captured in group "group_name"<br>
 <br>
 <b>Examples:</b><br>
-Having "((C:\folder\**))((*.txt))" as an include pattern<br>
-and "D:\pre_{{2}}.raw" as the target,<br>
-for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
-(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+  Having "((C:\folder\**))((*.txt))" as an include pattern<br>
+  and "D:\pre_{{2}}.raw" as the target,<br>
+  for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
+  (note: In this example, the captured group 1 was not used)]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="RelativeTargetFilePath" type="xs:string">
           <xs:annotation>
             <xs:documentation><![CDATA[The relative target file path inside the archive.<br>
 <br>
-<b>Remarks:</b><br>
 Several target paths can be used, separate them with a semi-colon (i.e. ;).<br>
 Each target path can use special placeholders:<br>
 - {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed<br>
 - {{group_name}} will be replaced by the value captured in group "group_name"<br>
 <br>
 <b>Examples:</b><br>
-Having "((C:\folder\**))((*.txt))" as an include pattern<br>
-and "D:\pre_{{2}}.raw" as the target,<br>
-for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
-(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+  Having "((C:\folder\**))((*.txt))" as an include pattern<br>
+  and "D:\pre_{{2}}.raw" as the target,<br>
+  for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
+  (note: In this example, the captured group 1 was not used)]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="RelativeTargetDirectory" type="xs:string">
           <xs:annotation>
             <xs:documentation><![CDATA[The relative target directory inside the archive.<br>
 <br>
-<b>Remarks:</b><br>
 Several target paths can be used, separate them with a semi-colon (i.e. ;).<br>
 Each target path can use special placeholders:<br>
 - {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed<br>
 - {{group_name}} will be replaced by the value captured in group "group_name"<br>
 <br>
 <b>Examples:</b><br>
-Having "((C:\folder\**))((*.txt))" as an include pattern<br>
-and "D:\pre_{{2}}.raw" as the target,<br>
-for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
-(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+  Having "((C:\folder\**))((*.txt))" as an include pattern<br>
+  and "D:\pre_{{2}}.raw" as the target,<br>
+  for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
+  (note: In this example, the captured group 1 was not used)]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="ProlibVersion" type="xs:string">
@@ -842,34 +816,32 @@ for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw"
           <xs:annotation>
             <xs:documentation><![CDATA[The relative target file path inside the archive.<br>
 <br>
-<b>Remarks:</b><br>
 Several target paths can be used, separate them with a semi-colon (i.e. ;).<br>
 Each target path can use special placeholders:<br>
 - {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed<br>
 - {{group_name}} will be replaced by the value captured in group "group_name"<br>
 <br>
 <b>Examples:</b><br>
-Having "((C:\folder\**))((*.txt))" as an include pattern<br>
-and "D:\pre_{{2}}.raw" as the target,<br>
-for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
-(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+  Having "((C:\folder\**))((*.txt))" as an include pattern<br>
+  and "D:\pre_{{2}}.raw" as the target,<br>
+  for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
+  (note: In this example, the captured group 1 was not used)]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="TargetDirectory" type="xs:string">
           <xs:annotation>
             <xs:documentation><![CDATA[The relative target directory inside the archive.<br>
 <br>
-<b>Remarks:</b><br>
 Several target paths can be used, separate them with a semi-colon (i.e. ;).<br>
 Each target path can use special placeholders:<br>
 - {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed<br>
 - {{group_name}} will be replaced by the value captured in group "group_name"<br>
 <br>
 <b>Examples:</b><br>
-Having "((C:\folder\**))((*.txt))" as an include pattern<br>
-and "D:\pre_{{2}}.raw" as the target,<br>
-for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
-(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+  Having "((C:\folder\**))((*.txt))" as an include pattern<br>
+  and "D:\pre_{{2}}.raw" as the target,<br>
+  for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
+  (note: In this example, the captured group 1 was not used)]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
       </xs:extension>
@@ -887,51 +859,48 @@ for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw"
           <xs:annotation>
             <xs:documentation><![CDATA[The path to the targeted archive.<br>
 <br>
-<b>Remarks:</b><br>
 Several target paths can be used, separate them with a semi-colon (i.e. ;).<br>
 Each target path can use special placeholders:<br>
 - {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed<br>
 - {{group_name}} will be replaced by the value captured in group "group_name"<br>
 <br>
 <b>Examples:</b><br>
-Having "((C:\folder\**))((*.txt))" as an include pattern<br>
-and "D:\pre_{{2}}.raw" as the target,<br>
-for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
-(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+  Having "((C:\folder\**))((*.txt))" as an include pattern<br>
+  and "D:\pre_{{2}}.raw" as the target,<br>
+  for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
+  (note: In this example, the captured group 1 was not used)]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="RelativeTargetFilePath" type="xs:string">
           <xs:annotation>
             <xs:documentation><![CDATA[The relative target file path inside the archive.<br>
 <br>
-<b>Remarks:</b><br>
 Several target paths can be used, separate them with a semi-colon (i.e. ;).<br>
 Each target path can use special placeholders:<br>
 - {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed<br>
 - {{group_name}} will be replaced by the value captured in group "group_name"<br>
 <br>
 <b>Examples:</b><br>
-Having "((C:\folder\**))((*.txt))" as an include pattern<br>
-and "D:\pre_{{2}}.raw" as the target,<br>
-for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
-(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+  Having "((C:\folder\**))((*.txt))" as an include pattern<br>
+  and "D:\pre_{{2}}.raw" as the target,<br>
+  for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
+  (note: In this example, the captured group 1 was not used)]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="RelativeTargetDirectory" type="xs:string">
           <xs:annotation>
             <xs:documentation><![CDATA[The relative target directory inside the archive.<br>
 <br>
-<b>Remarks:</b><br>
 Several target paths can be used, separate them with a semi-colon (i.e. ;).<br>
 Each target path can use special placeholders:<br>
 - {{FILE_SOURCE_DIRECTORY}} will be replaced by the source directory of the file processed<br>
 - {{group_name}} will be replaced by the value captured in group "group_name"<br>
 <br>
 <b>Examples:</b><br>
-Having "((C:\folder\**))((*.txt))" as an include pattern<br>
-and "D:\pre_{{2}}.raw" as the target,<br>
-for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
-(note: In this example, the captured group 1 was not used)]]></xs:documentation>
+  Having "((C:\folder\**))((*.txt))" as an include pattern<br>
+  and "D:\pre_{{2}}.raw" as the target,<br>
+  for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw".<br>
+  (note: In this example, the captured group 1 was not used)]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="CompressionLevel" type="xs:string">
@@ -972,7 +941,6 @@ for the file "C:\folder\myfile.txt", we will have the target "D:\pre_myfile.raw"
             <xs:annotation>
               <xs:documentation><![CDATA[A path pattern that describes paths that should be included by this filter.<br>
 <br>
-<b>Remarks:</b><br>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
@@ -987,8 +955,8 @@ The following symbols can be used in patterns:<br>
 - || will corresponds to a "or" in a captured context (equivalent to | in regex)<br>
 <br>
 <b>Examples:</b><br>
-** will match any path.<br>
-((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
+  ** will match any path.<br>
+  ((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
             </xs:annotation>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="SourceIncludeRegex" type="xs:string">
@@ -1000,7 +968,6 @@ The following symbols can be used in patterns:<br>
             <xs:annotation>
               <xs:documentation><![CDATA[A path pattern that describes paths that should be excluded by this filter.<br>
 <br>
-<b>Remarks:</b><br>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
@@ -1015,8 +982,8 @@ The following symbols can be used in patterns:<br>
 - || will corresponds to a "or" in a captured context (equivalent to | in regex)<br>
 <br>
 <b>Examples:</b><br>
-** will match any path.<br>
-((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
+  ** will match any path.<br>
+  ((C:\**))((*.txt)) will match any txt file in C:\ and also captures the full path (group 1) as well as the file name (group 2).]]></xs:documentation>
             </xs:annotation>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="SourceExcludeRegex" type="xs:string">
@@ -1049,7 +1016,6 @@ The following symbols can be used in patterns:<br>
             <xs:annotation>
               <xs:documentation><![CDATA[A direct list of files to use as sources. <br>
 <br>
-<b>Remarks:</b><br>
 Several paths can be given by separating them with a semi-colon (i.e. ;).<br>
 This option overrides every other options in this filter, the paths listed here are directly used as results of this filter.<br>
 Non existing paths are simply ignored.]]></xs:documentation>
@@ -1065,20 +1031,18 @@ Non existing paths are simply ignored.]]></xs:documentation>
         <xs:annotation>
           <xs:documentation><![CDATA[Use the DEBUG-LIST option in the COMPILE statement.<br>
 <br>
-<b>Defaults to:</b> False.<br>
+If true, the compilation process will generate a debugfile (.dbg) that consists of a line-numbered listing of the procedure with the text of all preprocessor include files, names, and parameters inserted.<br>
 <br>
-<b>Remarks:</b><br>
-If true, the compilation process will generate a debugfile (.dbg) that consists of a line-numbered listing of the procedure with the text of all preprocessor include files, names, and parameters inserted.]]></xs:documentation>
+<b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="CompileWithXref" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Use the XREF option in the COMPILE statement.<br>
 <br>
-<b>Defaults to:</b> False.<br>
+If true, the compilation process will generate an xref file (.xrf) that contains reference information on ABL elements, cross-references between procedures and ABL objects, and cross-references between class or interface definition files and ABL objects.<br>
 <br>
-<b>Remarks:</b><br>
-If true, the compilation process will generate an xref file (.xrf) that contains reference information on ABL elements, cross-references between procedures and ABL objects, and cross-references between class or interface definition files and ABL objects.]]></xs:documentation>
+<b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="CompileWithXmlXref" nillable="true" type="xs:boolean">
@@ -1086,36 +1050,33 @@ If true, the compilation process will generate an xref file (.xrf) that contains
           <xs:documentation><![CDATA[Use the XREF-XML option in the COMPILE statement.<br>
 This option is only available since openedge 10.2.<br>
 <br>
-<b>Defaults to:</b> False.<br>
-<br>
-<b>Remarks:</b><br>
 If true, the compilation process will generate an xref file (.xrf.xml) in XML format that contains reference information on ABL elements, cross-references between procedures and ABL objects, and cross-references between class or interface definition files and ABL objects.<br>
-This option cannot be used simultaneously with the XREF option.]]></xs:documentation>
+This option cannot be used simultaneously with the XREF option.<br>
+<br>
+<b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="CompileWithListing" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Use the LISTING option in the COMPILE statement.<br>
 <br>
-<b>Defaults to:</b> False.<br>
-<br>
-<b>Remarks:</b><br>
 If true, the compilation process will produce a file (.lis) including:<br>
 - The name of the file containing the procedure or class you compile <br>
 - The date and time at the start of the compilation <br>
 - The number of each line in the procedure or class file <br>
 - The block number where each statement belongs <br>
-- The complete text of all include files (except encrypted include files) and the names of any sub-procedures and user-defined functions ]]></xs:documentation>
+- The complete text of all include files (except encrypted include files) and the names of any sub-procedures and user-defined functions <br>
+<br>
+<b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="CompileWithPreprocess" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Use the PREPROCESS option in the COMPILE statement.<br>
 <br>
-<b>Defaults to:</b> False.<br>
+If true, the compilation process will generate a file (.preprocessed) that contains a final version of your source code after all include files have been inserted and all text substitutions have been performed.<br>
 <br>
-<b>Remarks:</b><br>
-If true, the compilation process will generate a file (.preprocessed) that contains a final version of your source code after all include files have been inserted and all text substitutions have been performed.]]></xs:documentation>
+<b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="UseCompilerMultiCompile" nillable="true" type="xs:boolean">
@@ -1123,11 +1084,10 @@ If true, the compilation process will generate a file (.preprocessed) that conta
           <xs:documentation><![CDATA[Use the MULTI-COMPILE option in the COMPILE statement.<br>
 This option is only available since openedge 10.2.<br>
 <br>
-<b>Defaults to:</b> False.<br>
-<br>
-<b>Remarks:</b><br>
 When set to TRUE, ABL compiles only those class definition files in the inherited class hierarchy that are not found in the cache. ABL also caches any classes or interfaces it compiles to avoid recompiling them during the session.<br>
-When set to FALSE, ABL compiles all class definition files in the inherited class hierarchy. ABL also clears the cache of any classes or interfaces compiled during the session. The default value is FALSE.]]></xs:documentation>
+When set to FALSE, ABL compiles all class definition files in the inherited class hierarchy. ABL also clears the cache of any classes or interfaces compiled during the session. The default value is FALSE.<br>
+<br>
+<b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="CompileOptions" type="xs:string">
@@ -1135,7 +1095,6 @@ When set to FALSE, ABL compiles all class definition files in the inherited clas
           <xs:documentation><![CDATA[Control the behavior of the openedge compiler, allowing to compile with different options.<br>
 This option is only available since openedge 11.7.<br>
 <br>
-<b>Remarks:</b><br>
 The options are set and stored as a comma-separated list.<br>
 The acceptable values in openedge 11.7 are:<br>
 - require-full-names<br>
@@ -1147,66 +1106,60 @@ The acceptable values in openedge 11.7 are:<br>
         <xs:annotation>
           <xs:documentation><![CDATA[Sets extra COMPILE options to use in the COMPILE statement.<br>
 <br>
-<b>Remarks:</b><br>
 Use this property to specify a COMPILE option that is not managed by this tool.<br>
 <br>
 <b>Examples:</b><br>
-MIN-SIZE = TRUE<br>
-XCODE = "progress"<br>
-GENERATE-MD5 = TRUE<br>
-LANGUAGES (French-Canadian:French:English,Portuguese:Spanish,New-York:American:English)]]></xs:documentation>
+  MIN-SIZE = TRUE<br>
+  XCODE = "progress"<br>
+  GENERATE-MD5 = TRUE<br>
+  LANGUAGES (French-Canadian:French:English,Portuguese:Spanish,New-York:American:English)]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="TryToOptimizeCompilationDirectory" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Try to find the best location to compile an rcode instead of using the default temporary directory.<br>
 <br>
-<b>Defaults to:</b> True.<br>
+By default, all rcode generated are saved in the temporary directory and then moved to the different target locations. This might result in unnecessary delays and can be avoided by saving the rcode directly to the target location. This option allows the tool to make this small simplification when it makes sense.<br>
 <br>
-<b>Remarks:</b><br>
-By default, all rcode generated are saved in the temporary directory and then moved to the different target locations. This might result in unnecessary delays and can be avoided by saving the rcode directly to the target location. This option allows the tool to make this small simplification when it makes sense.]]></xs:documentation>
+<b>Defaults to:</b> True.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="CompilableFileExtensionPattern" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[A comma-separated list of file extension patterns that represent ABL compilable files.<br>
 <br>
-<b>Defaults to:</b> *.p;*.w;*.t;*.cls.<br>
+This is a default filter that is used for each "compile" task and which allows to process only certain types of files. <br>
 <br>
-<b>Remarks:</b><br>
-This is a default filter that is used for each "compile" task and which allows to process only certain types of files. ]]></xs:documentation>
+<b>Defaults to:</b> *.p;*.w;*.t;*.cls.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="NumberProcessPerCore" nillable="true" type="xs:unsignedByte">
         <xs:annotation>
           <xs:documentation><![CDATA[The number of openedge process to start simultaneously per core (on your computer) in order to compile your application.<br>
 <br>
-<b>Defaults to:</b> 1.<br>
-<br>
-<b>Remarks:</b><br>
 To speed up the compilation process, this tool can start parallel openedge processes to compile your application.<br>
-This option allows to fine tune the number of processes to start.]]></xs:documentation>
+This option allows to fine tune the number of processes to start.<br>
+<br>
+<b>Defaults to:</b> 1.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ForceSingleProcess" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Use a single process to compile your application.<br>
 <br>
-<b>Defaults to:</b> False.<br>
-<br>
-<b>Remarks:</b><br>
 This option overload the default behavior of this tool, that aims to use parallel processes to speed up the compilation process.<br>
-This can be useful for low end machines or when connecting to a database in mono-user (-1 parameter).]]></xs:documentation>
+This can be useful for low end machines or when connecting to a database in mono-user (-1 parameter).<br>
+<br>
+<b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="MinimumNumberOfFilesPerProcess" nillable="true" type="xs:int">
         <xs:annotation>
           <xs:documentation><![CDATA[The minimum number of files that needs to be allocated to one of the processes before justifying the use of a new process.<br>
 <br>
-<b>Defaults to:</b> 10.<br>
+This option exists because there would be an important overhead to start 2 openedge processes to compile only 2 files.<br>
 <br>
-<b>Remarks:</b><br>
-This option exists because there would be an important overhead to start 2 openedge processes to compile only 2 files.]]></xs:documentation>
+<b>Defaults to:</b> 10.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:all>
@@ -1217,17 +1170,15 @@ This option exists because there would be an important overhead to start 2 opene
         <xs:annotation>
           <xs:documentation><![CDATA[The source directory of your application. Should be left empty in most cases.<br>
 <br>
-<b>Defaults to:</b> $PWD (current directory).<br>
+You cannot use variables in this property.<br>
 <br>
-<b>Remarks:</b><br>
-You cannot use variables in this property.]]></xs:documentation>
+<b>Defaults to:</b> $PWD (current directory).]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildFilter" type="OeSourceFilterOptions">
         <xs:annotation>
           <xs:documentation><![CDATA[The filtering options for the source files of your application that need to be built.<br>
 <br>
-<b>Remarks:</b><br>
 For instance, this allows to exclude path from being considered as source files (e.g. a docs/ directory). Non source files will not be built during the source build tasks.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
@@ -1236,7 +1187,6 @@ For instance, this allows to exclude path from being considered as source files 
           <xs:documentation><![CDATA[The options for an incremental build.<br>
 An incremental build improves the build process by only compiling and building files that were modified or added since the last build. It is the opposite of a full rebuild.<br>
 <br>
-<b>Remarks:</b><br>
 These options (and the incremental process in general) are only applicable to the tasks that are building your application sources.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
@@ -1244,7 +1194,6 @@ These options (and the incremental process in general) are only applicable to th
         <xs:annotation>
           <xs:documentation><![CDATA[Instead of a full rebuild or an incremental rebuild, use GIT to identify which files will be built.<br>
 <br>
-<b>Remarks:</b><br>
 This option required GIT to be installed and available in your system PATH.<br>
 The idea behind this option is to build files depending on the changes made in GIT. For instance, rebuilding files modified/added since the last commit. It allows to check if recent changes in a GIT repository introduces bugs.]]></xs:documentation>
         </xs:annotation>
@@ -1260,10 +1209,9 @@ The idea behind this option is to build files depending on the changes made in G
         <xs:annotation>
           <xs:documentation><![CDATA[The output directory for the build.<br>
 <br>
-<b>Defaults to:</b> {{SOURCE_DIRECTORY}}\bin.<br>
+Relative paths in the targets of tasks will be resolved from this directory. This is only available when building the source or the output.<br>
 <br>
-<b>Remarks:</b><br>
-Relative paths in the targets of tasks will be resolved from this directory. This is only available when building the source or the output.]]></xs:documentation>
+<b>Defaults to:</b> {{SOURCE_DIRECTORY}}\bin.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryInputFilePath" type="xs:string">
@@ -1326,20 +1274,18 @@ Relative paths in the targets of tasks will be resolved from this directory. Thi
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether or not the tool should shutdown the temporary databases created and started for the compilation (if any).<br>
 <br>
-<b>Defaults to:</b> True.<br>
+Shutting down an openedge database is a really slow process and it should be avoided if you intent to build files several times consecutively.<br>
 <br>
-<b>Remarks:</b><br>
-Shutting down an openedge database is a really slow process and it should be avoided if you intent to build files several times consecutively.]]></xs:documentation>
+<b>Defaults to:</b> True.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="AllowDatabaseShutdownByProcessKill" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether or not the tool is allowed to shutdown temporary databases by killing the _mprosrv.<br>
 <br>
-<b>Defaults to:</b> True.<br>
+Shutting down an openedge database is a really slow process, this option speeds up the shutdown drastically. The database broker is killed instead of being properly shutdown. Since the tool uses temporary databases and since those databases are only used to compiled code, this is completely safe.<br>
 <br>
-<b>Remarks:</b><br>
-Shutting down an openedge database is a really slow process, this option speeds up the shutdown drastically. The database broker is killed instead of being properly shutdown. Since the tool uses temporary databases and since those databases are only used to compiled code, this is completely safe.]]></xs:documentation>
+<b>Defaults to:</b> True.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="TestMode" nillable="true" type="xs:boolean">
@@ -1358,81 +1304,77 @@ Shutting down an openedge database is a really slow process, this option speeds 
           <xs:documentation><![CDATA[Sets whether or not the incremental build should be used.<br>
 An incremental build improves the build process by only compiling and building files that were modified or added since the last build. It is the opposite of a full rebuild.<br>
 <br>
-<b>Defaults to:</b> True.<br>
-<br>
-<b>Remarks:</b><br>
 If true, an analysis is done on compiled files to find referenced tables and files. The build history is stored to be able to know which file was modified/added since the last build. And the MD5 checksum of each source file can be computed and saved to improve modification detection.<br>
-Depending on your build and your intentions, this can significantly improve the build performances or slow down systematic full rebuilds.]]></xs:documentation>
+Depending on your build and your intentions, this can significantly improve the build performances or slow down systematic full rebuilds.<br>
+<br>
+<b>Defaults to:</b> True.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="UseSimplerAnalysisForDatabaseReference" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Use a cheapest analysis mode (performance wise) to identify the database references of a compiled file.<br>
 <br>
-<b>Defaults to:</b> False.<br>
-<br>
-<b>Remarks:</b><br>
 If true, the database references are not computed from the resulting xref file but simply using RCODE-INFO:TABLE-LIST.<br>
 This method is less accurate because it will not list referenced sequences or referenced tables in LIKE TABLE statements. Even if a file does not need to be recompiled when a table referenced in a LIKE TABLE statement changes, it is smart to still recompile it and make sure that the database modification does not break the code.<br>
-This option can be used on low-end computers but it is not advised to use this mode if it is not necessary.]]></xs:documentation>
+This option can be used on low-end computers but it is not advised to use this mode if it is not necessary.<br>
+<br>
+<b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="UseCheckSumComparison" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Use a checksum comparison to identify the files that were modified between two builds.<br>
 <br>
-<b>Defaults to:</b> False.<br>
-<br>
-<b>Remarks:</b><br>
 This identification technique is safer than a simple datetime/size comparison but it also costs more cpu time.<br>
-By default, a file is considered unmodified if its size and last modified date has not changed since the previous build. This option also compute and consider the file checksum using the MD5 checksum computation.]]></xs:documentation>
+By default, a file is considered unmodified if its size and last modified date has not changed since the previous build. This option also compute and consider the file checksum using the MD5 checksum computation.<br>
+<br>
+<b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="MirrorDeletedSourceFileToOutput" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether of not the tool should delete the previous targets of a source file that has been deleted since the last build.<br>
 <br>
-<b>Defaults to:</b> False.<br>
-<br>
 <b>Examples:</b><br>
-On the first build, the file "A" was compiled and copied to location "/bin". The file "A" is deleted and a second build is started:<br>
-- If this option is true, the compiled file "A" in "/bin/A" will be deleted<br>
-- If not, nothing happens]]></xs:documentation>
+  On the first build, the file "A" was compiled and copied to location "/bin". The file "A" is deleted and a second build is started:<br>
+  - If this option is true, the compiled file "A" in "/bin/A" will be deleted<br>
+  - If not, nothing happens<br>
+<br>
+<b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="MirrorDeletedTargetsToOutput" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether of not the tool should apply the modifications of a target that has been deleted since the last build. <br>
 <br>
-<b>Defaults to:</b> False.<br>
-<br>
 <b>Examples:</b><br>
-On the first build, the file "A" was compiled and copied to location "/bin" as well as "/bin2". The target "/bin" is deleted and a second build is started:<br>
-- If this option is true, the compiled file "A" in "/bin/A" will be deleted<br>
-- If not, nothing happens and the file "A" is not recompiled]]></xs:documentation>
+  On the first build, the file "A" was compiled and copied to location "/bin" as well as "/bin2". The target "/bin" is deleted and a second build is started:<br>
+  - If this option is true, the compiled file "A" in "/bin/A" will be deleted<br>
+  - If not, nothing happens and the file "A" is not recompiled<br>
+<br>
+<b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="RebuildFilesWithNewTargets" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether of not the tool should rebuild a file if it has new targets defined since the last build.<br>
 <br>
-<b>Defaults to:</b> False.<br>
-<br>
 <b>Examples:</b><br>
-On the first build, the file "A" was compiled and copied to location "/bin". A new target "/bin2" is added and a second build is started:<br>
-- If this option is true, the file "A" is recompiled and built into "/bin2/A"<br>
-- If not, nothing happens (the file "A" has not been changed since the last build)]]></xs:documentation>
+  On the first build, the file "A" was compiled and copied to location "/bin". A new target "/bin2" is added and a second build is started:<br>
+  - If this option is true, the file "A" is recompiled and built into "/bin2/A"<br>
+  - If not, nothing happens (the file "A" has not been changed since the last build)<br>
+<br>
+<b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="RebuildFilesWithCompilationErrors" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether of not the tool should try to rebuild a file if it had compilation errors in the previous build.<br>
 <br>
-<b>Defaults to:</b> True.<br>
-<br>
-<b>Remarks:</b><br>
 If the file has not been modified since the last build, there is little to no chance that it will successfully compile in the current build.<br>
-But this can happen if the file didn't compile because the compilation database was outdated (missing a table needed in the procedure for instance).]]></xs:documentation>
+But this can happen if the file didn't compile because the compilation database was outdated (missing a table needed in the procedure for instance).<br>
+<br>
+<b>Defaults to:</b> True.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:all>
@@ -1445,30 +1387,27 @@ But this can happen if the file didn't compile because the compilation database 
             <xs:annotation>
               <xs:documentation><![CDATA[Build source files that were modified/added/deleted since the last commit.<br>
 <br>
-<b>Defaults to:</b> False.<br>
-<br>
-<b>Remarks:</b><br>
 This include all the files in staging area as well as untracked files in the working directory. Basically, any file listed in a `git status` command.<br>
-This is a good filter to build all the files you are about to commit (and thus check if they compile).]]></xs:documentation>
+This is a good filter to build all the files you are about to commit (and thus check if they compile).<br>
+<br>
+<b>Defaults to:</b> False.]]></xs:documentation>
             </xs:annotation>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="IncludeSourceFilesCommittedOnlyOnCurrentBranch" nillable="true" type="xs:boolean">
             <xs:annotation>
               <xs:documentation><![CDATA[Build source files that were modified/added/deleted in a commit that is exclusive to the current branch.<br>
 <br>
-<b>Defaults to:</b> False.<br>
-<br>
-<b>Remarks:</b><br>
 The `git log` is used to identify which commits are referenced only by the current branch (or reference only by the any remote reference of the current branch). The files modified/added/deleted in these commits are then build.<br>
 To rephrase this, we consider the commits from HEAD to the first commit that has a reference different than current_branch or any_remote/current_branch (aforementioned commit is not included).<br>
-This option is useful to check if the changes you introduced with several commits in your branch do not break the build of your application.]]></xs:documentation>
+This option is useful to check if the changes you introduced with several commits in your branch do not break the build of your application.<br>
+<br>
+<b>Defaults to:</b> False.]]></xs:documentation>
             </xs:annotation>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="CurrentBranchName" type="xs:string">
             <xs:annotation>
               <xs:documentation><![CDATA[The branch reference name for the current branch. To be used with IncludeSourceFilesCommittedOnlyOnCurrentBranch.<br>
 <br>
-<b>Remarks:</b><br>
 This can be useful in CI builds where the CI checks out a repo in detached mode (it checks out a commit, not a branch).<br>
 However, by default, if in detached mode, this tool tries to deduce the current branch by checking the first remote reference of the currently checked out commit. This will be sufficient in most cases, so this option can often be left empty.]]></xs:documentation>
             </xs:annotation>
@@ -1477,7 +1416,6 @@ However, by default, if in detached mode, this tool tries to deduce the current 
             <xs:annotation>
               <xs:documentation><![CDATA[The reference or SHA1 of the commit from which the current branch originated. To be used with IncludeSourceFilesCommittedOnlyOnCurrentBranch.<br>
 <br>
-<b>Remarks:</b><br>
 Read the description of IncludeSourceFilesCommittedOnlyOnCurrentBranch to understand this option.<br>
 This commit is generally found automatically but you can set its value to force a build between HEAD and a given commit.]]></xs:documentation>
             </xs:annotation>
@@ -1495,10 +1433,10 @@ This commit is generally found automatically but you can set its value to force 
 This type of step should be used for all the tasks that are affecting files in your source directory.<br>
 <br>
 <b>Examples:</b><br>
-For this type of step, the openedge compilation is sped up by compiling all the files required at the beginning of the step.<br>
-This is the main tasks list, where openedge files should be compiled.<br>
-The history of files built here can be saved to enable an incremental build.<br>
-A listing of the files in the source directory is done at the beginning of this step. Which means it would not be efficient to create 10 steps of 1 task each if those files are not changing between steps.]]></xs:documentation>
+  For this type of step, the openedge compilation is sped up by compiling all the files required at the beginning of the step.<br>
+  This is the main tasks list, where openedge files should be compiled.<br>
+  The history of files built here can be saved to enable an incremental build.<br>
+  A listing of the files in the source directory is done at the beginning of this step. Which means it would not be efficient to create 10 steps of 1 task each if those files are not changing between steps.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="BuildOutput" nillable="true" type="OeBuildStepBuildOutput">
@@ -1506,32 +1444,36 @@ A listing of the files in the source directory is done at the beginning of this 
           <xs:documentation><![CDATA[A list of tasks that should affect the files in your project output directory.<br>
 <br>
 <b>Examples:</b><br>
-These tasks can be used to 'post-process' the files built into the output directory.<br>
-A listing of the files in the output directory is done at the beginning of this step. Which means it would not be efficient to create 10 steps of 1 task each if those files are not changing between steps.<br>
-<br>
-Suggested usage:<br>
-  - These tasks can be used to modify a configuration file copied from the source directory to the output directory.<br>
-  - These tasks can be used to build a release zip file containing all the .pl of your release.]]></xs:documentation>
+  These tasks can be used to 'post-process' the files built into the output directory.<br>
+  A listing of the files in the output directory is done at the beginning of this step. Which means it would not be efficient to create 10 steps of 1 task each if those files are not changing between steps.<br>
+  <br>
+  Suggested usage:<br>
+    - These tasks can be used to modify a configuration file copied from the source directory to the output directory.<br>
+    - These tasks can be used to build a release zip file containing all the .pl of your release.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="Free" nillable="true" type="OeBuildStepFree">
         <xs:annotation>
           <xs:documentation><![CDATA[A list of steps to build your application.<br>
 <br>
-<b>Remarks:</b><br>
 Some facts:<br>
   - Each step contains a list of tasks.<br>
   - The sequential execution of these steps/tasks is called a build.<br>
   - Steps (and tasks within them) are executed sequentially in the order they were defined.<br>
   - A child configuration inherit the steps of its parent: they are executed before its own steps.<br>
+            <br>
+There are 3 kinds of steps:<br>
+  - 'BuildSource' with tasks that will handle the files in your source directory (for instance, to compile procedures or copy configuration files).<br>
+  - 'BuildOutput' with tasks that will handle the files in the build output directory (for instance, to create a .zip release of compiled files).<br>
+  - 'Free' with tasks that will handle files outside of your source or output directory (for instance, to download dependencies before the compilation).<br>
 <br>
 <b>Examples:</b><br>
-This build step is referred as 'free' because, contrary other type of build step, it does not require to list the files in the source/output directory prior to running the tasks.<br>
-Instead, tasks in this step can handle files that are not necessarily located in your source directory (nor in your output directory).<br>
-<br>
-Suggested usage:<br>
-  - These tasks can be used to "prepare" a build: downloading dependencies/packages or modifying certain source files.<br>
-  - These tasks can be used to "deploy" a build: uploading a release zip file to a distant http or ftp server.]]></xs:documentation>
+  This build step is referred as 'free' because, contrary other type of build step, it does not require to list the files in the source/output directory prior to running the tasks.<br>
+  Instead, tasks in this step can handle files that are not necessarily located in your source directory (nor in your output directory).<br>
+  <br>
+  Suggested usage:<br>
+    - These tasks can be used to "prepare" a build: downloading dependencies/packages or modifying certain source files.<br>
+    - These tasks can be used to "deploy" a build: uploading a release zip file to a distant http or ftp server.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:choice>

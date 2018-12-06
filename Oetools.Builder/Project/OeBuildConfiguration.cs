@@ -108,6 +108,11 @@ namespace Oetools.Builder.Project {
         ///   - The sequential execution of these steps/tasks is called a build.
         ///   - Steps (and tasks within them) are executed sequentially in the order they were defined.
         ///   - A child configuration inherit the steps of its parent: they are executed before its own steps.
+        ///
+        /// There are 3 kinds of steps:
+        ///   - 'BuildSource' with tasks that will handle the files in your source directory (for instance, to compile procedures or copy configuration files).
+        ///   - 'BuildOutput' with tasks that will handle the files in the build output directory (for instance, to create a .zip release of compiled files).
+        ///   - 'Free' with tasks that will handle files outside of your source or output directory (for instance, to download dependencies before the compilation).
         /// </remarks>
         [XmlArray("BuildSteps")]
         [XmlArrayItem("Free", typeof(OeBuildStepFree))]
@@ -148,7 +153,7 @@ namespace Oetools.Builder.Project {
                 throw new BuildConfigurationException(this, "Failed to get the current directory (check permissions).", e);
             }
             currentDirectory = currentDirectory.ToCleanPath();
-            var sourceDirectory = (Properties?.BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath());
+            var sourceDirectory = (Properties?.BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()).MakePathAbsolute().ToCleanPath();
 
             var originalVariablesList = Variables;
             
@@ -167,10 +172,10 @@ namespace Oetools.Builder.Project {
                     Name = OeBuilderConstants.OeVarNameProjectLocalDirectory, Value = OeBuilderConstants.GetProjectDirectoryLocal(sourceDirectory)
                 },
                 new OeVariable {
-                    Name = UoeConstants.OeDlcEnvVar, Value = (Properties?.DlcDirectoryPath).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectoryPath())
+                    Name = UoeConstants.OeDlcEnvVar, Value = (Properties?.DlcDirectoryPath).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectoryPath()).MakePathAbsolute().ToCleanPath()
                 },
                 new OeVariable {
-                    Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = (Properties?.BuildOptions?.OutputDirectoryPath).TakeDefaultIfNeeded(OeBuilderConstants.GetDefaultOutputDirectory())
+                    Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = (Properties?.BuildOptions?.OutputDirectoryPath).TakeDefaultIfNeeded(OeBuilderConstants.GetDefaultOutputDirectory()).MakePathAbsolute().ToCleanPath()
                 },
                 new OeVariable {
                     Name = OeBuilderConstants.OeVarNameConfigurationName, Value = Name
@@ -185,7 +190,6 @@ namespace Oetools.Builder.Project {
             BuilderUtilities.ApplyVariablesInVariables(Variables);
 
             // apply variables in all public string properties (reverse to apply the last defined variables first)
-            Variables.Reverse();
             BuilderUtilities.ApplyVariablesToProperties(this, Variables);  
         }
 

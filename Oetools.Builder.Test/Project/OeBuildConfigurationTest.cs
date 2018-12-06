@@ -80,6 +80,10 @@ namespace Oetools.Builder.Test.Project {
                     },
                     new OeVariable {
                         Name = "var3",
+                        Value = "derp"
+                    },
+                    new OeVariable {
+                        Name = "var3",
                         Value = "{{var2}}"
                     },
                     new OeVariable {

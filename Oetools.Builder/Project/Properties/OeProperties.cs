@@ -138,7 +138,9 @@ namespace Oetools.Builder.Project.Properties {
         /// The filtering options for the automatic listing of directories in the source directory (to use as propath).
         /// </summary>
         [XmlElement(ElementName = "PropathSourceDirectoriesFilter")]
+        [DefaultValueMethod(nameof(GetDefaultPropathSourceDirectoriesFilter))]
         public OePropathFilterOptions PropathSourceDirectoriesFilter { get; set; }
+        public static OePropathFilterOptions GetDefaultPropathSourceDirectoriesFilter() => new OePropathFilterOptions();
 
         /// <summary>
         /// Force the use of the openedge character mode on windows platform.
@@ -321,6 +323,13 @@ namespace Oetools.Builder.Project.Properties {
             }
         }
         
+        public void SetPropathEntries() {
+            PropathEntries = GetPropath((BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()), true)
+                .Select(p => new OePropathEntry {
+                    Path = p.Path
+                }).ToList();
+        }
+        
         /// <summary>
         /// Returns the propath that should be used considering all the options of this class
         /// </summary>
@@ -329,8 +338,6 @@ namespace Oetools.Builder.Project.Properties {
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public PathList<IOeDirectory> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory) {
-            // TODO: make this file the propath entries instead, so it can be exported to the latest build configuration.xml (so we can see the propath used)
-            
             var currentDirectory = Directory.GetCurrentDirectory();
             
             var output = new PathList<IOeDirectory>();
@@ -381,6 +388,7 @@ namespace Oetools.Builder.Project.Properties {
                     return d;
                 });
             }
+            
             return output;
         }
 
@@ -411,7 +419,7 @@ namespace Oetools.Builder.Project.Properties {
                     PostExecutionProgramPath = ProcedureToExecuteAfterAnyProgressExecutionFilePath,
                     PreExecutionProgramPath = ProcedureToExecuteBeforeAnyProgressExecutionFilePath,
                     ProExeCommandLineParameters = ExtraOpenedgeCommandLineParameters,
-                    ProPathList = GetPropath((BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()), true).Select(d => d.Path).ToList(),
+                    ProPathList = PropathEntries.Select(d => d.Path).ToList(),
                     TryToHideProcessFromTaskBarOnWindows = TryToHideProcessFromTaskBarOnWindows ?? GetDefaultTryToHideProcessFromTaskBarOnWindows()
                 };
                 if (!string.IsNullOrEmpty(OpenedgeCodePage)) {
@@ -447,5 +455,6 @@ namespace Oetools.Builder.Project.Properties {
                 StopOnCompilationError = BuildOptions?.StopBuildOnCompilationError ?? OeBuildOptions.GetDefaultStopBuildOnCompilationError(),
                 StopOnCompilationWarning = BuildOptions?.StopBuildOnCompilationWarning ?? OeBuildOptions.GetDefaultStopBuildOnCompilationWarning()
             };
+
     }
 }

@@ -60,7 +60,9 @@ namespace Oetools.Builder.Project.Properties {
         /// For instance, this allows to exclude path from being considered as source files (e.g. a docs/ directory). Non source files will not be built during the source build tasks.
         /// </remarks>
         [XmlElement(ElementName = "SourceToBuildFilter")]
+        [DefaultValueMethod(nameof(GetDefaultSourceToBuildFilter))]
         public OeSourceFilterOptions SourceToBuildFilter { get; set; }
+        public static OeSourceFilterOptions GetDefaultSourceToBuildFilter() => new OeSourceFilterOptions();
         
         /// <summary>
         /// The options for an incremental build.
