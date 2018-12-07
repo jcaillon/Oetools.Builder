@@ -54,6 +54,17 @@ namespace Oetools.Builder.Project.Properties {
         public static string GetDefaultSourceDirectoryPath() => Directory.GetCurrentDirectory().ToCleanPath();
         
         /// <summary>
+        /// The output directory for the build.
+        /// </summary>
+        /// <remarks>
+        /// Relative paths in the targets of tasks will be resolved from this directory. This is only available when building the source or the output.
+        /// </remarks>
+        [XmlElement(ElementName = "OutputDirectoryPath")]
+        [DefaultValueMethod(nameof(GetDefaultOutputDirectoryPath))]
+        public string OutputDirectoryPath { get; set; }
+        public static string GetDefaultOutputDirectoryPath() => OeBuilderConstants.GetDefaultOutputDirectory();
+        
+        /// <summary>
         /// The filtering options for the source files of your application that need to be built.
         /// </summary>
         /// <remarks>
@@ -65,11 +76,15 @@ namespace Oetools.Builder.Project.Properties {
         public static OeSourceFilterOptions GetDefaultSourceToBuildFilter() => new OeSourceFilterOptions();
         
         /// <summary>
-        /// The options for an incremental build.
-        /// An incremental build improves the build process by only compiling and building files that were modified or added since the last build. It is the opposite of a full rebuild.
+        /// Sets whether or not the incremental build should be used.
+        /// An incremental build improves the build process by only compiling and building source files that were modified or added since the last build. It is the opposite of a full rebuild.
         /// </summary>
         /// <remarks>
-        /// These options (and the incremental process in general) are only applicable to the tasks that are building your application sources.
+        /// - The incremental build only concerns source files handled in a source build step.
+        /// - If true, a build history is stored (in .xml format) to be able to know which file has been modified/added since the last build.
+        /// - An analysis is done on compiled files to find referenced tables and files.
+        /// - The MD5 checksum of each source file can be computed and saved to improve modification detection.
+        /// - Depending on your build and your intentions, this can significantly improve the build performances or slow down systematic full rebuilds.
         /// </remarks>
         [XmlElement(ElementName = "IncrementalBuildOptions")]
         [DefaultValueMethod(nameof(GetDefaultIncrementalBuildOptions))]
@@ -95,33 +110,6 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultFullRebuild))]
         public bool? FullRebuild { get; set; }
         public static bool GetDefaultFullRebuild() => false;
-        
-        /// <summary>
-        /// The output directory for the build.
-        /// </summary>
-        /// <remarks>
-        /// Relative paths in the targets of tasks will be resolved from this directory. This is only available when building the source or the output.
-        /// </remarks>
-        [XmlElement(ElementName = "OutputDirectoryPath")]
-        [DefaultValueMethod(nameof(GetDefaultOutputDirectoryPath))]
-        public string OutputDirectoryPath { get; set; }
-        public static string GetDefaultOutputDirectoryPath() => OeBuilderConstants.GetDefaultOutputDirectory();
-            
-        /// <summary>
-        /// The path to an xml file containing the information of a previous build. This is necessary for an incremental build.
-        /// </summary>
-        [XmlElement(ElementName = "BuildHistoryInputFilePath")]
-        [DefaultValueMethod(nameof(GetDefaultBuildHistoryInputFilePath))]
-        public string BuildHistoryInputFilePath { get; set; }
-        public static string GetDefaultBuildHistoryInputFilePath() => OeBuilderConstants.GetDefaultBuildHistoryInputFilePath();
-
-        /// <summary>
-        /// The path to an xml file that will be created by this build and will contain the information of that build. This is only generated after an incremental build.
-        /// </summary>
-        [XmlElement(ElementName = "BuildHistoryOutputFilePath")]
-        [DefaultValueMethod(nameof(GetDefaultBuildHistoryOutputFilePath))]
-        public string BuildHistoryOutputFilePath { get; set; }
-        public static string GetDefaultBuildHistoryOutputFilePath() => OeBuilderConstants.GetDefaultBuildHistoryOutputFilePath();
         
         /// <summary>
         /// The path to an html report file that will contain human-readable information about this build.

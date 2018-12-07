@@ -153,7 +153,7 @@ namespace Oetools.Builder.Project {
                 throw new BuildConfigurationException(this, "Failed to get the current directory (check permissions).", e);
             }
             currentDirectory = currentDirectory.ToCleanPath();
-            var sourceDirectory = (Properties?.BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()).MakePathAbsolute().ToCleanPath();
+            var sourceDirectory = Properties.BuildOptions.SourceDirectoryPath.MakePathAbsolute(currentDirectory).ToCleanPath();
 
             var originalVariablesList = Variables;
             
@@ -172,10 +172,10 @@ namespace Oetools.Builder.Project {
                     Name = OeBuilderConstants.OeVarNameProjectLocalDirectory, Value = OeBuilderConstants.GetProjectDirectoryLocal(sourceDirectory)
                 },
                 new OeVariable {
-                    Name = UoeConstants.OeDlcEnvVar, Value = (Properties?.DlcDirectoryPath).TakeDefaultIfNeeded(OeProperties.GetDefaultDlcDirectoryPath()).MakePathAbsolute().ToCleanPath()
+                    Name = UoeConstants.OeDlcEnvVar, Value = Properties.DlcDirectoryPath
                 },
                 new OeVariable {
-                    Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = (Properties?.BuildOptions?.OutputDirectoryPath).TakeDefaultIfNeeded(OeBuilderConstants.GetDefaultOutputDirectory()).MakePathAbsolute().ToCleanPath()
+                    Name = OeBuilderConstants.OeVarNameOutputDirectory, Value = Properties.BuildOptions.OutputDirectoryPath
                 },
                 new OeVariable {
                     Name = OeBuilderConstants.OeVarNameConfigurationName, Value = Name

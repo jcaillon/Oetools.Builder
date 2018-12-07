@@ -20,6 +20,7 @@
 
 using System;
 using System.Xml.Serialization;
+using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib.Attributes;
 
 namespace Oetools.Builder.Project.Properties {
@@ -28,18 +29,27 @@ namespace Oetools.Builder.Project.Properties {
     [Serializable]
     public class OeIncrementalBuildOptions {
                 
-        /// <summary>
-        /// Sets whether or not the incremental build should be used.
-        /// An incremental build improves the build process by only compiling and building files that were modified or added since the last build. It is the opposite of a full rebuild.
-        /// </summary>
-        /// <remarks>
-        /// If true, an analysis is done on compiled files to find referenced tables and files. The build history is stored to be able to know which file was modified/added since the last build. And the MD5 checksum of each source file can be computed and saved to improve modification detection.
-        /// Depending on your build and your intentions, this can significantly improve the build performances or slow down systematic full rebuilds.
-        /// </remarks>
+        /// <inheritdoc cref="OeBuildOptions.IncrementalBuildOptions"/>
         [XmlElement(ElementName = "EnabledIncrementalBuild")]
         [DefaultValueMethod(nameof(GetDefaultEnabledIncrementalBuild))]
         public bool? EnabledIncrementalBuild { get; set; }
-        public static bool GetDefaultEnabledIncrementalBuild() => false;
+        public static bool GetDefaultEnabledIncrementalBuild() => true;
+            
+        /// <summary>
+        /// The path to an xml file containing the information of the previous build. This is necessary for an incremental build.
+        /// </summary>
+        [XmlElement(ElementName = "BuildHistoryInputFilePath")]
+        [DefaultValueMethod(nameof(GetDefaultBuildHistoryInputFilePath))]
+        public string BuildHistoryInputFilePath { get; set; }
+        public static string GetDefaultBuildHistoryInputFilePath() => OeBuilderConstants.GetDefaultBuildHistoryInputFilePath();
+
+        /// <summary>
+        /// The path to an xml file that will be created by this build and which will contain the information of that build. This is only generated after an incremental build.
+        /// </summary>
+        [XmlElement(ElementName = "BuildHistoryOutputFilePath")]
+        [DefaultValueMethod(nameof(GetDefaultBuildHistoryOutputFilePath))]
+        public string BuildHistoryOutputFilePath { get; set; }
+        public static string GetDefaultBuildHistoryOutputFilePath() => OeBuilderConstants.GetDefaultBuildHistoryOutputFilePath();
             
         /// <summary>
         /// Use a cheapest analysis mode (performance wise) to identify the database references of a compiled file.
@@ -103,7 +113,7 @@ namespace Oetools.Builder.Project.Properties {
         [XmlElement(ElementName = "RebuildFilesWithNewTargets")]
         [DefaultValueMethod(nameof(GetDefaultRebuildFilesWithNewTargets))]
         public bool? RebuildFilesWithNewTargets { get; set; }
-        public static bool GetDefaultRebuildFilesWithNewTargets() => true;
+        public static bool GetDefaultRebuildFilesWithNewTargets() => false;
             
         /// <summary>
         /// Sets whether of not the tool should try to rebuild a file if it had compilation errors in the previous build.

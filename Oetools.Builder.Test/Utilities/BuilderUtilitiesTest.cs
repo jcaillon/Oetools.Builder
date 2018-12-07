@@ -37,7 +37,7 @@ namespace Oetools.Builder.Test.Utilities {
             var buildConf = new OeBuildConfiguration {
                 Properties = new OeProperties {
                     BuildOptions = new OeBuildOptions {
-                        BuildHistoryInputFilePath = "{{var1}}"
+                        OutputDirectoryPath = "{{var1}}"
                     },
                     CompilationOptions = new OeCompilationOptions {
                         CompilableFileExtensionPattern = "replace stuff {{env{{env2}}}}"
@@ -82,7 +82,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual("wtf!", buildConf.Variables[2].Value);
             
             BuilderUtilities.ApplyVariablesToProperties(buildConf, buildConf.Variables);
-            Assert.AreEqual("value_var_1", buildConf.Properties.BuildOptions.BuildHistoryInputFilePath);
+            Assert.AreEqual("value_var_1", buildConf.Properties.BuildOptions.OutputDirectoryPath);
             Assert.AreEqual("replace stuff value_env_1", buildConf.Properties.CompilationOptions.CompilableFileExtensionPattern);
             Assert.AreEqual("replace wtf! here", buildConf.BuildSteps[0].Name);
             Assert.AreEqual("replace missing '' by empty", ((OeTaskFileCopy) buildConf.BuildSteps[0].Tasks[0]).Include);

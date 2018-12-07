@@ -326,8 +326,6 @@ namespace Oetools.Builder.Test.Project {
                             AddAllSourceDirectoriesToPropath = true,
                             AddDefaultOpenedgePropath = true,
                             BuildOptions = new OeBuildOptions {
-                                BuildHistoryInputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
-                                BuildHistoryOutputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
                                 OutputDirectoryPath = "D:\\output",
                                 ReportHtmlFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.html"),
                                 SourceToBuildFilter = new OeSourceFilterOptions {
@@ -338,7 +336,9 @@ namespace Oetools.Builder.Test.Project {
                                     CurrentBranchName = null, CurrentBranchOriginCommit = null, IncludeSourceFilesCommittedOnlyOnCurrentBranch = true, IncludeSourceFilesModifiedSinceLastCommit = true
                                 },
                                 IncrementalBuildOptions = new OeIncrementalBuildOptions {
-                                    EnabledIncrementalBuild = false, MirrorDeletedSourceFileToOutput = true, UseCheckSumComparison = false, UseSimplerAnalysisForDatabaseReference = true
+                                    EnabledIncrementalBuild = false, MirrorDeletedSourceFileToOutput = true, UseCheckSumComparison = false, UseSimplerAnalysisForDatabaseReference = true,
+                                    BuildHistoryInputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
+                                    BuildHistoryOutputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
                                 }
                             },
                             CompilationOptions = new OeCompilationOptions {

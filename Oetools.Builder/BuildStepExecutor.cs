@@ -71,7 +71,7 @@ namespace Oetools.Builder {
                 foreach (var task in Tasks) {
                     InjectPropertiesInTask(task);
                 }
-                Log?.Debug("Set the paths to build for each task if needed.");
+                Log?.Debug("Set the paths to build for each task.");
                 foreach (var task in Tasks) {
                     switch (task) {
                         case IOeTaskFile taskFile: {
@@ -84,7 +84,7 @@ namespace Oetools.Builder {
                         }
                     }
                 }
-                ExecuteInternal();
+                ExecuteInternal(Tasks);
             } catch (OperationCanceledException) {
                 throw;
             } catch (TaskExecutorException) {
@@ -98,8 +98,8 @@ namespace Oetools.Builder {
         /// Executes all the tasks
         /// </summary>
         /// <exception cref="TaskExecutorException"></exception>
-        protected virtual void ExecuteInternal() {
-            foreach (var task in Tasks) {
+        protected virtual void ExecuteInternal(List<IOeTask> tasks) {
+            foreach (var task in tasks) {
                 CancelToken?.ThrowIfCancellationRequested();
                 try {
                     task.PublishWarning += TaskOnPublishException;
@@ -125,7 +125,7 @@ namespace Oetools.Builder {
         /// Prepares a task, injecting properties if needed, depending on which interface it implements
         /// </summary>
         /// <param name="task"></param>
-        private void InjectPropertiesInTask(IOeTask task) {
+        protected void InjectPropertiesInTask(IOeTask task) {
             task.SetLog(Log);
             task.SetTestMode(TestMode);
             task.SetCancelToken(CancelToken);
@@ -163,8 +163,6 @@ namespace Oetools.Builder {
             if (StopBuildOnTaskWarning) {
                 throw e.Exception;
             }
-            var publishedException = new TaskExecutorException(this, e.Exception.Message, e.Exception);
-            Log?.Debug($"Task warning: {publishedException.Message}", publishedException);
         }
 
         private void SaveTaskExecutionException(TaskExecutionException exception) {
@@ -172,6 +170,8 @@ namespace Oetools.Builder {
                 TaskExecutionExceptions = new List<TaskExecutionException>();
             }
             TaskExecutionExceptions.Add(exception);
+            var publishedException = new TaskExecutorException(this, exception.Message, exception);
+            Log?.Debug($"Task exception: {publishedException.Message}", publishedException);
         }
 
         public override string ToString() => Name ?? "Unnamed step executor.";

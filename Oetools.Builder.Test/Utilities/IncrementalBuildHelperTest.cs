@@ -99,8 +99,8 @@ namespace Oetools.Builder.Test.Utilities {
                     }
                 }
             };
-            var allSourceFiles = new PathList<IOeFileToBuild> {
-                new OeFile {
+            var filesToBuild = new PathList<IOeFileToBuild> {
+                new OeFile() {
                     State = OeFileState.Unchanged,
                     Path = "source1",
                     TargetsToBuild = new List<AOeTarget> {
@@ -127,7 +127,7 @@ namespace Oetools.Builder.Test.Utilities {
                 new OeFile {
                     State = OeFileState.Modified,
                     Path = "source4",
-                    TargetsToBuild =new List<AOeTarget> {
+                    TargetsToBuild = new List<AOeTarget> {
                         new OeTargetFile {
                             FilePathInArchive ="target1"
                         },
@@ -138,7 +138,7 @@ namespace Oetools.Builder.Test.Utilities {
                 }
             };
             
-            var output = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(allSourceFiles, prevBuilt).ToList();
+            var output = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(filesToBuild, prevBuilt).ToList();
             
             // ensure unmodified prevBuilt list
             Assert.AreEqual("source1", prevBuilt.ElementAt(0).Path);
@@ -171,8 +171,6 @@ namespace Oetools.Builder.Test.Utilities {
 
         [TestMethod]
         public void GetTaskSourceRemover_Test() {
-            
-            File.WriteAllText(Path.Combine(TestFolder, "source2"), "");
             
             var prevBuilt = new PathList<IOeFileBuilt> {
                 new OeFileBuilt {
@@ -208,8 +206,15 @@ namespace Oetools.Builder.Test.Utilities {
                     }
                 }
             };
+            
+            var currentListing = new PathList<IOeFile> {
+                new OeFile {
+                    State = OeFileState.Modified,
+                    Path = Path.Combine(TestFolder, "source2")
+                }
+            };
                         
-            var output = IncrementalBuildHelper.GetBuiltFilesDeletedSincePreviousBuild(prevBuilt).ToList();
+            var output = IncrementalBuildHelper.GetBuiltFilesDeletedSincePreviousBuild(currentListing, prevBuilt).ToList();
             
             // ensure unmodified prevBuilt list
             Assert.AreEqual("/random/source1", prevBuilt.ElementAt(0).Path);

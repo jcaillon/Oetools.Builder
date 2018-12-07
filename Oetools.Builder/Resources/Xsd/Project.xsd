@@ -594,9 +594,11 @@ The following symbols can be used in patterns:<br>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="PropathExtraVcsPatternExclusion" type="xs:string">
             <xs:annotation>
-              <xs:documentation><![CDATA[Extra patterns of path to exclude during a listing, corresponds to typical svn/git directories that we don't want to include in builds.<br>
+              <xs:documentation><![CDATA[Extra patterns of path to exclude during a listing, corresponds to typical svn/git directories that we don't want to include in a build.<br>
 <br>
-<b>Defaults to:</b> .git**;.svn**.]]></xs:documentation>
+The pattern are relative to the source directory.<br>
+<br>
+<b>Defaults to:</b> .git**;.svn**;.oe**.]]></xs:documentation>
             </xs:annotation>
           </xs:element>
         </xs:all>
@@ -1007,9 +1009,11 @@ The following symbols can be used in patterns:<br>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="SourceExtraVcsPatternExclusion" type="xs:string">
             <xs:annotation>
-              <xs:documentation><![CDATA[Extra patterns of path to exclude during a listing, corresponds to typical svn/git directories that we don't want to include in builds.<br>
+              <xs:documentation><![CDATA[Extra patterns of path to exclude during a listing, corresponds to typical svn/git directories that we don't want to include in a build.<br>
 <br>
-<b>Defaults to:</b> .git**;.svn**.]]></xs:documentation>
+The pattern are relative to the source directory.<br>
+<br>
+<b>Defaults to:</b> .git**;.svn**;.oe**.]]></xs:documentation>
             </xs:annotation>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="SourceOverrideFileList" type="xs:string">
@@ -1184,10 +1188,14 @@ For instance, this allows to exclude path from being considered as source files 
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="IncrementalBuildOptions" type="OeIncrementalBuildOptions">
         <xs:annotation>
-          <xs:documentation><![CDATA[The options for an incremental build.<br>
-An incremental build improves the build process by only compiling and building files that were modified or added since the last build. It is the opposite of a full rebuild.<br>
+          <xs:documentation><![CDATA[Sets whether or not the incremental build should be used.<br>
+An incremental build improves the build process by only compiling and building source files that were modified or added since the last build. It is the opposite of a full rebuild.<br>
 <br>
-These options (and the incremental process in general) are only applicable to the tasks that are building your application sources.]]></xs:documentation>
+- The incremental build only concerns source files handled in a source build step.<br>
+- If true, a build history is stored (in .xml format) to be able to know which file has been modified/added since the last build.<br>
+- An analysis is done on compiled files to find referenced tables and files.<br>
+- The MD5 checksum of each source file can be computed and saved to improve modification detection.<br>
+- Depending on your build and your intentions, this can significantly improve the build performances or slow down systematic full rebuilds.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildGitFilter" type="OeGitFilterOptions">
@@ -1212,20 +1220,6 @@ The idea behind this option is to build files depending on the changes made in G
 Relative paths in the targets of tasks will be resolved from this directory. This is only available when building the source or the output.<br>
 <br>
 <b>Defaults to:</b> {{SOURCE_DIRECTORY}}\bin.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryInputFilePath" type="xs:string">
-        <xs:annotation>
-          <xs:documentation><![CDATA[The path to an xml file containing the information of a previous build. This is necessary for an incremental build.<br>
-<br>
-<b>Defaults to:</b> {{PROJECT_LOCAL_DIRECTORY}}\build\latest.xml.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryOutputFilePath" type="xs:string">
-        <xs:annotation>
-          <xs:documentation><![CDATA[The path to an xml file that will be created by this build and will contain the information of that build. This is necessary for an incremental build.<br>
-<br>
-<b>Defaults to:</b> {{PROJECT_LOCAL_DIRECTORY}}\build\latest.xml.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ReportHtmlFilePath" type="xs:string">
@@ -1302,12 +1296,29 @@ Shutting down an openedge database is a really slow process, this option speeds 
       <xs:element minOccurs="0" maxOccurs="1" name="EnabledIncrementalBuild" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether or not the incremental build should be used.<br>
-An incremental build improves the build process by only compiling and building files that were modified or added since the last build. It is the opposite of a full rebuild.<br>
+An incremental build improves the build process by only compiling and building source files that were modified or added since the last build. It is the opposite of a full rebuild.<br>
 <br>
-If true, an analysis is done on compiled files to find referenced tables and files. The build history is stored to be able to know which file was modified/added since the last build. And the MD5 checksum of each source file can be computed and saved to improve modification detection.<br>
-Depending on your build and your intentions, this can significantly improve the build performances or slow down systematic full rebuilds.<br>
+- The incremental build only concerns source files handled in a source build step.<br>
+- If true, a build history is stored (in .xml format) to be able to know which file has been modified/added since the last build.<br>
+- An analysis is done on compiled files to find referenced tables and files.<br>
+- The MD5 checksum of each source file can be computed and saved to improve modification detection.<br>
+- Depending on your build and your intentions, this can significantly improve the build performances or slow down systematic full rebuilds.<br>
 <br>
 <b>Defaults to:</b> True.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryInputFilePath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[The path to an xml file containing the information of the previous build. This is necessary for an incremental build.<br>
+<br>
+<b>Defaults to:</b> {{PROJECT_LOCAL_DIRECTORY}}\build\latest.xml.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="BuildHistoryOutputFilePath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[The path to an xml file that will be created by this build and which will contain the information of that build. This is only generated after an incremental build.<br>
+<br>
+<b>Defaults to:</b> {{PROJECT_LOCAL_DIRECTORY}}\build\latest.xml.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="UseSimplerAnalysisForDatabaseReference" nillable="true" type="xs:boolean">
@@ -1364,7 +1375,7 @@ By default, a file is considered unmodified if its size and last modified date h
   - If this option is true, the file "A" is recompiled and built into "/bin2/A"<br>
   - If not, nothing happens (the file "A" has not been changed since the last build)<br>
 <br>
-<b>Defaults to:</b> False.]]></xs:documentation>
+<b>Defaults to:</b> True.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="RebuildFilesWithCompilationErrors" nillable="true" type="xs:boolean">

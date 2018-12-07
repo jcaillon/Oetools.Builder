@@ -80,9 +80,9 @@ namespace Oetools.Builder {
             }
             
             // load build history
-            if (UseIncrementalBuild && BuildSourceHistory == null && File.Exists(BuildConfiguration.Properties.BuildOptions.BuildHistoryInputFilePath)) {
+            if (UseIncrementalBuild && BuildSourceHistory == null && File.Exists(BuildConfiguration.Properties.BuildOptions.IncrementalBuildOptions.BuildHistoryInputFilePath)) {
                 Log?.Debug("Loading the build history.");
-                BuildSourceHistory = OeBuildHistory.Load(BuildConfiguration.Properties.BuildOptions.BuildHistoryInputFilePath, BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath, BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath);
+                BuildSourceHistory = OeBuildHistory.Load(BuildConfiguration.Properties.BuildOptions.IncrementalBuildOptions.BuildHistoryInputFilePath, BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath, BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath);
             }
             
             // log input build configuration
@@ -104,15 +104,13 @@ namespace Oetools.Builder {
             }
 
             // output build history
-            if (UseIncrementalBuild && !string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath)) {
-                Log?.Debug($"Create the output history file: {BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath}.");
-                if (BuildSourceHistory == null) {
-                    BuildSourceHistory = GetBuildHistory();
-                }
+            if (UseIncrementalBuild && !string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.IncrementalBuildOptions.BuildHistoryOutputFilePath)) {
+                Log?.Debug($"Create the output history file: {BuildConfiguration.Properties.BuildOptions.IncrementalBuildOptions.BuildHistoryOutputFilePath}.");
+                BuildSourceHistory = GetBuildHistory();
             
                 // BuildHistory
-                Utils.CreateDirectoryIfNeeded(Path.GetDirectoryName(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath));
-                BuildSourceHistory.Save(BuildConfiguration.Properties.BuildOptions.BuildHistoryOutputFilePath, BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath, BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath);
+                Utils.CreateDirectoryIfNeeded(Path.GetDirectoryName(BuildConfiguration.Properties.BuildOptions.IncrementalBuildOptions.BuildHistoryOutputFilePath));
+                BuildSourceHistory.Save(BuildConfiguration.Properties.BuildOptions.IncrementalBuildOptions.BuildHistoryOutputFilePath, BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath, BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath);
             }
         }
         
