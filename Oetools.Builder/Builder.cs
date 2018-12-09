@@ -29,7 +29,6 @@ using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
-using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder {
     
@@ -108,7 +107,7 @@ namespace Oetools.Builder {
                 PreBuild();
                 try {
                     Log?.Info($"Starting build for {BuildConfiguration.ToString().PrettyQuote()}.");
-                    if (BuildConfiguration.Properties.BuildOptions?.IncrementalBuildOptions?.EnabledIncrementalBuild ?? OeIncrementalBuildOptions.GetDefaultEnabledIncrementalBuild()) {
+                    if (UseIncrementalBuild) {
                         Log?.Info("Incremental build enabled (differential from last build).");
                     }
                     ExecuteBuildSteps();
@@ -159,11 +158,8 @@ namespace Oetools.Builder {
         private void ExecuteBuildSteps() {
             // compute the total number of tasks to execute
             TotalNumberOfTasks += BuildConfiguration.BuildSteps?.SelectMany(step => step.Tasks.ToNonNullEnumerable()).Count() ?? 0;
-            TotalNumberOfTasks += PreviouslyBuiltPaths != null ? 2 : 0; // potential extra tasks for removal
             
             if (BuildConfiguration.BuildSteps != null) {
-                var buildSourceStepList = BuildConfiguration.BuildSteps.OfType<OeBuildStepBuildSource>().ToList();
-                var buildSourceStepCount = 0;
                 _stepDoneCount = 0;
                 
                 foreach (var step in BuildConfiguration.BuildSteps) {
@@ -192,21 +188,13 @@ namespace Oetools.Builder {
                     
                     if (executor is BuildStepExecutorBuildSource buildSourceExecutor) {
                         Log?.Debug("Is build source step.");
-                        buildSourceStepCount++;
                         buildSourceExecutor.PreviouslyBuiltPaths = PreviouslyBuiltPaths;
-                        buildSourceExecutor.IsLastSourceExecutor = buildSourceStepCount == buildSourceStepList.Count;
-                        buildSourceExecutor.IsFirstSourceExecutor = buildSourceStepCount == 1;
-                        buildSourceExecutor.StepsList = buildSourceStepList;
+                        buildSourceExecutor.GetFilesToBuildFromSourceFiles = GetFilesToBuildFromSourceFiles;
                     }
                     
                     executor.OnTaskStart += ExecutorOnOnTaskStart;
                     executor.Execute();
                     executor.OnTaskStart -= ExecutorOnOnTaskStart;
-
-                    if (buildSourceStepCount == buildSourceStepList.Count) {
-                        // recompute the real number of tasks
-                        TotalNumberOfTasks += BuildConfiguration.BuildSteps.SelectMany(s => s.Tasks.ToNonNullEnumerable()).Count();
-                    }
                     
                     NumberOfTasksDone += executor.NumberOfTasksDone;
                     _stepDoneCount++;
@@ -239,6 +227,24 @@ namespace Oetools.Builder {
                 WebclientPackageInfo = null // TODO : webclient package info
             };
             return history;
+        }
+
+        /// <summary>
+        /// Gets a list of all the files to build for this build from a list of source files.
+        /// </summary>
+        /// <param name="sourceFiles"></param>
+        /// <returns></returns>
+        internal PathList<IOeFileToBuild> GetFilesToBuildFromSourceFiles(IEnumerable<IOeFile> sourceFiles) {
+            var unchangedOrModifiedFiles = OeFile.ConvertToFileToBuild(sourceFiles);
+
+            if (unchangedOrModifiedFiles != null && unchangedOrModifiedFiles.Count > 0) {
+                foreach (var task in BuildConfiguration.BuildSteps.OfType<OeBuildStepBuildSource>().SelectMany(step => (step.Tasks?.OfType<IOeTaskFileToBuild>()).ToNonNullEnumerable())) {
+                    // for all the task that build files.
+                    task.SetTargets(unchangedOrModifiedFiles.CopyWhere(f => task.IsPathPassingFilter(f.Path)), BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, true);
+                }
+            }
+
+            return unchangedOrModifiedFiles;
         }
         
         /// <summary>

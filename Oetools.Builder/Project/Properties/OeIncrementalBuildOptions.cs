@@ -77,32 +77,6 @@ namespace Oetools.Builder.Project.Properties {
         public static bool GetDefaultUseCheckSumComparison() => false;
             
         /// <summary>
-        /// Sets whether of not the tool should delete the previous targets of a source file that has been deleted since the last build.
-        /// </summary>
-        /// <example>
-        /// On the first build, the file "A" was compiled and copied to location "/bin". The file "A" is deleted and a second build is started:
-        /// - If this option is true, the compiled file "A" in "/bin/A" will be deleted
-        /// - If not, nothing happens
-        /// </example>
-        [XmlElement(ElementName = "MirrorDeletedSourceFileToOutput")]
-        [DefaultValueMethod(nameof(GetDefaultMirrorDeletedSourceFileToOutput))]
-        public bool? MirrorDeletedSourceFileToOutput { get; set; }
-        public static bool GetDefaultMirrorDeletedSourceFileToOutput() => false;
-            
-        /// <summary>
-        /// Sets whether of not the tool should apply the modifications of a target that has been deleted since the last build. 
-        /// </summary>
-        /// <example>
-        /// On the first build, the file "A" was compiled and copied to location "/bin" as well as "/bin2". The target "/bin" is deleted and a second build is started:
-        /// - If this option is true, the compiled file "A" in "/bin/A" will be deleted
-        /// - If not, nothing happens and the file "A" is not recompiled
-        /// </example>
-        [XmlElement(ElementName = "MirrorDeletedTargetsToOutput")]
-        [DefaultValueMethod(nameof(GetDefaultMirrorDeletedTargetsToOutput))]
-        public bool? MirrorDeletedTargetsToOutput { get; set; }
-        public static bool GetDefaultMirrorDeletedTargetsToOutput() => false;
-            
-        /// <summary>
         /// Sets whether of not the tool should rebuild a file if it has new targets defined since the last build.
         /// </summary>
         /// <example>

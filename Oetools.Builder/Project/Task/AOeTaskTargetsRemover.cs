@@ -18,10 +18,8 @@
 // ========================================================================
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Serialization;
 using Oetools.Builder.History;
 using Oetools.Utilities.Lib;
 
@@ -31,9 +29,7 @@ namespace Oetools.Builder.Project.Task {
     /// This task deletes al the targets present in <see cref="_pathsWithTargetsToRemove"/> with <see cref="AOeTarget.DeletionMode"/> = true, they are
     /// targets that are no longer needed. Those targets were built in the previous build but the targets have changed (or the file itself has been deleted)
     /// </summary>
-    [Serializable]
-    [XmlRoot("TargetsRemover")]
-    public class OeTaskTargetsDeleter : AOeTask, IOeTaskWithBuiltFiles {
+    public class AOeTaskTargetsRemover : AOeTask, IOeTaskWithBuiltFiles {
 
         private PathList<IOeFileBuilt> _builtPaths;
 

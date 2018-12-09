@@ -24,7 +24,7 @@ namespace Oetools.Builder {
 
         public bool IsFirstSourceExecutor { get; set; }
 
-        public List<OeBuildStepBuildSource> StepsList { get; set; }
+        public Func<IEnumerable<IOeFile>, PathList<IOeFileToBuild>> GetFilesToBuildFromSourceFiles { get; set; }
 
         private bool UseIncrementalBuild => Properties?.BuildOptions?.IncrementalBuildOptions?.EnabledIncrementalBuild ?? OeIncrementalBuildOptions.GetDefaultEnabledIncrementalBuild();
         
@@ -39,17 +39,8 @@ namespace Oetools.Builder {
         private PathList<IOeFile> _sourceDirectoryCompletePathList;
 
         /// <inheritdoc cref="BuildStepExecutor.ExecuteInternal"/>
-        protected override void ExecuteInternal(List<IOeTask> tasks) {
-            // remove delete files targets
-            if (IsFirstSourceExecutor) {
-                Log?.Debug("Is the first build source step.");
-                var removalTask = GetRemovalTasksForDeletedFiles();
-                if (removalTask != null) {
-                    Log?.Debug("New removal task for previous files not existing anymore.");
-                    InjectPropertiesInTask(removalTask);
-                    Tasks?.Insert(0, removalTask);
-                }
-            }
+        protected override void ExecuteInternal() {
+            ConfigureBuildSourceTasks();
             
             IDisposable compiler = null;
             if (!TestMode) {
@@ -65,20 +56,41 @@ namespace Oetools.Builder {
                 }
             }
             try {
-                base.ExecuteInternal(tasks);
+                base.ExecuteInternal();
             } finally {
                 compiler?.Dispose();
             }
-            
-            // add + execute removal tasks?
-            if (IsLastSourceExecutor) {
-                Log?.Debug("Is the last build source step.");
-                var removalTask = GetRemovalTasksForDeletedTargets();
-                if (removalTask != null) {
-                    Log?.Debug("New removal task for previous targets not existing anymore.");
-                    InjectPropertiesInTask(removalTask);
-                    Tasks?.Add(removalTask);
-                    base.ExecuteInternal(new List<IOeTask> { removalTask });
+        }
+
+        private void ConfigureBuildSourceTasks() {
+            foreach (var task in Tasks) {
+                switch (task) {
+                    case OeTaskReflectDeletedSourceFile taskReflectDeletedSourceFile: {
+                        if (PreviouslyBuiltPaths != null) {
+                            Log?.Debug("Configuring removal task for previous files not existing anymore.");
+                            var filesWithTargetsToRemove = IncrementalBuildHelper.GetBuiltFilesDeletedSincePreviousBuild(SourceDirectoryCompletePathList, PreviouslyBuiltPaths).ToFileList();
+                            taskReflectDeletedSourceFile.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
+                            if (filesWithTargetsToRemove != null && filesWithTargetsToRemove.Count > 0) {
+                                Log?.Debug($"{filesWithTargetsToRemove.Count} files were deleted since the previous build (their targets will be deleted).");
+                            }
+                        }
+                        break;
+                    }
+                    case OeTaskReflectDeletedTargets taskReflectDeletedTargets: {
+                        if (PreviouslyBuiltPaths != null) {
+                            Log?.Debug("Configuring removal task for previous targets not existing anymore.");
+                            var unchangedOrModifiedFilesToBuild = GetFilesToBuildFromSourceFiles(SourceDirectoryCompletePathList?.Where(f => f.State == OeFileState.Unchanged || f.State == OeFileState.Modified));
+                            if (unchangedOrModifiedFilesToBuild != null && unchangedOrModifiedFilesToBuild.Count > 0) {
+                                var filesWithTargetsToRemove = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(unchangedOrModifiedFilesToBuild, PreviouslyBuiltPaths).ToFileList();
+                                if (filesWithTargetsToRemove != null && filesWithTargetsToRemove.Count > 0) {
+                                    taskReflectDeletedTargets.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
+                                    Log?.Debug($"{filesWithTargetsToRemove.Count} files that had targets existing in the previous build which don't existing anymore (their targets will be deleted).");
+                                }
+                            }
+                        }
+
+                        break;
+                    }
                 }
             }
         }
@@ -254,70 +266,6 @@ namespace Oetools.Builder {
             return output;
         }
         
-        /// <summary>
-        /// Allow to delete obsolete files/targets there were previously built.
-        /// </summary>
-        private IOeTask GetRemovalTasksForDeletedTargets() {
-            if (PreviouslyBuiltPaths == null) {
-                return null;
-            }
-            
-            if (Properties?.BuildOptions?.IncrementalBuildOptions?.MirrorDeletedTargetsToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedTargetsToOutput()) {
-                Log?.Debug("Mirroring deleted targets to the output directory.");
-                
-                var unchangedOrModifiedFiles = OeFile.ConvertToFileToBuild(SourceDirectoryCompletePathList?.Where(f => f.State == OeFileState.Unchanged || f.State == OeFileState.Modified));
-
-                if (unchangedOrModifiedFiles != null && unchangedOrModifiedFiles.Count > 0) {
-                    Log?.Debug("For all the unchanged or modified files, set all the targets that should be built in this build");
-                    foreach (var task in StepsList.SelectMany(step1 => (step1.Tasks?.OfType<IOeTaskFileToBuild>()).ToNonNullEnumerable())) {
-                        task.SetTargets(unchangedOrModifiedFiles.CopyWhere(f => task.IsPathPassingFilter(f.Path)), Properties?.BuildOptions?.OutputDirectoryPath, true);
-                    }
-
-                    Log?.Debug("Making a list of all source files that had targets existing in the previous build which don't existing anymore (those targets must be deleted)");
-                    var filesWithTargetsToRemove = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(unchangedOrModifiedFiles, PreviouslyBuiltPaths).ToFileList();
-
-                    if (filesWithTargetsToRemove != null && filesWithTargetsToRemove.Count > 0) {
-                        var newTask = new OeTaskTargetsDeleter {
-                            Name = "Deleting previous targets that no longer exist"
-                        };
-                        newTask.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
-                        return newTask;
-                    }
-                }
-                Log?.Debug("There is nothing to remove.");
-            }
-
-            return null;
-        }
-        
-        /// <summary>
-        /// Allow to delete obsolete files/targets there were previously built.
-        /// </summary>
-        private IOeTask GetRemovalTasksForDeletedFiles() {
-            if (PreviouslyBuiltPaths == null) {
-                return null;
-            }
-
-            var mirrorDeletedSourceFileToOutput = Properties?.BuildOptions?.IncrementalBuildOptions?.MirrorDeletedSourceFileToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput();
-            var mirrorDeletedTargetsToOutput = Properties?.BuildOptions?.IncrementalBuildOptions?.MirrorDeletedTargetsToOutput ?? OeIncrementalBuildOptions.GetDefaultMirrorDeletedTargetsToOutput();
-
-            if (mirrorDeletedSourceFileToOutput || mirrorDeletedTargetsToOutput) {
-                Log?.Debug("Mirroring deleted files in source to the output directory.");
-
-                Log?.Debug("Making a list of all the files that were deleted since the previous build (the targets of those files must be deleted.");
-                var filesWithTargetsToRemove = IncrementalBuildHelper.GetBuiltFilesDeletedSincePreviousBuild(SourceDirectoryCompletePathList, PreviouslyBuiltPaths).ToFileList();
-                if (filesWithTargetsToRemove != null && filesWithTargetsToRemove.Count > 0) {
-                    var newTask = new OeTaskTargetsDeleter {
-                        Name = "Deleting files missing from the previous build"
-                    };
-                    newTask.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
-                    return newTask;
-                }
-                Log?.Debug("There is nothing to remove.");
-            }
-
-            return null;
-        }
         
         /// <summary>
         /// Gets the file lister for the source directory

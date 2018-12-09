@@ -84,7 +84,7 @@ namespace Oetools.Builder {
                         }
                     }
                 }
-                ExecuteInternal(Tasks);
+                ExecuteInternal();
             } catch (OperationCanceledException) {
                 throw;
             } catch (TaskExecutorException) {
@@ -98,8 +98,8 @@ namespace Oetools.Builder {
         /// Executes all the tasks
         /// </summary>
         /// <exception cref="TaskExecutorException"></exception>
-        protected virtual void ExecuteInternal(List<IOeTask> tasks) {
-            foreach (var task in tasks) {
+        protected virtual void ExecuteInternal() {
+            foreach (var task in Tasks) {
                 CancelToken?.ThrowIfCancellationRequested();
                 try {
                     task.PublishWarning += TaskOnPublishException;
@@ -125,7 +125,7 @@ namespace Oetools.Builder {
         /// Prepares a task, injecting properties if needed, depending on which interface it implements
         /// </summary>
         /// <param name="task"></param>
-        protected void InjectPropertiesInTask(IOeTask task) {
+        protected virtual void InjectPropertiesInTask(IOeTask task) {
             task.SetLog(Log);
             task.SetTestMode(TestMode);
             task.SetCancelToken(CancelToken);

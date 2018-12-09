@@ -18,6 +18,7 @@
 // ========================================================================
 #endregion
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Properties;
@@ -33,6 +34,8 @@ namespace Oetools.Builder.Test.Project {
         [TestMethod]
         public void ApplyVariables_DefaultVariables() {
             var bc = new OeBuildConfiguration();
+            bc.SetDefaultValues();
+            
             bc.ApplyVariables();
             
             Assert.IsTrue(bc.Variables.Exists(v => v.Name.Equals(OeBuilderConstants.OeVarNameSourceDirectory)));
@@ -49,15 +52,16 @@ namespace Oetools.Builder.Test.Project {
         public void SetDefaultValues() {
             var bc = new OeBuildConfiguration();
             bc.SetDefaultValues();
+            
             Assert.IsNotNull(bc.Properties);
             Assert.AreEqual(PathListerGitFilterOptions.GetDefaultIncludeSourceFilesCommittedOnlyOnCurrentBranch(), bc.Properties.BuildOptions.SourceToBuildGitFilter.IncludeSourceFilesCommittedOnlyOnCurrentBranch);
-            Assert.AreEqual(OeIncrementalBuildOptions.GetDefaultMirrorDeletedSourceFileToOutput(), bc.Properties.BuildOptions?.IncrementalBuildOptions?.MirrorDeletedSourceFileToOutput);
+            Assert.AreEqual(OeIncrementalBuildOptions.GetDefaultUseCheckSumComparison(), bc.Properties.BuildOptions?.IncrementalBuildOptions?.UseCheckSumComparison);
             Assert.AreEqual(OeCompilationOptions.GetDefaultCompileWithDebugList(), bc.Properties.CompilationOptions.CompileWithDebugList);
             Assert.AreEqual(OeBuildOptions.GetDefaultStopBuildOnTaskWarning(), bc.Properties.BuildOptions.StopBuildOnTaskWarning);
 
             Assert.IsNotNull(bc.Properties.BuildOptions);
             Assert.IsNotNull(bc.Properties.BuildOptions.IncrementalBuildOptions);
-            Assert.IsNotNull(bc.Properties.BuildOptions.IncrementalBuildOptions.MirrorDeletedTargetsToOutput);
+            Assert.IsNotNull(bc.Properties.BuildOptions.IncrementalBuildOptions.UseSimplerAnalysisForDatabaseReference);
             Assert.IsNotNull(bc.Properties.CompilationOptions);
             
             if (!TestHelper.GetDlcPath(out string _)) {
@@ -105,6 +109,7 @@ namespace Oetools.Builder.Test.Project {
                     IniFilePath = "{{" + OeBuilderConstants.OeVarNameCurrentDirectory + "}}"
                 }
             };
+            bc.SetDefaultValues();
             
             bc.ApplyVariables();
 

@@ -1179,6 +1179,15 @@ You cannot use variables in this property.<br>
 <b>Defaults to:</b> $PWD (current directory).]]></xs:documentation>
         </xs:annotation>
       </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="OutputDirectoryPath" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[The output directory for the build.<br>
+<br>
+Relative paths in the targets of tasks will be resolved from this directory. This is only available when building the source or the output.<br>
+<br>
+<b>Defaults to:</b> {{SOURCE_DIRECTORY}}\bin.]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="SourceToBuildFilter" type="OeSourceFilterOptions">
         <xs:annotation>
           <xs:documentation><![CDATA[The filtering options for the source files of your application that need to be built.<br>
@@ -1211,15 +1220,6 @@ The idea behind this option is to build files depending on the changes made in G
           <xs:documentation><![CDATA[Build all the source files, ignoring the incremental build options and the GIT filter options.<br>
 <br>
 <b>Defaults to:</b> False.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="OutputDirectoryPath" type="xs:string">
-        <xs:annotation>
-          <xs:documentation><![CDATA[The output directory for the build.<br>
-<br>
-Relative paths in the targets of tasks will be resolved from this directory. This is only available when building the source or the output.<br>
-<br>
-<b>Defaults to:</b> {{SOURCE_DIRECTORY}}\bin.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ReportHtmlFilePath" type="xs:string">
@@ -1342,30 +1342,6 @@ By default, a file is considered unmodified if its size and last modified date h
 <b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="MirrorDeletedSourceFileToOutput" nillable="true" type="xs:boolean">
-        <xs:annotation>
-          <xs:documentation><![CDATA[Sets whether of not the tool should delete the previous targets of a source file that has been deleted since the last build.<br>
-<br>
-<b>Examples:</b><br>
-  On the first build, the file "A" was compiled and copied to location "/bin". The file "A" is deleted and a second build is started:<br>
-  - If this option is true, the compiled file "A" in "/bin/A" will be deleted<br>
-  - If not, nothing happens<br>
-<br>
-<b>Defaults to:</b> False.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="MirrorDeletedTargetsToOutput" nillable="true" type="xs:boolean">
-        <xs:annotation>
-          <xs:documentation><![CDATA[Sets whether of not the tool should apply the modifications of a target that has been deleted since the last build. <br>
-<br>
-<b>Examples:</b><br>
-  On the first build, the file "A" was compiled and copied to location "/bin" as well as "/bin2". The target "/bin" is deleted and a second build is started:<br>
-  - If this option is true, the compiled file "A" in "/bin/A" will be deleted<br>
-  - If not, nothing happens and the file "A" is not recompiled<br>
-<br>
-<b>Defaults to:</b> False.]]></xs:documentation>
-        </xs:annotation>
-      </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="RebuildFilesWithNewTargets" nillable="true" type="xs:boolean">
         <xs:annotation>
           <xs:documentation><![CDATA[Sets whether of not the tool should rebuild a file if it has new targets defined since the last build.<br>
@@ -1375,7 +1351,7 @@ By default, a file is considered unmodified if its size and last modified date h
   - If this option is true, the file "A" is recompiled and built into "/bin2/A"<br>
   - If not, nothing happens (the file "A" has not been changed since the last build)<br>
 <br>
-<b>Defaults to:</b> True.]]></xs:documentation>
+<b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="RebuildFilesWithCompilationErrors" nillable="true" type="xs:boolean">

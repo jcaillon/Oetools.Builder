@@ -336,7 +336,7 @@ namespace Oetools.Builder.Test.Project {
                                     CurrentBranchName = null, CurrentBranchOriginCommit = null, IncludeSourceFilesCommittedOnlyOnCurrentBranch = true, IncludeSourceFilesModifiedSinceLastCommit = true
                                 },
                                 IncrementalBuildOptions = new OeIncrementalBuildOptions {
-                                    EnabledIncrementalBuild = false, MirrorDeletedSourceFileToOutput = true, UseCheckSumComparison = false, UseSimplerAnalysisForDatabaseReference = true,
+                                    EnabledIncrementalBuild = false, RebuildFilesWithNewTargets = true, UseCheckSumComparison = false, UseSimplerAnalysisForDatabaseReference = true,
                                     BuildHistoryInputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
                                     BuildHistoryOutputFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.xml"),
                                 }
@@ -431,6 +431,8 @@ namespace Oetools.Builder.Test.Project {
                                             //new OeTaskFileTargetArchiveZip(),
                                             new OeTaskFileArchiverArchiveCab(),
                                             //new OeTaskFileTargetArchiveFtp()
+                                            new OeTaskReflectDeletedTargets(),
+                                            new OeTaskReflectDeletedSourceFile()
                                         }
                                     },
                                     new OeBuildStepBuildSource {

@@ -80,7 +80,9 @@ namespace Oetools.Builder.Test {
                     new OeBuildStepBuildSource {
                         Tasks = new List<AOeTask> {
                             new OeTaskFileCompile { Include = "**((*)).p", TargetDirectory = "{{1}}" },
-                            new OeTaskFileCopy { Include = "**.ext", TargetFilePath = "resources/file.new" }
+                            new OeTaskFileCopy { Include = "**.ext", TargetFilePath = "resources/file.new" },
+                            new OeTaskReflectDeletedTargets(),
+                            new OeTaskReflectDeletedSourceFile()
                         }
                     }
                 },
@@ -94,8 +96,6 @@ namespace Oetools.Builder.Test {
                         IncrementalBuildOptions = new OeIncrementalBuildOptions {
                             EnabledIncrementalBuild = true,
                             UseCheckSumComparison = true,
-                            MirrorDeletedTargetsToOutput = true,
-                            MirrorDeletedSourceFileToOutput = true,
                             RebuildFilesWithNewTargets = true
                         }
                     }
@@ -187,8 +187,8 @@ namespace Oetools.Builder.Test {
                 Assert.AreEqual(10, builder.BuildSourceHistory.BuiltFiles.SelectMany(f => f.Targets).Count(), "still 10 targets in history in total");
                 
                 // we expect to have 2 extra remove tasks
-                OeTaskTargetsDeleter remover1 = (OeTaskTargetsDeleter) builder.BuildStepExecutors[1].Tasks[2];
-                OeTaskTargetsDeleter remover2 = (OeTaskTargetsDeleter) builder.BuildStepExecutors[1].Tasks[3];
+                AOeTaskTargetsRemover remover1 = (AOeTaskTargetsRemover) builder.BuildStepExecutors[1].Tasks[2];
+                AOeTaskTargetsRemover remover2 = (AOeTaskTargetsRemover) builder.BuildStepExecutors[1].Tasks[3];
                 
                 Assert.AreEqual(Path.Combine(sourceDirectory, "file2.w"), remover1.GetBuiltFiles().ElementAt(0).Path);
                 

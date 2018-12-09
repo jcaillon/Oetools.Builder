@@ -50,6 +50,8 @@ namespace Oetools.Builder.Project {
         [XmlArrayItem("Compile", typeof(OeTaskFileCompile))]
         [XmlArrayItem("CompileInProlib", typeof(OeTaskFileArchiverArchiveProlibCompile))]
         [XmlArrayItem("CompileInCab", typeof(OeTaskFileArchiverArchiveCabCompile))]
+        [XmlArrayItem("ReflectDeletedSourceFile", typeof(OeTaskReflectDeletedSourceFile))]
+        [XmlArrayItem("ReflectDeletedTargets", typeof(OeTaskReflectDeletedTargets))]
         public override List<AOeTask> Tasks { get; set; }
     }
 }
