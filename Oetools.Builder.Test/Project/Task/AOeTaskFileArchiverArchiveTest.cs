@@ -69,6 +69,22 @@ namespace Oetools.Builder.Test.Project.Task {
             Assert.AreEqual(1, targets.Count);
             Assert.IsTrue(targets.Exists(s => s.Equals(@"D:\archive.pack\dir\source.txt")));
         }
+        
+        
+
+        [TestMethod]
+        public void SetTargets_noInclude() {
+            var task = new AOeTaskFileArchiverArchive2 {
+                Exclude = "**fuck**",
+                NewTargetFunc = null,
+                TargetArchivePath = "archive.pack",
+                TargetDirectory = "dir"
+            };
+            
+            var list = task.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetPath()).ToList();
+            Assert.AreEqual(1, list.Count);
+            Assert.IsTrue(list.Exists(s => s.Equals(@"D:\archive.pack\dir\source.txt")));
+        }
 
         [TestMethod]
         public void SetTargets() {
@@ -119,7 +135,6 @@ namespace Oetools.Builder.Test.Project.Task {
             task.TargetFilePath = @"targetfolder\newfilename.txt;secondtarget\filename.src";
             
             Assert.AreEqual(3, task.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").Count);
-
 
             task.NewTargetFunc = () => new OeTargetFile();
 

@@ -88,6 +88,8 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultRebuildFilesWithNewTargets))]
         public bool? RebuildFilesWithNewTargets { get; set; }
         public static bool GetDefaultRebuildFilesWithNewTargets() => false;
+        
+        //TODO: RebuildFilesWithMissingTargets, rebuild files for which targets are missing
             
         /// <summary>
         /// Sets whether of not the tool should try to rebuild a file if it had compilation errors in the previous build.

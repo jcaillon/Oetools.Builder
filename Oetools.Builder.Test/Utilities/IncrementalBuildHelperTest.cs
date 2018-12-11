@@ -50,7 +50,7 @@ namespace Oetools.Builder.Test.Utilities {
         
         
         [TestMethod]
-        public void GetTaskTargetsRemover_Test() {
+        public void GetBuiltFilesWithOldTargetsToRemove() {
             var prevBuilt = new PathList<IOeFileBuilt> {
                 new OeFileBuilt {
                     State = OeFileState.Modified,
@@ -91,10 +91,6 @@ namespace Oetools.Builder.Test.Utilities {
                         },
                         new OeTargetFile {
                             FilePathInArchive ="target2"
-                        },
-                        new OeTargetFile {
-                            FilePathInArchive ="target3",
-                            DeletionMode = "1"
                         }
                     }
                 }
@@ -144,33 +140,25 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual("source1", prevBuilt.ElementAt(0).Path);
             Assert.AreEqual(OeFileState.Modified, prevBuilt.ElementAt(0).State);
             Assert.AreEqual("target1", prevBuilt.ElementAt(0).Targets[0].GetTargetPath());
-            Assert.AreEqual(false, prevBuilt.ElementAt(0).Targets[0].IsDeletionMode());
             Assert.AreEqual("target2", prevBuilt.ElementAt(0).Targets[1].GetTargetPath());
-            Assert.AreEqual(false, prevBuilt.ElementAt(0).Targets[1].IsDeletionMode());
 
             Assert.IsNotNull(output);
             Assert.AreEqual(2, output.Count);
             
-            // for unchanged files, we also have the new targets
             Assert.AreEqual("source1", output[0].Path);
             Assert.AreEqual(OeFileState.Unchanged, output[0].State);
             Assert.AreEqual("target1", output[0].Targets[0].GetTargetPath());
-            Assert.AreEqual(true, output[0].Targets[0].IsDeletionMode());
-            Assert.AreEqual("target2", output[0].Targets[1].GetTargetPath());
-            Assert.AreEqual(false, output[0].Targets[1].IsDeletionMode());
-            Assert.AreEqual("target3", output[0].Targets[2].GetTargetPath());
-            Assert.AreEqual(false, output[0].Targets[2].IsDeletionMode());
+            Assert.AreEqual(1, output[0].Targets.Count);
             
-            // for modified files, we don't because they will be rebuild
             Assert.AreEqual("source3", output[1].Path);
             Assert.AreEqual(OeFileState.Modified, output[1].State);
             Assert.AreEqual("target1", output[1].Targets[0].GetTargetPath());
-            Assert.AreEqual(true, output[1].Targets[0].IsDeletionMode());
+            Assert.AreEqual(1, output[1].Targets.Count);
 
         }
 
         [TestMethod]
-        public void GetTaskSourceRemover_Test() {
+        public void GetBuiltFilesDeletedSincePreviousBuild() {
             
             var prevBuilt = new PathList<IOeFileBuilt> {
                 new OeFileBuilt {
@@ -220,9 +208,7 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual("/random/source1", prevBuilt.ElementAt(0).Path);
             Assert.AreEqual(OeFileState.Modified, prevBuilt.ElementAt(0).State);
             Assert.AreEqual("target1", prevBuilt.ElementAt(0).Targets[0].GetTargetPath());
-            Assert.AreEqual(false, prevBuilt.ElementAt(0).Targets[0].IsDeletionMode());
             Assert.AreEqual("target2", prevBuilt.ElementAt(0).Targets[1].GetTargetPath());
-            Assert.AreEqual(false, prevBuilt.ElementAt(0).Targets[1].IsDeletionMode());
             
             Assert.IsNotNull(output);
             Assert.AreEqual(2, output.Count);
@@ -230,18 +216,17 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual("/random/source1", output[0].Path);
             Assert.AreEqual(OeFileState.Deleted, output[0].State);
             Assert.AreEqual("target1", output[0].Targets[0].GetTargetPath());
-            Assert.AreEqual(true, output[0].Targets[0].IsDeletionMode());
             Assert.AreEqual("target2", output[0].Targets[1].GetTargetPath());
-            Assert.AreEqual(true, output[0].Targets[1].IsDeletionMode());
+            Assert.AreEqual(2, output[0].Targets.Count);
             
             Assert.AreEqual("/random/source3", output[1].Path);
             Assert.AreEqual(OeFileState.Deleted, output[1].State);
             Assert.AreEqual("target1", output[1].Targets[0].GetTargetPath());
-            Assert.AreEqual(true, output[1].Targets[0].IsDeletionMode());
+            Assert.AreEqual(1, output[1].Targets.Count);
         }
 
         [TestMethod]
-        public void GetSourceFilesToRebuildBecauseTheyHaveNewTargets_Test() {
+        public void GetSourceFilesToRebuildBecauseTheyHaveNewTargets() {
             var allSourceFiles = new PathList<IOeFileToBuild> {
                 new OeFile {
                     State = OeFileState.Unchanged,
@@ -338,7 +323,7 @@ namespace Oetools.Builder.Test.Utilities {
         }
 
         [TestMethod]
-        public void GetListOfFileToCompileBecauseOfTableCrcChanges_Test() {
+        public void GetSourceFilesToRebuildBecauseOfTableCrcChanges() {
             var env = new EnvExecution2();
             var previouslyBuiltFiles = new List<OeFileBuilt>();
 

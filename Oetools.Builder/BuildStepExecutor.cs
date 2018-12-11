@@ -34,21 +34,45 @@ namespace Oetools.Builder {
  
         internal string Name { get; set; }
 
+        /// <summary>
+        /// The tasks to execute for this step.
+        /// </summary>
         public List<IOeTask> Tasks { get; set; }
 
-        public ILogger Log { protected get; set; }
+        /// <summary>
+        /// The logger.
+        /// </summary>
+        internal ILogger Log { get; set; }
 
-        public OeProperties Properties { get; set; }
+        /// <summary>
+        /// The build properties.
+        /// </summary>
+        internal OeProperties Properties { get; set; }
 
+        /// <summary>
+        /// The base target directory (if any) for this step.
+        /// </summary>
         protected virtual string BaseTargetDirectory => null;
 
-        public CancellationToken? CancelToken { protected get; set; }
+        /// <summary>
+        /// Cancel token.
+        /// </summary>
+        internal CancellationToken? CancelToken { get; set; }
         
-        public int NumberOfTasksDone { get; private set; }
+        /// <summary>
+        /// Total number of tasks already executed.
+        /// </summary>
+        internal int NumberOfTasksDone { get; private set; }
 
-        public event EventHandler<StepExecutorProgressEventArgs> OnTaskStart;
+        /// <summary>
+        /// Event published when a task starts.
+        /// </summary>
+        internal event EventHandler<StepExecutorProgressEventArgs> OnTaskStart;
 
-        public List<TaskExecutionException> TaskExecutionExceptions;
+        /// <summary>
+        /// The list of task exceptions for this step.
+        /// </summary>
+        internal List<TaskExecutionException> TaskExecutionExceptions;
         
         protected bool StopBuildOnTaskWarning => Properties?.BuildOptions?.StopBuildOnTaskWarning ?? OeBuildOptions.GetDefaultStopBuildOnTaskWarning();
         
@@ -60,7 +84,7 @@ namespace Oetools.Builder {
         /// Setup the tasks and start their execution
         /// </summary>
         /// <exception cref="TaskExecutorException"></exception>
-        public void Execute() {
+        internal void Execute() {
             if (Tasks == null) {
                 return;
             }

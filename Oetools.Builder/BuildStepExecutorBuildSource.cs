@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
-using Oetools.Builder.Project;
 using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
@@ -15,17 +14,20 @@ using Oetools.Utilities.Openedge.Execution;
 namespace Oetools.Builder {
     
     public class BuildStepExecutorBuildSource : BuildStepExecutor {
-        
+
+        /// <inheritdoc />
         protected override string BaseTargetDirectory => Properties?.BuildOptions?.OutputDirectoryPath;
         
-        public PathList<IOeFileBuilt> PreviouslyBuiltPaths { private get; set; }
+        /// <summary>
+        /// List of previously built paths.
+        /// </summary>
+        internal PathList<IOeFileBuilt> PreviouslyBuiltPaths { private get; set; }
 
-        public bool IsLastSourceExecutor { get; set; }
-
-        public bool IsFirstSourceExecutor { get; set; }
-
-        public Func<IEnumerable<IOeFile>, PathList<IOeFileToBuild>> GetFilesToBuildFromSourceFiles { get; set; }
-
+        /// <summary>
+        /// Function to return all the files that should be built from the given source files for all the tasks of this build.
+        /// </summary>
+        internal Func<IEnumerable<IOeFile>, PathList<IOeFileToBuild>> GetFilesToBuildFromSourceFiles { get; set; }
+        
         private bool UseIncrementalBuild => Properties?.BuildOptions?.IncrementalBuildOptions?.EnabledIncrementalBuild ?? OeIncrementalBuildOptions.GetDefaultEnabledIncrementalBuild();
         
         private string SourceDirectory => (Properties?.BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath());
@@ -173,7 +175,7 @@ namespace Oetools.Builder {
         /// <summary>
         /// List all the existing files in the source directory.
         /// </summary>
-        public PathList<IOeFile> SourceDirectoryCompletePathList {
+        internal PathList<IOeFile> SourceDirectoryCompletePathList {
             get {
                 if (SourceDirectoryPathListToBuild != null && _sourceDirectoryCompletePathList == null) {
                     var sourceLister = GetSourceDirectoryFilesLister();
@@ -210,8 +212,8 @@ namespace Oetools.Builder {
         /// Returns a list of all files that need to be compiled for all the <paramref name="tasks" />
         /// </summary>
         /// <remarks>
-        /// The main thing that makes this method "complicated" is that we try to an appropriate UoeFileToCompile.PreferedTargetDirectory
-        /// consider that the source files are on C:\ and that our output directory is on D:\, we can either :
+        /// The main thing that makes this method "complicated" is that we try to find an appropriate UoeFileToCompile.PreferredTargetDirectory.
+        /// Considering that the source files are on C:\ and that our output directory is on D:\, we can either :
         /// - compile directly on D:\
         /// - compile in temp dir then move to D:\
         /// but a lot of times, the 1st solution is much faster. This is what we do here...

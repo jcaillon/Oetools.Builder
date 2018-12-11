@@ -26,19 +26,6 @@ namespace Oetools.Builder.History {
     public abstract class AOeTarget {
         
         /// <summary>
-        /// if true, it means this target was actually a deletion.
-        /// </summary>
-        [XmlAttribute("DeletionMode")]
-        public string DeletionMode { get; set; }
-
-        /// <summary>
-        /// if true, it means this target was actually a deletion.
-        /// </summary>
-        public bool IsDeletionMode() => !string.IsNullOrEmpty(DeletionMode);
-        
-        public void SetDeletionMode(bool deletionMode) => DeletionMode = deletionMode ? "1" : null;
-        
-        /// <summary>
         /// Path to the archive file.
         /// </summary>
         [XmlIgnore]

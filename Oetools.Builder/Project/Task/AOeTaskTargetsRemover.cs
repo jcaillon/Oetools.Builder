@@ -26,10 +26,10 @@ using Oetools.Utilities.Lib;
 namespace Oetools.Builder.Project.Task {
     
     /// <summary>
-    /// This task deletes al the targets present in <see cref="_pathsWithTargetsToRemove"/> with <see cref="AOeTarget.DeletionMode"/> = true, they are
+    /// This task deletes al the targets present in <see cref="_pathsWithTargetsToRemove"/>, they are
     /// targets that are no longer needed. Those targets were built in the previous build but the targets have changed (or the file itself has been deleted)
     /// </summary>
-    public class AOeTaskTargetsRemover : AOeTask, IOeTaskWithBuiltFiles {
+    public class AOeTaskTargetsRemover : AOeTask {
 
         private PathList<IOeFileBuilt> _builtPaths;
 
@@ -49,7 +49,7 @@ namespace Oetools.Builder.Project.Task {
 
         /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
         protected sealed override void ExecuteInternal() {
-            var targetsToRemove = _pathsWithTargetsToRemove.SelectMany(f => f.Targets).Where(target => target.IsDeletionMode()).ToList();
+            var targetsToRemove = _pathsWithTargetsToRemove.SelectMany(f => f.Targets).ToList();
             ExecuteTargetsRemoval(targetsToRemove);
             _builtPaths = _pathsWithTargetsToRemove;
         }

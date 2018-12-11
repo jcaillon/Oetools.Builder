@@ -155,8 +155,7 @@ namespace Oetools.Builder.Project.Task {
                     return false;
                 }
             }
-            var includeRegexes = GetIncludeRegex();
-            return includeRegexes.Count == 0 || includeRegexes.Any(regex => regex.IsMatch(path));
+            return GetIncludeRegex().Any(regex => regex.IsMatch(path));
         }
         
         /// <inheritdoc cref="IOeTaskFilter.IsPathExcluded"/>
@@ -193,6 +192,9 @@ namespace Oetools.Builder.Project.Task {
         private void InitRegex() {
             _includeRegexes = ToRegexes(GetRegexIncludeStrings(), "include");
             _excludeRegexes = ToRegexes(GetRegexExcludeStrings(), "exclude");
+            if (_includeRegexes.Count == 0) {
+                _includeRegexes.Add(new Regex(".*"));
+            }
         }
 
         /// <summary>

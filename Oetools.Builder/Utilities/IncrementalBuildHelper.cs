@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Oetools.Builder.History;
@@ -109,7 +108,7 @@ namespace Oetools.Builder.Utilities {
         internal static IEnumerable<IOeFileToBuild> GetSourceFilesToRebuildBecauseTheyHaveNewTargets(PathList<IOeFileToBuild> filesToBuildWithSetTargets, PathList<IOeFileBuilt> previousFilesBuilt) {
             foreach (var newFile in filesToBuildWithSetTargets.Where(file => file.State == OeFileState.Unchanged)) {
                 var previousFile = previousFilesBuilt[newFile.Path];
-                var previouslyCreatedTargets = previousFile.Targets.ToNonNullEnumerable().Where(target => !target.IsDeletionMode()).Select(t => t.GetTargetPath()).ToList();
+                var previouslyCreatedTargets = previousFile.Targets.ToNonNullEnumerable().Select(t => t.GetTargetPath()).ToList();
                 foreach (var targetPath in newFile.TargetsToBuild.ToNonNullEnumerable().Select(t => t.GetTargetPath())) {
                     if (!previouslyCreatedTargets.Exists(prevTarget => prevTarget.PathEquals(targetPath))) {
                         yield return newFile;
@@ -128,9 +127,9 @@ namespace Oetools.Builder.Utilities {
         internal static IEnumerable<IOeFileBuilt> GetBuiltFilesDeletedSincePreviousBuild(PathList<IOeFile> currentSourceListing, PathList<IOeFileBuilt> previousFilesBuilt) {
             foreach (var previousFile in previousFilesBuilt.Where(f => f.State != OeFileState.Deleted)) {
                 if (!currentSourceListing.Contains(previousFile.Path)) {
-                    var previousFileCopy = new OeFileBuilt(previousFile);
-                    previousFileCopy.Targets?.ForEach(target => target.SetDeletionMode(true));
-                    previousFileCopy.State = OeFileState.Deleted;
+                    var previousFileCopy = new OeFileBuilt(previousFile) {
+                        State = OeFileState.Deleted
+                    };
                     yield return previousFileCopy;
                 }
             }
@@ -155,7 +154,7 @@ namespace Oetools.Builder.Utilities {
                 finalFileTargets.Clear();
                 bool isFileWithTargetsToDelete = false;
                 var newCreateTargets = newFile.TargetsToBuild.ToNonNullEnumerable().Select(t => t.GetTargetPath()).ToList();
-                foreach (var previousTarget in previousFile.Targets.ToNonNullEnumerable().Where(target => !target.IsDeletionMode())) {
+                foreach (var previousTarget in previousFile.Targets.ToNonNullEnumerable()) {
                     var previousTargetPath = previousTarget.GetTargetPath();
                     if (!newCreateTargets.Exists(target => target.PathEquals(previousTargetPath))) {
                         // the old target doesn't exist anymore, add it in deletion mode this time
@@ -168,22 +167,7 @@ namespace Oetools.Builder.Utilities {
                     previousFile.Targets = finalFileTargets;
                     var previousFileCopy = new OeFileBuilt(previousFile);
                     previousFile.Targets = originalPreviousFileTargets;
-                    previousFileCopy.Targets.ForEach(target => target.SetDeletionMode(true));
-                    switch (newFile.State) {
-                        case OeFileState.Unchanged:
-                            // add the unchanged targets
-                            if (newFile.TargetsToBuild != null) {
-                                previousFileCopy.Targets.AddRange(newFile.TargetsToBuild);
-                            }
-                            previousFileCopy.State = OeFileState.Unchanged;
-                            break;
-                        case OeFileState.Modified:
-                            previousFileCopy.State = OeFileState.Modified;
-                            // no need to add the unchanged targets because the file has been modified so those targets will be rebuild anyway
-                            break;
-                        default:
-                            throw new Exception($"Unexpected file state for file: {newFile}");
-                    }
+                    previousFileCopy.State = newFile.State;
                     yield return previousFileCopy;
                 }
             }
