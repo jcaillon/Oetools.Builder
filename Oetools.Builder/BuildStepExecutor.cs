@@ -93,20 +93,10 @@ namespace Oetools.Builder {
             try {
                 Log?.Debug("Injecting task properties.");
                 foreach (var task in Tasks) {
-                    InjectPropertiesInTask(task);
+                    InjectBasicPropertiesInTask(task);
                 }
-                Log?.Debug("Set the paths to build for each task.");
                 foreach (var task in Tasks) {
-                    switch (task) {
-                        case IOeTaskFile taskFile: {
-                            taskFile.SetFilesToProcess(GetFilesToBuildForSingleTask(taskFile));
-                            break;
-                        }
-                        case IOeTaskDirectory taskDirectory: {
-                            taskDirectory.SetDirectoriesToProcess(GetDirectoriesToBuildForSingleTask(taskDirectory));
-                            break;
-                        }
-                    }
+                    InjectPropertiesInTask(task);
                 }
                 ExecuteInternal();
             } catch (OperationCanceledException) {
@@ -149,7 +139,7 @@ namespace Oetools.Builder {
         /// Prepares a task, injecting properties if needed, depending on which interface it implements
         /// </summary>
         /// <param name="task"></param>
-        protected virtual void InjectPropertiesInTask(IOeTask task) {
+        protected virtual void InjectBasicPropertiesInTask(IOeTask task) {
             task.SetLog(Log);
             task.SetTestMode(TestMode);
             task.SetCancelToken(CancelToken);
@@ -161,6 +151,19 @@ namespace Oetools.Builder {
             }
             if (task is IOeTaskFileToBuild taskFileToBuild) {
                 taskFileToBuild.SetTargetBaseDirectory(BaseTargetDirectory);
+            }
+        }
+
+        /// <summary>
+        /// Prepares a task, injecting properties if needed, depending on which interface it implements
+        /// </summary>
+        /// <param name="task"></param>
+        protected virtual void InjectPropertiesInTask(IOeTask task) {
+            if (task is IOeTaskFile taskFile) {
+                taskFile.SetFilesToProcess(GetFilesToBuildForSingleTask(taskFile));
+            }
+            if (task is IOeTaskDirectory taskDirectory) {
+                taskDirectory.SetDirectoriesToProcess(GetDirectoriesToBuildForSingleTask(taskDirectory));
             }
         }
 
@@ -183,10 +186,10 @@ namespace Oetools.Builder {
         }
         
         private void TaskOnPublishException(object sender, TaskWarningEventArgs e) {
-            SaveTaskExecutionException(e.Exception);
             if (StopBuildOnTaskWarning) {
                 throw e.Exception;
             }
+            SaveTaskExecutionException(e.Exception);
         }
 
         private void SaveTaskExecutionException(TaskExecutionException exception) {

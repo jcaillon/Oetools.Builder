@@ -29,7 +29,6 @@ using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
-using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder {
     
@@ -37,9 +36,6 @@ namespace Oetools.Builder {
     /// A builder to build an openedge project.
     /// </summary>
     public class Builder : IDisposable {
-        
-        private PathList<IOeFileBuilt> _previouslyBuiltPaths;
-        private OeBuildHistory _buildSourceHistory;
         private int _stepDoneCount;
 
         /// <summary>
@@ -59,21 +55,40 @@ namespace Oetools.Builder {
 
         /// <summary>
         /// The previous build history to feed for this build and the build history to get once the build is complete.
+        /// Only useful in incremental mode.
         /// </summary>
-        public OeBuildHistory BuildSourceHistory {
-            get => _buildSourceHistory;
-            set {
-                _previouslyBuiltPaths = null;
-                _buildSourceHistory = value;
-            }
-        }
+        public OeBuildHistory BuildSourceHistory { get; set; }
 
         /// <summary>
         /// A list of all the compilation problems encountered during the build.
         /// </summary>
-        public List<AOeCompilationProblem> CompilationProblems => BuildSourceHistory?
-            .BuiltFiles
-            .SelectMany(f => f.CompilationProblems.ToNonNullEnumerable())
+        public List<AOeCompilationProblem> CompilationProblems => BuildStepExecutors
+            .Where(te => te is BuildStepExecutorBuildSource)
+            .SelectMany(exec => exec.Tasks.ToNonNullEnumerable())
+            .OfType<IOeTaskCompile>()
+            .SelectMany(task => task.GetCompiledFiles().ToNonNullEnumerable())
+            .SelectMany(file => file.CompilationProblems.ToNonNullEnumerable())
+            .Select(AOeCompilationProblem.New)
+            .ToList();
+        
+        public List<IOeFileBuilt> GetAllFilesBuilt() => BuildStepExecutors
+            .SelectMany(te => te.Tasks)
+            .Where(task => !(task is AOeTaskTargetsRemover))
+            .OfType<IOeTaskWithBuiltFiles>()
+            .SelectMany(t => t.GetBuiltFiles().ToNonNullEnumerable())
+            //.GroupBy(f => f.Path)
+            //.Select(group => {
+            //    var first
+            //    foreach (var file in group) {
+            //        
+            //    }
+            //})
+            .ToList();
+        
+        public List<IOeFileBuilt> GetAllFilesWithTargetRemoved() => BuildStepExecutors
+            .SelectMany(te => te.Tasks)
+            .OfType<AOeTaskTargetsRemover>()
+            .SelectMany(t => t.GetBuiltFiles().ToNonNullEnumerable())
             .ToList();
         
         /// <summary>
@@ -84,20 +99,16 @@ namespace Oetools.Builder {
             .SelectMany(exec => exec.TaskExecutionExceptions.ToNonNullEnumerable())
             .ToList();
         
+        /// <summary>
+        /// The list of step executors, to get access the the executed steps/tasks of this build.
+        /// </summary>
         public List<BuildStepExecutor> BuildStepExecutors { get; } = new List<BuildStepExecutor>();
         
         private int TotalNumberOfTasks { get; set; }
         
         private int NumberOfTasksDone { get; set; }
 
-        private PathList<IOeFileBuilt> PreviouslyBuiltPaths {
-            get {
-                if (_previouslyBuiltPaths == null && BuildSourceHistory?.BuiltFiles != null) {
-                    _previouslyBuiltPaths = BuildSourceHistory.BuiltFiles.OfType<IOeFileBuilt>().ToFileList();
-                }
-                return _previouslyBuiltPaths;
-            }
-        }
+        private PathList<IOeFileBuilt> PreviouslyBuiltPaths { get; set; }
 
         protected bool UseIncrementalBuild => BuildConfiguration.Properties.BuildOptions?.IncrementalBuildOptions?.EnabledIncrementalBuild ?? OeIncrementalBuildOptions.GetDefaultEnabledIncrementalBuild();
 
@@ -172,6 +183,10 @@ namespace Oetools.Builder {
             
             Log?.Debug("Computing the propath.");
             BuildConfiguration.Properties.SetPropathEntries();
+            
+            if (BuildSourceHistory?.BuiltFiles != null) {
+                PreviouslyBuiltPaths = BuildSourceHistory.BuiltFiles.OfType<IOeFileBuilt>().ToFileList();
+            }
         }
 
         /// <summary>
@@ -240,23 +255,6 @@ namespace Oetools.Builder {
         private void ExecutorOnOnTaskStart(object sender, StepExecutorProgressEventArgs e) {
             Log?.ReportGlobalProgress(TotalNumberOfTasks, NumberOfTasksDone + e.NumberOfTasksDone, $"{(_stepDoneCount == BuildConfiguration.BuildSteps.Count - 1 ? "   " : "│  ")}{(e.NumberOfTasksDone == e.TotalNumberOfTasks - 1 ? "└─ " : "├─ ")}Executing {e.CurrentTask.PrettyQuote()}.");
         }
-        
-        /// <summary>
-        /// Returns a new build history.
-        /// </summary>
-        /// <returns></returns>
-        protected OeBuildHistory GetBuildHistory() {
-            var history = new OeBuildHistory {
-                BuiltFiles = GetFilesBuiltHistory().Select(f => {
-                    if (f is OeFileBuilt fb) {
-                        return fb;
-                    }
-                    return new OeFileBuilt(f);
-                }).ToList(),
-                WebclientPackageInfo = null // TODO : webclient package info
-            };
-            return history;
-        }
 
         /// <summary>
         /// Gets a list of all the files to build for this build from a list of source files.
@@ -283,42 +281,58 @@ namespace Oetools.Builder {
         }
         
         /// <summary>
-        /// Returns a list of all the files built; include files that were automatically deleted.
+        /// Returns a new build history.
         /// </summary>
         /// <returns></returns>
-        private PathList<IOeFileBuilt> GetFilesBuiltHistory() {
-
+        private OeBuildHistory GetBuildHistory() {
+            if (!UseIncrementalBuild) {
+                return null;
+            }
+            var history = new OeBuildHistory {
+                BuiltFiles = GetBuiltFilesHistory().Select(f => {
+                    if (f is OeFileBuilt fb) {
+                        return fb;
+                    }
+                    return new OeFileBuilt(f);
+                }).ToList(),
+                WebclientPackageInfo = null // TODO : webclient package info
+            };
+            return history;
+        }
+        
+        /// <summary>
+        /// Returns a list of all the files built.
+        /// </summary>
+        /// <returns></returns>
+        private PathList<IOeFileBuilt> GetBuiltFilesHistory() {
             var builtFiles = new PathList<IOeFileBuilt>();
             
-            var lastBuildSourceExecutor = BuildStepExecutors.OfType<BuildStepExecutorBuildSource>().LastOrDefault();
-            if (lastBuildSourceExecutor == null) {
+            var sourceDirectoryCompletePathList = BuildStepExecutors.OfType<BuildStepExecutorBuildSource>().LastOrDefault()?.SourceDirectoryCompletePathList;
+            if (sourceDirectoryCompletePathList == null) {
                 return builtFiles;
             }
 
-            var outputDirectory = BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath;
-            
             // add all the built files
             foreach (var fileBuilt in BuildStepExecutors
                 .Where(te => te is BuildStepExecutorBuildSource)
                 .SelectMany(exec => exec.Tasks.ToNonNullEnumerable())
+                .Where(task => !(task is AOeTaskTargetsRemover))
                 .OfType<IOeTaskWithBuiltFiles>()
                 .SelectMany(t => t.GetBuiltFiles().ToNonNullEnumerable())) {
                 
-                // keep only the targets that are in the output directory, we won't be able to "undo" the others so it would be useless to keep them
-                var targetsOutputDirectory = fileBuilt.Targets
-                    .Where(t => t.GetTargetPath().StartsWith(outputDirectory, StringComparison.Ordinal))
-                    .ToList();
+                //// keep only the targets that are in the output directory, we won't be able to "undo" the others so it would be useless to keep them.
+                //var targetsOutputDirectory = fileBuilt.Targets
+                //    .Where(t => t.GetTargetPath().StartsWith(outputDirectory, StringComparison.Ordinal))
+                //    .ToList();
                 
-                if (!builtFiles.Contains(fileBuilt)) {
-                    builtFiles.Add((IOeFileBuilt) fileBuilt.DeepCopyToNew(fileBuilt.GetType()));
-                } else {
-                    var historyFileBuilt = builtFiles[fileBuilt];
-                    if (historyFileBuilt.Targets == null) {
-                        historyFileBuilt.Targets = targetsOutputDirectory;
-                    } else {
-                        historyFileBuilt.Targets.AddRange(targetsOutputDirectory);
-                    }
+                var historyFileBuilt = builtFiles[fileBuilt];
+                if (historyFileBuilt == null) {
+                    // add a deep copy with no targets.
+                    historyFileBuilt = new OeFileBuilt(fileBuilt, new List<AOeTarget>());
+                    builtFiles.Add(historyFileBuilt);
                 }
+                //TODO: case of file.p first copied then compiled, we will not keep the required file/reference tables in that case!!!!
+                historyFileBuilt.Targets.AddRange(fileBuilt.Targets);
             }
             
             // add all compilation problems
@@ -332,68 +346,65 @@ namespace Oetools.Builder {
                 }
                 if (!builtFiles.Contains(file.Path)) {
                     // not yet in the built files list because it was not compiled successfully
-                    OeFileBuilt fileCompiledWithError;
-                    var sourceFileCompiled = BuildStepExecutors.OfType<BuildStepExecutorBuildSource>().LastOrDefault()?.SourceDirectoryCompletePathList[file.Path];
+                    var sourceFileCompiled = sourceDirectoryCompletePathList[file.Path];
                     if (sourceFileCompiled == null) {
-                        // for git filters, this include file is not listed in SourceDirectoryCompletePathList.
-                        fileCompiledWithError = new OeFileBuilt {
-                            Path = file.Path, 
-                            State = OeFileState.Added
-                        };
-                        PathLister.SetFileBaseInfo(fileCompiledWithError);
-                    } else {
-                        fileCompiledWithError = new OeFileBuilt(sourceFileCompiled);
+                        continue;
                     }
-                    fileCompiledWithError.RequiredFiles = file.RequiredFiles?.ToList();
-                    fileCompiledWithError.RequiredDatabaseReferences = file.RequiredDatabaseReferences?.Select(OeDatabaseReference.New).ToList();
+                    var fileCompiledWithError = new OeFileBuilt(sourceFileCompiled) {
+                        RequiredFiles = file.RequiredFiles?.ToList(), 
+                        RequiredDatabaseReferences = file.RequiredDatabaseReferences?.Select(OeDatabaseReference.New).ToList()
+                    };
                     builtFiles.Add(fileCompiledWithError);
                 }
-                if (builtFiles[file.Path] is OeFileBuilt compiledFile) {
-                    compiledFile.CompilationProblems = new List<AOeCompilationProblem>();
-                    foreach (var problem in file.CompilationProblems) {
-                        compiledFile.CompilationProblems.Add(AOeCompilationProblem.New(problem));
-                    }
+                var compiledFile = builtFiles[file.Path];
+                compiledFile.CompilationProblems = new List<AOeCompilationProblem>();
+                foreach (var problem in file.CompilationProblems) {
+                    compiledFile.CompilationProblems.Add(AOeCompilationProblem.New(problem));
                 }
             }
             
             // add all the files that were not rebuild from the previous build history
             if (PreviouslyBuiltPaths != null) {
-                foreach (var previousFile in PreviouslyBuiltPaths.Where(oldFile => oldFile.State != OeFileState.Deleted && !builtFiles.Contains(oldFile))) {
-                    if (!lastBuildSourceExecutor.SourceDirectoryCompletePathList.Contains(previousFile.Path)) {
-                        continue;
+                var filesWithRemovedTargets = BuildStepExecutors
+                    .Where(te => te is BuildStepExecutorBuildSource)
+                    .SelectMany(exec => exec.Tasks.ToNonNullEnumerable())
+                    .OfType<OeTaskReflectDeletedTargets>()
+                    .SelectMany(t => t.GetBuiltFiles().ToNonNullEnumerable())
+                    .GroupBy(file => file.Path)
+                    .ToDictionary(files => files.Key, StringComparer.OrdinalIgnoreCase);
+                
+                foreach (var previousFile in PreviouslyBuiltPaths.Where(oldFile => !builtFiles.Contains(oldFile) && sourceDirectoryCompletePathList.Contains(oldFile.Path))) {
+                    var previousFileCopy = new OeFileBuilt(previousFile) {
+                        State = OeFileState.Unchanged
+                    };
+                    if (filesWithRemovedTargets.ContainsKey(previousFileCopy.Path)) {
+                        // file has removed targets
+                        var removedTargets = filesWithRemovedTargets[previousFileCopy.Path]?
+                            .SelectMany(file => file.Targets.ToNonNullEnumerable())
+                            .ToList();
+                        if (removedTargets != null && removedTargets.Count > 0) {
+                            previousFileCopy.Targets.RemoveAll(target => removedTargets.Exists(rt => {
+                                return rt.GetType() == target.GetType() && rt.GetTargetPath().PathEquals(target.GetTargetPath());
+                            }));
+                        }
                     }
-                    var previousFileCopy = (IOeFileBuilt) previousFile.DeepCopyToNew(previousFile.GetType());
-                    previousFileCopy.State = OeFileState.Unchanged;
                     builtFiles.Add(previousFileCopy);
                 }
             }
             
             // finally, add all the required files
-            foreach (var fileBuilt in builtFiles.Where(f => f.RequiredFiles != null).ToList()) {
-                foreach (var requiredFile in fileBuilt.RequiredFiles) {
-                    if (!builtFiles.Contains(requiredFile)) {
-                        var sourceFileRequired = lastBuildSourceExecutor.SourceDirectoryCompletePathList[requiredFile];
-                        if (sourceFileRequired != null) {
-                            builtFiles.Add(new OeFileBuilt(sourceFileRequired));
-                        } else if (requiredFile.StartsWith(BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath, StringComparison.OrdinalIgnoreCase)) {
-                            // for git filters, this include file is not listed in SourceDirectoryCompletePathList.
-                            var newRequiredFile = new OeFileBuilt {
-                                Path = requiredFile, 
-                                State = OeFileState.Added
-                            };
-                            PathLister.SetFileBaseInfo(newRequiredFile);
-                            builtFiles.Add(newRequiredFile);
-                        }
-                    }
+            foreach (var requiredFile in builtFiles.SelectMany(f => f.RequiredFiles.ToNonNullEnumerable()).Where(reqFile => !builtFiles.Contains(reqFile)).ToList()) {
+                var sourceFileRequired = sourceDirectoryCompletePathList[requiredFile];
+                if (sourceFileRequired == null) {
+                    continue;
                 }
+                builtFiles.Add(new OeFileBuilt(sourceFileRequired));
             }
         
             // also ensures that all files have HASH info
             if (UseIncrementalBuild && StoreSourceHash) {
                 foreach (var fileBuilt in builtFiles) {
-                    if (fileBuilt.State != OeFileState.Deleted) {
-                        PathLister.SetFileHash(fileBuilt);
-                    }
+                    PathLister.SetFileHash(fileBuilt);
                 }
             }
 

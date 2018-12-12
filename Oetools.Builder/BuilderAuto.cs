@@ -98,6 +98,8 @@ namespace Oetools.Builder {
         }
 
         protected override void PostBuild() {
+            base.PostBuild();
+            
             // output report
             if (!string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.ReportHtmlFilePath)) {
                 OutputReport(BuildConfiguration.Properties.BuildOptions.ReportHtmlFilePath);
@@ -106,7 +108,6 @@ namespace Oetools.Builder {
             // output build history
             if (UseIncrementalBuild && !string.IsNullOrEmpty(BuildConfiguration.Properties.BuildOptions.IncrementalBuildOptions.BuildHistoryOutputFilePath)) {
                 Log?.Debug($"Create the output history file: {BuildConfiguration.Properties.BuildOptions.IncrementalBuildOptions.BuildHistoryOutputFilePath}.");
-                BuildSourceHistory = GetBuildHistory();
             
                 // BuildHistory
                 Utils.CreateDirectoryIfNeeded(Path.GetDirectoryName(BuildConfiguration.Properties.BuildOptions.IncrementalBuildOptions.BuildHistoryOutputFilePath));

@@ -34,26 +34,20 @@ namespace Oetools.Builder {
         
         private bool FullRebuild => Properties?.BuildOptions?.FullRebuild ?? OeBuildOptions.GetDefaultFullRebuild();
         
-        private PathList<UoeCompiledFile> _compiledPaths;
-        
         private PathList<IOeFile> _sourceDirectoryPathListToBuild;
         
         private PathList<IOeFile> _sourceDirectoryCompletePathList;
 
-        /// <inheritdoc cref="BuildStepExecutor.ExecuteInternal"/>
+        /// <inheritdoc />
         protected override void ExecuteInternal() {
-            ConfigureBuildSourceTasks();
-            
             IDisposable compiler = null;
             if (!TestMode) {
                 Log?.Debug("Compiling files from all tasks.");
-                compiler = CompileFiles();
-                if (_compiledPaths != null) {
-                    Log?.Debug("Associate the list of compiled files for each task.");
-                    foreach (var task in Tasks) {
-                        if (task is IOeTaskCompile taskCompile) {
-                            taskCompile.SetCompiledFiles(_compiledPaths?.CopyWhere(cf => taskCompile.GetFilesToProcess().Contains(cf.Path)));
-                        }
+                compiler = CompileFiles(out var compiledPath);
+                Log?.Debug("Associate the list of compiled files for each task.");
+                foreach (var task in Tasks) {
+                    if (task is IOeTaskCompile taskCompile) {
+                        taskCompile.SetCompiledFiles(compiledPath?.CopyWhere(cf => taskCompile.GetFilesToProcess().Contains(cf.Path)));
                     }
                 }
             }
@@ -64,59 +58,65 @@ namespace Oetools.Builder {
             }
         }
 
-        private void ConfigureBuildSourceTasks() {
-            foreach (var task in Tasks) {
-                switch (task) {
-                    case OeTaskReflectDeletedSourceFile taskReflectDeletedSourceFile: {
-                        if (PreviouslyBuiltPaths != null) {
-                            Log?.Debug("Configuring removal task for previous files not existing anymore.");
-                            var filesWithTargetsToRemove = IncrementalBuildHelper.GetBuiltFilesDeletedSincePreviousBuild(SourceDirectoryCompletePathList, PreviouslyBuiltPaths).ToFileList();
-                            taskReflectDeletedSourceFile.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
-                            if (filesWithTargetsToRemove != null && filesWithTargetsToRemove.Count > 0) {
-                                Log?.Debug($"{filesWithTargetsToRemove.Count} files were deleted since the previous build (their targets will be deleted).");
-                            }
-                        }
-                        break;
+        /// <inheritdoc />
+        protected override void InjectPropertiesInTask(IOeTask task) {
+            base.InjectPropertiesInTask(task);
+            if (task is OeTaskReflectDeletedSourceFile taskReflectDeletedSourceFile) {
+                if (PreviouslyBuiltPaths != null) {
+                    Log?.Debug("Configuring removal task for previous files not existing anymore.");
+                    var filesWithTargetsToRemove = IncrementalBuildHelper.GetBuiltFilesDeletedSincePreviousBuild(SourceDirectoryCompletePathList, PreviouslyBuiltPaths).ToFileList();
+                    taskReflectDeletedSourceFile.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
+                    if (filesWithTargetsToRemove != null && filesWithTargetsToRemove.Count > 0) {
+                        Log?.Debug($"{filesWithTargetsToRemove.Count} files were deleted since the previous build (their targets will be deleted).");
                     }
-                    case OeTaskReflectDeletedTargets taskReflectDeletedTargets: {
-                        if (PreviouslyBuiltPaths != null) {
-                            Log?.Debug("Configuring removal task for previous targets not existing anymore.");
-                            var unchangedOrModifiedFilesToBuild = GetFilesToBuildFromSourceFiles(SourceDirectoryCompletePathList?.Where(f => f.State == OeFileState.Unchanged || f.State == OeFileState.Modified));
-                            if (unchangedOrModifiedFilesToBuild != null && unchangedOrModifiedFilesToBuild.Count > 0) {
-                                var filesWithTargetsToRemove = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(unchangedOrModifiedFilesToBuild, PreviouslyBuiltPaths).ToFileList();
-                                if (filesWithTargetsToRemove != null && filesWithTargetsToRemove.Count > 0) {
-                                    taskReflectDeletedTargets.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
-                                    Log?.Debug($"{filesWithTargetsToRemove.Count} files that had targets existing in the previous build which don't existing anymore (their targets will be deleted).");
-                                }
-                            }
+                }
+            }
+            if (task is OeTaskReflectDeletedTargets taskReflectDeletedTargets) {
+                if (PreviouslyBuiltPaths != null) {
+                    Log?.Debug("Configuring removal task for previous targets not existing anymore.");
+                    var unchangedOrModifiedFilesToBuild = GetFilesToBuildFromSourceFiles(SourceDirectoryCompletePathList?.Where(f => f.State == OeFileState.Unchanged || f.State == OeFileState.Modified));
+                    if (unchangedOrModifiedFilesToBuild != null && unchangedOrModifiedFilesToBuild.Count > 0) {
+                        var filesWithTargetsToRemove = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(unchangedOrModifiedFilesToBuild, PreviouslyBuiltPaths).ToFileList();
+                        if (filesWithTargetsToRemove != null && filesWithTargetsToRemove.Count > 0) {
+                            taskReflectDeletedTargets.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
+                            Log?.Debug($"{filesWithTargetsToRemove.Count} files that had targets existing in the previous build which don't existing anymore (their targets will be deleted).");
                         }
-
-                        break;
                     }
                 }
             }
         }
 
-        /// <inheritdoc cref="BuildStepExecutor.GetFilesToBuildForSingleTask"/>
+        /// <inheritdoc />
         protected override PathList<IOeFile> GetFilesToBuildForSingleTask(IOeTaskFile task) {
             Log?.Debug($"Getting the list of files to build for task: {task.ToString().PrettyQuote()}.");
             
             var baseList = SourceDirectoryPathListToBuild;
-            
-            if (task is IOeTaskFileToBuild taskTarget) {
-                // we add files that should be rebuild by this task because they have new targets in this task.
-                var rebuildFilesWithNewTargets = Properties?.BuildOptions?.IncrementalBuildOptions?.RebuildFilesWithNewTargets ?? OeIncrementalBuildOptions.GetDefaultRebuildFilesWithNewTargets();
-                if (rebuildFilesWithNewTargets && !FullRebuild && UseIncrementalBuild && PreviouslyBuiltPaths != null) {
 
-                    Log?.Debug("Computing the targets for all the unchanged files in the source directory.");
-                    var unchangedFiles = OeFile.ConvertToFileToBuild(SourceDirectoryCompletePathList.Where(f => f.State == OeFileState.Unchanged && task.IsPathPassingFilter(f.Path)));
-                    taskTarget.SetTargets(unchangedFiles, BaseTargetDirectory);
+            if (UseIncrementalBuild && !FullRebuild ) {
+                if (task is IOeTaskFileToBuild taskTarget) {
+                    var rebuildFilesWithNewTargets = Properties?.BuildOptions?.IncrementalBuildOptions?.RebuildFilesWithNewTargets ?? OeIncrementalBuildOptions.GetDefaultRebuildFilesWithNewTargets();
+                    var rebuildFilesWithMissingTargets = Properties?.BuildOptions?.IncrementalBuildOptions?.RebuildFilesWithMissingTargets ?? OeIncrementalBuildOptions.GetDefaultRebuildFilesWithMissingTargets();
 
-                    var nbAdded = baseList.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseTheyHaveNewTargets(unchangedFiles, PreviouslyBuiltPaths));
-                    Log?.If(nbAdded > 0)?.Debug($"Added {nbAdded} files to rebuild because they have new targets.");
+                    if (rebuildFilesWithNewTargets || rebuildFilesWithMissingTargets) {
+                        Log?.Debug("Computing the targets for all the unchanged files in the source directory.");
+                        var unchangedFiles = OeFile.ConvertToFileToBuild(SourceDirectoryCompletePathList.Where(f => f.State == OeFileState.Unchanged && task.IsPathPassingFilter(f.Path)));
+                        taskTarget.SetTargets(unchangedFiles, BaseTargetDirectory);
+
+                        // we add files that should be rebuild by this task because they have new targets in this task.
+                        if (rebuildFilesWithNewTargets && PreviouslyBuiltPaths != null) {
+                            var nbAdded = baseList.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseTheyHaveNewTargets(unchangedFiles, PreviouslyBuiltPaths));
+                            Log?.If(nbAdded > 0)?.Debug($"Added {nbAdded} files to rebuild because they have new targets.");
+                        }
+
+                        // we add files that should be rebuild by this task because they have new targets that are missing
+                        if (rebuildFilesWithMissingTargets) {
+                            var nbAdded = baseList.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseTheyMissingTargets(unchangedFiles));
+                            Log?.If(nbAdded > 0)?.Debug($"Added {nbAdded} files to rebuild because they have missing targets.");
+                        }
+                    }
                 }
             }
-                    
+
             Log?.Debug($"A total of {baseList.Count} files are eligible to be built by this task before the filter.");
 
             return task.FilterFiles(baseList);
@@ -128,42 +128,44 @@ namespace Oetools.Builder {
         private PathList<IOeFile> SourceDirectoryPathListToBuild {
             get {
                 if (_sourceDirectoryPathListToBuild == null) {
-                    var sourceLister = GetSourceDirectoryFilesLister();
-                    _sourceDirectoryPathListToBuild = sourceLister.GetFileList();
-                    _sourceDirectoryCompletePathList = Properties?.BuildOptions?.SourceToBuildGitFilter?.IsActive() ?? false ? _sourceDirectoryPathListToBuild : null;
-                    
-                    if (Properties?.BuildOptions?.SourceToBuildGitFilter?.IsActive() ?? false) {
-
+                    var gitFilterActive = Properties?.BuildOptions?.SourceToBuildGitFilter?.IsActive() ?? false;
+                    if (gitFilterActive) {
                         Log?.Debug("Git filter active.");
+                        
+                        var sourceLister = GetSourceDirectoryFilesLister();
+                        sourceLister.GitFilter = Properties?.BuildOptions?.SourceToBuildGitFilter;
+                        _sourceDirectoryPathListToBuild = sourceLister.GetFileList();
                         
                         if (PreviouslyBuiltPaths != null) {
                             
-                            var nbAdded = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(_sourceDirectoryPathListToBuild, PreviouslyBuiltPaths));
+                            var nbAdded = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(_sourceDirectoryPathListToBuild, PreviouslyBuiltPaths).Where(f => SourceDirectoryCompletePathList.Contains(f)));
                             Log?.If(nbAdded > 0)?.Debug($"Added {nbAdded} files to rebuild because one of their dependencies (i.e. include files) has changed.");
                         }
-
-                    } else if (!FullRebuild && UseIncrementalBuild && PreviouslyBuiltPaths != null) {
-
-                        Log?.Debug("Incremental build active.");
-
-                        // in incremental mode, we are not interested in the files that didn't change, we don't need to rebuild them
-                        _sourceDirectoryPathListToBuild = _sourceDirectoryPathListToBuild.CopyWhere(f => f.State != OeFileState.Unchanged);
-
-                        if (Properties != null) {
-                            var nbAdded = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfTableCrcChanges(Properties.GetEnv(), PreviouslyBuiltPaths));
-                            Log?.If(nbAdded > 0)?.Debug($"Added {nbAdded} files to rebuild because one of their referenced table or sequence has changed.");
-                        }
-
-                        var nbAddedForDepChange = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(_sourceDirectoryPathListToBuild, PreviouslyBuiltPaths));
-                        Log?.If(nbAddedForDepChange > 0)?.Debug($"Added {nbAddedForDepChange} files to rebuild because one of their dependencies (i.e. include files) has changed.");
-
-                        if (Properties?.BuildOptions?.IncrementalBuildOptions?.RebuildFilesWithCompilationErrors ?? OeIncrementalBuildOptions.GetDefaultRebuildFilesWithCompilationErrors()) {
-                            var nbAddedForNotCompiled = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfCompilationErrors(PreviouslyBuiltPaths));
-                            Log?.If(nbAddedForNotCompiled > 0)?.Debug($"Added {nbAddedForNotCompiled} files to rebuild because they did not compile correctly in the previous build.");
-                        }
-
                     } else {
-                        Log?.Debug("Building every source file.");
+                        _sourceDirectoryPathListToBuild = SourceDirectoryCompletePathList;
+                        
+                        if (UseIncrementalBuild && !FullRebuild && PreviouslyBuiltPaths != null) {
+                            Log?.Debug("Incremental build active.");
+
+                            // in incremental mode, we are not interested in the files that didn't change, we don't need to rebuild them
+                            _sourceDirectoryPathListToBuild = _sourceDirectoryPathListToBuild.CopyWhere(f => f.State != OeFileState.Unchanged);
+
+                            if (Properties != null) {
+                                var nbAdded = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfTableCrcChanges(Properties.GetEnv(), PreviouslyBuiltPaths).Where(f => SourceDirectoryCompletePathList.Contains(f)));
+                                Log?.If(nbAdded > 0)?.Debug($"Added {nbAdded} files to rebuild because one of their referenced table or sequence has changed.");
+                            }
+
+                            var nbAddedForDepChange = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfDependenciesModification(_sourceDirectoryPathListToBuild, PreviouslyBuiltPaths).Where(f => SourceDirectoryCompletePathList.Contains(f)));
+                            Log?.If(nbAddedForDepChange > 0)?.Debug($"Added {nbAddedForDepChange} files to rebuild because one of their dependencies (i.e. include files) has changed.");
+
+                            if (Properties?.BuildOptions?.IncrementalBuildOptions?.RebuildFilesWithCompilationErrors ?? OeIncrementalBuildOptions.GetDefaultRebuildFilesWithCompilationErrors()) {
+                                var nbAddedForNotCompiled = _sourceDirectoryPathListToBuild.TryAddRange(IncrementalBuildHelper.GetSourceFilesToRebuildBecauseOfCompilationErrors(PreviouslyBuiltPaths).Where(f => SourceDirectoryCompletePathList.Contains(f)));
+                                Log?.If(nbAddedForNotCompiled > 0)?.Debug($"Added {nbAddedForNotCompiled} files to rebuild because they did not compile correctly in the previous build.");
+                            }
+
+                        } else {
+                            Log?.Debug("Building every source file.");
+                        }
                     }
                     
                     Log?.Debug($"A total of {_sourceDirectoryPathListToBuild.Count} files would need to be (re)built.");
@@ -177,9 +179,8 @@ namespace Oetools.Builder {
         /// </summary>
         internal PathList<IOeFile> SourceDirectoryCompletePathList {
             get {
-                if (SourceDirectoryPathListToBuild != null && _sourceDirectoryCompletePathList == null) {
+                if (_sourceDirectoryCompletePathList == null) {
                     var sourceLister = GetSourceDirectoryFilesLister();
-                    sourceLister.GitFilter = null;
                     _sourceDirectoryCompletePathList = sourceLister.GetFileList();
                 }
                 return _sourceDirectoryCompletePathList;
@@ -191,9 +192,10 @@ namespace Oetools.Builder {
         /// </summary>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="TaskExecutorException"></exception>
-        private IDisposable CompileFiles() {
+        private IDisposable CompileFiles(out PathList<UoeCompiledFile> compiledPath) {
             var filesToCompile = GetFilesToCompile(Tasks);
             if (filesToCompile.Count == 0) {
+                compiledPath = null;
                 return null;
             }
             if (Properties == null) {
@@ -201,7 +203,7 @@ namespace Oetools.Builder {
             }
             try {
                 var compiler = new OeFilesCompiler();
-                _compiledPaths = compiler.CompileFiles(Properties, filesToCompile, CancelToken, Log);
+                compiledPath = compiler.CompileFiles(Properties, filesToCompile, CancelToken, Log);
                 return compiler;
             } catch (Exception e) {
                 throw new TaskExecutorException(this, e.Message, e);
@@ -276,7 +278,7 @@ namespace Oetools.Builder {
         private PathLister GetSourceDirectoryFilesLister() {
             var sourceLister = new PathLister(SourceDirectory, CancelToken) {
                 FilterOptions = Properties?.BuildOptions?.SourceToBuildFilter,
-                GitFilter = Properties?.BuildOptions?.SourceToBuildGitFilter,
+                GitFilter = null,
                 Log = Log
             };
             if (UseIncrementalBuild) {

@@ -127,7 +127,6 @@ namespace Oetools.Builder.Project.Properties {
         public string BuildConfigurationExportFilePath { get; set; }
         public static string GetDefaultBuildConfigurationExportFilePath() => OeBuilderConstants.GetDefaultBuildConfigurationExportFilePath();
 
-        // TODO : test StopBuildOnTaskError
         /// <summary>
         /// Sets whether or not the build must be stopped if a task generates warnings.
         /// </summary>

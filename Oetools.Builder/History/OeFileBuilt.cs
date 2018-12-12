@@ -37,12 +37,25 @@ namespace Oetools.Builder.History {
             sourceFile.DeepCopy(this);
         }
 
+        /// <summary>
+        /// Deep copy the file but with different targets.
+        /// </summary>
+        /// <param name="sourceFile"></param>
+        /// <param name="targets"></param>
+        public OeFileBuilt(IOeFileBuilt sourceFile, List<AOeTarget> targets) {
+            var savedTargets = sourceFile.Targets;
+            sourceFile.Targets = targets;
+            sourceFile.DeepCopy(this);
+            sourceFile.Targets = savedTargets;
+        }
+
         /// <inheritdoc />
         [XmlArray("Targets")]
-        [XmlArrayItem("Copied", typeof(OeTargetFile))]
-        [XmlArrayItem("Prolibed", typeof(OeTargetProlib))]
-        [XmlArrayItem("Zipped", typeof(OeTargetZip))]
-        [XmlArrayItem("Cabbed", typeof(OeTargetCab))]
+        [XmlArrayItem("Cab", typeof(OeTargetCab))]
+        [XmlArrayItem("Copy", typeof(OeTargetFile))]
+        [XmlArrayItem("Ftp", typeof(OeTargetFtp))]
+        [XmlArrayItem("Prolib", typeof(OeTargetProlib))]
+        [XmlArrayItem("Zip", typeof(OeTargetZip))]
         public List<AOeTarget> Targets { get; set; }
         
         /// <inheritdoc />

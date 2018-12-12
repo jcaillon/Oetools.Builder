@@ -42,7 +42,8 @@ namespace Oetools.Builder.Utilities {
         public ILogger Log { private get; set; }
 
         /// <summary>
-        /// Full filtering options for this listing.
+        /// Simple filtering options for this listing.
+        /// See <see cref="FilterOptions"/> for full featured filter.
         /// </summary>
         internal IOeTaskFilter Filter {
             get => _filterOptions ?? _filter;
@@ -56,6 +57,7 @@ namespace Oetools.Builder.Utilities {
 
         /// <summary>
         /// Full filtering options for this listing.
+        /// <see cref="Filter"/> for a simple filter.
         /// </summary>
         public PathListerFilterOptions FilterOptions {
             get => _filterOptions;
@@ -233,7 +235,7 @@ namespace Oetools.Builder.Utilities {
         /// <exception cref="Exception"></exception>
         private void SetFileState(IOeFile oeFile) {
             var previousFile = OutputOptions?.GetPreviousFileImage?.Invoke(oeFile.Path);
-            if (previousFile == null || previousFile.State == OeFileState.Deleted) {
+            if (previousFile == null) {
                 oeFile.State = OeFileState.Added;
             } else {
                 if (HasFileChanged(previousFile, oeFile)) {

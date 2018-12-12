@@ -29,7 +29,7 @@ namespace Oetools.Builder.Project.Task {
     /// This task deletes al the targets present in <see cref="_pathsWithTargetsToRemove"/>, they are
     /// targets that are no longer needed. Those targets were built in the previous build but the targets have changed (or the file itself has been deleted)
     /// </summary>
-    public class AOeTaskTargetsRemover : AOeTask {
+    public class AOeTaskTargetsRemover : AOeTask, IOeTaskWithBuiltFiles {
 
         private PathList<IOeFileBuilt> _builtPaths;
 

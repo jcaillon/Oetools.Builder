@@ -81,15 +81,26 @@ namespace Oetools.Builder.Project.Properties {
         /// </summary>
         /// <example>
         /// On the first build, the file "A" was compiled and copied to location "/bin". A new target "/bin2" is added and a second build is started:
-        /// - If this option is true, the file "A" is recompiled and built into "/bin2/A"
-        /// - If not, nothing happens (the file "A" has not been changed since the last build)
+        /// - If this option is true, the file "A" is recompiled and built into "/bin2/A".
+        /// - If not, nothing happens (the file "A" has not been changed since the last build).
         /// </example>
         [XmlElement(ElementName = "RebuildFilesWithNewTargets")]
         [DefaultValueMethod(nameof(GetDefaultRebuildFilesWithNewTargets))]
         public bool? RebuildFilesWithNewTargets { get; set; }
         public static bool GetDefaultRebuildFilesWithNewTargets() => false;
         
-        //TODO: RebuildFilesWithMissingTargets, rebuild files for which targets are missing
+        /// <summary>
+        /// Sets whether of not the tool should rebuild a file if it some of its targets are missing (the file does not exist anymore).
+        /// </summary>
+        /// <example>
+        /// On the first build, the file "A" was compiled and copied to location "/bin". The file "A" is deleted and a second build is started:
+        /// - If this option is true, the file "A" is recompiled and built into "/bin/A".
+        /// - If not, nothing happens.
+        /// </example>
+        [XmlElement(ElementName = "RebuildFilesWithMissingTargets")]
+        [DefaultValueMethod(nameof(GetDefaultRebuildFilesWithMissingTargets))]
+        public bool? RebuildFilesWithMissingTargets { get; set; }
+        public static bool GetDefaultRebuildFilesWithMissingTargets() => false;
             
         /// <summary>
         /// Sets whether of not the tool should try to rebuild a file if it had compilation errors in the previous build.

@@ -65,7 +65,7 @@ namespace Oetools.Builder.Test.Utilities {
                     }
                 },
                 new OeFileBuilt {
-                    State = OeFileState.Deleted,
+                    State = OeFileState.Modified,
                     Path = "source2",
                     Targets = new List<AOeTarget> {
                         new OeTargetFile {
@@ -96,7 +96,7 @@ namespace Oetools.Builder.Test.Utilities {
                 }
             };
             var filesToBuild = new PathList<IOeFileToBuild> {
-                new OeFile() {
+                new OeFile {
                     State = OeFileState.Unchanged,
                     Path = "source1",
                     TargetsToBuild = new List<AOeTarget> {
@@ -214,13 +214,11 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(2, output.Count);
             
             Assert.AreEqual("/random/source1", output[0].Path);
-            Assert.AreEqual(OeFileState.Deleted, output[0].State);
             Assert.AreEqual("target1", output[0].Targets[0].GetTargetPath());
             Assert.AreEqual("target2", output[0].Targets[1].GetTargetPath());
             Assert.AreEqual(2, output[0].Targets.Count);
             
             Assert.AreEqual("/random/source3", output[1].Path);
-            Assert.AreEqual(OeFileState.Deleted, output[1].State);
             Assert.AreEqual("target1", output[1].Targets[0].GetTargetPath());
             Assert.AreEqual(1, output[1].Targets.Count);
         }

@@ -36,7 +36,7 @@ namespace Oetools.Builder.History {
         /// </summary>
         [XmlIgnore]
         public abstract string FilePathInArchive { get; set; }
-        
+
         public virtual string GetTargetPath() => Path.Combine(ArchiveFilePath, FilePathInArchive);
 
     }

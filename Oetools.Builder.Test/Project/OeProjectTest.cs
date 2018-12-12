@@ -62,7 +62,7 @@ namespace Oetools.Builder.Test.Project {
                                 Name = "third",
                                 BuildConfigurations = new List<OeBuildConfiguration> {
                                     new OeBuildConfiguration {
-                                        Name = "fourth",
+                                        Name = "fourth"
                                     }
                                 }
                             }

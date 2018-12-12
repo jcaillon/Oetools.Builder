@@ -96,9 +96,9 @@ namespace Oetools.Builder.History {
                 }
                 switch (attr.Type) {
                     case BaseDirectoryType.SourceDirectory:
-                        return Path.Combine(sourceDirectory, value.ToCleanPath());
+                        return value.MakePathAbsolute(sourceDirectory);
                     case BaseDirectoryType.OutputDirectory:
-                        return Path.Combine(outputDirectory, value.ToCleanPath());
+                        return value.MakePathAbsolute(outputDirectory);
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

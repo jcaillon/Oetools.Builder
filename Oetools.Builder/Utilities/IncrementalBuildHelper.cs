@@ -100,7 +100,7 @@ namespace Oetools.Builder.Utilities {
         }
         
         /// <summary>
-        /// List of the source file that are otherwise unchanged by need to be rebuild because they have new targets not present in the last build
+        /// List of the source file that are otherwise unchanged but need to be rebuild because they have new targets not present in the last build
         /// </summary>
         /// <param name="filesToBuildWithSetTargets"></param>
         /// <param name="previousFilesBuilt"></param>
@@ -117,6 +117,16 @@ namespace Oetools.Builder.Utilities {
                 }
             }
         }
+        
+        /// <summary>
+        /// List of the source file that are otherwise unchanged but need to be rebuild because they have targets that are missing
+        /// </summary>
+        /// <param name="filesToBuildWithSetTargets"></param>
+        /// <returns></returns>
+        internal static IEnumerable<IOeFileToBuild> GetSourceFilesToRebuildBecauseTheyMissingTargets(PathList<IOeFileToBuild> filesToBuildWithSetTargets) {
+            // TODO: for each file, check if any target is missing, if yes return the file
+            return Enumerable.Empty<IOeFileToBuild>();
+        }
 
         /// <summary>
         /// Get a list of previously built files that are now deleted, their targets should be removed
@@ -125,11 +135,9 @@ namespace Oetools.Builder.Utilities {
         /// <param name="previousFilesBuilt"></param>
         /// <returns></returns>
         internal static IEnumerable<IOeFileBuilt> GetBuiltFilesDeletedSincePreviousBuild(PathList<IOeFile> currentSourceListing, PathList<IOeFileBuilt> previousFilesBuilt) {
-            foreach (var previousFile in previousFilesBuilt.Where(f => f.State != OeFileState.Deleted)) {
+            foreach (var previousFile in previousFilesBuilt) {
                 if (!currentSourceListing.Contains(previousFile.Path)) {
-                    var previousFileCopy = new OeFileBuilt(previousFile) {
-                        State = OeFileState.Deleted
-                    };
+                    var previousFileCopy = new OeFileBuilt(previousFile);
                     yield return previousFileCopy;
                 }
             }
@@ -146,29 +154,21 @@ namespace Oetools.Builder.Utilities {
             foreach (var newFile in currentFilesBuilt.Where(file => file.State == OeFileState.Unchanged || file.State == OeFileState.Modified)) {
                 var previousFile = previousFilesBuilt[newFile.Path];
                 if (previousFile == null) {
-                    throw new Exception($"Could not find the history of a now unchanged or modified file, something is wrong! File: {newFile}");
-                }
-                if (previousFile.State == OeFileState.Deleted) {
                     continue;
                 }
                 finalFileTargets.Clear();
-                bool isFileWithTargetsToDelete = false;
                 var newCreateTargets = newFile.TargetsToBuild.ToNonNullEnumerable().Select(t => t.GetTargetPath()).ToList();
                 foreach (var previousTarget in previousFile.Targets.ToNonNullEnumerable()) {
                     var previousTargetPath = previousTarget.GetTargetPath();
                     if (!newCreateTargets.Exists(target => target.PathEquals(previousTargetPath))) {
-                        // the old target doesn't exist anymore, add it in deletion mode this time
-                        isFileWithTargetsToDelete = true;
+                        // the old target doesn't exist anymore, add it to be deleted.
                         finalFileTargets.Add(previousTarget);
                     }
                 }
-                if (isFileWithTargetsToDelete) {
-                    var originalPreviousFileTargets = previousFile.Targets.ToList();
-                    previousFile.Targets = finalFileTargets;
-                    var previousFileCopy = new OeFileBuilt(previousFile);
-                    previousFile.Targets = originalPreviousFileTargets;
-                    previousFileCopy.State = newFile.State;
-                    yield return previousFileCopy;
+                if (finalFileTargets.Count > 0) {
+                    yield return new OeFileBuilt(previousFile, finalFileTargets) {
+                        State = newFile.State
+                    };
                 }
             }
         }

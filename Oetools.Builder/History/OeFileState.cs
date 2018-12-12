@@ -25,7 +25,6 @@ namespace Oetools.Builder.History {
     public enum OeFileState : byte {
         Added,
         Modified,
-        Deleted,
         Unchanged
     }
 }
