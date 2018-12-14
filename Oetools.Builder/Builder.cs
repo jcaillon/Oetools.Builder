@@ -36,7 +36,6 @@ namespace Oetools.Builder {
     /// A builder to build an openedge project.
     /// </summary>
     public class Builder : IDisposable {
-        private int _stepDoneCount;
 
         /// <summary>
         /// Cancel token.
@@ -204,10 +203,9 @@ namespace Oetools.Builder {
             TotalNumberOfTasks += BuildConfiguration.BuildSteps?.SelectMany(step => step.Tasks.ToNonNullEnumerable()).Count() ?? 0;
             
             if (BuildConfiguration.BuildSteps != null) {
-                _stepDoneCount = 0;
                 
                 foreach (var step in BuildConfiguration.BuildSteps) {
-                    Log?.Info($"{(_stepDoneCount == BuildConfiguration.BuildSteps.Count - 1 ? "└─ " : "├─ ")}Executing {step.ToString().PrettyQuote()}.");
+                    Log?.Info($"Executing {step.ToString().PrettyQuote()}.");
                     
                     BuildStepExecutor executor;
                     switch (step) {
@@ -241,7 +239,6 @@ namespace Oetools.Builder {
                     executor.OnTaskStart -= ExecutorOnOnTaskStart;
                     
                     NumberOfTasksDone += executor.NumberOfTasksDone;
-                    _stepDoneCount++;
                 }
             }
             Log?.ReportGlobalProgress(TotalNumberOfTasks, TotalNumberOfTasks, "Ending step execution.");
@@ -253,7 +250,7 @@ namespace Oetools.Builder {
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void ExecutorOnOnTaskStart(object sender, StepExecutorProgressEventArgs e) {
-            Log?.ReportGlobalProgress(TotalNumberOfTasks, NumberOfTasksDone + e.NumberOfTasksDone, $"{(_stepDoneCount == BuildConfiguration.BuildSteps.Count - 1 ? "   " : "│  ")}{(e.NumberOfTasksDone == e.TotalNumberOfTasks - 1 ? "└─ " : "├─ ")}Executing {e.CurrentTask.PrettyQuote()}.");
+            Log?.ReportGlobalProgress(TotalNumberOfTasks, NumberOfTasksDone + e.NumberOfTasksDone, $"Executing {e.CurrentTask.PrettyQuote()}.");
         }
 
         /// <summary>
