@@ -207,7 +207,7 @@ namespace Oetools.Builder.Project {
                 var parents = parentsAndChildrenList.Item1;
                 var children = parentsAndChildrenList.Item2;
                 foreach (var child in children) {
-                    if (id >= 0 && child.Id.Equals(id) || child.Name.Equals(configurationName, StringComparison.CurrentCultureIgnoreCase)) {
+                    if (id >= 0 && child.Id.Equals(id) || (child.Name?.Equals(configurationName, StringComparison.CurrentCultureIgnoreCase) ?? false)) {
                         buildConfigurationsStack = parents;
                         buildConfigurationsStack.Add(child);
                         found = true;

@@ -47,10 +47,10 @@ namespace Oetools.Builder {
                 base.Dispose();
             } finally {
                 try {
-                    // stop the started databases
+                    // stop the started databases    
                     if (BuildConfiguration.Properties.BuildOptions.ShutdownCompilationDatabasesAfterBuild ?? OeBuildOptions.GetDefaultShutdownCompilationDatabasesAfterBuild()) {
                         Log?.Debug("Shutting down database after the build.");
-                        _projectDbAdmin.ShutdownAllDatabases();
+                        _projectDbAdmin?.ShutdownAllDatabases();
                     }
                 } catch (Exception e) {
                     Log?.Error($"Error while shutting down the project databases: {e.Message}.", e);
