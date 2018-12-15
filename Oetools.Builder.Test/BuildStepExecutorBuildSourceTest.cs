@@ -30,6 +30,7 @@ using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Test {
     
@@ -97,9 +98,9 @@ namespace Oetools.Builder.Test {
             // this should not throw exception since we don't want the build to stop on compilation error
             taskExecutor.Execute();
             
-            Assert.AreEqual(1, taskCompile.Files.Count, "only file1.r will be copied");
+            Assert.AreEqual(2, taskCompile.Files.Count);
             Assert.AreEqual(1, taskCompile.GetCompiledFiles().Count(cf => cf.CompiledCorrectly), "we should have only one file compiled correctly");
-            var taskTargets = taskCompile.Files.SelectMany(f => f.TargetsToBuild).ToList();
+            var taskTargets = taskCompile.Files.SelectMany(f => f.TargetsToBuild.ToNonNullEnumerable()).ToList();
             Assert.AreEqual(1, taskTargets.Count, "we expect only 1 target because the file that didn't compile was no included");
             Assert.IsTrue(taskTargets.Exists(t => t.GetTargetPath().Equals(Path.Combine(TestFolder, "source2", "bin", @"file1.r"))));
             
