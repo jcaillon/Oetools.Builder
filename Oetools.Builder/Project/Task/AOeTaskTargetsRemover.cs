@@ -29,14 +29,14 @@ namespace Oetools.Builder.Project.Task {
     /// This task deletes al the targets present in <see cref="_pathsWithTargetsToRemove"/>, they are
     /// targets that are no longer needed. Those targets were built in the previous build but the targets have changed (or the file itself has been deleted)
     /// </summary>
-    public class AOeTaskTargetsRemover : AOeTask, IOeTaskWithBuiltFiles {
-
-        private PathList<IOeFileBuilt> _builtPaths;
+    public class AOeTaskTargetsRemover : AOeTask {
 
         /// <summary>
         /// a list of files with targets to remove
         /// </summary>
         private PathList<IOeFileBuilt> _pathsWithTargetsToRemove;
+        
+        public PathList<IOeFileBuilt> GetRemovedTargets() => _pathsWithTargetsToRemove;
 
         public void SetFilesWithTargetsToRemove(PathList<IOeFileBuilt> pathsWithTargetsToRemove) {
             _pathsWithTargetsToRemove = pathsWithTargetsToRemove;
@@ -51,21 +51,17 @@ namespace Oetools.Builder.Project.Task {
         protected sealed override void ExecuteInternal() {
             var targetsToRemove = _pathsWithTargetsToRemove.SelectMany(f => f.Targets).ToList();
             ExecuteTargetsRemoval(targetsToRemove);
-            _builtPaths = _pathsWithTargetsToRemove;
         }
 
         /// <inheritdoc cref="AOeTask.ExecuteTestModeInternal"/>
         protected override void ExecuteTestModeInternal() {
-            _builtPaths = _pathsWithTargetsToRemove;
+            
         }
 
         private void ExecuteTargetsRemoval(List<AOeTarget> targetsToRemove) {
             var archiveTargets = targetsToRemove;
             Log?.Debug("Deleting all archive targets.");
         }
-
-        /// <inheritdoc cref="IOeTaskWithBuiltFiles.GetBuiltFiles"/>
-        public PathList<IOeFileBuilt> GetBuiltFiles() => _builtPaths;
 
     }
 }

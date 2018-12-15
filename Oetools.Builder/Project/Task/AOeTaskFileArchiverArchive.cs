@@ -138,23 +138,16 @@ namespace Oetools.Builder.Project.Task {
         }
         
         /// <summary>
-        /// Returns a file built from a file to build, should be called when the action is done for the source file.
-        /// In case of a compiled file, this also sets output properties to the file built (db references and required files).
+        /// Adds all the files to build to the built files list,
+        /// this method is executed instead of <see cref="AOeTask.ExecuteInternal"/> when test mode is on.
         /// </summary>
-        /// <param name="sourceFile"></param>
-        /// <returns></returns>
-        protected OeFileBuilt GetNewFileBuilt(IOeFile sourceFile) {
-            if (this is IOeTaskCompile thisOeTaskCompile) {
-                var newFileBuilt = new OeFileBuilt(sourceFile);
-                var compiledFile = thisOeTaskCompile.GetCompiledFiles()?[sourceFile.Path];
-                if (compiledFile != null) {
-                    newFileBuilt.RequiredFiles = compiledFile.RequiredFiles?.ToList();
-                    newFileBuilt.RequiredDatabaseReferences = compiledFile.RequiredDatabaseReferences?.Select(OeDatabaseReference.New).ToList();
-                }
-                newFileBuilt.Targets = null;
-                return newFileBuilt;
+        protected override void ExecuteTestModeInternal() {
+            _builtFiles = new PathList<IOeFileBuilt>();
+            foreach (var file in GetFilesToBuild()) {
+                var fileBuilt = GetNewFileBuilt(file);
+                fileBuilt.Targets = file.TargetsToBuild?.ToList();
+                _builtFiles.Add(fileBuilt);
             }
-            return new OeFileBuilt(sourceFile);
         }
 
         /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
@@ -189,7 +182,7 @@ namespace Oetools.Builder.Project.Task {
         /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
         protected virtual void ExecuteInternalArchive() {
             
-            var filesToArchive = _filesToBuild.SelectMany(f => f.TargetsToBuild.Select(t => new FileToArchive(t.ArchiveFilePath, t.FilePathInArchive, f.PathForTaskExecution, f.Path))).ToList();
+            var filesToArchive = _filesToBuild.SelectMany(f => f.TargetsToBuild.ToNonNullEnumerable().Select(t => new FileToArchive(t.ArchiveFilePath, t.FilePathInArchive, f.PathForTaskExecution, f.Path))).ToList();
                 
             Log?.Trace?.Write($"Processing {filesToArchive.Count} files.");
             
@@ -208,20 +201,46 @@ namespace Oetools.Builder.Project.Task {
         private void AddBuiltFiles(IEnumerable<FileToArchive> filesToArchive) {
             // set the files + targets that were actually built
             _builtFiles = new PathList<IOeFileBuilt>();
-            foreach (var file in filesToArchive.Where(file => file.Processed)) {
+            foreach (var file in filesToArchive) {
                 var builtFile = _builtFiles[file.ActualSourcePath];
                 if (builtFile == null) {
                     builtFile = GetNewFileBuilt(_filesToBuild[file.ActualSourcePath]);
                     _builtFiles.Add(builtFile);
                 }
-                if (builtFile.Targets == null) {
-                    builtFile.Targets = new List<AOeTarget>();
+
+                // file processed, add targets
+                if (file.Processed) {
+                    if (builtFile.Targets == null) {
+                        builtFile.Targets = new List<AOeTarget>();
+                    }
+                    var target = GetNewTarget();
+                    target.ArchiveFilePath = file.ArchivePath;
+                    target.FilePathInArchive = file.PathInArchive;
+                    builtFile.Targets.Add(target);
                 }
-                var target = GetNewTarget();
-                target.ArchiveFilePath = file.ArchivePath;
-                target.FilePathInArchive = file.PathInArchive;
-                builtFile.Targets.Add(target);
             }
+        }
+        
+        /// <summary>
+        /// Returns a file built from a file to build, should be called when the action is done for the source file.
+        /// In case of a compiled file, this also sets output properties to the file built (db references and required files).
+        /// </summary>
+        /// <param name="sourceFile"></param>
+        /// <returns></returns>
+        private OeFileBuilt GetNewFileBuilt(IOeFile sourceFile) {
+            if (this is IOeTaskCompile thisOeTaskCompile) {
+                var newFileBuilt = new OeFileBuilt(sourceFile);
+                var compiledFile = thisOeTaskCompile.GetCompiledFiles()?[sourceFile.Path];
+                if (compiledFile != null) {
+                    newFileBuilt.RequiredFiles = compiledFile.RequiredFiles?.ToList();
+                    newFileBuilt.RequiredDatabaseReferences = compiledFile.RequiredDatabaseReferences?.Select(OeDatabaseReference.New).ToList();
+                    if (compiledFile.CompilationProblems != null && compiledFile.CompilationProblems.Count > 0) {
+                        newFileBuilt.CompilationProblems = compiledFile.CompilationProblems.Select(AOeCompilationProblem.New).ToList();
+                    }
+                }
+                return newFileBuilt;
+            }
+            return new OeFileBuilt(sourceFile);
         }
         
         protected void ArchiverOnProgress(object sender, ArchiverEventArgs args) {
@@ -241,19 +260,6 @@ namespace Oetools.Builder.Project.Task {
                 SourcePath = sourcePath;
                 ActualSourcePath = actualSourcePath;
                 Processed = false;
-            }
-        }
-        
-        /// <summary>
-        /// Adds all the files to build to the built files list,
-        /// this method is executed instead of <see cref="AOeTask.ExecuteInternal"/> when test mode is on.
-        /// </summary>
-        protected override void ExecuteTestModeInternal() {
-            _builtFiles = new PathList<IOeFileBuilt>();
-            foreach (var file in GetFilesToBuild()) {
-                var fileBuilt = GetNewFileBuilt(file);
-                fileBuilt.Targets = file.TargetsToBuild.ToList();
-                _builtFiles.Add(fileBuilt);
             }
         }
 

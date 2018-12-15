@@ -65,7 +65,7 @@ namespace Oetools.Builder {
             
             // Prepare all the project databases
             var databasesBaseDir = Path.Combine(OeBuilderConstants.GetProjectDirectoryLocalDb(BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath), BuildConfiguration.Id.ToString());
-            _projectDbAdmin = new ProjectDatabaseAdministrator(BuildConfiguration.Properties.DlcDirectoryPath, BuildConfiguration.Properties.ProjectDatabases, databasesBaseDir) {
+            _projectDbAdmin = new ProjectDatabaseAdministrator(BuildConfiguration.Properties.DlcDirectoryPath, BuildConfiguration.Properties.ProjectDatabases, databasesBaseDir, BuildConfiguration.Properties.GetEnv().GetIoEncoding()) {
                 Log = Log,
                 AllowsDatabaseShutdownWithKill = BuildConfiguration.Properties.BuildOptions.AllowDatabaseShutdownByProcessKill,
                 NumberOfUsersPerDatabase = OeCompilationOptions.GetNumberOfProcessesToUse(BuildConfiguration.Properties.CompilationOptions)

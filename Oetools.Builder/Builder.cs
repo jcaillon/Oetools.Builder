@@ -69,26 +69,13 @@ namespace Oetools.Builder {
             .SelectMany(file => file.CompilationProblems.ToNonNullEnumerable())
             .Select(AOeCompilationProblem.New)
             .ToList();
+
+        public PathList<IOeFileBuilt> GetAllFilesBuilt() => GetAllFilesBuiltMerged(te => true, task => !(task is AOeTaskTargetsRemover));
         
-        public List<IOeFileBuilt> GetAllFilesBuilt() => BuildStepExecutors
-            .SelectMany(te => te.Tasks)
-            .Where(task => !(task is AOeTaskTargetsRemover))
-            .OfType<IOeTaskWithBuiltFiles>()
-            .SelectMany(t => t.GetBuiltFiles().ToNonNullEnumerable())
-            //.GroupBy(f => f.Path)
-            //.Select(group => {
-            //    var first
-            //    foreach (var file in group) {
-            //        
-            //    }
-            //})
-            .ToList();
-        
-        public List<IOeFileBuilt> GetAllFilesWithTargetRemoved() => BuildStepExecutors
-            .SelectMany(te => te.Tasks)
+        public PathList<IOeFileBuilt> GetAllFilesWithTargetRemoved() => OeFileBuilt.MergeBuiltFilesTargets(BuildStepExecutors
+            .SelectMany(exec => exec.Tasks.ToNonNullEnumerable())
             .OfType<AOeTaskTargetsRemover>()
-            .SelectMany(t => t.GetBuiltFiles().ToNonNullEnumerable())
-            .ToList();
+            .SelectMany(t => t.GetRemovedTargets().ToNonNullEnumerable()));
         
         /// <summary>
         /// A list of all the task exceptions that occured during the build.
@@ -120,7 +107,7 @@ namespace Oetools.Builder {
         /// <param name="buildConfigurationName"></param>
         public Builder(OeProject project, string buildConfigurationName = null) {
             // make a copy of the build configuration
-            BuildConfiguration = project.GetBuildConfigurationCopy(buildConfigurationName) ?? project.GetDefaultBuildConfigurationCopy();
+            BuildConfiguration = project.GetConfiguration(buildConfigurationName) ?? project.GetDefaultBuildConfigurationCopy();
             BuildConfiguration.SetDefaultValues();
         }
 
@@ -296,100 +283,51 @@ namespace Oetools.Builder {
             };
             return history;
         }
+
+        private PathList<IOeFileBuilt> GetAllFilesBuiltMerged(Func<BuildStepExecutor, bool> stepSelector, Func<IOeTask, bool> taskSelector) {
+            return OeFileBuilt.MergeBuiltFilesTargets(BuildStepExecutors
+                .Where(stepSelector)
+                .SelectMany(exec => exec.Tasks.ToNonNullEnumerable())
+                .Where(taskSelector)
+                .OfType<IOeTaskWithBuiltFiles>()
+                .SelectMany(t => t.GetBuiltFiles().ToNonNullEnumerable()));
+        }
         
         /// <summary>
         /// Returns a list of all the files built.
         /// </summary>
         /// <returns></returns>
         private PathList<IOeFileBuilt> GetBuiltFilesHistory() {
-            var builtFiles = new PathList<IOeFileBuilt>();
-            
             var sourceDirectoryCompletePathList = BuildStepExecutors.OfType<BuildStepExecutorBuildSource>().LastOrDefault()?.SourceDirectoryCompletePathList;
             if (sourceDirectoryCompletePathList == null) {
-                return builtFiles;
+                return new PathList<IOeFileBuilt>();
             }
-
-            // add all the built files
+            
+            // add all the source files built.
+            var builtFiles = GetAllFilesBuiltMerged(te => te is BuildStepExecutorBuildSource, task => !(task is AOeTaskTargetsRemover));
+            
+            // add unchanged files for which we deleted targets.
             foreach (var fileBuilt in BuildStepExecutors
-                .Where(te => te is BuildStepExecutorBuildSource)
                 .SelectMany(exec => exec.Tasks.ToNonNullEnumerable())
-                .Where(task => !(task is AOeTaskTargetsRemover))
-                .OfType<IOeTaskWithBuiltFiles>()
+                .OfType<OeTaskReflectDeletedTargets>()
                 .SelectMany(t => t.GetBuiltFiles().ToNonNullEnumerable())) {
-                
-                //// keep only the targets that are in the output directory, we won't be able to "undo" the others so it would be useless to keep them.
-                //var targetsOutputDirectory = fileBuilt.Targets
-                //    .Where(t => t.GetTargetPath().StartsWith(outputDirectory, StringComparison.Ordinal))
-                //    .ToList();
-                
-                var historyFileBuilt = builtFiles[fileBuilt];
-                if (historyFileBuilt == null) {
-                    // add a deep copy with no targets.
-                    historyFileBuilt = new OeFileBuilt(fileBuilt, new List<AOeTarget>());
-                    builtFiles.Add(historyFileBuilt);
-                }
-                //TODO: case of file.p first copied then compiled, we will not keep the required file/reference tables in that case!!!!
-                historyFileBuilt.Targets.AddRange(fileBuilt.Targets);
-            }
-            
-            // add all compilation problems
-            foreach (var file in BuildStepExecutors
-                .Where(te => te is BuildStepExecutorBuildSource)
-                .SelectMany(exec => exec.Tasks.ToNonNullEnumerable())
-                .OfType<IOeTaskCompile>()
-                .SelectMany(task => task.GetCompiledFiles().ToNonNullEnumerable())) {
-                if (file.CompilationProblems == null || file.CompilationProblems.Count == 0) {
-                    continue;
-                }
-                if (!builtFiles.Contains(file.Path)) {
-                    // not yet in the built files list because it was not compiled successfully
-                    var sourceFileCompiled = sourceDirectoryCompletePathList[file.Path];
-                    if (sourceFileCompiled == null) {
-                        continue;
-                    }
-                    var fileCompiledWithError = new OeFileBuilt(sourceFileCompiled) {
-                        RequiredFiles = file.RequiredFiles?.ToList(), 
-                        RequiredDatabaseReferences = file.RequiredDatabaseReferences?.Select(OeDatabaseReference.New).ToList()
-                    };
-                    builtFiles.Add(fileCompiledWithError);
-                }
-                var compiledFile = builtFiles[file.Path];
-                compiledFile.CompilationProblems = new List<AOeCompilationProblem>();
-                foreach (var problem in file.CompilationProblems) {
-                    compiledFile.CompilationProblems.Add(AOeCompilationProblem.New(problem));
+                // if the built list already contains this file, it means it has been rebuilt so it already has the right targets.
+                if (!builtFiles.Contains(fileBuilt)) {
+                    builtFiles.Add(new OeFileBuilt(fileBuilt));
                 }
             }
             
-            // add all the files that were not rebuild from the previous build history
+            // add all the files that were not rebuild from the previous build history.
             if (PreviouslyBuiltPaths != null) {
-                var filesWithRemovedTargets = BuildStepExecutors
-                    .Where(te => te is BuildStepExecutorBuildSource)
-                    .SelectMany(exec => exec.Tasks.ToNonNullEnumerable())
-                    .OfType<OeTaskReflectDeletedTargets>()
-                    .SelectMany(t => t.GetBuiltFiles().ToNonNullEnumerable())
-                    .GroupBy(file => file.Path)
-                    .ToDictionary(files => files.Key, StringComparer.OrdinalIgnoreCase);
-                
                 foreach (var previousFile in PreviouslyBuiltPaths.Where(oldFile => !builtFiles.Contains(oldFile) && sourceDirectoryCompletePathList.Contains(oldFile.Path))) {
                     var previousFileCopy = new OeFileBuilt(previousFile) {
                         State = OeFileState.Unchanged
                     };
-                    if (filesWithRemovedTargets.ContainsKey(previousFileCopy.Path)) {
-                        // file has removed targets
-                        var removedTargets = filesWithRemovedTargets[previousFileCopy.Path]?
-                            .SelectMany(file => file.Targets.ToNonNullEnumerable())
-                            .ToList();
-                        if (removedTargets != null && removedTargets.Count > 0) {
-                            previousFileCopy.Targets.RemoveAll(target => removedTargets.Exists(rt => {
-                                return rt.GetType() == target.GetType() && rt.GetTargetPath().PathEquals(target.GetTargetPath());
-                            }));
-                        }
-                    }
                     builtFiles.Add(previousFileCopy);
                 }
             }
             
-            // finally, add all the required files
+            // finally, add all the required files.
             foreach (var requiredFile in builtFiles.SelectMany(f => f.RequiredFiles.ToNonNullEnumerable()).Where(reqFile => !builtFiles.Contains(reqFile)).ToList()) {
                 var sourceFileRequired = sourceDirectoryCompletePathList[requiredFile];
                 if (sourceFileRequired == null) {
@@ -398,7 +336,7 @@ namespace Oetools.Builder {
                 builtFiles.Add(new OeFileBuilt(sourceFileRequired));
             }
         
-            // also ensures that all files have HASH info
+            // also ensures that all files have HASH info.
             if (UseIncrementalBuild && StoreSourceHash) {
                 foreach (var fileBuilt in builtFiles) {
                     PathLister.SetFileHash(fileBuilt);

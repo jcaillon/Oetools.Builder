@@ -18,13 +18,14 @@
 // ========================================================================
 #endregion
 using System;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Utilities {
     
     /// <summary>
     /// Log stuff happening in the program.
     /// </summary>
-    public interface ILogger {
+    public interface ILogger : ILog {
         
         /// <summary>
         /// Log a fatal error.
@@ -34,39 +35,11 @@ namespace Oetools.Builder.Utilities {
         void Fatal(string message, Exception e = null);
         
         /// <summary>
-        /// Log an error.
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="e"></param>
-        void Error(string message, Exception e = null);
-        
-        /// <summary>
-        /// Log a warning.
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="e"></param>
-        void Warn(string message, Exception e = null);
-        
-        /// <summary>
         /// Log a thing done.
         /// </summary>
         /// <param name="message"></param>
         /// <param name="e"></param>
         void Done(string message, Exception e = null);
-        
-        /// <summary>
-        /// Log an information.
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="e"></param>
-        void Info(string message, Exception e = null);
-        
-        /// <summary>
-        /// Log a debug message.
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="e"></param>
-        void Debug(string message, Exception e = null);
         
         /// <summary>
         /// Returns a trace logger that allows to write debug traces. Only if debug mode is active.

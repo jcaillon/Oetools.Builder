@@ -32,6 +32,7 @@ using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
+using Oetools.Utilities.Openedge.Database;
 
 namespace Oetools.Builder.Test {
     
@@ -289,9 +290,9 @@ namespace Oetools.Builder.Test {
 
             var filesBuilt = builder.GetAllFilesBuilt();
             
-            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "copied_w", "file2.w"), filesBuilt[0].Targets[0].GetTargetPath());
-            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "my.pl", "file1.r"), filesBuilt[1].Targets[0].GetTargetPath());
-            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "copied_ext", "file3.ext"), filesBuilt[2].Targets[0].GetTargetPath());
+            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "copied_w", "file2.w"), filesBuilt.ElementAt(0).Targets[0].GetTargetPath());
+            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "my.pl", "file1.r"), filesBuilt.ElementAt(1).Targets[0].GetTargetPath());
+            Assert.AreEqual(Path.Combine(builder.BuildConfiguration.Properties.BuildOptions.OutputDirectoryPath, "copied_ext", "file3.ext"), filesBuilt.ElementAt(2).Targets[0].GetTargetPath());
         }
 
         [TestMethod]
@@ -421,6 +422,50 @@ namespace Oetools.Builder.Test {
             
             Assert.AreEqual(4, builder.BuildSourceHistory.BuiltFiles.Count, "4 files in history.");
             Assert.AreEqual(2, builder.BuildSourceHistory.BuiltFiles.SelectMany(f => f.Targets.ToNonNullEnumerable()).Count(), "only two targets because only 2 files compiled.");
+
+            builder.Dispose();        
+            
+        }
+
+        [TestMethod]
+        public void Builder_Test_Source_History_Keep_Compilation_Info() {
+            if (!TestHelper.GetDlcPath(out string dlc)) {
+                return;
+            }
+            
+            var sourceDirectory = Path.Combine(TestFolder, "source_test_history_keep_compilation_info");
+            Utils.CreateDirectoryIfNeeded(sourceDirectory);
+            File.WriteAllText(Path.Combine(sourceDirectory, "file1.p"), "{inc1.i}");
+            File.WriteAllText(Path.Combine(sourceDirectory, "inc1.i"), "FIND FIRST table1. CURRENT-VALUE(sequence1). quit.");
+            File.WriteAllText(Path.Combine(sourceDirectory, "base.df"), "ADD SEQUENCE \"sequence1\"\n  INITIAL 0\n  INCREMENT 1\n  CYCLE-ON-LIMIT no\n\nADD TABLE \"table1\"\n  AREA \"Schema Area\"\n  DESCRIPTION \"table one\"\n  DUMP-NAME \"table1\"\n\nADD FIELD \"field1\" OF \"table1\" AS character \n  DESCRIPTION \"field one\"\n  FORMAT \"x(8)\"\n  INITIAL \"\"\n  POSITION 2\n  MAX-WIDTH 16\n  ORDER 10\n\nADD INDEX \"idx_1\" ON \"table1\" \n  AREA \"Schema Area\"\n  PRIMARY\n  INDEX-FIELD \"field1\" ASCENDING");
+
+            using (var dbAdmin = new UoeDatabaseAdministrator(dlc)) {
+                dbAdmin.CreateCompilationDatabaseFromDf(Path.Combine(sourceDirectory, "base.db"), Path.Combine(sourceDirectory, "base.df"));
+            }
+
+            var builder = new Builder(new OeBuildConfiguration {
+                BuildSteps = new List<AOeBuildStep> {
+                    new OeBuildStepBuildSource {
+                        Tasks = new List<AOeTask> {
+                            new OeTaskFileTargetFileCopy2 { Include = "**file1.p", TargetDirectory = "" },
+                            new OeTaskFileTargetFileCompile2 { Include = "**file1.p", TargetDirectory = "" }
+                        }
+                    }
+                },
+                Properties = new OeProperties {
+                    BuildOptions = new OeBuildOptions {
+                        SourceDirectoryPath = sourceDirectory
+                    },
+                    ExtraDatabaseConnectionString = UoeDatabaseOperator.GetSingleUserConnectionString(Path.Combine(sourceDirectory, "base.db"))
+                }
+            });
+
+            builder.Build();
+            
+            Assert.AreEqual(2, builder.BuildSourceHistory.BuiltFiles.Count, "2 files in history.");
+            Assert.AreEqual(1, builder.BuildSourceHistory.BuiltFiles[0].RequiredFiles.Count);
+            Assert.AreEqual(2, builder.BuildSourceHistory.BuiltFiles[0].RequiredDatabaseReferences.Count);
+            Assert.AreEqual(2, builder.BuildSourceHistory.BuiltFiles.SelectMany(f => f.Targets.ToNonNullEnumerable()).Count());
 
             builder.Dispose();        
             

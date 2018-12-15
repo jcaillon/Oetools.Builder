@@ -53,6 +53,11 @@ namespace Oetools.Builder.Utilities {
         public bool? AllowsDatabaseShutdownWithKill { get; set; }
         
         /// <summary>
+        /// The encoding to use for I/O of the openedge executables.
+        /// </summary>
+        public Encoding Encoding { get; } = Encoding.Default;
+        
+        /// <summary>
         /// The logger to use.
         /// </summary>
         public ILogger Log { protected get; set; }
@@ -75,8 +80,9 @@ namespace Oetools.Builder.Utilities {
         /// <param name="dlcDirectory"></param>
         /// <param name="projectDatabases"></param>
         /// <param name="projectDatabaseDirectory"></param>
+        /// <param name="encoding"></param>
         /// <exception cref="ProjectDatabaseAdministratorException"></exception>
-        public ProjectDatabaseAdministrator(string dlcDirectory, List<OeProjectDatabase> projectDatabases, string projectDatabaseDirectory) {
+        public ProjectDatabaseAdministrator(string dlcDirectory, List<OeProjectDatabase> projectDatabases, string projectDatabaseDirectory, Encoding encoding = null) {
             if (string.IsNullOrEmpty(projectDatabaseDirectory)) {
                 throw new ArgumentNullException(nameof(projectDatabaseDirectory));
             }
@@ -85,8 +91,11 @@ namespace Oetools.Builder.Utilities {
             }
             ProjectDatabases = projectDatabases;
             ProjectDatabaseDirectory = projectDatabaseDirectory;
+            if (encoding != null) {
+                Encoding = encoding;
+            }
             try {
-                DbAdmin = new UoeDatabaseAdministrator(dlcDirectory);
+                DbAdmin = new UoeDatabaseAdministrator(dlcDirectory, encoding);
             } catch (Exception e) {
                 throw new ProjectDatabaseAdministratorException($"Error initiating the database administrator for the project: {e.Message}.", e);
             }

@@ -19,7 +19,10 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
+using Oetools.Builder.History;
+using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {
     
@@ -36,7 +39,15 @@ namespace Oetools.Builder.Project.Task {
     /// </example>
     [Serializable]
     [XmlRoot("ReflectDeletedTargets")]
-    public class OeTaskReflectDeletedTargets : AOeTaskTargetsRemover {
+    public class OeTaskReflectDeletedTargets : AOeTaskTargetsRemover, IOeTaskWithBuiltFiles {
+
+        private PathList<IOeFileBuilt> _builtPaths;
         
+        public void SetFilesBuilt(PathList<IOeFileBuilt> previousFilesBuiltUnchangedWithUpdatedTargets) {
+            _builtPaths = previousFilesBuiltUnchangedWithUpdatedTargets;
+        }
+
+        /// <inheritdoc cref="IOeTaskWithBuiltFiles.GetBuiltFiles"/>
+        public PathList<IOeFileBuilt> GetBuiltFiles() => _builtPaths;
     }
 }

@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using Oetools.Builder.Utilities.Attributes;
+using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.History {
@@ -75,5 +76,42 @@ namespace Oetools.Builder.History {
         [XmlArrayItem("Error", typeof(OeCompilationError))]
         [XmlArrayItem("Warning", typeof(OeCompilationWarning))]
         public List<AOeCompilationProblem> CompilationProblems { get; set; }
+
+        /// <summary>
+        /// Takes several files built and returns a <see cref="PathList{T}"/>. If a file is defined several times, its targets are merged into the final file returned.
+        /// </summary>
+        /// <param name="filesBuilt"></param>
+        /// <returns></returns>
+        public static PathList<IOeFileBuilt> MergeBuiltFilesTargets(IEnumerable<IOeFileBuilt> filesBuilt) {
+            
+            var output = new PathList<IOeFileBuilt>();
+
+            foreach (var fileBuilt in filesBuilt) {
+                var historyFileBuilt = output[fileBuilt];
+                if (historyFileBuilt == null) {
+                    historyFileBuilt = new OeFileBuilt();
+                    fileBuilt.DeepCopy<IOeFile>(historyFileBuilt);
+                    output.Add(historyFileBuilt);
+                }
+
+                // append targets
+                if (fileBuilt.Targets != null && fileBuilt.Targets.Count > 0) {
+                    (historyFileBuilt.Targets ?? (historyFileBuilt.Targets = new List<AOeTarget>())).AddRange(fileBuilt.Targets);
+                }
+                
+                // set other properties if they do not exist yet
+                if (historyFileBuilt.RequiredFiles == null) {
+                    historyFileBuilt.RequiredFiles = fileBuilt.RequiredFiles;
+                }
+                if (historyFileBuilt.RequiredDatabaseReferences == null) {
+                    historyFileBuilt.RequiredDatabaseReferences = fileBuilt.RequiredDatabaseReferences;
+                }
+                if (historyFileBuilt.CompilationProblems == null) {
+                    historyFileBuilt.CompilationProblems = fileBuilt.CompilationProblems;
+                }
+            }
+
+            return output;
+        }
     }
 }

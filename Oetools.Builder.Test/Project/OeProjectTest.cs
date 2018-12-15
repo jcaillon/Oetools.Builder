@@ -183,7 +183,7 @@ namespace Oetools.Builder.Test.Project {
             queue.Enqueue(new Tuple<string, string>(project2Path, "fourth"));
             queue.Enqueue(new Tuple<string, string>(project3Path, "sixth"));
 
-            OeBuildConfiguration conf = OeProject.GetBuildConfigurationCopy(queue);
+            OeBuildConfiguration conf = OeProject.GetConfiguration(queue);
             
             Assert.AreEqual(2, conf.Variables.Count);
             Assert.AreEqual("sixth", conf.Name);
@@ -281,7 +281,12 @@ namespace Oetools.Builder.Test.Project {
             project.InitIds();
 
             for (int i = 0; i < 2; i++) {
-                OeBuildConfiguration conf = project.GetBuildConfigurationCopy(i == 0 ? "fourth" : "4");
+                OeBuildConfiguration conf;
+                if (i == 0) {
+                    conf = project.GetConfiguration("fourth");
+                } else {
+                    conf = project.GetConfiguration(4);
+                }
 
                 Assert.IsNotNull(conf, i == 0 ? "Can find a configuration from name." : "Can find a configuration from id.");
                 

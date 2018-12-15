@@ -86,6 +86,17 @@ namespace Oetools.Builder.Project.Properties {
         /// </example>
         [XmlElement(ElementName = "ExtraDatabaseConnectionString")]
         public string ExtraDatabaseConnectionString { get; set; }
+        
+        /// <summary>
+        /// Indicates if this tool should automatically add a max connection try of 1 (-ct 1 parameter) to the connection strings.
+        /// </summary>
+        /// <remarks>
+        /// This allows to quickly fail if a database is unavailable instead of letting the openedge client try to connect multiple times.
+        /// </remarks>
+        [XmlElement(ElementName = "AppendMaxConnectionTryToConnectionString")]
+        [DefaultValueMethod(nameof(GetDefaultAppendMaxConnectionTryToConnectionString))]
+        public bool? AppendMaxConnectionTryToConnectionString { get; set; }
+        public static bool GetDefaultAppendMaxConnectionTryToConnectionString() => true;
 
         /// <summary>
         /// A list of database aliases needed in your project (couple of logical name + alias name).
@@ -413,7 +424,7 @@ namespace Oetools.Builder.Project.Properties {
                     UseProgressCharacterMode = UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable(),
                     DatabaseAliases = DatabaseAliases,
                     DatabaseConnectionString = ExtraDatabaseConnectionString,
-                    DatabaseConnectionStringAppendMaxTryOne = true,
+                    DatabaseConnectionStringAppendMaxTryOne = AppendMaxConnectionTryToConnectionString ?? GetDefaultAppendMaxConnectionTryToConnectionString(),
                     DlcDirectoryPath = DlcDirectoryPath.TakeDefaultIfNeeded(GetDefaultDlcDirectoryPath()),
                     IniFilePath = IniFilePath,
                     PostExecutionProgramPath = ProcedureToExecuteAfterAnyProgressExecutionFilePath,

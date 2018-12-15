@@ -51,8 +51,8 @@ namespace Oetools.Builder.Utilities {
                     // change the source file to copy from
                     file.PathForTaskExecution = compiledFile.CompilationRcodeFilePath;
                 } else {
-                    // the file didn't compile, we delete it from the list
-                    originalPaths.Remove(file);
+                    // the file didn't compile, we remove its targets
+                    file.TargetsToBuild = null;
                 }
             }
             return originalPaths;

@@ -81,7 +81,7 @@ namespace Oetools.Builder.Project.Task {
         /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
         protected override void ExecuteInternalArchive() {
             
-            var filesToArchive = GetFilesToBuild().SelectMany(f => f.TargetsToBuild.Select(t => new FileInArchiveToMove(null, f.PathForTaskExecution, t.FilePathInArchive, f.Path))).ToList();
+            var filesToArchive = GetFilesToBuild().SelectMany(f => f.TargetsToBuild.ToNonNullEnumerable().Select(t => new FileInArchiveToMove(null, f.PathForTaskExecution, t.FilePathInArchive, f.Path))).ToList();
                 
             Log?.Trace?.Write($"Processing {filesToArchive.Count} files.");
             

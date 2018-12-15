@@ -186,15 +186,34 @@ namespace Oetools.Builder.Project {
 
         /// <summary>
         /// Returns a copy of the first build configuration with the given name, or null if not found.
+        /// A copy of the configuration is returned, where parent inheritance has been applied.
         /// </summary>
         /// <param name="configurationName"></param>
         /// <returns></returns>
-        public OeBuildConfiguration GetBuildConfigurationCopy(string configurationName) {
-            if (configurationName == null) {
+        public OeBuildConfiguration GetConfiguration(string configurationName) {
+            return GetConfiguration(configurationName, null);
+        }
+
+        /// <summary>
+        /// Returns a copy of the first build configuration with the given id, or null if not found.
+        /// A copy of the configuration is returned, where parent inheritance has been applied.
+        /// </summary>
+        /// <param name="configurationId"></param>
+        /// <returns></returns>
+        public OeBuildConfiguration GetConfiguration(int configurationId) {
+            return GetConfiguration(null, configurationId);
+        }
+
+        /// <summary>
+        /// Returns a copy of the first build configuration with the given name or the given id or null if not found.
+        /// A copy of the configuration is returned, where parent inheritance has been applied.
+        /// </summary>
+        /// <param name="configurationName"></param>
+        /// <param name="configurationId"></param>
+        /// <returns></returns>
+        private OeBuildConfiguration GetConfiguration(string configurationName, int? configurationId) {
+            if (string.IsNullOrEmpty(configurationName) && configurationId == null) {
                 return null;
-            }
-            if (!int.TryParse(configurationName, out int id)) {
-                id = -1;
             }
             
             List<OeBuildConfiguration> buildConfigurationsStack = null;
@@ -207,7 +226,7 @@ namespace Oetools.Builder.Project {
                 var parents = parentsAndChildrenList.Item1;
                 var children = parentsAndChildrenList.Item2;
                 foreach (var child in children) {
-                    if (id >= 0 && child.Id.Equals(id) || (child.Name?.Equals(configurationName, StringComparison.CurrentCultureIgnoreCase) ?? false)) {
+                    if (configurationId != null && child.Id.Equals(configurationId) || (child.Name?.Equals(configurationName, StringComparison.CurrentCultureIgnoreCase) ?? false)) {
                         buildConfigurationsStack = parents;
                         buildConfigurationsStack.Add(child);
                         found = true;
@@ -225,16 +244,20 @@ namespace Oetools.Builder.Project {
                 return null;
             }
 
+            // apply parent inheritance
             var output = buildConfigurationsStack[0].GetDeepCopy();
             for (int i = 1; i < buildConfigurationsStack.Count; i++) {
                 buildConfigurationsStack[i].DeepCopy(output);
             }
 
+            output.BuildConfigurations = null;
+
             return output;
         }
 
         /// <summary>
-        /// Returns the first build configuration found, or null
+        /// Returns the first build configuration found, or null.
+        /// A copy of the configuration is returned, where parent inheritance has been applied.
         /// </summary>
         /// <returns></returns>
         public OeBuildConfiguration GetDefaultBuildConfigurationCopy() {
@@ -268,7 +291,7 @@ namespace Oetools.Builder.Project {
         /// <param name="throwIfConfNotFound"></param>
         /// <returns></returns>
         /// <exception cref="ProjectException"></exception>
-        public static OeBuildConfiguration GetBuildConfigurationCopy(Queue<Tuple<string, string>> buildConfigurationQueue, bool throwIfConfNotFound = true) {
+        public static OeBuildConfiguration GetConfiguration(Queue<Tuple<string, string>> buildConfigurationQueue, bool throwIfConfNotFound = true) {
             if (buildConfigurationQueue.Count == 0) {
                 throw new ProjectException("The build configuration stack cannot be empty.");
             }
@@ -286,7 +309,7 @@ namespace Oetools.Builder.Project {
                         throw new ProjectException($"no build configuration found in the project file {tuple.Item1.PrettyQuote()}.");
                     }
                 } else {
-                    conf = proj.GetBuildConfigurationCopy(tuple.Item2);
+                    conf = proj.GetConfiguration(tuple.Item2);
                     if (conf == null && throwIfConfNotFound) {
                         throw new ProjectException($"The build configuration {tuple.Item2.PrettyQuote()} can't be found in the project file {tuple.Item1.PrettyQuote()}.");
                     }
@@ -310,7 +333,7 @@ namespace Oetools.Builder.Project {
 
             return new OeProject {
                 BuildConfigurations = new List<OeBuildConfiguration> { rootConf }
-            }.GetBuildConfigurationCopy(nbConf.ToString());
+            }.GetConfiguration(nbConf);
         }
 
         /// <summary>

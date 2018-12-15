@@ -93,6 +93,18 @@ namespace Oetools.Builder.Test.Utilities {
                             FilePathInArchive ="target2"
                         }
                     }
+                },
+                new OeFileBuilt {
+                    State = OeFileState.Added,
+                    Path = "source5",
+                    Targets = new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePathInArchive ="target1"
+                        },
+                        new OeTargetFile {
+                            FilePathInArchive ="target2"
+                        }
+                    }
                 }
             };
             var filesToBuild = new PathList<IOeFileToBuild> {
@@ -131,10 +143,19 @@ namespace Oetools.Builder.Test.Utilities {
                             FilePathInArchive ="target2"
                         }
                     }
+                },
+                new OeFile {
+                    State = OeFileState.Unchanged,
+                    Path = "source5",
+                    TargetsToBuild = new List<AOeTarget> {
+                        new OeTargetFile {
+                            FilePathInArchive ="target2"
+                        }
+                    }
                 }
             };
             
-            var output = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(filesToBuild, prevBuilt).ToList();
+            var output = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(filesToBuild, prevBuilt, out PathList<IOeFileBuilt> previousFilesBuiltUnchangedWithUpdatedTargets).ToList();
             
             // ensure unmodified prevBuilt list
             Assert.AreEqual("source1", prevBuilt.ElementAt(0).Path);
@@ -142,8 +163,9 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual("target1", prevBuilt.ElementAt(0).Targets[0].GetTargetPath());
             Assert.AreEqual("target2", prevBuilt.ElementAt(0).Targets[1].GetTargetPath());
 
+            // check targets to remove
             Assert.IsNotNull(output);
-            Assert.AreEqual(2, output.Count);
+            Assert.AreEqual(3, output.Count);
             
             Assert.AreEqual("source1", output[0].Path);
             Assert.AreEqual(OeFileState.Unchanged, output[0].State);
@@ -154,7 +176,26 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(OeFileState.Modified, output[1].State);
             Assert.AreEqual("target1", output[1].Targets[0].GetTargetPath());
             Assert.AreEqual(1, output[1].Targets.Count);
-
+            
+            Assert.AreEqual("source5", output[2].Path);
+            Assert.AreEqual(OeFileState.Unchanged, output[2].State);
+            Assert.AreEqual("target1", output[2].Targets[0].GetTargetPath());
+            Assert.AreEqual(1, output[2].Targets.Count);
+            
+            // check previousFilesBuiltUnchangedWithUpdatedTargets
+            // source 1 is unchanged
+            Assert.IsNotNull(previousFilesBuiltUnchangedWithUpdatedTargets);
+            Assert.AreEqual(2, previousFilesBuiltUnchangedWithUpdatedTargets.Count);
+            
+            Assert.AreEqual("source1", previousFilesBuiltUnchangedWithUpdatedTargets.ElementAt(0).Path);
+            Assert.AreEqual(OeFileState.Unchanged, previousFilesBuiltUnchangedWithUpdatedTargets.ElementAt(0).State);
+            Assert.AreEqual("target2", previousFilesBuiltUnchangedWithUpdatedTargets.ElementAt(0).Targets[0].GetTargetPath());
+            Assert.AreEqual(1, previousFilesBuiltUnchangedWithUpdatedTargets.ElementAt(0).Targets.Count);
+            
+            Assert.AreEqual("source5", previousFilesBuiltUnchangedWithUpdatedTargets.ElementAt(1).Path);
+            Assert.AreEqual(OeFileState.Unchanged, previousFilesBuiltUnchangedWithUpdatedTargets.ElementAt(1).State);
+            Assert.AreEqual("target2", previousFilesBuiltUnchangedWithUpdatedTargets.ElementAt(1).Targets[0].GetTargetPath());
+            Assert.AreEqual(1, previousFilesBuiltUnchangedWithUpdatedTargets.ElementAt(1).Targets.Count);
         }
 
         [TestMethod]

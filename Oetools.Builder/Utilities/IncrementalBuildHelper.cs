@@ -142,35 +142,60 @@ namespace Oetools.Builder.Utilities {
                 }
             }
         }
-        
+
         /// <summary>
-        /// Get a list of previously built files, still existing, but with targets that no longer exist and should be removed
+        /// Get a list of previously built files, still existing, but with targets that no longer exist and should be removed.
+        /// Also outputs a list of "unchanged" files (that have previous targets that should be removed) with their updated targets (i.e. without the targets that will be deleted in this build). 
         /// </summary>
         /// <param name="currentFilesBuilt"></param>
         /// <param name="previousFilesBuilt"></param>
+        /// <param name="previousFilesBuiltUnchangedWithUpdatedTargets"></param>
         /// <returns></returns>
-        internal static IEnumerable<IOeFileBuilt> GetBuiltFilesWithOldTargetsToRemove(PathList<IOeFileToBuild> currentFilesBuilt, PathList<IOeFileBuilt> previousFilesBuilt) {
-            var finalFileTargets = new List<AOeTarget>();
+        internal static IEnumerable<IOeFileBuilt> GetBuiltFilesWithOldTargetsToRemove(PathList<IOeFileToBuild> currentFilesBuilt, PathList<IOeFileBuilt> previousFilesBuilt, out PathList<IOeFileBuilt> previousFilesBuiltUnchangedWithUpdatedTargets) {
+            var output = new List<IOeFileBuilt>();
+            previousFilesBuiltUnchangedWithUpdatedTargets = null;
+            
+            var targetsToDelete = new List<AOeTarget>();
+            var targetsStillExisting = new List<AOeTarget>();
             foreach (var newFile in currentFilesBuilt.Where(file => file.State == OeFileState.Unchanged || file.State == OeFileState.Modified)) {
                 var previousFile = previousFilesBuilt[newFile.Path];
                 if (previousFile == null) {
                     continue;
                 }
-                finalFileTargets.Clear();
+                
+                targetsToDelete.Clear();
+                targetsStillExisting.Clear();
+                
                 var newCreateTargets = newFile.TargetsToBuild.ToNonNullEnumerable().Select(t => t.GetTargetPath()).ToList();
                 foreach (var previousTarget in previousFile.Targets.ToNonNullEnumerable()) {
                     var previousTargetPath = previousTarget.GetTargetPath();
                     if (!newCreateTargets.Exists(target => target.PathEquals(previousTargetPath))) {
                         // the old target doesn't exist anymore, add it to be deleted.
-                        finalFileTargets.Add(previousTarget);
+                        targetsToDelete.Add(previousTarget);
+                    } else {
+                        targetsStillExisting.Add(previousTarget);
                     }
                 }
-                if (finalFileTargets.Count > 0) {
-                    yield return new OeFileBuilt(previousFile, finalFileTargets) {
+                
+                // files that have the "modified" state will be rebuilt entirely; but "unchanged" files 
+                // will not, we "fake" their rebuild in order to update the targets that actually still exist
+                if (newFile.State == OeFileState.Unchanged) {
+                    if (previousFilesBuiltUnchangedWithUpdatedTargets == null) {
+                        previousFilesBuiltUnchangedWithUpdatedTargets = new PathList<IOeFileBuilt>();
+                    }
+                    previousFilesBuiltUnchangedWithUpdatedTargets.TryAdd(new OeFileBuilt(previousFile, targetsStillExisting) {
                         State = newFile.State
-                    };
+                    });
+                }
+                
+                if (targetsToDelete.Count > 0) {
+                    output.Add(new OeFileBuilt(previousFile, targetsToDelete) {
+                        State = newFile.State
+                    });
                 }
             }
+
+            return output;
         }
     }
 }

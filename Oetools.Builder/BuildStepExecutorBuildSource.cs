@@ -76,9 +76,10 @@ namespace Oetools.Builder {
                     Log?.Debug("Configuring removal task for previous targets not existing anymore.");
                     var unchangedOrModifiedFilesToBuild = GetFilesToBuildFromSourceFiles(SourceDirectoryCompletePathList?.Where(f => f.State == OeFileState.Unchanged || f.State == OeFileState.Modified));
                     if (unchangedOrModifiedFilesToBuild != null && unchangedOrModifiedFilesToBuild.Count > 0) {
-                        var filesWithTargetsToRemove = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(unchangedOrModifiedFilesToBuild, PreviouslyBuiltPaths).ToFileList();
+                        var filesWithTargetsToRemove = IncrementalBuildHelper.GetBuiltFilesWithOldTargetsToRemove(unchangedOrModifiedFilesToBuild, PreviouslyBuiltPaths, out PathList<IOeFileBuilt> previousFilesBuiltUnchangedWithUpdatedTargets).ToFileList();
                         if (filesWithTargetsToRemove != null && filesWithTargetsToRemove.Count > 0) {
                             taskReflectDeletedTargets.SetFilesWithTargetsToRemove(filesWithTargetsToRemove);
+                            taskReflectDeletedTargets.SetFilesBuilt(previousFilesBuiltUnchangedWithUpdatedTargets);
                             Log?.Debug($"{filesWithTargetsToRemove.Count} files that had targets existing in the previous build which don't existing anymore (their targets will be deleted).");
                         }
                     }

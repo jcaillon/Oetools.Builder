@@ -33,6 +33,7 @@ using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Test.Project.Task {
     
@@ -208,7 +209,8 @@ namespace Oetools.Builder.Test.Project.Task {
             task.Execute();
             var builtFiles = task.GetBuiltFiles();
             
-            Assert.AreEqual(1, builtFiles.Count, "Expect 1 file built.");
+            Assert.AreEqual(2, builtFiles.Count);
+            Assert.AreEqual(1, builtFiles.SelectMany(f => f.Targets.ToNonNullEnumerable()).Count(), "Expect 1 file actually built.");
             Assert.IsTrue(builtFiles.ElementAt(0).Targets.ElementAt(0).GetTargetPath().PathEquals("/target/archive.test/file1".ToCleanPath()));
         }
         
@@ -238,7 +240,8 @@ namespace Oetools.Builder.Test.Project.Task {
             task.Execute();
             var builtFiles = task.GetBuiltFiles();
             
-            Assert.AreEqual(1, builtFiles.Count, "Expect 1 file built.");
+            Assert.AreEqual(3, builtFiles.Count, "Expect 3.");
+            Assert.AreEqual(1, builtFiles.SelectMany(f => f.Targets.ToNonNullEnumerable()).Count(), "Expect 1 file actually built.");
             Assert.IsTrue(builtFiles.ElementAt(0).Targets.ElementAt(0).GetTargetPath().PathEquals("/target/archive.test/file1.r".ToCleanPath()));
         }
         
