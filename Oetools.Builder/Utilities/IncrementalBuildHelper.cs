@@ -102,11 +102,11 @@ namespace Oetools.Builder.Utilities {
         /// <summary>
         /// List of the source file that are otherwise unchanged but need to be rebuild because they have new targets not present in the last build
         /// </summary>
-        /// <param name="filesToBuildWithSetTargets"></param>
+        /// <param name="unchangedFilesToBuildWithSetTargets"></param>
         /// <param name="previousFilesBuilt"></param>
         /// <returns></returns>
-        internal static IEnumerable<IOeFileToBuild> GetSourceFilesToRebuildBecauseTheyHaveNewTargets(PathList<IOeFileToBuild> filesToBuildWithSetTargets, PathList<IOeFileBuilt> previousFilesBuilt) {
-            foreach (var newFile in filesToBuildWithSetTargets.Where(file => file.State == OeFileState.Unchanged)) {
+        internal static IEnumerable<IOeFileToBuild> GetSourceFilesToRebuildBecauseTheyHaveNewTargets(PathList<IOeFileToBuild> unchangedFilesToBuildWithSetTargets, PathList<IOeFileBuilt> previousFilesBuilt) {
+            foreach (var newFile in unchangedFilesToBuildWithSetTargets.Where(file => file.State == OeFileState.Unchanged)) {
                 var previousFile = previousFilesBuilt[newFile.Path];
                 var previouslyCreatedTargets = previousFile.Targets.ToNonNullEnumerable().Select(t => t.GetTargetPath()).ToList();
                 foreach (var targetPath in newFile.TargetsToBuild.ToNonNullEnumerable().Select(t => t.GetTargetPath())) {
@@ -121,9 +121,9 @@ namespace Oetools.Builder.Utilities {
         /// <summary>
         /// List of the source file that are otherwise unchanged but need to be rebuild because they have targets that are missing
         /// </summary>
-        /// <param name="filesToBuildWithSetTargets"></param>
+        /// <param name="unchangedFilesToBuildWithSetTargets"></param>
         /// <returns></returns>
-        internal static IEnumerable<IOeFileToBuild> GetSourceFilesToRebuildBecauseTheyMissingTargets(PathList<IOeFileToBuild> filesToBuildWithSetTargets) {
+        internal static IEnumerable<IOeFileToBuild> GetSourceFilesToRebuildBecauseTheyMissingTargets(PathList<IOeFileToBuild> unchangedFilesToBuildWithSetTargets) {
             // TODO: for each file, check if any target is missing, if yes return the file
             return Enumerable.Empty<IOeFileToBuild>();
         }

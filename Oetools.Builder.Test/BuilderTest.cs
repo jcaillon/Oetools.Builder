@@ -150,6 +150,7 @@ namespace Oetools.Builder.Test {
                 BuildSourceHistory = firstBuildHistory
             }) {
                 builder.Build();
+                Assert.AreEqual(0, builder.GetAllFilesBuilt().Count);
                 Assert.AreEqual(1, builder.GetAllFilesWithTargetRemoved().Count);
                 Assert.AreEqual(2, builder.GetAllFilesWithTargetRemoved().SelectMany(f => f.Targets.ToNonNullEnumerable()).Count());
                 
@@ -171,6 +172,7 @@ namespace Oetools.Builder.Test {
                 BuildSourceHistory = lastBuildHistory
             }) {
                 builder.Build();
+                Assert.AreEqual(0, builder.GetAllFilesBuilt().Count);
                 Assert.AreEqual(4, builder.GetAllFilesWithTargetRemoved().Count);
                 Assert.AreEqual(4, builder.GetAllFilesWithTargetRemoved().SelectMany(f => f.Targets.ToNonNullEnumerable()).Count());
                 
