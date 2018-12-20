@@ -36,7 +36,7 @@ namespace Oetools.Builder.Project.Task {
     /// </example>
     [Serializable]
     [XmlRoot("ReflectDeletedSourceFile")]
-    public class OeTaskReflectDeletedSourceFile : AOeTaskTargetsRemover{
+    public class OeTaskReflectDeletedSourceFile : AOeTaskTargetsRemover {
         
     }
 }

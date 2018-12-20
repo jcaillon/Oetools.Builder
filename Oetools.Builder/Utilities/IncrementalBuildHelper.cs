@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Oetools.Builder.History;
+using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Execution;
@@ -124,8 +125,35 @@ namespace Oetools.Builder.Utilities {
         /// <param name="unchangedFilesToBuildWithSetTargets"></param>
         /// <returns></returns>
         internal static IEnumerable<IOeFileToBuild> GetSourceFilesToRebuildBecauseTheyMissingTargets(PathList<IOeFileToBuild> unchangedFilesToBuildWithSetTargets) {
-            // TODO: for each file, check if any target is missing, if yes return the file
-            return Enumerable.Empty<IOeFileToBuild>();
+            List<FileInArchiveToCheck> targetsToCheck = new List<FileInArchiveToCheck>();
+            foreach (var file in unchangedFilesToBuildWithSetTargets.Where(file => file.State == OeFileState.Unchanged)) {
+                foreach (var target in file.TargetsToBuild.ToNonNullEnumerable()) {
+                    targetsToCheck.Add(new FileInArchiveToCheck {
+                        ArchivePath = target.ArchiveFilePath,
+                        PathInArchive = target.FilePathInArchive,
+                        SourceFile = file,
+                        TargetType = target.GetType()
+                    });
+                }
+            }
+            foreach (var groupedTargets in targetsToCheck.GroupBy(target => target.TargetType)) {
+                var archiver = AOeTarget.GetArchiverExistenceCheck(groupedTargets.Key);
+                if (archiver == null) {
+                    continue;
+                }
+                archiver.CheckFileSet(targetsToCheck);
+                foreach (var targetMissing in targetsToCheck.Where(t => !t.Processed)) {
+                    yield return targetMissing.SourceFile;
+                }
+            }
+        }
+
+        private class FileInArchiveToCheck : IFileInArchiveToCheck {
+            public string ArchivePath { get; set; }
+            public string PathInArchive { get; set; }
+            public bool Processed { get; set; }
+            public IOeFileToBuild SourceFile { get; set; }
+            public Type TargetType { get; set; }
         }
 
         /// <summary>

@@ -18,10 +18,13 @@
 // ========================================================================
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Oetools.Builder.History;
+using Oetools.Utilities.Archive;
 using Oetools.Utilities.Lib;
+using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
     
@@ -47,20 +50,44 @@ namespace Oetools.Builder.Project.Task {
             // nothing to validate
         }
 
-        /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
-        protected sealed override void ExecuteInternal() {
-            var targetsToRemove = _pathsWithTargetsToRemove.SelectMany(f => f.Targets).ToList();
-            ExecuteTargetsRemoval(targetsToRemove);
-        }
-
         /// <inheritdoc cref="AOeTask.ExecuteTestModeInternal"/>
         protected override void ExecuteTestModeInternal() {
             
         }
 
-        private void ExecuteTargetsRemoval(List<AOeTarget> targetsToRemove) {
-            var archiveTargets = targetsToRemove;
+        /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
+        protected sealed override void ExecuteInternal() {
+            if (_pathsWithTargetsToRemove == null) {
+                return;
+            }
             Log?.Debug("Deleting all archive targets.");
+
+            List<FileInArchiveToDelete> targetsToDelete = new List<FileInArchiveToDelete>();
+            foreach (var file in _pathsWithTargetsToRemove) {
+                foreach (var target in file.Targets.ToNonNullEnumerable()) {
+                    targetsToDelete.Add(new FileInArchiveToDelete {
+                        ArchivePath = target.ArchiveFilePath,
+                        PathInArchive = target.FilePathInArchive,
+                        SourceFile = file,
+                        TargetType = target.GetType()
+                    });
+                }
+            }
+            foreach (var groupedTargets in targetsToDelete.GroupBy(target => target.TargetType)) {
+                var archiver = AOeTarget.GetArchiverDelete(groupedTargets.Key);
+                if (archiver == null) {
+                    continue;
+                }
+                archiver.DeleteFileSet(targetsToDelete);
+            }
+        }
+
+        private class FileInArchiveToDelete : IFileInArchiveToDelete {
+            public string ArchivePath { get; set; }
+            public string PathInArchive { get; set; }
+            public bool Processed { get; set; }
+            public IOeFileBuilt SourceFile { get; set; }
+            public Type TargetType { get; set; }
         }
 
     }

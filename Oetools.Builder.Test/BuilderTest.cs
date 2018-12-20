@@ -133,7 +133,7 @@ namespace Oetools.Builder.Test {
             buildConfiguration1.Properties.BuildOptions.FullRebuild = false;
             
             
-            // delete a file
+            // delete a source file
             File.Delete(Path.Combine(sourceDirectory, "file2.w"));
             using (var builder = new Builder(buildConfiguration1) {
                 BuildSourceHistory = firstBuildHistory
@@ -199,6 +199,28 @@ namespace Oetools.Builder.Test {
                 Assert.AreEqual(1, builder.GetAllFilesBuilt().SelectMany(f => f.Targets.ToNonNullEnumerable()).Count());
                 Assert.AreEqual(1, builder.GetAllFilesWithTargetRemoved().Count);
                 Assert.AreEqual(1, builder.GetAllFilesWithTargetRemoved().SelectMany(f => f.Targets.ToNonNullEnumerable()).Count());
+                
+                lastBuildHistory = builder.BuildSourceHistory.GetDeepCopy();
+            }
+            
+            
+            // delete all the targeted files
+            Directory.Delete(outputDirectory, true);
+            using (var builder = new Builder(buildConfiguration1) {
+                BuildSourceHistory = lastBuildHistory
+            }) {
+                builder.Build();
+                Assert.AreEqual(0, builder.GetAllFilesBuilt().Count);
+                Assert.AreEqual(0, builder.GetAllFilesWithTargetRemoved().Count);
+            }
+            buildConfiguration1.Properties.BuildOptions.IncrementalBuildOptions.RebuildFilesWithMissingTargets = true;
+            using (var builder = new Builder(buildConfiguration1) {
+                BuildSourceHistory = lastBuildHistory
+            }) {
+                builder.Build();
+                Assert.AreEqual(4, builder.GetAllFilesBuilt().Count);
+                Assert.AreEqual(4, builder.GetAllFilesBuilt().SelectMany(f => f.Targets.ToNonNullEnumerable()).Count());
+                Assert.AreEqual(0, builder.GetAllFilesWithTargetRemoved().Count);
                 
                 lastBuildHistory = builder.BuildSourceHistory.GetDeepCopy();
             }

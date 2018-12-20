@@ -363,6 +363,7 @@ namespace Oetools.Builder.Project.Task {
         /// <param name="getPropertyName"></param>
         /// <returns></returns>
         /// <exception cref="TaskValidationException"></exception>
+        /// <exception cref="TargetValidationException"></exception>
         protected void CheckTargetPath(IEnumerable<string> originalStrings, Func<string> getPropertyName) {
             if (originalStrings == null) {
                 return;
@@ -372,7 +373,7 @@ namespace Oetools.Builder.Project.Task {
                 try {
                     foreach (char c in Path.GetInvalidPathChars()) {
                         if (originalString.IndexOf(c) >= 0) {
-                            throw new Exception($"Illegal character path {c} at column {originalString.IndexOf(c)}.");
+                            throw new TaskValidationException(this, $"Illegal character path {c} at column {originalString.IndexOf(c)}.");
                         }
                     }
                     originalString.ValidatePlaceHolders();

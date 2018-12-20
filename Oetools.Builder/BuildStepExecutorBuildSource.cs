@@ -62,6 +62,7 @@ namespace Oetools.Builder {
         protected override void InjectPropertiesInTask(IOeTask task) {
             base.InjectPropertiesInTask(task);
             if (task is OeTaskReflectDeletedSourceFile taskReflectDeletedSourceFile) {
+                taskReflectDeletedSourceFile.SetFilesWithTargetsToRemove(null);
                 if (PreviouslyBuiltPaths != null) {
                     Log?.Debug("Configuring removal task for previous files not existing anymore.");
                     var filesWithTargetsToRemove = IncrementalBuildHelper.GetBuiltFilesDeletedSincePreviousBuild(SourceDirectoryCompletePathList, PreviouslyBuiltPaths).ToFileList();
@@ -72,6 +73,8 @@ namespace Oetools.Builder {
                 }
             }
             if (task is OeTaskReflectDeletedTargets taskReflectDeletedTargets) {
+                taskReflectDeletedTargets.SetFilesWithTargetsToRemove(null);
+                taskReflectDeletedTargets.SetFilesBuilt(null);
                 if (PreviouslyBuiltPaths != null) {
                     Log?.Debug("Configuring removal task for previous targets not existing anymore.");
                     var unchangedOrModifiedFilesToBuild = GetFilesToBuildFromSourceFiles(SourceDirectoryCompletePathList?.Where(f => f.State == OeFileState.Unchanged || f.State == OeFileState.Modified));
@@ -200,7 +203,7 @@ namespace Oetools.Builder {
                 return null;
             }
             if (Properties == null) {
-                throw new ArgumentNullException(nameof(Properties));
+                throw new TaskExecutorException(this, $"{nameof(Properties)} can't be null.");
             }
             try {
                 var compiler = new OeFilesCompiler();

@@ -18,8 +18,10 @@
 // ========================================================================
 #endregion
 
+using System;
 using System.IO;
 using System.Xml.Serialization;
+using Oetools.Utilities.Archive;
 
 namespace Oetools.Builder.History {
     
@@ -38,6 +40,47 @@ namespace Oetools.Builder.History {
         public abstract string FilePathInArchive { get; set; }
 
         public virtual string GetTargetPath() => Path.Combine(ArchiveFilePath, FilePathInArchive);
-
+        
+        /// <summary>
+        /// Returns an archiver instance capable of checking the existence of the given target type.
+        /// </summary>
+        /// <param name="targetType"></param>
+        /// <returns></returns>
+        internal static IArchiverExistenceCheck GetArchiverExistenceCheck(Type targetType) {
+            return GetArchiver(targetType);
+        }
+        
+        /// <summary>
+        /// Returns an archiver instance capable of deleting the given target type.
+        /// </summary>
+        /// <param name="targetType"></param>
+        /// <returns></returns>
+        internal static IArchiverDelete GetArchiverDelete(Type targetType) {
+            return GetArchiver(targetType);
+        }
+        
+        /// <summary>
+        /// Returns an archiver for the given target type.
+        /// </summary>
+        /// <param name="targetType"></param>
+        /// <returns></returns>
+        internal static IArchiverFullFeatured GetArchiver(Type targetType) {
+            if (targetType == typeof(OeTargetFile)) {
+                return Archiver.NewFileSystemArchiver();
+            }
+            if (targetType == typeof(OeTargetProlib)) {
+                return Archiver.NewProlibArchiver();
+            }
+            if (targetType == typeof(OeTargetCab)) {
+                return Archiver.NewCabArchiver();
+            }
+            if (targetType == typeof(OeTargetZip)) {
+                return Archiver.NewZipArchiver();
+            }
+            if (targetType == typeof(OeTargetFtp)) {
+                return Archiver.NewFtpArchiver();
+            }
+            return null;
+        }
     }
 }
