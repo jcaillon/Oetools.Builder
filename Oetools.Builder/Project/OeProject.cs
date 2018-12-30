@@ -132,27 +132,27 @@ namespace Oetools.Builder.Project {
         ///   - For a given property, the most nested value is used (i.e. child value prioritized over parent value).
         ///   - If the xml element is a list, the elements of the child (if any) will be added to the elements of the parent (if any). For instance, the steps list has this behavior. This means that the steps of a child will be added to the defined steps of its parents.
         ///
-        ///   Practical example:
-        ///     Given the project below:
-        ///    
-        ///     Project
-        ///     └─ Build configuration 1
-        ///        ├─ Properties
-        ///           │  Property1 (x)
-        ///        │  └─ Property2
-        ///        ├─ Steps
-        ///        │  └─ Step1 (x)
-        ///        └─ Child build configuration 2
-        ///           ├─ Properties
-        ///           │  ├─ Property2 (x)
-        ///           │  └─ Property3 (x)
-        ///           └─ Steps
-        ///              └─ Step2 (x)
+        /// Practical example:
+        ///   Given the project below:
         ///  
-        ///     We decide to build 'Child build configuration 2':
-        ///       - Property1 of 'Build configuration 1' will be used.
-        ///       - Property2 and Property 3 of 'Build configuration 2' will be used.
-        ///       - Two steps will be executed: Step1 from 'Build configuration 1' and Step2 from 'Build configuration 2'.
+        ///   Project
+        ///   └─ Build configuration 1
+        ///      ├─ Properties
+        ///         │  Property1 (x)
+        ///      │  └─ Property2
+        ///      ├─ Steps
+        ///      │  └─ Step1 (x)
+        ///      └─ Child build configuration 2
+        ///         ├─ Properties
+        ///         │  ├─ Property2 (x)
+        ///         │  └─ Property3 (x)
+        ///         └─ Steps
+        ///            └─ Step2 (x)
+        ///
+        ///   We decide to build 'Child build configuration 2':
+        ///   - Property1 of 'Build configuration 1' will be used.
+        ///   - Property2 and Property 3 of 'Build configuration 2' will be used.
+        ///   - Two steps will be executed: Step1 from 'Build configuration 1' and Step2 from 'Build configuration 2'.
         /// </remarks>
         [XmlArray("BuildConfigurations")]
         [XmlArrayItem("Configuration", typeof(OeBuildConfiguration))]
