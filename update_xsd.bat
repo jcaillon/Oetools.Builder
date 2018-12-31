@@ -19,7 +19,7 @@ set "CHANGE_DEFAULT_TARGETFRAMEWORK=true"
 set TARGETED_FRAMEWORKS=(net461)
 set "MSBUILD_DEFAULT_TARGET=Build"
 set "CI_COMMIT_SHA=no_commit_just_for_no_pause"
-set "CUSTOM_BUILD_PARAMS=/p:WithoutXsdAttribute=true"
+set "CUSTOM_BUILD_PARAMS=/p:WithoutXsdAttribute=true /p:OutputPath=bin\XsdAnnotator"
 
 call build.bat
 if not "!ERRORLEVEL!"=="0" (
@@ -29,7 +29,7 @@ if not "!ERRORLEVEL!"=="0" (
 echo.=========================
 echo.[%time:~0,8% INFO] GENERATING XSD
 
-"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\xsd.exe" -t:OeProject "Oetools.Builder\bin\Any Cpu\Release\net461\Oetools.Builder.dll"
+"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\xsd.exe" -t:OeProject "Oetools.Builder\bin\XsdAnnotator\Oetools.Builder.dll"
 if not "!ERRORLEVEL!"=="0" (
 	GOTO ENDINERROR
 )
@@ -56,7 +56,7 @@ if not "!ERRORLEVEL!"=="0" (
 echo.=========================
 echo.[%time:~0,8% INFO] ANNOTATING GENERATED XSD WITH DOCUMENTATION
 
-"build\XsdAnnotation\XsdAnnotator.exe" "Oetools.Builder\Resources\Xsd\Project.xsd" "Oetools.Builder\bin\Any Cpu\Release\net461"
+"build\XsdAnnotation\XsdAnnotator.exe" "Oetools.Builder\Resources\Xsd\Project.xsd" "Oetools.Builder\bin\XsdAnnotator"
 
 :DONE
 echo.=========================
@@ -85,6 +85,8 @@ REM - -------------------------------------
 echo.=========================
 echo.[%time:~0,8% ERRO] ENDED IN ERROR, ERRORLEVEL = %errorlevel%
 
-pause
+if "%IS_CI_BUILD%"=="false" (
+	pause
+)
 
 exit /b 1
