@@ -94,7 +94,7 @@ namespace Oetools.Builder.Test.Utilities {
 
                 var sourceDirectory = Path.Combine(TestFolder, "source");
                 Utils.CreateDirectoryIfNeeded(sourceDirectory);
-                var projectDatabaseDirectory = OeBuilderConstants.GetProjectDirectoryLocalDb(sourceDirectory);
+                var projectDatabaseDirectory = OeBuilderConstants.GetProjectDirectoryLocalAutoDb(sourceDirectory);
 
                 // setup databases
                 using (var dbAdmin = new ProjectDatabaseAdministrator(env.DlcDirectoryPath, build.Properties.ProjectDatabases, projectDatabaseDirectory)) {

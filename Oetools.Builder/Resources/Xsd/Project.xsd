@@ -315,7 +315,7 @@ The idea is to version .df files (data definition files) and to have a fully bui
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ExtraDatabaseConnectionString" type="xs:string">
         <xs:annotation>
-          <xs:documentation><![CDATA[A database connection string that will be used to connect to extra databases before a build. <br>
+          <xs:documentation><![CDATA[A database connection string that will be used to connect to extra databases before a build.<br>
 <br>
 This obviously requires existing databases.<br>
 Most of the time, it is simpler to use the ProjectDatabase option instead of this one and let the tool generate the necessary databases.<br>
@@ -454,7 +454,7 @@ This option might not be needed later on, if this behavior is fixed.<br>
 This is the directory used in the -T startup parameter for the openedge session.<br>
 This directory is also used to store temporary files needed for the compilation and for the interface between openedge and this tool.<br>
 <br>
-<b>Defaults to:</b> $TEMP/.oe_tmp-xxx (temporary folder).]]></xs:documentation>
+<b>Defaults to:</b> $TEMP/.oe_tmp/xxx (temporary folder).]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="CompilationOptions" type="OeCompilationOptions">

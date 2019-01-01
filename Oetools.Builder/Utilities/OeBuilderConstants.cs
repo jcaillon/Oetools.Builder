@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeBuilderConstants.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -24,17 +24,17 @@ namespace Oetools.Builder.Utilities {
     public static class OeBuilderConstants {
 
         public const string VcsDirectoryExclusions = ".git**;.svn**;.oe**";
-        
+
         public const string CompilableExtensionsPattern = "*.p;*.w;*.t;*.cls";
-        
+
         public const string OeProjectExtension = ".oeproj.xml";
 
         public const string OeProjectDirectory = ".oe";
-        
+
         private const string OeProjectLocalDirectory = "local";
         private const string OeProjectOutputDirectory = "bin";
         private const string OeProjectBuildDirectory = "build";
-        
+
         public const string OeVarNameSourceDirectory = "SOURCE_DIRECTORY";
         public const string OeVarNameProjectDirectory = "PROJECT_DIRECTORY";
         public const string OeVarNameProjectLocalDirectory = "PROJECT_LOCAL_DIRECTORY";
@@ -45,8 +45,9 @@ namespace Oetools.Builder.Utilities {
 
         public static string GetProjectDirectory(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory);
         public static string GetProjectDirectoryLocal(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory, OeProjectLocalDirectory);
-        public static string GetProjectDirectoryLocalDb(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory, OeProjectLocalDirectory, "db");
-        
+        public static string GetProjectDirectoryLocalAutoDb(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory, OeProjectLocalDirectory, "db-auto");
+        public static string GetProjectDirectoryLocalUserDb(string sourceDirectory) => Path.Combine(sourceDirectory, OeProjectDirectory, OeProjectLocalDirectory, "db-user");
+
         public static string GetDefaultOutputDirectory() => Path.Combine($"{{{{{OeVarNameSourceDirectory}}}}}", OeProjectOutputDirectory);
         public static string GetDefaultBuildHistoryInputFilePath() => Path.Combine($"{{{{{OeVarNameProjectLocalDirectory}}}}}", OeProjectBuildDirectory, "latest.xml");
         public static string GetDefaultBuildHistoryOutputFilePath() => Path.Combine($"{{{{{OeVarNameProjectLocalDirectory}}}}}", OeProjectBuildDirectory, "latest.xml");

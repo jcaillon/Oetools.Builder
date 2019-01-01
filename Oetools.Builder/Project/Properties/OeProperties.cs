@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeProperties.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -37,7 +37,7 @@ using Oetools.Utilities.Openedge;
 using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project.Properties {
-    
+
     /// <inheritdoc cref="OeBuildConfiguration.Properties"/>
     /// <code>
     /// Every public property string not marked with the <see cref="ReplaceVariablesAttribute"/> attribute is allowed
@@ -58,7 +58,7 @@ namespace Oetools.Builder.Project.Properties {
         public string DlcDirectoryPath { get; set; }
         [Description("$DLC (openedge installation directory)")]
         public static string GetDefaultDlcDirectoryPath() => UoeUtilities.GetDlcPathFromEnv().ToCleanPath();
-        
+
         /// <summary>
         /// A list of all the openedge databases used by your project (couple of logical name + data definition file path).
         /// This list should contain all the databases necessary to compile your application.
@@ -70,9 +70,9 @@ namespace Oetools.Builder.Project.Properties {
         [XmlArray("ProjectDatabases")]
         [XmlArrayItem("ProjectDatabase", typeof(OeProjectDatabase))]
         public List<OeProjectDatabase> ProjectDatabases { get; set; }
-        
+
         /// <summary>
-        /// A database connection string that will be used to connect to extra databases before a build. 
+        /// A database connection string that will be used to connect to extra databases before a build.
         /// </summary>
         /// <remarks>
         /// This obviously requires existing databases.
@@ -86,7 +86,7 @@ namespace Oetools.Builder.Project.Properties {
         /// </example>
         [XmlElement(ElementName = "ExtraDatabaseConnectionString")]
         public string ExtraDatabaseConnectionString { get; set; }
-        
+
         /// <summary>
         /// Indicates if this tool should automatically add a max connection try of 1 (-ct 1 parameter) to the connection strings.
         /// </summary>
@@ -106,8 +106,8 @@ namespace Oetools.Builder.Project.Properties {
         /// </remarks>
         [XmlArray("DatabaseAliases")]
         [XmlArrayItem("Alias", typeof(OeDatabaseAlias))]
-        public List<OeDatabaseAlias> DatabaseAliases { get; set; }           
-            
+        public List<OeDatabaseAlias> DatabaseAliases { get; set; }
+
         /// <summary>
         /// The path to the .ini file used by your project.
         /// </summary>
@@ -133,7 +133,7 @@ namespace Oetools.Builder.Project.Properties {
         [XmlArrayItem("Entry", typeof(OePropathEntry))]
         [XmlArray("PropathEntries")]
         public List<OePropathEntry> PropathEntries { get; set; }
-        
+
         /// <summary>
         /// Indicates if all the directories in the source directory should be added to the compilation propath.
         /// </summary>
@@ -144,7 +144,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultAddAllSourceDirectoriesToPropath))]
         public bool? AddAllSourceDirectoriesToPropath { get; set; }
         public static bool GetDefaultAddAllSourceDirectoriesToPropath() => true;
-            
+
         /// <summary>
         /// The filtering options for the automatic listing of directories in the source directory (to use as propath).
         /// </summary>
@@ -163,7 +163,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultUseCharacterModeExecutable))]
         public bool? UseCharacterModeExecutable { get; set; }
         public static bool GetDefaultUseCharacterModeExecutable() => false;
-        
+
         /// <summary>
         /// Adds the gui (or tty if character mode) directory to the propath.
         /// Also adds the pro library files in this directory to the propath.
@@ -211,7 +211,7 @@ namespace Oetools.Builder.Project.Properties {
         /// </remarks>
         [XmlElement(ElementName = "ProcedurePathToExecuteAfterAnyProgressExecution")]
         public string ProcedureToExecuteAfterAnyProgressExecutionFilePath { get; set; }
-        
+
         /// <summary>
         /// The code page to use for input/output with openedge processes.
         /// This will default to the value read for -cpstream or -cpinternal in the file $DLC/startup.pf.
@@ -221,7 +221,7 @@ namespace Oetools.Builder.Project.Properties {
         /// </remarks>
         [XmlElement(ElementName = "OpenedgeCodePage")]
         public string OpenedgeCodePage { get; set; }
-        
+
         /// <summary>
         /// Only on windows, try to hide the prowin.exe process from the windows task bar.
         /// </summary>
@@ -245,9 +245,9 @@ namespace Oetools.Builder.Project.Properties {
         [XmlElement(ElementName = "OpenedgeTemporaryDirectoryPath")]
         [DefaultValueMethod(nameof(GetDefaultOpenedgeTemporaryDirectoryPath))]
         public string OpenedgeTemporaryDirectoryPath { get; set; }
-        [Description("$TEMP/.oe_tmp-xxx (temporary folder)")]
-        public static string GetDefaultOpenedgeTemporaryDirectoryPath() => Path.Combine(Path.GetTempPath(), $".oe_tmp-{Utils.GetRandomName()}");
-                  
+        [Description("$TEMP/.oe_tmp/xxx (temporary folder)")]
+        public static string GetDefaultOpenedgeTemporaryDirectoryPath() => Utils.CreateTempDirectory(Utils.GetRandomName());
+
         /// <summary>
         /// The options to use to compile your application.
         /// </summary>
@@ -255,7 +255,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultCompilationOptions))]
         public OeCompilationOptions CompilationOptions { get; set; }
         public static OeCompilationOptions GetDefaultCompilationOptions() => new OeCompilationOptions();
-        
+
         /// <summary>
         /// The options used when building your application.
         /// </summary>
@@ -263,7 +263,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultBuildOptions))]
         public OeBuildOptions BuildOptions { get; set; }
         public static OeBuildOptions GetDefaultBuildOptions() => new OeBuildOptions();
-        
+
         /// <summary>
         /// Validate that is object is correct.
         /// </summary>
@@ -277,7 +277,7 @@ namespace Oetools.Builder.Project.Properties {
             CompilationOptions?.Validate();
             BuildOptions?.Validate();
         }
-        
+
         /// <summary>
         /// Clean the path of all path properties and make them absolute.
         /// Goes through all STRING properties with "Path" in the name.
@@ -290,7 +290,7 @@ namespace Oetools.Builder.Project.Properties {
                 return value.MakePathAbsolute().ToCleanPath();
             });
         }
-        
+
         /// <summary>
         /// Allows to set values in this object through a list of key/value pairs.
         /// </summary>
@@ -303,7 +303,7 @@ namespace Oetools.Builder.Project.Properties {
                 var objectToInit = objectsToInit.Dequeue();
                 var objectType = objectToInit.Item1;
                 var objectInstance = objectToInit.Item2;
-                
+
                 foreach (var property in objectType.GetProperties()) {
                     if (!property.CanRead || !property.CanWrite) {
                         continue;
@@ -318,8 +318,8 @@ namespace Oetools.Builder.Project.Properties {
                             throw new Exception($"Could not convert {$"{xmlName}={keyValue[xmlName]}".PrettyQuote()} to type {property.PropertyType.Name}: {e.Message}", e);
                         }
                         continue;
-                    } 
-                    
+                    }
+
                     var obj = property.GetValue(objectInstance);
                     if (obj is IEnumerable enumerable) {
                         foreach (var item in enumerable) {
@@ -333,14 +333,14 @@ namespace Oetools.Builder.Project.Properties {
                 }
             }
         }
-        
+
         public void SetPropathEntries() {
             PropathEntries = GetPropath((BuildOptions?.SourceDirectoryPath).TakeDefaultIfNeeded(OeBuildOptions.GetDefaultSourceDirectoryPath()), true)
                 .Select(p => new OePropathEntry {
                     Path = p.Path
                 }).ToList();
         }
-        
+
         /// <summary>
         /// Returns the propath that should be used considering all the options of this class
         /// </summary>
@@ -350,7 +350,7 @@ namespace Oetools.Builder.Project.Properties {
         /// <exception cref="Exception"></exception>
         public PathList<IOeDirectory> GetPropath(string sourceDirectory, bool simplifyPathWithWorkingDirectory) {
             var currentDirectory = Directory.GetCurrentDirectory();
-            
+
             var output = new PathList<IOeDirectory>();
             if (PropathEntries != null && PropathEntries.Count > 0) {
                 foreach (var propathEntry in PropathEntries.Select(e => e.Path).SelectMany(p => p.Split(';'))) {
@@ -399,7 +399,7 @@ namespace Oetools.Builder.Project.Properties {
                     return d;
                 });
             }
-            
+
             return output;
         }
 
@@ -439,7 +439,7 @@ namespace Oetools.Builder.Project.Properties {
             }
             return _env;
         }
-        
+
         public void SetEnv(UoeExecutionEnv value) => _env = value;
 
         /// <summary>
