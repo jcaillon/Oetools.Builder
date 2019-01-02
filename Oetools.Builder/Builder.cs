@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (Builder.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -31,11 +31,12 @@ using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder {
-    
+
     /// <summary>
     /// A builder to build an openedge project.
     /// </summary>
     public class Builder : IDisposable {
+        private CancellationTokenRegistration? _cancelRegistration;
 
         /// <summary>
         /// Cancel token.
@@ -46,7 +47,7 @@ namespace Oetools.Builder {
         /// Logger.
         /// </summary>
         public ILogger Log { protected get; set; }
-      
+
         /// <summary>
         /// The build configuration used for this build.
         /// </summary>
@@ -71,12 +72,12 @@ namespace Oetools.Builder {
             .ToList();
 
         public PathList<IOeFileBuilt> GetAllFilesBuilt() => GetAllFilesBuiltMerged(te => true, task => !(task is AOeTaskTargetsRemover));
-        
+
         public PathList<IOeFileBuilt> GetAllFilesWithTargetRemoved() => OeFileBuilt.MergeBuiltFilesTargets(BuildStepExecutors
             .SelectMany(exec => exec.Tasks.ToNonNullEnumerable())
             .OfType<AOeTaskTargetsRemover>()
             .SelectMany(t => t.GetRemovedTargets().ToNonNullEnumerable()));
-        
+
         /// <summary>
         /// A list of all the task exceptions that occured during the build.
         /// It will contain all the ignored warnings/errors once the build is done.
@@ -84,14 +85,14 @@ namespace Oetools.Builder {
         public List<TaskExecutionException> TaskExecutionExceptions => BuildStepExecutors?
             .SelectMany(exec => exec.TaskExecutionExceptions.ToNonNullEnumerable())
             .ToList();
-        
+
         /// <summary>
         /// The list of step executors, to get access the the executed steps/tasks of this build.
         /// </summary>
         public List<BuildStepExecutor> BuildStepExecutors { get; } = new List<BuildStepExecutor>();
-        
+
         private int TotalNumberOfTasks { get; set; }
-        
+
         private int NumberOfTasksDone { get; set; }
 
         private PathList<IOeFileBuilt> PreviouslyBuiltPaths { get; set; }
@@ -99,7 +100,7 @@ namespace Oetools.Builder {
         protected bool UseIncrementalBuild => BuildConfiguration.Properties.BuildOptions?.IncrementalBuildOptions?.EnabledIncrementalBuild ?? OeIncrementalBuildOptions.GetDefaultEnabledIncrementalBuild();
 
         private bool StoreSourceHash => BuildConfiguration.Properties.BuildOptions?.IncrementalBuildOptions?.UseCheckSumComparison ?? OeIncrementalBuildOptions.GetDefaultUseCheckSumComparison();
-        
+
         /// <summary>
         /// Initialize the build.
         /// </summary>
@@ -122,8 +123,9 @@ namespace Oetools.Builder {
 
         public virtual void Dispose() {
             BuildConfiguration.Properties.GetEnv().Dispose();
+            _cancelRegistration?.Dispose();
         }
-        
+
         /// <summary>
         /// Starts the build process.
         /// </summary>
@@ -150,26 +152,26 @@ namespace Oetools.Builder {
         /// <summary>
         /// Executed before the build start.
         /// </summary>
-        protected virtual void PreBuild() {    
-            CancelToken?.Register(() => {
-                Log?.Debug("Build cancel requested.");
+        protected virtual void PreBuild() {
+            _cancelRegistration = CancelToken?.Register(() => {
+                Log?.Warn("Build cancel requested.");
             });
-            
+
             Log?.Debug($"Initializing build with {BuildConfiguration}.");
             BuildConfiguration.Properties.SetCancellationSource(CancelToken);
-            
+
             Log?.Debug("Validating build configuration.");
             BuildConfiguration.Validate();
-            
+
             Log?.Debug("Using build variables.");
             BuildConfiguration.ApplyVariables();
-            
+
             Log?.Debug("Sanitizing path properties.");
             BuildConfiguration.Properties.SanitizePathInPublicProperties();
-            
+
             Log?.Debug("Computing the propath.");
             BuildConfiguration.Properties.SetPropathEntries();
-            
+
             if (BuildSourceHistory?.BuiltFiles != null) {
                 PreviouslyBuiltPaths = BuildSourceHistory.BuiltFiles.OfType<IOeFileBuilt>().ToFileList();
             }
@@ -181,19 +183,19 @@ namespace Oetools.Builder {
         protected virtual void PostBuild() {
             BuildSourceHistory = GetBuildHistory();
         }
-        
+
         /// <summary>
         /// Executes the build.
         /// </summary>
         private void ExecuteBuildSteps() {
             // compute the total number of tasks to execute
             TotalNumberOfTasks += BuildConfiguration.BuildSteps?.SelectMany(step => step.Tasks.ToNonNullEnumerable()).Count() ?? 0;
-            
+
             if (BuildConfiguration.BuildSteps != null) {
-                
+
                 foreach (var step in BuildConfiguration.BuildSteps) {
                     Log?.Info($"Executing {step.ToString().PrettyQuote()}.");
-                    
+
                     BuildStepExecutor executor;
                     switch (step) {
                         case OeBuildStepBuildSource _:
@@ -212,19 +214,19 @@ namespace Oetools.Builder {
                     executor.Properties = BuildConfiguration.Properties;
                     executor.Log = Log;
                     executor.CancelToken = CancelToken;
-                    
+
                     BuildStepExecutors.Add(executor);
-                    
+
                     if (executor is BuildStepExecutorBuildSource buildSourceExecutor) {
                         Log?.Debug("Is build source step.");
                         buildSourceExecutor.PreviouslyBuiltPaths = PreviouslyBuiltPaths;
                         buildSourceExecutor.GetFilesToBuildFromSourceFiles = GetFilesToBuildFromSourceFiles;
                     }
-                    
+
                     executor.OnTaskStart += ExecutorOnOnTaskStart;
                     executor.Execute();
                     executor.OnTaskStart -= ExecutorOnOnTaskStart;
-                    
+
                     NumberOfTasksDone += executor.NumberOfTasksDone;
                 }
             }
@@ -263,7 +265,7 @@ namespace Oetools.Builder {
 
             return unchangedOrModifiedFiles;
         }
-        
+
         /// <summary>
         /// Returns a new build history.
         /// </summary>
@@ -292,7 +294,7 @@ namespace Oetools.Builder {
                 .OfType<IOeTaskWithBuiltFiles>()
                 .SelectMany(t => t.GetBuiltFiles().ToNonNullEnumerable()));
         }
-        
+
         /// <summary>
         /// Returns a list of all the files built.
         /// </summary>
@@ -302,10 +304,10 @@ namespace Oetools.Builder {
             if (sourceDirectoryCompletePathList == null) {
                 return new PathList<IOeFileBuilt>();
             }
-            
+
             // add all the source files built.
             var builtFiles = GetAllFilesBuiltMerged(te => te is BuildStepExecutorBuildSource, task => !(task is AOeTaskTargetsRemover));
-            
+
             // add unchanged files for which we deleted targets.
             foreach (var fileBuilt in BuildStepExecutors
                 .SelectMany(exec => exec.Tasks.ToNonNullEnumerable())
@@ -316,7 +318,7 @@ namespace Oetools.Builder {
                     builtFiles.Add(new OeFileBuilt(fileBuilt));
                 }
             }
-            
+
             // add all the files that were not rebuild from the previous build history.
             if (PreviouslyBuiltPaths != null) {
                 foreach (var previousFile in PreviouslyBuiltPaths.Where(oldFile => !builtFiles.Contains(oldFile) && sourceDirectoryCompletePathList.Contains(oldFile.Path))) {
@@ -326,7 +328,7 @@ namespace Oetools.Builder {
                     builtFiles.Add(previousFileCopy);
                 }
             }
-            
+
             // finally, add all the required files.
             foreach (var requiredFile in builtFiles.SelectMany(f => f.RequiredFiles.ToNonNullEnumerable()).Where(reqFile => !builtFiles.Contains(reqFile)).ToList()) {
                 var sourceFileRequired = sourceDirectoryCompletePathList[requiredFile];
@@ -335,7 +337,7 @@ namespace Oetools.Builder {
                 }
                 builtFiles.Add(new OeFileBuilt(sourceFileRequired));
             }
-        
+
             // also ensures that all files have HASH info.
             if (UseIncrementalBuild && StoreSourceHash) {
                 foreach (var fileBuilt in builtFiles) {
@@ -345,6 +347,6 @@ namespace Oetools.Builder {
 
             return builtFiles;
         }
-        
+
     }
 }
