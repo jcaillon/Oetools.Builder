@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeProject.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -33,7 +33,7 @@ using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project {
-    
+
     /// <summary>
     /// An Openedge project (typically, your project is your application, they are synonyms).
     /// </summary>
@@ -51,14 +51,14 @@ namespace Oetools.Builder.Project {
     ///   │  │  └─ Child build configuration x...
     ///   │  └─ Child build configuration x...
     ///   └─ Build configuration x...
-    /// 
+    ///
     /// There are no upper limit for build configuration nesting.
     /// The idea is that nested build configuration inherit properties from their parent, recursively (more details on the build configuration help).
     /// </remarks>
     [Serializable]
     [XmlRoot("Project")]
     public class OeProject {
-        
+
         #region static
 
         public const string XsdName = "Project.xsd";
@@ -90,11 +90,19 @@ namespace Oetools.Builder.Project {
         public void Save(string path) {
             var serializer = new XmlSerializer(typeof(OeProject));
             XmlDocumentWriter.Save(path, serializer, this);
-            File.WriteAllBytes(Path.Combine(Path.GetDirectoryName(path) ?? "", XsdName), XsdResources.GetXsdFromResources(XsdName));
+            SaveXsd(Path.GetDirectoryName(path));
+        }
+
+        /// <summary>
+        /// Saves the project xsd file to the given location.
+        /// </summary>
+        /// <param name="directoryPath"></param>
+        public static void SaveXsd(string directoryPath) {
+            File.WriteAllBytes(Path.Combine(directoryPath ?? "", XsdName), XsdResources.GetXsdFromResources(XsdName));
         }
 
         #endregion
-        
+
 #if USESCHEMALOCATION
         /// <summary>
         /// Only when not generating the build for xsd.exe which has a problem with this attribute.
@@ -125,7 +133,7 @@ namespace Oetools.Builder.Project {
         ///   └─ List of children build configuration
         ///   ├─ Child build configuration 1
         ///   └─ Child build configuration x...
-        /// 
+        ///
         /// Inheritance of build configurations (think of russian dolls):
         ///   - Each build configuration can define "children" build configurations.
         ///   - Each child inherits its parent properties following these rules:
@@ -134,7 +142,7 @@ namespace Oetools.Builder.Project {
         ///
         /// Practical example:
         ///   Given the project below:
-        ///  
+        ///
         ///   Project
         ///   └─ Build configuration 1
         ///      ├─ Properties
@@ -215,9 +223,9 @@ namespace Oetools.Builder.Project {
             if (string.IsNullOrEmpty(configurationName) && configurationId == null) {
                 return null;
             }
-            
+
             List<OeBuildConfiguration> buildConfigurationsStack = null;
-            
+
             var configurationsToCheck = new Stack<Tuple<List<OeBuildConfiguration>, List<OeBuildConfiguration>>>();
             configurationsToCheck.Push(new Tuple<List<OeBuildConfiguration>, List<OeBuildConfiguration>>(new List<OeBuildConfiguration>(), BuildConfigurations));
             var found = false;
@@ -342,7 +350,7 @@ namespace Oetools.Builder.Project {
         internal void InitIds() {
             var buildConfigurationCount = 0;
             var countByPropName = new Dictionary<string, int>();
-            
+
             var objectsToInit = new Queue<Tuple<string, Type, object>>();
             objectsToInit.Enqueue(new Tuple<string, Type, object>(nameof(OeProject), GetType(), this));
             while (objectsToInit.Count > 0) {
@@ -350,7 +358,7 @@ namespace Oetools.Builder.Project {
                 var objectParentPropName = objectToInit.Item1;
                 var objectType = objectToInit.Item2;
                 var objectInstance = objectToInit.Item3;
-                
+
                 var properties = objectType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                 foreach (var property in properties) {
                     if (!property.CanRead || !property.CanWrite) {
@@ -382,5 +390,5 @@ namespace Oetools.Builder.Project {
             }
         }
     }
-    
+
 }
