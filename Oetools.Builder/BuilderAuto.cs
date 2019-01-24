@@ -71,11 +71,11 @@ namespace Oetools.Builder {
                 NumberOfUsersPerDatabase = OeCompilationOptions.GetNumberOfProcessesToUse(BuildConfiguration.Properties.CompilationOptions)
             };
 
-            var projectDbConnectionStrings = _projectDbAdmin.SetupProjectDatabases();
-            if (projectDbConnectionStrings != null && projectDbConnectionStrings.Count > 0) {
+            var projectDbConnectionString = _projectDbAdmin.SetupProjectDatabases();
+            if (!string.IsNullOrEmpty(projectDbConnectionString)) {
                 Log?.Debug("Adding project databases connection strings to the execution environment.");
                 var env = BuildConfiguration.Properties.GetEnv();
-                env.DatabaseConnectionString = $"{env.DatabaseConnectionString ?? ""} {string.Join(" ", projectDbConnectionStrings)}";
+                env.DatabaseConnectionString = $"{env.DatabaseConnectionString} {projectDbConnectionString}";
                 Log?.Debug($"The connection string is now {env.DatabaseConnectionString}.");
             }
 
