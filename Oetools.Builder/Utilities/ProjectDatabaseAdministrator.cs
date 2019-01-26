@@ -120,7 +120,7 @@ namespace Oetools.Builder.Utilities {
         /// Sets up all the databases needed for the project, starts them and returns the needed connection strings (or null if no db)
         /// </summary>
         /// <returns></returns>
-        public string SetupProjectDatabases() {
+        public List<UoeDatabaseConnection> SetupProjectDatabases() {
             if (ProjectDatabases == null || ProjectDatabases.Count == 0) {
                 return null;
             }
@@ -128,7 +128,7 @@ namespace Oetools.Builder.Utilities {
             DeleteOutdatedDatabases();
             CreateInexistingProjectDatabases();
             ServeUnstartedDatabases(nbUsers);
-            return UoeConnectionString.GetConnectionString(GetDatabasesConnectionStrings(nbUsers > 1));
+            return GetDatabasesConnectionStrings(nbUsers > 1);
         }
 
         /// <summary>
@@ -136,13 +136,13 @@ namespace Oetools.Builder.Utilities {
         /// </summary>
         /// <param name="multiUserConnection"></param>
         /// <returns></returns>
-        public List<UoeConnectionString> GetDatabasesConnectionStrings(bool? multiUserConnection = null) {
-            var output = new List<UoeConnectionString>();
+        public List<UoeDatabaseConnection> GetDatabasesConnectionStrings(bool? multiUserConnection = null) {
+            var output = new List<UoeDatabaseConnection>();
             foreach (var db in ProjectDatabases) {
                 if (multiUserConnection == null && DbAdmin.GetBusyMode(db.Location) == DatabaseBusyMode.MultiUser || multiUserConnection.HasValue && multiUserConnection.Value) {
-                    output.Add(UoeConnectionString.NewMultiUserConnection(db.Location, db.Definition.LogicalName));
+                    output.Add(UoeDatabaseConnection.NewMultiUserConnection(db.Location, db.Definition.LogicalName));
                 } else {
-                    output.Add(UoeConnectionString.NewSingleUserConnection(db.Location, db.Definition.LogicalName));
+                    output.Add(UoeDatabaseConnection.NewSingleUserConnection(db.Location, db.Definition.LogicalName));
                 }}
             return output;
         }

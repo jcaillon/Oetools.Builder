@@ -34,6 +34,7 @@ using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Attributes;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge;
+using Oetools.Utilities.Openedge.Database;
 using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Project.Properties {
@@ -423,7 +424,7 @@ namespace Oetools.Builder.Project.Properties {
                     TempDirectory = OpenedgeTemporaryDirectoryPath.TakeDefaultIfNeeded(GetDefaultOpenedgeTemporaryDirectoryPath()),
                     UseProgressCharacterMode = UseCharacterModeExecutable ?? GetDefaultUseCharacterModeExecutable(),
                     DatabaseAliases = DatabaseAliases,
-                    DatabaseConnectionString = ExtraDatabaseConnectionString,
+                    DatabaseConnections = UoeDatabaseConnection.GetConnectionStrings(ExtraDatabaseConnectionString),
                     DatabaseConnectionStringAppendMaxTryOne = AppendMaxConnectionTryToConnectionString ?? GetDefaultAppendMaxConnectionTryToConnectionString(),
                     DlcDirectoryPath = DlcDirectoryPath.TakeDefaultIfNeeded(GetDefaultDlcDirectoryPath()),
                     IniFilePath = IniFilePath,

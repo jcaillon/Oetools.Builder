@@ -482,7 +482,7 @@ namespace Oetools.Builder.Test {
                     BuildOptions = new OeBuildOptions {
                         SourceDirectoryPath = sourceDirectory
                     },
-                    ExtraDatabaseConnectionString = UoeConnectionString.NewSingleUserConnection(db).ToString()
+                    ExtraDatabaseConnectionString = UoeDatabaseConnection.NewSingleUserConnection(db).ToString()
                 }
             });
 

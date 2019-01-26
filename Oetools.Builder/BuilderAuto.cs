@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Properties;
@@ -28,6 +29,7 @@ using Oetools.Builder.Report.Html;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
+using Oetools.Utilities.Openedge.Database;
 
 namespace Oetools.Builder {
 
@@ -71,12 +73,14 @@ namespace Oetools.Builder {
                 NumberOfUsersPerDatabase = OeCompilationOptions.GetNumberOfProcessesToUse(BuildConfiguration.Properties.CompilationOptions)
             };
 
-            var projectDbConnectionString = _projectDbAdmin.SetupProjectDatabases();
-            if (!string.IsNullOrEmpty(projectDbConnectionString)) {
+            var projectDatabaseConnections = _projectDbAdmin.SetupProjectDatabases();
+            if (projectDatabaseConnections.Any()) {
                 Log?.Debug("Adding project databases connection strings to the execution environment.");
                 var env = BuildConfiguration.Properties.GetEnv();
-                env.DatabaseConnectionString = $"{env.DatabaseConnectionString} {projectDbConnectionString}";
-                Log?.Debug($"The connection string is now {env.DatabaseConnectionString}.");
+                var connections = env.DatabaseConnections.ToNonNullList();
+                connections.AddRange(projectDatabaseConnections);
+                env.DatabaseConnections = connections;
+                Log?.Debug($"The connection string is now {UoeDatabaseConnection.GetConnectionString(connections)}.");
             }
 
             // load build history
