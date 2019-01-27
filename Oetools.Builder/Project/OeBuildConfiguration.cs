@@ -153,7 +153,7 @@ namespace Oetools.Builder.Project {
                 throw new BuildConfigurationException(this, "Failed to get the current directory (check permissions).", e);
             }
             currentDirectory = currentDirectory.ToCleanPath();
-            var sourceDirectory = Properties.BuildOptions.SourceDirectoryPath.MakePathAbsolute(currentDirectory).ToCleanPath();
+            var sourceDirectory = Properties.BuildOptions.SourceDirectoryPath.ToAbsolutePath(currentDirectory).ToCleanPath();
 
             var originalVariablesList = Variables;
             

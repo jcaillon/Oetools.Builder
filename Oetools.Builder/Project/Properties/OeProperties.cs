@@ -288,7 +288,7 @@ namespace Oetools.Builder.Project.Properties {
                 if (!propInfo.Name.Contains("Path") || value == null) {
                     return value;
                 }
-                return value.MakePathAbsolute().ToCleanPath();
+                return value.ToAbsolutePath().ToCleanPath();
             });
         }
 
@@ -393,7 +393,7 @@ namespace Oetools.Builder.Project.Properties {
             }
             if (simplifyPathWithWorkingDirectory) {
                 output.ApplyPathTransformation(d => {
-                    d.Path = d.Path.FromAbsolutePathToRelativePath(sourceDirectory);
+                    d.Path = d.Path.ToRelativePath(sourceDirectory);
                     if (string.IsNullOrEmpty(d.Path)) {
                         d.Path = ".";
                     }

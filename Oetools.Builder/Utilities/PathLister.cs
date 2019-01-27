@@ -201,21 +201,21 @@ namespace Oetools.Builder.Utilities {
             
             if (GitFilter.IncludeSourceFilesModifiedSinceLastCommit ?? PathListerGitFilterOptions.GetDefaultIncludeSourceFilesModifiedSinceLastCommit()) {
                 output.AddRange(gitManager.GetAllModifiedFilesSinceLastCommit()
-                    .Select(f => new OeFile(f.MakePathAbsolute(BaseDirectory).ToCleanPath()))
+                    .Select(f => new OeFile(f.ToAbsolutePath(BaseDirectory).ToCleanPath()))
                     .ToFileList());
             }
             
             if (GitFilter.IncludeSourceFilesCommittedOnlyOnCurrentBranch ?? PathListerGitFilterOptions.GetDefaultIncludeSourceFilesCommittedOnlyOnCurrentBranch()) {
                 try {
                     output.AddRange(gitManager.GetAllCommittedFilesExclusiveToCurrentBranch(GitFilter.CurrentBranchOriginCommit, GitFilter.CurrentBranchName)
-                        .Select(f => new OeFile(f.MakePathAbsolute(BaseDirectory).ToCleanPath()))
+                        .Select(f => new OeFile(f.ToAbsolutePath(BaseDirectory).ToCleanPath()))
                         .ToFileList());
                 } catch (GitManagerCantFindMergeCommitException) {
                     // this exception means we can't find commits that exist only on that branch
                     // we list every file committed in the repo instead (= all files in repo minus all modified files)
                     var allFiles = GetBaseFileList();
                     var workingFiles = gitManager.GetAllModifiedFilesSinceLastCommit()
-                        .Select(f => f.MakePathAbsolute(BaseDirectory).ToCleanPath())
+                        .Select(f => f.ToAbsolutePath(BaseDirectory).ToCleanPath())
                         .ToHashSet(new HashSet<string>(StringComparer.OrdinalIgnoreCase));
                     output.AddRange(allFiles.Where(f => !workingFiles.Contains(f.Path)));
                 }

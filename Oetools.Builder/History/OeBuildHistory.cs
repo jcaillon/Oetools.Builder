@@ -74,9 +74,9 @@ namespace Oetools.Builder.History {
                 }
                 switch (attr.Type) {
                     case BaseDirectoryType.SourceDirectory:
-                        return value.FromAbsolutePathToRelativePath(sourceDirectory);
+                        return value.ToRelativePath(sourceDirectory);
                     case BaseDirectoryType.OutputDirectory:
-                        return value.FromAbsolutePathToRelativePath(outputDirectory);
+                        return value.ToRelativePath(outputDirectory);
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -96,9 +96,9 @@ namespace Oetools.Builder.History {
                 }
                 switch (attr.Type) {
                     case BaseDirectoryType.SourceDirectory:
-                        return value.MakePathAbsolute(sourceDirectory);
+                        return value.ToAbsolutePath(sourceDirectory);
                     case BaseDirectoryType.OutputDirectory:
-                        return value.MakePathAbsolute(outputDirectory);
+                        return value.ToAbsolutePath(outputDirectory);
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
