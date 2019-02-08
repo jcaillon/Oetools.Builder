@@ -102,7 +102,7 @@ namespace Oetools.Builder.Test.Utilities {
                     Assert.IsTrue(databaseConnections.Any());
 
                     env.DatabaseConnections = databaseConnections;
-                    using (var exec = new UoeExecutionDbExtractTableAndSequenceList(env)) {
+                    using (var exec = new UoeExecutionDbExtractTableCrcAndSequenceList(env)) {
                         exec.Start();
                         exec.WaitForExecutionEnd();
                         Assert.IsFalse(exec.ExecutionHandledExceptions, "ExecutionHandledExceptions");
@@ -114,7 +114,7 @@ namespace Oetools.Builder.Test.Utilities {
                 // call again, should basically do nothing
                 using (var dbAdmin = new ProjectDatabaseAdministrator(env.DlcDirectoryPath, build.Properties.ProjectDatabases, projectDatabaseDirectory)) {
                     env.DatabaseConnections = dbAdmin.SetupProjectDatabases();
-                    using (var exec = new UoeExecutionDbExtractTableAndSequenceList(env)) {
+                    using (var exec = new UoeExecutionDbExtractTableCrcAndSequenceList(env)) {
                         exec.Start();
                         exec.WaitForExecutionEnd();
                         Assert.IsFalse(exec.ExecutionHandledExceptions, "ExecutionHandledExceptions");
@@ -125,7 +125,7 @@ namespace Oetools.Builder.Test.Utilities {
                 build.Properties.ProjectDatabases[1].DataDefinitionFilePath = dfPath3;
                 using (var dbAdmin = new ProjectDatabaseAdministrator(env.DlcDirectoryPath, build.Properties.ProjectDatabases, projectDatabaseDirectory)) {
                     env.DatabaseConnections = dbAdmin.SetupProjectDatabases();;
-                    using (var exec = new UoeExecutionDbExtractTableAndSequenceList(env)) {
+                    using (var exec = new UoeExecutionDbExtractTableCrcAndSequenceList(env)) {
                         exec.Start();
                         exec.WaitForExecutionEnd();
                         Assert.IsFalse(exec.ExecutionHandledExceptions, "ExecutionHandledExceptions");

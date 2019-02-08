@@ -192,6 +192,16 @@ namespace Oetools.Builder.Project.Properties {
         public string ExtraOpenedgeCommandLineParameters { get; set; }
 
         /// <summary>
+        /// Database server internationalization startup parameters such as -cpinternal codepage and -cpstream codepage.
+        /// They will be used for commands that support them: _dbutil, _mprosrv, _mprshut, _proutil.
+        /// </summary>
+        /// <remarks>
+        /// https://documentation.progress.com/output/ua/OpenEdge_latest/index.html#page/dmadm%2Fdatabase-server-internationalization-parameters.html%23
+        /// </remarks>
+        [XmlElement(ElementName = "DatabaseInternationalizationStartupParameters")]
+        public string DatabaseInternationalizationStartupParameters { get; set; }
+
+        /// <summary>
         /// File path to an openedge procedure that will be executed for each new openedge session used (when using _progres or prowin).
         /// </summary>
         /// <remarks>

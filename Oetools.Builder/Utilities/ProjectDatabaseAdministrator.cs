@@ -24,11 +24,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project.Properties;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Database;
+using Oetools.Utilities.Openedge.Database.Exceptions;
 
 namespace Oetools.Builder.Utilities {
 
@@ -58,7 +60,41 @@ namespace Oetools.Builder.Utilities {
         /// <summary>
         /// The logger to use.
         /// </summary>
-        public ILogger Log { protected get; set; }
+        public ILogger Log {
+            get => _logger;
+            set {
+                _logger = value;
+                DbAdmin.Log = _logger;
+            }
+        }
+
+        /// <summary>
+        /// Cancellation token. Used to cancel execution.
+        /// </summary>
+        public CancellationToken? CancelToken {
+            get => DbAdmin.CancelToken;
+            set => DbAdmin.CancelToken = value;
+        }
+
+        /// <summary>
+        /// Pro parameters to append to the execution of the progress process.
+        /// </summary>
+        public string ProExeCommandLineParameters {
+            get => DbAdmin.ProExeCommandLineParameters;
+            set => DbAdmin.ProExeCommandLineParameters = value;
+        }
+
+        /// <summary>
+        /// Database server internationalization startup parameters such as -cpinternal codepage and -cpstream codepage.
+        /// They will be used for commands that support them. (_dbutil, _mprosrv, _mprshut, _proutil)
+        /// </summary>
+        /// <remarks>
+        /// https://documentation.progress.com/output/ua/OpenEdge_latest/index.html#page/dmadm%2Fdatabase-server-internationalization-parameters.html%23
+        /// </remarks>
+        public string InternationalizationStartupParameters {
+            get => DbAdmin.InternationalizationStartupParameters;
+            set => DbAdmin.InternationalizationStartupParameters = value;
+        }
 
         /// <summary>
         /// The databases to handle.
@@ -66,6 +102,8 @@ namespace Oetools.Builder.Utilities {
         protected List<ProjectDatabase> ProjectDatabases { get; }
 
         protected UoeDatabaseAdministrator DbAdmin { get; }
+
+        private ILogger _logger;
 
         /// <summary>
         /// Initialize a project database administrator.

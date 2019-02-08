@@ -24,6 +24,7 @@ using System.IO;
 using Oetools.Builder.Project.Properties;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Openedge.Database;
+using Oetools.Utilities.Openedge.Database.Exceptions;
 
 namespace Oetools.Builder.Utilities {
 

@@ -69,6 +69,9 @@ namespace Oetools.Builder {
             var databasesBaseDir = Path.Combine(OeBuilderConstants.GetProjectDirectoryLocalAutoDb(BuildConfiguration.Properties.BuildOptions.SourceDirectoryPath), BuildConfiguration.Id.ToString());
             _projectDbAdmin = new ProjectDatabaseAdministrator(BuildConfiguration.Properties.DlcDirectoryPath, BuildConfiguration.Properties.ProjectDatabases, databasesBaseDir, BuildConfiguration.Properties.GetEnv().GetIoEncoding()) {
                 Log = Log,
+                CancelToken = CancelToken,
+                ProExeCommandLineParameters = BuildConfiguration.Properties.ExtraOpenedgeCommandLineParameters,
+                InternationalizationStartupParameters = BuildConfiguration.Properties.DatabaseInternationalizationStartupParameters,
                 AllowsDatabaseShutdownWithKill = BuildConfiguration.Properties.BuildOptions.AllowDatabaseShutdownByProcessKill,
                 NumberOfUsersPerDatabase = OeCompilationOptions.GetNumberOfProcessesToUse(BuildConfiguration.Properties.CompilationOptions)
             };

@@ -20,6 +20,7 @@
 using System;
 using System.Xml.Serialization;
 using Oetools.Utilities.Openedge;
+using Oetools.Utilities.Openedge.Database;
 
 namespace Oetools.Builder.History {
     
