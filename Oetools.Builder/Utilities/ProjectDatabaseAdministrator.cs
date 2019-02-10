@@ -207,10 +207,19 @@ namespace Oetools.Builder.Utilities {
                         var startParameters = DbAdmin.Start(db.Location, null, null, nbUsers);
                         Log?.Debug($"Startup parameters are: {startParameters.PrettyQuote()}.");
 
-                        var newProcess = Process.GetProcesses().FirstOrDefault(p => p.ProcessName.Contains("_mprosrv") && p.StartTime.CompareTo(startTime) > 0);
+                        var newProcess = Process.GetProcesses()
+                            .Where(p => {
+                                try {
+                                    return p.ProcessName.Contains("_mprosrv") && p.StartTime.CompareTo(startTime) > 0;
+                                } catch (Exception) {
+                                    return false;
+                                }
+                            })
+                            .OrderBy(p => p.StartTime)
+                            .FirstOrDefault();
                         if (newProcess != null) {
                             Log?.Debug($"Database started with process id {newProcess.Id}.");
-                            db.BrokerProcessStartDateTime = newProcess.StartTime;
+                            db.BrokerProcessPid = newProcess.Id;
                         }
                     } else {
                         Log?.Debug("Single user mode, the database will not be started.");
@@ -286,24 +295,21 @@ namespace Oetools.Builder.Utilities {
         private void ShutdownDatabase(ProjectDatabase db) {
             Log?.Debug($"Shutting down database {db.ToString().PrettyQuote()}.");
             if (AllowsDatabaseShutdownWithKill ?? DefaultAllowsDatabaseShutdownWithKill) {
-                var startTimeFile = db.BrokerProcessStartDateTime;
-                if (startTimeFile.HasValue) {
-                    var time = startTimeFile.Value;
+                var dbBrokerProcessPid = db.BrokerProcessPid;
+                if (dbBrokerProcessPid.HasValue) {
+                    var pid = dbBrokerProcessPid.Value;
                     try {
-                        var processToKill = Process.GetProcesses()
-                            .Where(p => {
-                                try {
-                                    return p.ProcessName.Contains("_mprosrv") && p.StartTime.CompareTo(time) >= 0 && p.StartTime.CompareTo(time.AddSeconds(10)) < 0;
-                                } catch(Exception) {
-                                    return false;
-                                }
-                            })
-                            .OrderBy(p => p.StartTime)
-                            .FirstOrDefault();
-                        if (processToKill != null) {
+                        var mprosrv = Process.GetProcesses().FirstOrDefault(p => {
+                            try {
+                                return p.ProcessName.Contains("_mprosrv") && p.Id == pid;
+                            } catch (Exception) {
+                                return false;
+                            }
+                        });
+                        if (mprosrv != null) {
                             // because of the way we started the database, we know for sure
-                            Log?.Debug($"Killing _mprosrv {processToKill.Id} for the database {db.ToString().PrettyQuote()}.");
-                            processToKill.Kill();
+                            Log?.Debug($"Killing _mprosrv {pid} for the database {db.ToString().PrettyQuote()}.");
+                            mprosrv.Kill();
                             return;
                         }
                     } catch (Exception e) {

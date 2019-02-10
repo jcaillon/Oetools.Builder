@@ -58,26 +58,26 @@ namespace Oetools.Builder.Utilities {
         }
 
         /// <summary>
-        /// The date time at which the broker started.
+        /// The pid of the broker when the database was started.
         /// </summary>
-        public DateTime? BrokerProcessStartDateTime {
+        public int? BrokerProcessPid {
             get {
-                if (File.Exists(ProcessStartTimeFilePath)) {
-                    var startTimeText = File.ReadAllText(ProcessStartTimeFilePath);
-                    if (DateTime.TryParseExact(startTimeText, "yyyy-MM-dd HH:mm:ss,fff", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime time)) {
-                        return time;
+                if (File.Exists(ProcessPidFilePath)) {
+                    var pidText = File.ReadAllText(ProcessPidFilePath);
+                    if (int.TryParse(pidText, out int pid)) {
+                        return pid;
                     }
                 }
                 return null;
             }
             set {
                 if (value == null) {
-                    if (File.Exists(ProcessStartTimeFilePath)) {
-                        File.Delete(ProcessStartTimeFilePath);
+                    if (File.Exists(ProcessPidFilePath)) {
+                        File.Delete(ProcessPidFilePath);
                     }
                     return;
                 }
-                File.WriteAllText(ProcessStartTimeFilePath, value.Value.ToString("yyyy-MM-dd HH:mm:ss,fff", CultureInfo.InvariantCulture));
+                File.WriteAllText(ProcessPidFilePath, value.Value.ToString());
             }
         }
 
@@ -117,7 +117,7 @@ namespace Oetools.Builder.Utilities {
 
         private string Md5FilePath { get; }
 
-        private string ProcessStartTimeFilePath { get; }
+        private string ProcessPidFilePath { get; }
 
         /// <summary>
         ///
@@ -131,7 +131,7 @@ namespace Oetools.Builder.Utilities {
             Location = new UoeDatabaseLocation(Path.Combine(projectDatabaseDirectory, physicalName, physicalName));
             MaxNbUsersFilePath = Path.ChangeExtension(Location.FullPath, "maxnbusers");
             Md5FilePath = Path.ChangeExtension(Location.FullPath, "md5");
-            ProcessStartTimeFilePath = Path.ChangeExtension(Location.FullPath, "starttime");
+            ProcessPidFilePath = Path.ChangeExtension(Location.FullPath, "pid");
             LocalDfFilePath = Path.ChangeExtension(Location.FullPath, "df");
         }
 
