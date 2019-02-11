@@ -299,17 +299,7 @@ namespace Oetools.Builder.Utilities {
                 if (dbBrokerProcessPid.HasValue) {
                     var pid = dbBrokerProcessPid.Value;
                     try {
-                        var mprosrv = Process.GetProcesses().FirstOrDefault(p => {
-                            try {
-                                return p.ProcessName.Contains("_mprosrv") && p.Id == pid;
-                            } catch (Exception) {
-                                return false;
-                            }
-                        });
-                        if (mprosrv != null) {
-                            // because of the way we started the database, we know for sure
-                            Log?.Debug($"Killing _mprosrv {pid} for the database {db.ToString().PrettyQuote()}.");
-                            mprosrv.Kill();
+                        if (DbAdmin.KillBrokerServer(pid, db.Location)) {
                             return;
                         }
                     } catch (Exception e) {
