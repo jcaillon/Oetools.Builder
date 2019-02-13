@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (GitManager.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -26,11 +26,11 @@ using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Utilities {
-    
+
     public class GitManager {
-        
+
         public ILogger Log { protected get; set; }
-        
+
         public GitManager() {
             GitExe = new ProcessIo("git") {
                 WorkingDirectory = Directory.GetCurrentDirectory()
@@ -73,7 +73,7 @@ namespace Oetools.Builder.Utilities {
         public string GetFirstCommitRefNonExclusiveToCurrentBranch(string optionalCurrentBranchName = null) {
             List<string> output;
             try {
-                output = ExecuteGitCommand("log --pretty=\"format:%H %D\" HEAD");
+                output = ExecuteGitCommand("log \"--pretty=format:%H %D\" HEAD");
             } catch (Exception e) {
                 if (e.InnerException != null && e.InnerException.Message.Contains("'HEAD'")) {
                     // HEAD doesn't contain any commits
