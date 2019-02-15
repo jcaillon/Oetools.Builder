@@ -57,7 +57,7 @@ namespace Oetools.Builder.Utilities {
             if (string.IsNullOrEmpty(mergeCommit)) {
                 return new List<string>();
             }
-            return ExecuteGitCommand($"diff --name-only HEAD {mergeCommit}")
+            return ExecuteGitCommand(new ProcessArgs("diff", "--name-only", "HEAD", mergeCommit))
                 .Select(s => s.Trim().StripQuotes())
                 .Where(s => !string.IsNullOrEmpty(s))
                 .ToList();
@@ -73,7 +73,7 @@ namespace Oetools.Builder.Utilities {
         public string GetFirstCommitRefNonExclusiveToCurrentBranch(string optionalCurrentBranchName = null) {
             List<string> output;
             try {
-                output = ExecuteGitCommand("log \"--pretty=format:%H %D\" HEAD");
+                output = ExecuteGitCommand(new ProcessArgs("log", "--pretty=format:%H %D", "HEAD"));
             } catch (Exception e) {
                 if (e.InnerException != null && e.InnerException.Message.Contains("'HEAD'")) {
                     // HEAD doesn't contain any commits
@@ -144,7 +144,7 @@ namespace Oetools.Builder.Utilities {
         /// </summary>
         /// <returns></returns>
         public List<string> GetAllModifiedFilesSinceLastCommit() {
-            return ExecuteGitCommand("status --porcelain=v1 -u")
+            return ExecuteGitCommand(new ProcessArgs("status", "--porcelain=v1", "-u"))
                 .Where(s => !string.IsNullOrEmpty(s) && s.Length >= 3)
                 .Select(s => s.Substring(3).Trim().StripQuotes())
                 .ToList();
@@ -156,7 +156,7 @@ namespace Oetools.Builder.Utilities {
         /// <param name="parameters"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public List<string> ExecuteGitCommand(string parameters) {
+        public List<string> ExecuteGitCommand(ProcessArgs parameters) {
             if (!GitExe.TryExecute(parameters)) {
                 throw new Exception("Error executing a git command", new Exception(GitExe.ErrorOutput.ToString()));
             }

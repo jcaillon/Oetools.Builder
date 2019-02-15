@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeTaskExec.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -25,56 +25,56 @@ using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
-    
+
     /// <summary>
     /// This task starts a new external process.
     /// </summary>
     [Serializable]
     [XmlRoot("Exec")]
     public class OeTaskExec : AOeTask {
-        
+
         /// <summary>
         /// The path to the executable file.
         /// </summary>
         [XmlElement("ExecutableFilePath")]
         public string ExecutableFilePath { get; set; }
-            
+
         /// <summary>
         /// The command line parameters for the execution.
         /// </summary>
         [XmlElement("Parameters")]
         public string Parameters { get; set; }
-            
+
         /// <summary>
         /// Hide the execution (do not show a window).
         /// </summary>
         [XmlElement(ElementName = "HiddenExecution")]
         public bool? HiddenExecution { get; set; }
-        
+
         /// <summary>
         /// The maximum time in milliseconds before aborting the execution.
         /// </summary>
         [XmlElement(ElementName = "MaxTimeOut")]
         public int? MaxTimeOut { get; set; }
-        
+
         /// <summary>
         /// Do not redirect the executable standard and error output to the log.
         /// </summary>
         [XmlElement(ElementName = "DoNotRedirectOutput")]
         public bool? DoNotRedirectOutput { get; set; }
-            
+
         /// <summary>
         /// Do not consider exit code different than 0 as a failed execution.
         /// </summary>
         [XmlElement(ElementName = "IgnoreExitCode")]
         public bool? IgnoreExitCode { get; set; }
-        
+
         /// <summary>
-        /// Finish this task in error if the executable wrote in the error output stream. 
+        /// Finish this task in error if the executable wrote in the error output stream.
         /// </summary>
         [XmlElement(ElementName = "FailOnErrorOutput")]
         public bool? FailOnErrorOutput { get; set; }
-            
+
         /// <summary>
         /// The directory to use as the working directory for the execution.
         /// </summary>
@@ -89,17 +89,17 @@ namespace Oetools.Builder.Project.Task {
 
         protected override void ExecuteInternal() {
             var redirectOutput = !(DoNotRedirectOutput ?? false);
-            
+
             var proc = new ProcessIo(ExecutableFilePath) {
                 RedirectOutput = redirectOutput
             };
-            
+
             Log?.Debug($"Executing program {ExecutableFilePath}");
             Log?.Debug($"With parameters {Parameters}");
             Log?.Debug($"{(HiddenExecution ?? false ? "Hide execution" : "Show execution")} and {(redirectOutput ? "redirect output to info log" : "don't redirect output")}");
-            
+
             try {
-                proc.Execute(Parameters, HiddenExecution ?? false, MaxTimeOut ?? 0);
+                proc.Execute(ProcessArgs.FromString(Parameters), HiddenExecution ?? false, MaxTimeOut ?? 0);
             } catch (Exception e) {
                 throw new TaskExecutionException(this, $"Failed to execute {ExecutableFilePath.PrettyQuote()} with parameters {Parameters.PrettyQuote()}", e);
             }

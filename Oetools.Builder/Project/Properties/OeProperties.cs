@@ -440,7 +440,7 @@ namespace Oetools.Builder.Project.Properties {
                     IniFilePath = IniFilePath,
                     PostExecutionProgramPath = ProcedureToExecuteAfterAnyProgressExecutionFilePath,
                     PreExecutionProgramPath = ProcedureToExecuteBeforeAnyProgressExecutionFilePath,
-                    ProExeCommandLineParameters = ExtraOpenedgeCommandLineParameters.ToCleanQuoterArgs(),
+                    ProExeCommandLineParameters = ProcessArgs.FromString(ExtraOpenedgeCommandLineParameters),
                     ProPathList = PropathEntries?.Select(d => d.Path).ToList(),
                     TryToHideProcessFromTaskBarOnWindows = TryToHideProcessFromTaskBarOnWindows ?? GetDefaultTryToHideProcessFromTaskBarOnWindows()
                 };
