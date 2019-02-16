@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Oetools.Builder.Exceptions;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
@@ -29,11 +30,21 @@ namespace Oetools.Builder.Utilities {
 
     public class GitManager {
 
-        public ILogger Log { protected get; set; }
+        /// <summary>
+        /// A logger.
+        /// </summary>
+        public ILog Log { get; set; }
+
+        /// <summary>
+        /// Cancellation token. Used to cancel execution.
+        /// </summary>
+        public CancellationToken? CancelToken { get; set; }
 
         public GitManager() {
             GitExe = new ProcessIo("git") {
-                WorkingDirectory = Directory.GetCurrentDirectory()
+                WorkingDirectory = Directory.GetCurrentDirectory(),
+                Log = Log,
+                CancelToken = CancelToken
             };
         }
 
@@ -57,7 +68,7 @@ namespace Oetools.Builder.Utilities {
             if (string.IsNullOrEmpty(mergeCommit)) {
                 return new List<string>();
             }
-            return ExecuteGitCommand(new ProcessArgs("diff", "--name-only", "HEAD", mergeCommit))
+            return ExecuteGitCommand(new ProcessArgs().Append("diff", "--name-only", "HEAD", mergeCommit))
                 .Select(s => s.Trim().StripQuotes())
                 .Where(s => !string.IsNullOrEmpty(s))
                 .ToList();
@@ -73,7 +84,7 @@ namespace Oetools.Builder.Utilities {
         public string GetFirstCommitRefNonExclusiveToCurrentBranch(string optionalCurrentBranchName = null) {
             List<string> output;
             try {
-                output = ExecuteGitCommand(new ProcessArgs("log", "--pretty=format:%H %D", "HEAD"));
+                output = ExecuteGitCommand(new ProcessArgs().Append("log", "--pretty=format:%H %D", "HEAD"));
             } catch (Exception e) {
                 if (e.InnerException != null && e.InnerException.Message.Contains("'HEAD'")) {
                     // HEAD doesn't contain any commits
@@ -144,7 +155,7 @@ namespace Oetools.Builder.Utilities {
         /// </summary>
         /// <returns></returns>
         public List<string> GetAllModifiedFilesSinceLastCommit() {
-            return ExecuteGitCommand(new ProcessArgs("status", "--porcelain=v1", "-u"))
+            return ExecuteGitCommand(new ProcessArgs().Append("status", "--porcelain=v1", "-u"))
                 .Where(s => !string.IsNullOrEmpty(s) && s.Length >= 3)
                 .Select(s => s.Substring(3).Trim().StripQuotes())
                 .ToList();

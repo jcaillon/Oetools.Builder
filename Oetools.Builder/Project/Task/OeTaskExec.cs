@@ -42,6 +42,11 @@ namespace Oetools.Builder.Project.Task {
         /// <summary>
         /// The command line parameters for the execution.
         /// </summary>
+        /// <remarks>
+        /// Write the arguments as you would write them in a command line interface.
+        /// Double quotes can be escaped by doubling them.
+        /// e.g.: -opt value1 -opt2 "my value2" -opt3 "my ""quoted"" value3"
+        /// </remarks>
         [XmlElement("Parameters")]
         public string Parameters { get; set; }
 
@@ -54,6 +59,9 @@ namespace Oetools.Builder.Project.Task {
         /// <summary>
         /// The maximum time in milliseconds before aborting the execution.
         /// </summary>
+        /// <remarks>
+        /// Defaults to 0 which does not limit the time.
+        /// </remarks>
         [XmlElement(ElementName = "MaxTimeOut")]
         public int? MaxTimeOut { get; set; }
 
@@ -91,7 +99,9 @@ namespace Oetools.Builder.Project.Task {
             var redirectOutput = !(DoNotRedirectOutput ?? false);
 
             var proc = new ProcessIo(ExecutableFilePath) {
-                RedirectOutput = redirectOutput
+                RedirectOutput = redirectOutput,
+                Log = Log,
+                CancelToken = CancelToken
             };
 
             Log?.Debug($"Executing program {ExecutableFilePath}");
@@ -99,7 +109,7 @@ namespace Oetools.Builder.Project.Task {
             Log?.Debug($"{(HiddenExecution ?? false ? "Hide execution" : "Show execution")} and {(redirectOutput ? "redirect output to info log" : "don't redirect output")}");
 
             try {
-                proc.Execute(ProcessArgs.FromString(Parameters), HiddenExecution ?? false, MaxTimeOut ?? 0);
+                proc.Execute(new ProcessArgs().AppendFromQuotedArgs(Parameters), HiddenExecution ?? false, MaxTimeOut ?? 0);
             } catch (Exception e) {
                 throw new TaskExecutionException(this, $"Failed to execute {ExecutableFilePath.PrettyQuote()} with parameters {Parameters.PrettyQuote()}", e);
             }

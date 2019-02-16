@@ -31,6 +31,7 @@ using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Database;
 using Oetools.Utilities.Openedge.Database.Exceptions;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder.Utilities {
 
@@ -79,7 +80,7 @@ namespace Oetools.Builder.Utilities {
         /// <summary>
         /// Pro parameters to append to the execution of the progress process.
         /// </summary>
-        public string ProExeCommandLineParameters {
+        public UoeProcessArgs ProExeCommandLineParameters {
             get => DbAdmin.ProExeCommandLineParameters;
             set => DbAdmin.ProExeCommandLineParameters = value;
         }
@@ -91,7 +92,7 @@ namespace Oetools.Builder.Utilities {
         /// <remarks>
         /// https://documentation.progress.com/output/ua/OpenEdge_latest/index.html#page/dmadm%2Fdatabase-server-internationalization-parameters.html%23
         /// </remarks>
-        public string InternationalizationStartupParameters {
+        public ProcessArgs InternationalizationStartupParameters {
             get => DbAdmin.InternationalizationStartupParameters;
             set => DbAdmin.InternationalizationStartupParameters = value;
         }

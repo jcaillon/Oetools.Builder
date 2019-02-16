@@ -70,8 +70,8 @@ namespace Oetools.Builder {
             _projectDbAdmin = new ProjectDatabaseAdministrator(BuildConfiguration.Properties.DlcDirectoryPath, BuildConfiguration.Properties.ProjectDatabases, databasesBaseDir, BuildConfiguration.Properties.GetEnv().GetIoEncoding()) {
                 Log = Log,
                 CancelToken = CancelToken,
-                ProExeCommandLineParameters = BuildConfiguration.Properties.ExtraOpenedgeCommandLineParameters,
-                InternationalizationStartupParameters = BuildConfiguration.Properties.DatabaseInternationalizationStartupParameters,
+                ProExeCommandLineParameters = BuildConfiguration.Properties.GetExtraOpenedgeCommandLineParameters(),
+                InternationalizationStartupParameters = BuildConfiguration.Properties.GetDatabaseInternationalizationStartupParameters(),
                 AllowsDatabaseShutdownWithKill = BuildConfiguration.Properties.BuildOptions.AllowDatabaseShutdownByProcessKill,
                 NumberOfUsersPerDatabase = OeCompilationOptions.GetNumberOfProcessesToUse(BuildConfiguration.Properties.CompilationOptions)
             };
@@ -83,7 +83,7 @@ namespace Oetools.Builder {
                 var connections = env.DatabaseConnections.ToNonNullList();
                 connections.AddRange(projectDatabaseConnections);
                 env.DatabaseConnections = connections;
-                Log?.Debug($"The connection string is now {UoeDatabaseConnection.GetConnectionString(connections)}.");
+                Log?.Debug($"The connection string is now {UoeDatabaseConnection.ToArgs(connections)}.");
             }
 
             // load build history

@@ -189,7 +189,16 @@ namespace Oetools.Builder.Project.Properties {
         /// -NL -cwl -k
         /// </example>
         [XmlElement(ElementName = "ExtraOpenedgeCommandLineParameters")]
-        public string ExtraOpenedgeCommandLineParameters { get; set; }
+        public string ExtraOpenedgeCommandLineParameters {
+            get => _extraOpenedgeCommandLineParameters;
+            set {
+                _extraOpenedgeCommandLineParametersArgs = null;
+                _extraOpenedgeCommandLineParameters = value;
+            }
+        }
+
+        /// <inheritdoc cref="ExtraOpenedgeCommandLineParameters"/>>
+        public UoeProcessArgs GetExtraOpenedgeCommandLineParameters() => _extraOpenedgeCommandLineParametersArgs ?? (_extraOpenedgeCommandLineParametersArgs = new UoeProcessArgs().AppendFromQuotedArgs(ExtraOpenedgeCommandLineParameters) as UoeProcessArgs);
 
         /// <summary>
         /// Database server internationalization startup parameters such as -cpinternal codepage and -cpstream codepage.
@@ -199,7 +208,16 @@ namespace Oetools.Builder.Project.Properties {
         /// https://documentation.progress.com/output/ua/OpenEdge_latest/index.html#page/dmadm%2Fdatabase-server-internationalization-parameters.html%23
         /// </remarks>
         [XmlElement(ElementName = "DatabaseInternationalizationStartupParameters")]
-        public string DatabaseInternationalizationStartupParameters { get; set; }
+        public string DatabaseInternationalizationStartupParameters {
+            get => _databaseInternationalizationStartupParameters;
+            set {
+                _databaseInternationalizationStartupParametersArgs = null;
+                _databaseInternationalizationStartupParameters = value;
+            }
+        }
+
+        /// <inheritdoc cref="DatabaseInternationalizationStartupParameters"/>>
+        public UoeProcessArgs GetDatabaseInternationalizationStartupParameters() => _databaseInternationalizationStartupParametersArgs ?? (_databaseInternationalizationStartupParametersArgs = new UoeProcessArgs().AppendFromQuotedArgs(DatabaseInternationalizationStartupParameters) as UoeProcessArgs);
 
         /// <summary>
         /// File path to an openedge procedure that will be executed for each new openedge session used (when using _progres or prowin).
@@ -424,6 +442,10 @@ namespace Oetools.Builder.Project.Properties {
         public void SetCancellationSource(CancellationToken? source) => _cancelToken = source;
 
         private UoeExecutionEnv _env;
+        private string _extraOpenedgeCommandLineParameters;
+        private UoeProcessArgs _extraOpenedgeCommandLineParametersArgs;
+        private string _databaseInternationalizationStartupParameters;
+        private UoeProcessArgs _databaseInternationalizationStartupParametersArgs;
 
         /// <summary>
         /// Get the execution environment from these properties
@@ -440,7 +462,7 @@ namespace Oetools.Builder.Project.Properties {
                     IniFilePath = IniFilePath,
                     PostExecutionProgramPath = ProcedureToExecuteAfterAnyProgressExecutionFilePath,
                     PreExecutionProgramPath = ProcedureToExecuteBeforeAnyProgressExecutionFilePath,
-                    ProExeCommandLineParameters = ProcessArgs.FromString(ExtraOpenedgeCommandLineParameters),
+                    ProExeCommandLineParameters = GetExtraOpenedgeCommandLineParameters(),
                     ProPathList = PropathEntries?.Select(d => d.Path).ToList(),
                     TryToHideProcessFromTaskBarOnWindows = TryToHideProcessFromTaskBarOnWindows ?? GetDefaultTryToHideProcessFromTaskBarOnWindows()
                 };

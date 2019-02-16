@@ -400,7 +400,7 @@ namespace Oetools.Builder.Test.Utilities {
             // set up a local "remote" repo
             _git.SetCurrentDirectory(TestFolder);
             try {
-                _git.ExecuteGitCommand(ProcessArgs.FromString($"init --bare remote.git"));
+                _git.ExecuteGitCommand(new ProcessArgs().Append("init", "--bare", "remote.git"));
             } catch (Exception) {
                 Console.WriteLine("Cancelling test, can't find git!");
                 return;
@@ -408,18 +408,18 @@ namespace Oetools.Builder.Test.Utilities {
 
             // clone empty remote
             try {
-                _git.ExecuteGitCommand(ProcessArgs.FromString("clone remote.git local"));
+                _git.ExecuteGitCommand(new ProcessArgs().Append("clone", "remote.git", "local"));
             } catch (Exception e) {
                 Assert.IsNotNull(e);
             }
 
             _git.SetCurrentDirectory(repoDir);
-            _git.ExecuteGitCommand(ProcessArgs.FromString(@"config user.email you@example.com"));
-            _git.ExecuteGitCommand(ProcessArgs.FromString(@"config user.name you"));
+            _git.ExecuteGitCommand(new ProcessArgs().Append(@"config", "user.email", "you@example.com"));
+            _git.ExecuteGitCommand(new ProcessArgs().Append(@"config", "user.name", "you"));
 
             // new branch v1/dev
             try {
-                _git.ExecuteGitCommand(ProcessArgs.FromString("checkout -b v1/dev"));
+                _git.ExecuteGitCommand(new ProcessArgs().Append("checkout", "-b", "v1/dev"));
             } catch (Exception e) {
                 Assert.IsNotNull(e);
             }
@@ -444,8 +444,8 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(0, lister.GetFileList().Count, "we don't list files not committed");
 
             // add files to index
-            _git.ExecuteGitCommand(ProcessArgs.FromString("add --all"));
-            _git.ExecuteGitCommand(ProcessArgs.FromString("commit -m \"v1/dev init\""));
+            _git.ExecuteGitCommand(new ProcessArgs().Append("add", "--all"));
+            _git.ExecuteGitCommand(new ProcessArgs().Append("commit", "-m", "v1/dev init"));
 
 
             Assert.AreEqual(1, lister.GetFileList().Count, "now it's committed so we can list it again");
@@ -453,7 +453,7 @@ namespace Oetools.Builder.Test.Utilities {
 
             // new branch v1/dev/issue1
             try {
-                _git.ExecuteGitCommand(ProcessArgs.FromString("checkout -b v1/ft/issue1"));
+                _git.ExecuteGitCommand(new ProcessArgs().Append("checkout", "-b", "v1/ft/issue1"));
             } catch (Exception e) {
                 Assert.IsNotNull(e);
             }
@@ -474,12 +474,12 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.IsNotNull(lister.GetFileList()[Path.Combine(repoDir, "new file1")], "check that we still get full path");
 
             // add files to index
-            _git.ExecuteGitCommand(ProcessArgs.FromString("add --all"));
+            _git.ExecuteGitCommand(new ProcessArgs().Append("add", "--all"));
 
             Assert.AreEqual(2, lister.GetFileList().Count, "we should also get those 2 files that are on the index but not committed");
 
             // commit
-            _git.ExecuteGitCommand(ProcessArgs.FromString("commit -m \"v1/dev/issue fixing\""));
+            _git.ExecuteGitCommand(new ProcessArgs().Append("commit", "-m", "v1/dev/issue fixing"));
 
 
             Assert.AreEqual(0, lister.GetFileList().Count, "now we committed so we don't see them anymore...");
@@ -494,8 +494,8 @@ namespace Oetools.Builder.Test.Utilities {
             File.WriteAllText(Path.Combine(repoDir, "cool", "newfile4"), "");
 
             // add files to index
-            _git.ExecuteGitCommand(ProcessArgs.FromString("add --all"));
-            _git.ExecuteGitCommand(ProcessArgs.FromString("commit -m \"v1/dev/issue still fixing\""));
+            _git.ExecuteGitCommand(new ProcessArgs().Append("add", "--all"));
+            _git.ExecuteGitCommand(new ProcessArgs().Append("commit", "-m", "v1/dev/issue still fixing"));
 
             // add some file
             File.WriteAllText(Path.Combine(repoDir, "newfile5"), "");
@@ -518,7 +518,7 @@ namespace Oetools.Builder.Test.Utilities {
 
             // push branch
             try {
-                _git.ExecuteGitCommand(ProcessArgs.FromString("push -u origin v1/ft/issue1"));
+                _git.ExecuteGitCommand(new ProcessArgs().Append("push", "-u", "origin", "v1/ft/issue1"));
             } catch (Exception e) {
                 Assert.IsNotNull(e);
             }
@@ -526,18 +526,18 @@ namespace Oetools.Builder.Test.Utilities {
             Assert.AreEqual(5, lister.GetFileList().Count, "we should still see 5 files because the remote branch of the current branch doesn't count as merge");
 
             // commit
-            _git.ExecuteGitCommand(ProcessArgs.FromString("add --all"));
-            _git.ExecuteGitCommand(ProcessArgs.FromString("commit -m \"v1/dev/issue fixing again\""));
+            _git.ExecuteGitCommand(new ProcessArgs().Append("add", "--all"));
+            _git.ExecuteGitCommand(new ProcessArgs().Append("commit", "-m", "v1/dev/issue fixing again"));
 
             // merge feat onto dev
             try {
-                _git.ExecuteGitCommand(ProcessArgs.FromString("checkout v1/dev"));
+                _git.ExecuteGitCommand(new ProcessArgs().Append("checkout", "v1/dev"));
             } catch (Exception e) {
                 Assert.IsNotNull(e);
             }
-            _git.ExecuteGitCommand(ProcessArgs.FromString("merge v1/ft/issue1"));
+            _git.ExecuteGitCommand(new ProcessArgs().Append("merge", "v1/ft/issue1"));
             try {
-                _git.ExecuteGitCommand(ProcessArgs.FromString("checkout v1/ft/issue1"));
+                _git.ExecuteGitCommand(new ProcessArgs().Append("checkout", "v1/ft/issue1"));
             } catch (Exception e) {
                 Assert.IsNotNull(e);
             }
@@ -547,26 +547,26 @@ namespace Oetools.Builder.Test.Utilities {
             // add some file
             File.WriteAllText(Path.Combine(repoDir, "newfile6"), "");
             // add files to index
-            _git.ExecuteGitCommand(ProcessArgs.FromString("add --all"));
-            _git.ExecuteGitCommand(ProcessArgs.FromString("commit -m \"v1/dev/issue still fixing\""));
+            _git.ExecuteGitCommand(new ProcessArgs().Append("add", "--all"));
+            _git.ExecuteGitCommand(new ProcessArgs().Append("commit", "-m", "v1/dev/issue still fixing"));
 
             // push branch
             try {
-                _git.ExecuteGitCommand(ProcessArgs.FromString("push -u origin v1/ft/issue1"));
+                _git.ExecuteGitCommand(new ProcessArgs().Append("push", "-u", "origin", "v1/ft/issue1"));
             } catch (Exception e) {
                 Assert.IsNotNull(e);
             }
 
             // checkout tag
             try {
-                _git.ExecuteGitCommand(ProcessArgs.FromString("checkout origin/v1/ft/issue1"));
+                _git.ExecuteGitCommand(new ProcessArgs().Append("checkout", "origin/v1/ft/issue1"));
             } catch (Exception e) {
                 Assert.IsNotNull(e);
             }
 
             // delete branch v1/ft/issue1
             try {
-                _git.ExecuteGitCommand(ProcessArgs.FromString("branch -D v1/ft/issue1"));
+                _git.ExecuteGitCommand(new ProcessArgs().Append("branch", "-D", "v1/ft/issue1"));
             } catch (Exception e) {
                 Assert.IsNotNull(e);
             }
