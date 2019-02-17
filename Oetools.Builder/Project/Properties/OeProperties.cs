@@ -243,7 +243,7 @@ namespace Oetools.Builder.Project.Properties {
 
         /// <summary>
         /// The code page to use for input/output with openedge processes.
-        /// This will default to the value read for -cpstream or -cpinternal in the file $DLC/startup.pf.
+        /// This will default to the value read for -cpstream in the file $DLC/startup.pf.
         /// </summary>
         /// <remarks>
         /// This property should be configured if you encounter wrong characters (wrong encoding) in the console.

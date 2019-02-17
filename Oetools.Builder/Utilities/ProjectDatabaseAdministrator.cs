@@ -56,7 +56,7 @@ namespace Oetools.Builder.Utilities {
         /// <summary>
         /// The encoding to use for I/O of the openedge executables.
         /// </summary>
-        public Encoding Encoding { get; } = Encoding.Default;
+        public Encoding Encoding { get; }
 
         /// <summary>
         /// The logger to use.
@@ -122,9 +122,7 @@ namespace Oetools.Builder.Utilities {
             if (!Directory.Exists(projectDatabaseDirectory)) {
                 Directory.CreateDirectory(projectDatabaseDirectory);
             }
-            if (encoding != null) {
-                Encoding = encoding;
-            }
+            Encoding = encoding;
             try {
                 DbAdmin = new UoeDatabaseAdministrator(dlcDirectory, encoding);
             } catch (Exception e) {
