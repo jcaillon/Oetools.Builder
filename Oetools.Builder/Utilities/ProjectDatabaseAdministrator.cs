@@ -199,27 +199,12 @@ namespace Oetools.Builder.Utilities {
                         Log?.Debug($"Shutting down database {db.ToString().PrettyQuote()}, the number of max users has changed from {currentMaxNbUsers} to {nbUsers}.");
                         ShutdownDatabase(db);
                     }
-                    var startTime = DateTime.Now;
-
                     if (nbUsers > 1) {
                         Log?.Debug($"Starting database {db.ToString().PrettyQuote()} for {nbUsers} max users.");
-                        var startParameters = DbAdmin.Start(db.Location, null, null, nbUsers);
-                        Log?.Debug($"Startup parameters are: {startParameters.PrettyQuote()}.");
+                        DbAdmin.Start(db.Location, out int pid, true, nbUsers);
 
-                        var newProcess = Process.GetProcesses()
-                            .Where(p => {
-                                try {
-                                    return p.ProcessName.Contains("_mprosrv") && p.StartTime.CompareTo(startTime) > 0;
-                                } catch (Exception) {
-                                    return false;
-                                }
-                            })
-                            .OrderBy(p => p.StartTime)
-                            .FirstOrDefault();
-                        if (newProcess != null) {
-                            Log?.Debug($"Database started with process id {newProcess.Id}.");
-                            db.BrokerProcessPid = newProcess.Id;
-                        }
+                        Log?.Debug($"Database started with process id {pid}.");
+                        db.BrokerProcessPid = pid;
                     } else {
                         Log?.Debug("Single user mode, the database will not be started.");
                     }

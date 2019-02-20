@@ -30,6 +30,7 @@ using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Database;
+using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder {
 
@@ -83,7 +84,7 @@ namespace Oetools.Builder {
                 var connections = env.DatabaseConnections.ToNonNullList();
                 connections.AddRange(projectDatabaseConnections);
                 env.DatabaseConnections = connections;
-                Log?.Debug($"The connection string is now {UoeDatabaseConnection.ToArgs(connections)}.");
+                Log?.Debug($"The connection string is now {new ProcessArgs().Append(connections)}.");
             }
 
             // load build history
