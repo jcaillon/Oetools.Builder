@@ -201,11 +201,12 @@ namespace Oetools.Builder.Utilities {
                     }
                     if (nbUsers > 1) {
                         Log?.Debug($"Starting database {db.ToString().PrettyQuote()} for {nbUsers} max users.");
-                        DbAdmin.Start(db.Location, nbUsers, out List<int> pids);
+                        DbAdmin.Start(db.Location, nbUsers, out HashSet<int> pids);
 
                         if (pids.Count == 1) {
-                            Log?.Debug($"Database started with process id {pids[0]}.");
-                            db.BrokerProcessPid = pids[0];
+                            var pid = pids.ElementAt(0);
+                            Log?.Debug($"Database started with process id {pid}.");
+                            db.BrokerProcessPid = pid;
                         }
                     } else {
                         Log?.Debug("Single user mode, the database will not be started.");
@@ -293,7 +294,7 @@ namespace Oetools.Builder.Utilities {
                     }
                 }
             }
-            DbAdmin.Shutdown(db.Location);
+            DbAdmin.Stop(db.Location);
         }
 
 
