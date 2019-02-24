@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
@@ -242,14 +243,14 @@ namespace Oetools.Builder.Project.Properties {
         public string ProcedureToExecuteAfterAnyProgressExecutionFilePath { get; set; }
 
         /// <summary>
-        /// The code page to use for input/output with openedge processes.
-        /// This will default to the value read for -cpstream in the file $DLC/startup.pf.
+        /// The .net encoding to use for input/output with openedge processes.
+        /// This will default to an encoding deduced from reading the value for -cpstream in the file $DLC/startup.pf.
         /// </summary>
         /// <remarks>
-        /// This property should be configured if you encounter wrong characters (wrong encoding) in the console.
+        /// This property should only be configured if you encounter wrong characters (wrong encoding) in the application output.
         /// </remarks>
-        [XmlElement(ElementName = "OpenedgeCodePage")]
-        public string OpenedgeCodePage { get; set; }
+        [XmlElement(ElementName = "OpenedgeIoEncoding")]
+        public string OpenedgeIoEncoding { get; set; }
 
         /// <summary>
         /// Only on windows, try to hide the prowin.exe process from the windows task bar.
@@ -466,8 +467,12 @@ namespace Oetools.Builder.Project.Properties {
                     ProPathList = PropathEntries?.Select(d => d.Path).ToList(),
                     TryToHideProcessFromTaskBarOnWindows = TryToHideProcessFromTaskBarOnWindows ?? GetDefaultTryToHideProcessFromTaskBarOnWindows()
                 };
-                if (!string.IsNullOrEmpty(OpenedgeCodePage)) {
-                    _env.CodePageName = OpenedgeCodePage;
+                if (!string.IsNullOrEmpty(OpenedgeIoEncoding)) {
+                    try {
+                        _env.IoEncoding = Encoding.GetEncoding(OpenedgeIoEncoding);
+                    } catch (Exception e) {
+                        throw new PropertiesException($"The property {GetType().GetXmlName(nameof(OpenedgeIoEncoding))} is incorrect because it cannot be resolved to an existing .net encoding: {e.Message}", e);
+                    }
                 }
             }
             return _env;

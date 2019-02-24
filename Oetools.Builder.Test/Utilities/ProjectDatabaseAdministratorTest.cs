@@ -103,8 +103,8 @@ namespace Oetools.Builder.Test.Utilities {
 
                     env.DatabaseConnections = databaseConnections;
                     using (var exec = new UoeExecutionDbExtractTableCrcAndSequenceList(env)) {
-                        exec.Start();
-                        exec.WaitForExecutionEnd();
+                        exec.ExecuteNoWait();
+                        exec.WaitForExit();
                         Assert.IsFalse(exec.ExecutionHandledExceptions, "ExecutionHandledExceptions");
                         Assert.IsTrue(exec.TablesCrc.Keys.ToList().Exists(t => t.EndsWith("table1")));
                         Assert.IsFalse(exec.TablesCrc.Keys.ToList().Exists(t => t.EndsWith("table2")));
@@ -115,8 +115,8 @@ namespace Oetools.Builder.Test.Utilities {
                 using (var dbAdmin = new ProjectDatabaseAdministrator(env.DlcDirectoryPath, build.Properties.ProjectDatabases, projectDatabaseDirectory)) {
                     env.DatabaseConnections = dbAdmin.SetupProjectDatabases();
                     using (var exec = new UoeExecutionDbExtractTableCrcAndSequenceList(env)) {
-                        exec.Start();
-                        exec.WaitForExecutionEnd();
+                        exec.ExecuteNoWait();
+                        exec.WaitForExit();
                         Assert.IsFalse(exec.ExecutionHandledExceptions, "ExecutionHandledExceptions");
                     }
                 }
@@ -126,8 +126,8 @@ namespace Oetools.Builder.Test.Utilities {
                 using (var dbAdmin = new ProjectDatabaseAdministrator(env.DlcDirectoryPath, build.Properties.ProjectDatabases, projectDatabaseDirectory)) {
                     env.DatabaseConnections = dbAdmin.SetupProjectDatabases();;
                     using (var exec = new UoeExecutionDbExtractTableCrcAndSequenceList(env)) {
-                        exec.Start();
-                        exec.WaitForExecutionEnd();
+                        exec.ExecuteNoWait();
+                        exec.WaitForExit();
                         Assert.IsFalse(exec.ExecutionHandledExceptions, "ExecutionHandledExceptions");
                         Assert.IsTrue(exec.TablesCrc.Keys.ToList().Exists(t => t.EndsWith("table2")));
                     }
