@@ -17,7 +17,7 @@ Below is a simplified representation of a project file:<br>
   │  │  └─ Child build configuration x...<br>
   │  └─ Child build configuration x...<br>
   └─ Build configuration x...<br>
-<br>
+            <br>
 There are no upper limit for build configuration nesting.<br>
 The idea is that nested build configuration inherit properties from their parent, recursively (more details on the build configuration help).]]></xs:documentation>
     </xs:annotation>
@@ -46,7 +46,7 @@ Below is a simplified representation of a build configuration:<br>
   └─ List of children build configuration<br>
   ├─ Child build configuration 1<br>
   └─ Child build configuration x...<br>
-<br>
+            <br>
 Inheritance of build configurations (think of russian dolls):<br>
   - Each build configuration can define "children" build configurations.<br>
   - Each child inherits its parent properties following these rules:<br>
@@ -55,7 +55,7 @@ Inheritance of build configurations (think of russian dolls):<br>
             <br>
 Practical example:<br>
   Given the project below:<br>
- <br>
+            <br>
   Project<br>
   └─ Build configuration 1<br>
      ├─ Properties<br>
@@ -102,7 +102,7 @@ Below is a simplified representation of a build configuration:<br>
   └─ List of children build configuration<br>
   ├─ Child build configuration 1<br>
   └─ Child build configuration x...<br>
-<br>
+            <br>
 Inheritance of build configurations (think of russian dolls):<br>
   - Each build configuration can define "children" build configurations.<br>
   - Each child inherits its parent properties following these rules:<br>
@@ -111,7 +111,7 @@ Inheritance of build configurations (think of russian dolls):<br>
             <br>
 Practical example:<br>
   Given the project below:<br>
- <br>
+            <br>
   Project<br>
   └─ Build configuration 1<br>
      ├─ Properties<br>
@@ -212,7 +212,7 @@ Below is a simplified representation of a build configuration:<br>
   └─ List of children build configuration<br>
   ├─ Child build configuration 1<br>
   └─ Child build configuration x...<br>
-<br>
+            <br>
 Inheritance of build configurations (think of russian dolls):<br>
   - Each build configuration can define "children" build configurations.<br>
   - Each child inherits its parent properties following these rules:<br>
@@ -221,7 +221,7 @@ Inheritance of build configurations (think of russian dolls):<br>
             <br>
 Practical example:<br>
   Given the project below:<br>
- <br>
+            <br>
   Project<br>
   └─ Build configuration 1<br>
      ├─ Properties<br>
@@ -410,6 +410,14 @@ The available parameters for your version of openedge are available in the refer
   -NL -cwl -k]]></xs:documentation>
         </xs:annotation>
       </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="DatabaseInternationalizationStartupParameters" type="xs:string">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Database server internationalization startup parameters such as -cpinternal codepage and -cpstream codepage.<br>
+They will be used for commands that support them: _dbutil, _mprosrv, _mprshut, _proutil.<br>
+<br>
+https://documentation.progress.com/output/ua/OpenEdge_latest/index.html#page/dmadm%2Fdatabase-server-internationalization-parameters.html%23]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ProcedureToExecuteBeforeAnyProgressExecutionFilePath" type="xs:string">
         <xs:annotation>
           <xs:documentation><![CDATA[File path to an openedge procedure that will be executed for each new openedge session used (when using _progres or prowin).<br>
@@ -428,12 +436,12 @@ This procedure is called with a simple RUN statement and must not have any param
 It should be used to "clean up" any custom logic put in place with the procedure execution at the beginning of the session.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeCodePage" type="xs:string">
+      <xs:element minOccurs="0" maxOccurs="1" name="OpenedgeIoEncoding" type="xs:string">
         <xs:annotation>
-          <xs:documentation><![CDATA[The code page to use for input/output with openedge processes.<br>
-This will default to the value read for -cpstream or -cpinternal in the file $DLC/startup.pf.<br>
+          <xs:documentation><![CDATA[The .net encoding to use for input/output with openedge processes.<br>
+This will default to an encoding deduced from reading the value for -cpstream in the file $DLC/startup.pf.<br>
 <br>
-This property should be configured if you encounter wrong characters (wrong encoding) in the console.]]></xs:documentation>
+This property should only be configured if you encounter wrong characters (wrong encoding) in the application output.]]></xs:documentation>
         </xs:annotation>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="TryToHideProcessFromTaskBarOnWindows" nillable="true" type="xs:boolean">
@@ -657,7 +665,11 @@ The pattern are relative to the source directory.<br>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="Parameters" type="xs:string">
             <xs:annotation>
-              <xs:documentation><![CDATA[The command line parameters for the execution.]]></xs:documentation>
+              <xs:documentation><![CDATA[The command line parameters for the execution.<br>
+<br>
+Write the arguments as you would write them in a command line interface.<br>
+Double quotes can be escaped by doubling them.<br>
+e.g.: -opt value1 -opt2 "my value2" -opt3 "my ""quoted"" value3"]]></xs:documentation>
             </xs:annotation>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="HiddenExecution" nillable="true" type="xs:boolean">
@@ -667,7 +679,9 @@ The pattern are relative to the source directory.<br>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="MaxTimeOut" nillable="true" type="xs:int">
             <xs:annotation>
-              <xs:documentation><![CDATA[The maximum time in milliseconds before aborting the execution.]]></xs:documentation>
+              <xs:documentation><![CDATA[The maximum time in milliseconds before aborting the execution.<br>
+<br>
+Defaults to 0 which does not limit the time.]]></xs:documentation>
             </xs:annotation>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="DoNotRedirectOutput" nillable="true" type="xs:boolean">
@@ -682,7 +696,7 @@ The pattern are relative to the source directory.<br>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="FailOnErrorOutput" nillable="true" type="xs:boolean">
             <xs:annotation>
-              <xs:documentation><![CDATA[Finish this task in error if the executable wrote in the error output stream. ]]></xs:documentation>
+              <xs:documentation><![CDATA[Finish this task in error if the executable wrote in the error output stream.]]></xs:documentation>
             </xs:annotation>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="WorkingDirectory" type="xs:string">
