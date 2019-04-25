@@ -81,6 +81,10 @@ namespace Oetools.Builder.Test.Project {
 
         [TestMethod]
         public void ApplyVariables() {
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
+
             var bc = new OeBuildConfiguration {
                 Variables = new List<OeVariable> {
                     new OeVariable {
