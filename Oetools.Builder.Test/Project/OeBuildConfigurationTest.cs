@@ -33,6 +33,10 @@ namespace Oetools.Builder.Test.Project {
 
         [TestMethod]
         public void ApplyVariables_DefaultVariables() {
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
+
             var bc = new OeBuildConfiguration();
             bc.SetDefaultValues();
 
@@ -50,6 +54,10 @@ namespace Oetools.Builder.Test.Project {
 
         [TestMethod]
         public void SetDefaultValues() {
+            if (!TestHelper.GetDlcPath(out string _)) {
+                return;
+            }
+
             var bc = new OeBuildConfiguration();
             bc.SetDefaultValues();
 
@@ -67,6 +75,8 @@ namespace Oetools.Builder.Test.Project {
             if (!TestHelper.GetDlcPath(out string _)) {
                 return;
             }
+
+            Assert.AreEqual(OeProperties.GetDefaultDlcDirectoryPath(), bc.Properties.DlcDirectoryPath);
         }
 
         [TestMethod]
