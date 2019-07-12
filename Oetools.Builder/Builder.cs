@@ -321,11 +321,12 @@ namespace Oetools.Builder {
 
             // add all the files that were not rebuild from the previous build history.
             if (PreviouslyBuiltPaths != null) {
-                foreach (var previousFile in PreviouslyBuiltPaths.Where(oldFile => !builtFiles.Contains(oldFile) && sourceDirectoryCompletePathList.Contains(oldFile.Path))) {
+                foreach (var previousFile in PreviouslyBuiltPaths
+                    .Where(oldFile => !builtFiles.Contains(oldFile) && sourceDirectoryCompletePathList.Contains(oldFile.Path))) {
                     var previousFileCopy = new OeFileBuilt(previousFile) {
                         State = OeFileState.Unchanged
                     };
-                    builtFiles.Add(previousFileCopy);
+                    builtFiles.TryAdd(previousFileCopy);
                 }
             }
 
@@ -335,7 +336,7 @@ namespace Oetools.Builder {
                 if (sourceFileRequired == null) {
                     continue;
                 }
-                builtFiles.Add(new OeFileBuilt(sourceFileRequired));
+                builtFiles.TryAdd(new OeFileBuilt(sourceFileRequired));
             }
 
             // also ensures that all files have HASH info.
