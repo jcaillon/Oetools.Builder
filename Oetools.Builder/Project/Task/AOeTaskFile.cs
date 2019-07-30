@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeTaskFile.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -21,6 +21,7 @@
 using System.IO;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
@@ -32,11 +33,13 @@ namespace Oetools.Builder.Project.Task {
     /// </summary>
     /// <inheritdoc cref="AOeTaskFilter"/>
     public abstract class AOeTaskFile : AOeTaskFilterAttributes, IOeTaskFile {
-        
+
         private PathList<IOeFile> _filesToProcess;
-        
+        private bool _areFilesToProcessInitialized;
+
         public virtual void SetFilesToProcess(PathList<IOeFile> filesToProcess) {
             _filesToProcess = filesToProcess;
+            _areFilesToProcessInitialized = true;
         }
 
         public virtual PathList<IOeFile> GetFilesToProcess() => _filesToProcess;
@@ -54,7 +57,7 @@ namespace Oetools.Builder.Project.Task {
                 throw new TaskValidationException(this, $"The property {GetType().GetXmlName(nameof(IncludeRegex))} is not allowed for this task because it would not allow to find files to include (it would require to list the entire content of all the discs on this computer to match this regular expression), use the property {GetType().GetXmlName(nameof(Include))} instead.");
             }
         }
-        
+
         /// <inheritdoc cref="IOeTaskFile.GetFilesToProcessFromIncludes"/>
         public PathList<IOeFile> GetFilesToProcessFromIncludes() {
             var output = new PathList<IOeFile>();
@@ -65,26 +68,45 @@ namespace Oetools.Builder.Project.Task {
                     if (!IsPathExcluded(path)) {
                         output.TryAdd(new OeFile(Path.GetFullPath(path).ToCleanPath()));
                     }
-                } else {
-                    // the include is a wildcard path, we try to get the "root" folder to list to get all the files
-                    var validDir = Utils.GetLongestValidDirectory(path);
-                    if (!string.IsNullOrEmpty(validDir)) {
-                        Log?.Info($"Listing directory : {validDir.PrettyQuote()}.");
-                        var regexCorrespondingToPath = GetIncludeRegex()[i];
-                        foreach (var file in new PathLister(validDir, CancelToken) { Filter = this, Log = Log } .GetFileList()) {
-                            if (regexCorrespondingToPath.IsMatch(file.Path)) {
-                                output.TryAdd(file);
-                            }
-                        }
-                    } else {
-                        AddExecutionWarning(new TaskExecutionException(this, $"The property {GetType().GetXmlName(nameof(Include))} part {i} does not designate a file (e.g. /dir/file.ext) nor does it allow to find a base directory to list (e.g. /dir/**), the path in error is : {path}."));
+                    continue;
+                }
+
+                // the include is a wildcard path, we try to get the "root" folder to list to get all the files
+                var validDir = Utils.GetLongestValidDirectory(path);
+                var useCurrentDirectory = string.IsNullOrEmpty(validDir);
+                validDir = validDir ?? Directory.GetCurrentDirectory();
+
+                var filter = new OeSourceFilterOptions {
+                    Include = useCurrentDirectory ? Path.Combine(validDir, path) : path,
+                    Exclude = Exclude,
+                    ExcludeRegex = ExcludeRegex,
+                    RecursiveListing = path.Contains("**") || path.LastIndexOf('/') > path.LastIndexOf('*') || path.LastIndexOf('\\') > path.LastIndexOf('*')
+                };
+
+                Log?.Info($"Listing files from: {validDir.PrettyQuote()}.");
+                Log?.Debug($"Wildcards path: {filter.Include.PrettyQuote()}.");
+
+                var regexCorrespondingToPath = GetIncludeRegex()[i];
+                foreach (var file in new PathLister(validDir, CancelToken) { FilterOptions = filter, Log = Log } .GetFileList()) {
+                    if (useCurrentDirectory) {
+                        file.Path = file.Path.ToRelativePath(validDir);
+                    }
+                    if (regexCorrespondingToPath.IsMatch(file.Path)) {
+                        output.TryAdd(file);
                     }
                 }
+
                 i++;
             }
             return output;
         }
-        
-       
+
+        /// <inheritdoc />
+        protected override void PreExecuteInternal() {
+            base.PreExecuteInternal();
+            if (!_areFilesToProcessInitialized) {
+                SetFilesToProcess(GetFilesToProcessFromIncludes());
+            }
+        }
     }
 }

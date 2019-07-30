@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeTask.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -29,52 +29,52 @@ using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
-    
+
     /// <summary>
     /// A base task.
     /// </summary>
     public abstract class AOeTask : IOeTask {
-        
+
         /// <summary>
         /// Unique identifier for this task.
         /// </summary>
         [XmlIgnore]
-        internal int Id { get; set; }   
-        
+        internal int Id { get; set; }
+
         /// <summary>
         /// The name of this task. Purely informative.
         /// </summary>
         [XmlAttribute("Name")]
         public string Name { get; set; }
-        
+
         protected ILogger Log { get; set; }
         protected CancellationToken? CancelToken { get; set; }
         protected bool TestMode { get; set; }
 
         private List<TaskExecutionException> _exceptions;
         private OeProperties ProjectProperties { get; set; }
-        
+
         /// <inheritdoc cref="IOeTask.PublishWarning"/>
         public event EventHandler<TaskWarningEventArgs> PublishWarning;
-        
+
         /// <inheritdoc cref="IOeTask.SetCancelToken"/>
-        public void SetCancelToken(CancellationToken? cancelToken) => CancelToken = cancelToken;       
-        
+        public void SetCancelToken(CancellationToken? cancelToken) => CancelToken = cancelToken;
+
         /// <inheritdoc cref="IOeTask.SetTestMode"/>
         public void SetTestMode(bool testMode) => TestMode = testMode;
-        
+
         /// <inheritdoc cref="IOeTask.SetLog"/>
         public void SetLog(ILogger log) => Log = log;
-        
+
         /// <inheritdoc cref="IOeTask.GetRuntimeExceptionList"/>
         public List<TaskExecutionException> GetRuntimeExceptionList() => _exceptions;
 
         /// <inheritdoc cref="IOeTask.Validate"/>
         public abstract void Validate();
-        
+
         /// <inheritdoc cref="IOeTaskNeedingProperties.SetProperties"/>
         public void SetProperties(OeProperties properties) => ProjectProperties = properties;
-        
+
         /// <inheritdoc cref="IOeTaskNeedingProperties.GetProperties"/>
         public OeProperties GetProperties() => ProjectProperties;
 
@@ -83,6 +83,7 @@ namespace Oetools.Builder.Project.Task {
             var stopWatch = Stopwatch.StartNew();
             Log?.Debug($"Executing {this}.");
             try {
+                PreExecuteInternal();
                 if (TestMode) {
                     Log?.Debug("Test mode");
                     ExecuteTestModeInternal();
@@ -100,6 +101,11 @@ namespace Oetools.Builder.Project.Task {
                 Log?.Debug($"Task ended in {stopWatch.Elapsed.ConvertToHumanTime()}.");
             }
         }
+
+        /// <summary>
+        /// Method called before <see cref="ExecuteInternal"/> and <see cref="ExecuteTestModeInternal"/>.
+        /// </summary>
+        protected virtual void PreExecuteInternal() {}
 
         /// <summary>
         /// Executes the task.
@@ -136,7 +142,7 @@ namespace Oetools.Builder.Project.Task {
             (_exceptions ?? (_exceptions = new List<TaskExecutionException>())).Add(exception);
             PublishWarning?.Invoke(this, new TaskWarningEventArgs(exception));
         }
-        
+
         /// <summary>
         /// String representation of this task.
         /// </summary>

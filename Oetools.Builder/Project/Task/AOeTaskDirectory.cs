@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeTaskFile.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -22,6 +22,7 @@ using System.IO;
 using System.Xml.Serialization;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
+using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Utilities;
 using Oetools.Utilities.Lib;
 using Oetools.Utilities.Lib.Extension;
@@ -39,8 +40,9 @@ namespace Oetools.Builder.Project.Task {
         /// </summary>
         [XmlIgnore]
         public override string IncludeRegex => null;
-        
-        private PathList<IOeDirectory> _directoriesToBuild;
+
+        private PathList<IOeDirectory> _directoriesToProcess;
+        private bool _areDirectoriesToProcessInitialized;
 
         /// <inheritdoc cref="IOeTaskDirectory.ValidateCanGetDirectoriesToProcessFromIncludes"/>
         public void ValidateCanGetDirectoriesToProcessFromIncludes() {
@@ -53,10 +55,13 @@ namespace Oetools.Builder.Project.Task {
         }
 
         /// <inheritdoc cref="IOeTaskDirectory.SetDirectoriesToProcess"/>
-        public void SetDirectoriesToProcess(PathList<IOeDirectory> pathsToBuild) => _directoriesToBuild = pathsToBuild;
+        public void SetDirectoriesToProcess(PathList<IOeDirectory> pathsToBuild) {
+            _directoriesToProcess = pathsToBuild;
+            _areDirectoriesToProcessInitialized = true;
+        }
 
         /// <inheritdoc cref="IOeTaskDirectory.GetDirectoriesToProcess"/>
-        public PathList<IOeDirectory> GetDirectoriesToProcess() => _directoriesToBuild;
+        public PathList<IOeDirectory> GetDirectoriesToProcess() => _directoriesToProcess;
 
         /// <inheritdoc cref="IOeTaskFile.GetFilesToProcessFromIncludes"/>
         public PathList<IOeDirectory> GetDirectoriesToProcessFromIncludes() {
@@ -68,43 +73,44 @@ namespace Oetools.Builder.Project.Task {
                     if (!IsPathExcluded(path)) {
                         output.TryAdd(new OeDirectory(Path.GetFullPath(path).ToCleanPath()));
                     }
-                } else {
-                    // the include is a wildcard path, we try to get the "root" folder to list to get all the dir
-                    var validDir = Utils.GetLongestValidDirectory(path);
-                    if (!string.IsNullOrEmpty(validDir)) {
-                        Log?.Info($"Listing directory : {validDir.PrettyQuote()}");
-                        var regexCorrespondingToPath = GetIncludeRegex()[i];
-                        foreach (var directory in new PathLister(validDir, CancelToken) { Filter = this, Log = Log } .GetDirectoryList()) {
-                            if (regexCorrespondingToPath.IsMatch(directory.Path)) {
-                                output.TryAdd(directory);
-                            }
-                        }
-                    } else {
-                        AddExecutionWarning(new TaskExecutionException(this, $"The property {GetType().GetXmlName(nameof(Include))} part {i} does not designate a file (e.g. /dir/file.ext) nor does it allow to find a base directory to list (e.g. /dir/**), the path in error is : {path}."));
+                    continue;
+                }
+
+                // the include is a wildcard path, we try to get the "root" folder to list to get all the dir
+                var validDir = Utils.GetLongestValidDirectory(path);
+                var useCurrentDirectory = string.IsNullOrEmpty(validDir);
+                validDir = validDir ?? Directory.GetCurrentDirectory();
+
+                var filter = new OeSourceFilterOptions {
+                    Include = useCurrentDirectory ? Path.Combine(validDir, path) : path,
+                    Exclude = Exclude,
+                    ExcludeRegex = ExcludeRegex,
+                    RecursiveListing = path.Contains("**") || path.LastIndexOf('/') > path.LastIndexOf('*') || path.LastIndexOf('\\') > path.LastIndexOf('*')
+                };
+
+                Log?.Info($"Listing directories from: {validDir.PrettyQuote()}.");
+                Log?.Debug($"Wildcards path: {filter.Include.PrettyQuote()}.");
+
+                var regexCorrespondingToPath = GetIncludeRegex()[i];
+                foreach (var file in new PathLister(validDir, CancelToken) { FilterOptions = filter, Log = Log } .GetDirectoryList()) {
+                    if (!useCurrentDirectory && regexCorrespondingToPath.IsMatch(file.Path) ||
+                        useCurrentDirectory && regexCorrespondingToPath.IsMatch(file.Path.ToRelativePath(validDir))) {
+                        output.TryAdd(file);
                     }
                 }
+
                 i++;
             }
             return output;
         }
-        
-        /// <inheritdoc cref="AOeTask.ExecuteInternal"/>
-        protected sealed override void ExecuteInternal() {
-            ExecuteForDirectoriesInternal(_directoriesToBuild);
-        }
 
-        /// <summary>
-        /// Execute the task for a set of directories.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// - This method should throw <see cref="TaskExecutionException"/> if needed
-        /// - This method can publish warnings using <see cref="AOeTask.AddExecutionWarning"/>
-        /// </para>
-        /// </remarks>
-        /// <param name="directories"></param>
-        /// <exception cref="TaskExecutionException"></exception>
-        protected abstract void ExecuteForDirectoriesInternal(PathList<IOeDirectory> directories);
+        /// <inheritdoc />
+        protected override void PreExecuteInternal() {
+            base.PreExecuteInternal();
+            if (!_areDirectoriesToProcessInitialized) {
+                SetDirectoriesToProcess(GetDirectoriesToProcessFromIncludes());
+            }
+        }
 
     }
 }
