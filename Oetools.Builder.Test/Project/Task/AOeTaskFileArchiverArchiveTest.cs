@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeTaskFileTargetArchiveTest.cs) is part of Oetools.Builder.Test.
-// 
+//
 // Oetools.Builder.Test is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder.Test is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -23,27 +23,24 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Xml.Serialization;
+using DotUtilities;
+using DotUtilities.Archive;
+using DotUtilities.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
-using Oetools.Builder.Project;
 using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
-using Oetools.Builder.Utilities.Attributes;
-using Oetools.Utilities.Archive;
-using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Test.Project.Task {
-    
+
     [TestClass]
     public class AOeTaskFileArchiverArchiveTest {
-        
+
         private static string _testFolder;
 
         private static string TestFolder => _testFolder ?? (_testFolder = TestHelper.GetTestFolder(nameof(AOeTaskFileArchiverArchiveTest)));
-                     
+
         [ClassInitialize]
         public static void Init(TestContext context) {
             Cleanup();
@@ -55,12 +52,12 @@ namespace Oetools.Builder.Test.Project.Task {
         public static void Cleanup() {
             Utils.DeleteDirectoryIfExists(TestFolder, true);
         }
-        
+
         [TestMethod]
         public void SetFilesToProcess() {
             var task = new AOeTaskFileArchiverArchive2 {
-                Include = "**", 
-                TargetArchivePath = "archive.pack", 
+                Include = "**",
+                TargetArchivePath = "archive.pack",
                 TargetDirectory = "dir"
             };
             task.SetTargetBaseDirectory(@"D:\");
@@ -70,8 +67,8 @@ namespace Oetools.Builder.Test.Project.Task {
             Assert.AreEqual(1, targets.Count);
             Assert.IsTrue(targets.Exists(s => s.Equals(@"D:\archive.pack\dir\source.txt")));
         }
-        
-        
+
+
 
         [TestMethod]
         public void SetTargets_noInclude() {
@@ -81,7 +78,7 @@ namespace Oetools.Builder.Test.Project.Task {
                 TargetArchivePath = "archive.pack",
                 TargetDirectory = "dir"
             };
-            
+
             var list = task.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetPath()).ToList();
             Assert.AreEqual(1, list.Count);
             Assert.IsTrue(list.Exists(s => s.Equals(@"D:\archive.pack\dir\source.txt")));
@@ -93,48 +90,48 @@ namespace Oetools.Builder.Test.Project.Task {
                 Include = "**",
                 NewTargetFunc = null
             };
-            
+
             Assert.AreEqual(0, task.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").ToList().Count);
 
             task.TargetArchivePath = "archive.pack";
             task.TargetDirectory = "dir";
-            
+
             var list = task.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetPath()).ToList();
             Assert.AreEqual(1, list.Count);
             Assert.IsTrue(list.Exists(s => s.Equals(@"D:\archive.pack\dir\source.txt")));
-            
+
             task.TargetFilePath = @"dir\newfilename";
-            
+
             Assert.AreEqual(2, task.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").ToList().Count);
-            
+
             task.TargetArchivePath = "archive.pack;archive2.pack";
-            
+
             Assert.AreEqual(4, task.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").ToList().Count);
-            
+
             task.Include = @"C:\((**))((*)).((*));**";
             task.TargetArchivePath = @"archive.pack;/arc.{{3}}";
             task.TargetFilePath = "{{1}}file.{{3}}";
             task.TargetDirectory = null;
 
             list = task.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").Select(s => s.GetTargetPath()).ToList();
-            
+
             Assert.AreEqual(2, list.Count);
             Assert.IsTrue(list.Exists(s => s.Equals(@"D:\archive.pack\folder\file.txt")));
             Assert.IsTrue(list.Exists(s => s.Equals(@"C:\arc.txt\folder\file.txt")), "we expect to have /arc converted into C:\\");
-            
+
             Assert.ThrowsException<TaskExecutionException>(() => task.GetTargetsFiles(@"C:\folder\source.txt", null), "This task is not allowed to target relative path because no base target directory is not defined at this moment, the error occured for : <<targetfolder>>");
-            
+
             task.TargetArchivePath = @"C:\archive.pack";
-            
+
             Assert.AreEqual(1, task.GetTargetsFiles(@"C:\folder\source.txt", null).Count);
-            
+
             task.TargetDirectory = @"targetfolder";
             task.TargetFilePath = @"targetfolder\newfilename.txt";
-            
+
             Assert.AreEqual(2, task.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").Count);
-            
+
             task.TargetFilePath = @"targetfolder\newfilename.txt;secondtarget\filename.src";
-            
+
             Assert.AreEqual(3, task.GetTargetsFiles(@"C:\folder\source.txt", @"D:\").Count);
 
             task.NewTargetFunc = () => new OeTargetFile();
@@ -143,16 +140,16 @@ namespace Oetools.Builder.Test.Project.Task {
             task.TargetDirectory = null;
             task.TargetFilePath = "{{1}}file.{{3}}";
             task.TargetArchivePath = null;
-            
+
             list = task.GetTargetsFiles(@"C:\folder\source.txt", null).Select(s => s.FilePathInArchive).ToList();
             Assert.AreEqual(1, list.Count);
             Assert.IsTrue(list.Exists(s => s.Equals(@"C:\folder\file.txt")));
-            
+
             list = task.GetTargetsFiles(@"C:\cool\source", @"D:\").Select(s => s.FilePathInArchive).ToList();
             Assert.AreEqual(1, list.Count);
             Assert.IsTrue(list.Exists(s => s.Equals(@"D:\file")), "The final . disappears on windows.");
         }
-        
+
         [TestMethod]
         public void Validate() {
             var targetTask = new AOeTaskFileArchiverArchive2();
@@ -160,24 +157,24 @@ namespace Oetools.Builder.Test.Project.Task {
             Assert.ThrowsException<TaskValidationException>(() => targetTask.Validate());
 
             targetTask.Include = "**";
-            
+
             Assert.ThrowsException<TaskValidationException>(() => targetTask.Validate());
 
             targetTask.TargetFilePath = "{{wrong var usage";
-            
+
             Assert.ThrowsException<TargetValidationException>(() => targetTask.Validate());
-            
+
             targetTask.TargetArchivePath = "needed as well";
 
             Assert.ThrowsException<TargetValidationException>(() => targetTask.Validate());
-            
+
             targetTask.TargetFilePath = null;
             targetTask.TargetDirectory = "\r wrong target, invalid path";
-            
+
             Assert.ThrowsException<TargetValidationException>(() => targetTask.Validate());
 
             targetTask.TargetDirectory = "ok";
-            
+
             targetTask.Validate();
         }
 
@@ -195,7 +192,7 @@ namespace Oetools.Builder.Test.Project.Task {
                 return list.ElementAt(0).TargetsToBuild;
             }
         }
-        
+
         [TestMethod]
         public void FilesBuilts() {
             var task = new TestTaskFileArchiverArchive {
@@ -208,43 +205,43 @@ namespace Oetools.Builder.Test.Project.Task {
             task.Validate();
             task.Execute();
             var builtFiles = task.GetBuiltFiles();
-            
+
             Assert.AreEqual(2, builtFiles.Count);
             Assert.AreEqual(1, builtFiles.SelectMany(f => f.Targets.ToNonNullEnumerable()).Count(), "Expect 1 file actually built.");
             Assert.IsTrue(builtFiles.ElementAt(0).Targets.ElementAt(0).GetTargetPath().PathEquals("/target/archive.test/file1".ToCleanPath()));
         }
-        
+
         [TestMethod]
         public void ExecuteFromIncludedFiles() {
             if (!TestHelper.GetDlcPath(out string _)) {
                 return;
             }
-            
+
             var sourceDirectory = TestFolder;
             Utils.CreateDirectoryIfNeeded(Path.Combine(sourceDirectory, "subfolder"));
-            
+
             File.WriteAllText(Path.Combine(sourceDirectory, "file1.p"), "quit."); // compile ok
             File.WriteAllText(Path.Combine(sourceDirectory, "file2.w"), "quit. quit."); // compile with warnings
             File.WriteAllText(Path.Combine(sourceDirectory, "subfolder", "file3.p"), "quit.");
-            
+
             var task = new TestTaskFileArchiverArchiveCompile {
                 Include = Path.Combine(TestFolder, "((**))"),
                 TargetDirectory = "",
                 TargetArchivePath = "archive.test"
             };
-            
+
             task.SetProperties(new OeProperties { BuildOptions = new OeBuildOptions { SourceDirectoryPath = sourceDirectory }});
             task.SetTargetBaseDirectory("/target");
             task.SetFilesToProcess(task.GetFilesToProcessFromIncludes());
             task.Validate();
             task.Execute();
             var builtFiles = task.GetBuiltFiles();
-            
+
             Assert.AreEqual(3, builtFiles.Count, "Expect 3.");
             Assert.AreEqual(1, builtFiles.SelectMany(f => f.Targets.ToNonNullEnumerable()).Count(), "Expect 1 file actually built.");
             Assert.IsTrue(builtFiles.ElementAt(0).Targets.ElementAt(0).GetTargetPath().PathEquals("/target/archive.test/file1.r".ToCleanPath()));
         }
-        
+
         private class TestTaskFileArchiverArchive : AOeTaskFileArchiverArchive {
             public override string TargetArchivePath { get; set; }
             public override string TargetFilePath { get; set; }
@@ -252,7 +249,7 @@ namespace Oetools.Builder.Test.Project.Task {
             protected override IArchiver GetArchiver() => new TestArchiver();
             protected override AOeTarget GetNewTarget() => new TestTarget();
         }
-        
+
         private class TestTaskFileArchiverArchiveCompile : TestTaskFileArchiverArchive, IOeTaskCompile {
         }
 

@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeIncrementalBuildOptions.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -20,21 +20,21 @@
 
 using System;
 using System.Xml.Serialization;
+using DotUtilities.Attributes;
 using Oetools.Builder.Utilities;
-using Oetools.Utilities.Lib.Attributes;
 
 namespace Oetools.Builder.Project.Properties {
-    
+
     /// <inheritdoc cref="OeBuildOptions.IncrementalBuildOptions"/>
     [Serializable]
     public class OeIncrementalBuildOptions {
-                
+
         /// <inheritdoc cref="OeBuildOptions.IncrementalBuildOptions"/>
         [XmlElement(ElementName = "EnabledIncrementalBuild")]
         [DefaultValueMethod(nameof(GetDefaultEnabledIncrementalBuild))]
         public bool? EnabledIncrementalBuild { get; set; }
         public static bool GetDefaultEnabledIncrementalBuild() => true;
-            
+
         /// <summary>
         /// The path to an xml file containing the information of the previous build. This is necessary for an incremental build.
         /// </summary>
@@ -50,7 +50,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultBuildHistoryOutputFilePath))]
         public string BuildHistoryOutputFilePath { get; set; }
         public static string GetDefaultBuildHistoryOutputFilePath() => OeBuilderConstants.GetDefaultBuildHistoryOutputFilePath();
-            
+
         /// <summary>
         /// Use a cheapest analysis mode (performance wise) to identify the database references of a compiled file.
         /// </summary>
@@ -63,7 +63,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultUseSimplerAnalysisForDatabaseReference))]
         public bool? UseSimplerAnalysisForDatabaseReference { get; set; }
         public static bool GetDefaultUseSimplerAnalysisForDatabaseReference() => false;
-                
+
         /// <summary>
         /// Use a checksum comparison to identify the files that were modified between two builds.
         /// </summary>
@@ -75,7 +75,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultUseCheckSumComparison))]
         public bool? UseCheckSumComparison { get; set; }
         public static bool GetDefaultUseCheckSumComparison() => false;
-            
+
         /// <summary>
         /// Sets whether of not the tool should rebuild a file if it has new targets defined since the last build.
         /// </summary>
@@ -88,7 +88,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultRebuildFilesWithNewTargets))]
         public bool? RebuildFilesWithNewTargets { get; set; }
         public static bool GetDefaultRebuildFilesWithNewTargets() => false;
-        
+
         /// <summary>
         /// Sets whether of not the tool should rebuild a file if it some of its targets are missing (the file does not exist anymore).
         /// </summary>
@@ -101,7 +101,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultRebuildFilesWithMissingTargets))]
         public bool? RebuildFilesWithMissingTargets { get; set; }
         public static bool GetDefaultRebuildFilesWithMissingTargets() => false;
-            
+
         /// <summary>
         /// Sets whether of not the tool should try to rebuild a file if it had compilation errors in the previous build.
         /// </summary>
@@ -113,7 +113,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultRebuildFilesWithCompilationErrors))]
         public bool? RebuildFilesWithCompilationErrors { get; set; }
         public static bool GetDefaultRebuildFilesWithCompilationErrors() => true;
-        
+
         /// <summary>
         /// Is this incremental build active?
         /// </summary>

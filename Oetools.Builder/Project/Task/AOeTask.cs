@@ -23,10 +23,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Xml.Serialization;
+using DotUtilities.Extensions;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Utilities;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
 

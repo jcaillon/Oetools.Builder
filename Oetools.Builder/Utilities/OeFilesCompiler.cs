@@ -21,11 +21,11 @@
 using System;
 using System.Linq;
 using System.Threading;
+using DotUtilities;
+using DotUtilities.Extensions;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project.Properties;
-using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Execution;
 using Oetools.Utilities.Openedge.Execution.Exceptions;
 

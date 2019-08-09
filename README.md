@@ -30,6 +30,8 @@ Details/help on [how to build this project](docs/BUILD.md).
 ## Submodules
 
 - [Oetools.Utilities](https://github.com/jcaillon/Oetools.Utilities).
+- [CabinetManager](https://github.com/jcaillon/CabinetManager).
+- [DotUtilities](https://github.com/jcaillon/DotUtilities).
 
 ## Thanks
 

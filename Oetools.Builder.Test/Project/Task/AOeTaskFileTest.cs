@@ -18,14 +18,12 @@
 // ========================================================================
 #endregion
 
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using DotUtilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
-using Oetools.Builder.History;
 using Oetools.Builder.Project.Task;
-using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Test.Project.Task {
     

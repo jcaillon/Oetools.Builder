@@ -21,10 +21,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using DotUtilities;
+using DotUtilities.Process;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities;
-using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Test.Utilities {
 

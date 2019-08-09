@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (IncrementalBuildHelper.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -22,16 +22,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using DotUtilities;
+using DotUtilities.Archive;
+using DotUtilities.Extensions;
 using Oetools.Builder.History;
-using Oetools.Utilities.Archive;
-using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
 using Oetools.Utilities.Openedge.Execution;
 
 [assembly: InternalsVisibleTo("Oetools.Builder.Test")]
 
 namespace Oetools.Builder.Utilities {
-    
+
     internal static class IncrementalBuildHelper {
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Oetools.Builder.Utilities {
                 var fileModified = filesModifiedList[i];
                 bool firstAdd = true;
                 foreach (var result in previousFilesBuilt
-                    .Where(prevf => prevf.RequiredFiles != null && prevf.RequiredFiles.Any(prevFile => fileModified.Path.PathEquals(prevFile)))) 
+                    .Where(prevf => prevf.RequiredFiles != null && prevf.RequiredFiles.Any(prevFile => fileModified.Path.PathEquals(prevFile))))
                 {
                     if (firstAdd) {
                         filesModifiedList.Add(result);
@@ -57,7 +57,7 @@ namespace Oetools.Builder.Utilities {
                 }
             }
         }
-        
+
         /// <summary>
         /// Returns a raw list of files that need to be rebuilt because one of their database references (table or sequence) has been modified (modified/deleted)
         /// This list must then be filtered considering files that do not exist anymore or files that were already added to the rebuild list.
@@ -68,7 +68,7 @@ namespace Oetools.Builder.Utilities {
         internal static IEnumerable<IOeFile> GetSourceFilesToRebuildBecauseOfTableCrcChanges(UoeExecutionEnv env, IEnumerable<IOeFileBuilt> previousFilesBuilt) {
             var sequences = env.Sequences;
             var tables = env.TablesCrc;
-            
+
             // add all previous that required a database reference that has now changed
             foreach (var previousFile in previousFilesBuilt) {
                 var allReferencesOk = previousFile.RequiredDatabaseReferences?.All(dRef => {
@@ -86,7 +86,7 @@ namespace Oetools.Builder.Utilities {
                 }
             }
         }
-        
+
         /// <summary>
         /// Returns a raw list of files that need to be rebuilt they did not correctly compile last build.
         /// </summary>
@@ -99,7 +99,7 @@ namespace Oetools.Builder.Utilities {
                 }
             }
         }
-        
+
         /// <summary>
         /// List of the source file that are otherwise unchanged but need to be rebuild because they have new targets not present in the last build
         /// </summary>
@@ -118,7 +118,7 @@ namespace Oetools.Builder.Utilities {
                 }
             }
         }
-        
+
         /// <summary>
         /// List of the source file that are otherwise unchanged but need to be rebuild because they have targets that are missing
         /// </summary>
@@ -173,7 +173,7 @@ namespace Oetools.Builder.Utilities {
 
         /// <summary>
         /// Get a list of previously built files, still existing, but with targets that no longer exist and should be removed.
-        /// Also outputs a list of "unchanged" files (that have previous targets that should be removed) with their updated targets (i.e. without the targets that will be deleted in this build). 
+        /// Also outputs a list of "unchanged" files (that have previous targets that should be removed) with their updated targets (i.e. without the targets that will be deleted in this build).
         /// </summary>
         /// <param name="currentFilesBuilt"></param>
         /// <param name="previousFilesBuilt"></param>
@@ -182,7 +182,7 @@ namespace Oetools.Builder.Utilities {
         internal static IEnumerable<IOeFileBuilt> GetBuiltFilesWithOldTargetsToRemove(PathList<IOeFileToBuild> currentFilesBuilt, PathList<IOeFileBuilt> previousFilesBuilt, out PathList<IOeFileBuilt> previousFilesBuiltUnchangedWithUpdatedTargets) {
             var output = new List<IOeFileBuilt>();
             previousFilesBuiltUnchangedWithUpdatedTargets = null;
-            
+
             var targetsToDelete = new List<AOeTarget>();
             var targetsStillExisting = new List<AOeTarget>();
             foreach (var newFile in currentFilesBuilt.Where(file => file.State == OeFileState.Unchanged || file.State == OeFileState.Modified)) {
@@ -190,10 +190,10 @@ namespace Oetools.Builder.Utilities {
                 if (previousFile == null) {
                     continue;
                 }
-                
+
                 targetsToDelete.Clear();
                 targetsStillExisting.Clear();
-                
+
                 var newCreateTargets = newFile.TargetsToBuild.ToNonNullEnumerable().Select(t => t.GetTargetPath()).ToList();
                 foreach (var previousTarget in previousFile.Targets.ToNonNullEnumerable()) {
                     var previousTargetPath = previousTarget.GetTargetPath();
@@ -204,8 +204,8 @@ namespace Oetools.Builder.Utilities {
                         targetsStillExisting.Add(previousTarget);
                     }
                 }
-                
-                // files that have the "modified" state will be rebuilt entirely; but "unchanged" files 
+
+                // files that have the "modified" state will be rebuilt entirely; but "unchanged" files
                 // will not, we "fake" their rebuild in order to update the targets that actually still exist
                 if (newFile.State == OeFileState.Unchanged) {
                     if (previousFilesBuiltUnchangedWithUpdatedTargets == null) {
@@ -215,7 +215,7 @@ namespace Oetools.Builder.Utilities {
                         State = newFile.State
                     });
                 }
-                
+
                 if (targetsToDelete.Count > 0) {
                     output.Add(new OeFileBuilt(previousFile, targetsToDelete) {
                         State = newFile.State

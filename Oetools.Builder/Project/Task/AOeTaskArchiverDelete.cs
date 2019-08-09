@@ -1,17 +1,17 @@
 ﻿using System.Linq;
 using System.Xml.Serialization;
+using DotUtilities.Archive;
+using DotUtilities.Extensions;
 using Oetools.Builder.Exceptions;
-using Oetools.Utilities.Archive;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
-    
+
     /// <summary>
     /// Base task class that allows to delete files within archives.
     /// </summary>
     /// <inheritdoc cref="AOeTaskFilter"/>
     public abstract class AOeTaskArchiverDelete : AOeTaskFilterAttributes {
-        
+
         /// <summary>
         /// The path of archive to modify.
         /// </summary>
@@ -20,7 +20,7 @@ namespace Oetools.Builder.Project.Task {
         /// </remarks>
         [XmlIgnore]
         public abstract string ArchivePath { get; set; }
-        
+
         /// <summary>
         /// Returns an instance of an archiver.
         /// </summary>
@@ -32,14 +32,14 @@ namespace Oetools.Builder.Project.Task {
                 throw new TaskValidationException(this, $"This task needs the following property to be defined : {GetType().GetXmlName(nameof(ArchivePath))}.");
             }
             CheckTargetPath(ArchivePath?.Split(';'), () => GetType().GetXmlName(nameof(ArchivePath)));
-            
+
             base.Validate();
         }
 
         protected override void ExecuteInternal() {
             var archives = ArchivePath;
             var archiver = GetArchiver();
-            
+
             archiver.SetCancellationToken(CancelToken);
             archiver.OnProgress += ArchiverOnOnProgress;
 
@@ -53,13 +53,13 @@ namespace Oetools.Builder.Project.Task {
                         Log?.Trace?.Write($"No files found in {archivePath}.");
                         continue;
                     }
-                
+
                     Log?.Trace?.Write($"Deleting {filesToDelete.Count} files in {archivePath}.");
-            
+
 
                     archiver.DeleteFileSet(filesToDelete.Select(f => new FileInArchiveToDelete(f.ArchivePath, f.PathInArchive) as IFileInArchiveToDelete));
                 }
-                
+
             } finally {
                 archiver.OnProgress -= ArchiverOnOnProgress;
             }

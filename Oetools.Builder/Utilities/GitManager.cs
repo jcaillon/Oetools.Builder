@@ -22,9 +22,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using DotUtilities;
+using DotUtilities.Extensions;
+using DotUtilities.Process;
 using Oetools.Builder.Exceptions;
-using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Utilities {
 

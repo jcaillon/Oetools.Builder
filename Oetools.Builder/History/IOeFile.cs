@@ -1,22 +1,22 @@
 ﻿using System;
-using Oetools.Utilities.Lib;
+using DotUtilities;
 
 namespace Oetools.Builder.History {
     /// <summary>
     /// Represents a file.
     /// </summary>
     public interface IOeFile : IPathListItem {
-        
+
         /// <summary>
         /// Path.
         /// </summary>
         new string Path { get; set; }
-        
+
         /// <summary>
         /// Datetime at which this file was last modified.
         /// </summary>
         DateTime LastWriteTime { get; set; }
-        
+
         /// <summary>
         /// Size of this file.
         /// </summary>

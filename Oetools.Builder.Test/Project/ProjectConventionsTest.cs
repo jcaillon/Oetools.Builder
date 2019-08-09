@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (ProjectConventionsTest.cs) is part of Oetools.Builder.Test.
-// 
+//
 // Oetools.Builder.Test is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder.Test is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -23,16 +23,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
+using DotUtilities.Attributes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Oetools.Utilities.Lib.Attributes;
 
 namespace Oetools.Builder.Test.Project {
-    
+
     [TestClass]
     public class ProjectConventionsTest {
-        
+
         private const string EnumMethodPrefix = "GetEnum";
-        
+
         [TestMethod]
         public void CheckForGetEnumMethodsAssociatedWithProperties() {
             foreach (var type in TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}")) {
@@ -47,7 +47,7 @@ namespace Oetools.Builder.Test.Project {
                 }
             }
         }
-        
+
         [TestMethod]
         public void CheckForGetDefaultMethodsAssociatedWithProperties() {
             foreach (var type in TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}.{nameof(Oetools.Builder.Project.Properties)}")) {
@@ -74,11 +74,11 @@ namespace Oetools.Builder.Test.Project {
                             throw new Exception($"The property {type.Name}.{property.Name} which is of value type, does not have a {nameof(DefaultValueMethodAttribute)} attribute defined to get its default value.");
                         }
                     }
-                    
+
                 }
             }
         }
-        
+
         /// <summary>
         /// We need every single public property in the <see cref="Oetools.Builder.Project"/> namespace to be nullable
         /// </summary>
@@ -93,7 +93,7 @@ namespace Oetools.Builder.Test.Project {
                 }
             }
         }
-        
+
         /// <summary>
         /// We need every single public property in the <see cref="Oetools.Builder.Project"/> to have an xml name defined
         /// </summary>
@@ -110,12 +110,12 @@ namespace Oetools.Builder.Test.Project {
                         Attribute.GetCustomAttribute(propertyInfo, typeof(XmlElementAttribute), true) != null ||
                         Attribute.GetCustomAttribute(propertyInfo, typeof(XmlIgnoreAttribute), true) != null ||
                         Attribute.GetCustomAttribute(propertyInfo, typeof(XmlTextAttribute), true) != null ||
-                        Attribute.GetCustomAttribute(propertyInfo, typeof(XmlAttributeAttribute), true) != null, 
+                        Attribute.GetCustomAttribute(propertyInfo, typeof(XmlAttributeAttribute), true) != null,
                         $"{type.Name}.{propertyInfo.Name} does not have an xml attribute!");
                 }
             }
         }
-        
+
         [TestMethod]
         public void CheckUniqueXmlNameOnEachPublicProperties() {
             var xmlLeafName = new HashSet<string>();
@@ -131,7 +131,7 @@ namespace Oetools.Builder.Test.Project {
                         }
                         if (Attribute.GetCustomAttribute(propertyInfo, typeof(XmlAttributeAttribute), true) is XmlAttributeAttribute attr3) {
                             name = attr3.AttributeName;
-                        }                       
+                        }
                         if (string.IsNullOrEmpty(name)) {
                             Console.WriteLine($"Xml name null for {type.FullName}.{propertyInfo.Name}.");
                             continue;
@@ -145,7 +145,7 @@ namespace Oetools.Builder.Test.Project {
                 }
             }
         }
-        
+
         [TestMethod]
         public void AllSerializableClassInProjectShouldSerialize() {
             foreach (var type in TestHelper.GetTypesInNamespace(nameof(Oetools), $"{nameof(Oetools)}.{nameof(Oetools.Builder)}.{nameof(Oetools.Builder.Project)}")) {

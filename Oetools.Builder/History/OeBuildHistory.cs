@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeBuildHistory.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -21,16 +21,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
+using DotUtilities;
 using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
-using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.History {
-    
+
     [Serializable]
     [XmlRoot("BuildHistory")]
-    public class OeBuildHistory {     
-        
+    public class OeBuildHistory {
+
         #region static
 
         public static OeBuildHistory Load(string path, string sourceDirectory, string outputDirectory) {
@@ -48,7 +48,7 @@ namespace Oetools.Builder.History {
             var serializer = new XmlSerializer(typeof(OeBuildHistory));
             XmlDocumentWriter.Save(path, serializer, this);
         }
-        
+
         #endregion
 
         [XmlElement(ElementName = "PackageInfo")]
@@ -60,7 +60,7 @@ namespace Oetools.Builder.History {
         [XmlArray("BuiltFiles")]
         [XmlArrayItem("File", typeof(OeFileBuilt))]
         public List<OeFileBuilt> BuiltFiles { get; set; }
-        
+
         /// <summary>
         /// Converts certain public string property (representing path) into relative path
         /// </summary>
@@ -82,7 +82,7 @@ namespace Oetools.Builder.History {
                 }
             });
         }
-        
+
         /// <summary>
         /// Converts certain public string property (representing path) into absolute path
         /// </summary>

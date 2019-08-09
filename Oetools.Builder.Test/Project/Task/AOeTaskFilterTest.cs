@@ -20,8 +20,6 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Exceptions;
-using Oetools.Builder.Project;
-using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
 
 namespace Oetools.Builder.Test.Project.Task {

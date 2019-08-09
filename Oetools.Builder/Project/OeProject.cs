@@ -26,11 +26,11 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using DotUtilities.Extensions;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Resources;
 using Oetools.Builder.Utilities;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project {
 

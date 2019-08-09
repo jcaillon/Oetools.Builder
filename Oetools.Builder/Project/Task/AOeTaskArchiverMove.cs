@@ -1,43 +1,43 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
+using DotUtilities.Archive;
+using DotUtilities.Extensions;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
-using Oetools.Utilities.Archive;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
-    
+
     /// <summary>
     /// Base task class that allows to move files within archives.
     /// </summary>
     /// <inheritdoc cref="AOeTaskFilter"/>
     public abstract class AOeTaskArchiverMove : AOeTaskFilterAttributes {
-        
+
         /// <inheritdoc cref="AOeTaskArchiverDelete.ArchivePath"/>
         [XmlIgnore]
         public abstract string ArchivePath { get; set; }
-        
+
         /// <summary>
         /// The relative target file path inside the archive.
         /// </summary>
         /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetArchivePath"/>
         [XmlIgnore]
         public abstract string TargetFilePath { get; set; }
-        
+
         /// <summary>
         /// The relative target directory inside the archive.
         /// </summary>
         /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetArchivePath"/>
         [XmlIgnore]
         public abstract string TargetDirectory { get; set; }
-        
+
         /// <summary>
         /// Returns an instance of an archiver.
         /// </summary>
         /// <returns></returns>
         protected abstract IArchiverFullFeatured GetArchiver();
-        
+
         /// <summary>
         /// Must return a new instance of <see cref="AOeTarget"/> corresponding to the current target type.
         /// </summary>
@@ -51,12 +51,12 @@ namespace Oetools.Builder.Project.Task {
             }
             CheckTargetPath(TargetFilePath?.Split(';'), () => GetType().GetXmlName(nameof(TargetFilePath)));
             CheckTargetPath(TargetDirectory?.Split(';'), () => GetType().GetXmlName(nameof(TargetDirectory)));
-            
+
             if (string.IsNullOrEmpty(ArchivePath)) {
                 throw new TaskValidationException(this, $"This task needs the following property to be defined : {GetType().GetXmlName(nameof(ArchivePath))}.");
             }
             CheckTargetPath(ArchivePath?.Split(';'), () => GetType().GetXmlName(nameof(ArchivePath)));
-            
+
             base.Validate();
         }
 
@@ -64,7 +64,7 @@ namespace Oetools.Builder.Project.Task {
         protected override void ExecuteInternal() {
             var archives = ArchivePath;
             var archiver = GetArchiver();
-            
+
             archiver.SetCancellationToken(CancelToken);
             archiver.OnProgress += ArchiverOnOnProgress;
 
@@ -78,9 +78,9 @@ namespace Oetools.Builder.Project.Task {
                         Log?.Trace?.Write($"No files found in {archivePath}.");
                         continue;
                     }
-                
+
                     Log?.Trace?.Write($"Moving {filesToMove.Count} files within {archivePath}.");
-                    
+
                     archiver.MoveFileSet(GetFilesToMove(filesToMove));
                 }
             } finally {

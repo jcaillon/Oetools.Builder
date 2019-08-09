@@ -18,7 +18,6 @@
 // ========================================================================
 #endregion
 using System;
-using Oetools.Builder.Project;
 
 namespace Oetools.Builder.Exceptions {
     public class ProjectException : BuilderException {

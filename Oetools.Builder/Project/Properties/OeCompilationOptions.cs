@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeCompilationOptions.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -20,13 +20,13 @@
 
 using System;
 using System.Xml.Serialization;
+using DotUtilities.Attributes;
+using DotUtilities.Extensions;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Utilities;
-using Oetools.Utilities.Lib.Attributes;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Properties {
-    
+
     /// <inheritdoc cref="OeProperties.CompilationOptions"/>
     [Serializable]
     public class OeCompilationOptions {
@@ -71,11 +71,11 @@ namespace Oetools.Builder.Project.Properties {
         /// </summary>
         /// <remarks>
         /// If true, the compilation process will produce a file (.lis) including:
-        /// - The name of the file containing the procedure or class you compile 
-        /// - The date and time at the start of the compilation 
-        /// - The number of each line in the procedure or class file 
-        /// - The block number where each statement belongs 
-        /// - The complete text of all include files (except encrypted include files) and the names of any sub-procedures and user-defined functions 
+        /// - The name of the file containing the procedure or class you compile
+        /// - The date and time at the start of the compilation
+        /// - The number of each line in the procedure or class file
+        /// - The block number where each statement belongs
+        /// - The complete text of all include files (except encrypted include files) and the names of any sub-procedures and user-defined functions
         /// </remarks>
         [XmlElement(ElementName = "CompileWithListing")]
         [DefaultValueMethod(nameof(GetDefaultCompileWithListing))]
@@ -92,7 +92,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultCompileWithPreprocess))]
         public bool? CompileWithPreprocess { get; set; }
         public static bool GetDefaultCompileWithPreprocess() => false;
-        
+
         /// <summary>
         /// Use the MULTI-COMPILE option in the COMPILE statement.
         /// This option is only available since openedge 10.2.
@@ -119,7 +119,7 @@ namespace Oetools.Builder.Project.Properties {
         /// </remarks>
         [XmlElement(ElementName = "CompileOptions")]
         public string CompileOptions { get; set; }
-        
+
         /// <summary>
         /// Sets extra COMPILE options to use in the COMPILE statement.
         /// </summary>
@@ -150,13 +150,13 @@ namespace Oetools.Builder.Project.Properties {
         /// A comma-separated list of file extension patterns that represent ABL compilable files.
         /// </summary>
         /// <remarks>
-        /// This is a default filter that is used for each "compile" task and which allows to process only certain types of files. 
+        /// This is a default filter that is used for each "compile" task and which allows to process only certain types of files.
         /// </remarks>
         [XmlElement(ElementName = "CompilableFileExtensionPattern")]
         [DefaultValueMethod(nameof(GetDefaultCompilableFileExtensionPattern))]
         public string CompilableFileExtensionPattern { get; set; }
         public static string GetDefaultCompilableFileExtensionPattern() => OeBuilderConstants.CompilableExtensionsPattern;
-                
+
         /// <summary>
         /// The number of openedge process to start simultaneously per core (on your computer) in order to compile your application.
         /// </summary>
@@ -168,7 +168,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultNumberProcessPerCore))]
         public byte? NumberProcessPerCore { get; set; }
         public static byte GetDefaultNumberProcessPerCore() => 1;
-        
+
         /// <summary>
         /// Use a single process to compile your application.
         /// </summary>
@@ -180,7 +180,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultForceSingleProcess))]
         public bool? ForceSingleProcess { get; set; }
         public static bool GetDefaultForceSingleProcess() => false;
-        
+
         public static int GetNumberOfProcessesToUse(OeCompilationOptions compilationOptions) => compilationOptions?.ForceSingleProcess ?? GetDefaultForceSingleProcess() ? 1 : Math.Max(1, Environment.ProcessorCount * (compilationOptions?.NumberProcessPerCore ?? GetDefaultNumberProcessPerCore()));
 
         /// <summary>
@@ -193,7 +193,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultMinimumNumberOfFilesPerProcess))]
         public int? MinimumNumberOfFilesPerProcess { get; set; }
         public static int GetDefaultMinimumNumberOfFilesPerProcess() => 10;
-        
+
         /// <summary>
         /// Validate that is object is correct.
         /// </summary>

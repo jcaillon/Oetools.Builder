@@ -3,17 +3,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeProjectTest.cs) is part of Oetools.Builder.Test.
-// 
+//
 // Oetools.Builder.Test is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder.Test is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder.Test. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -23,12 +23,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using DotUtilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
-using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Test.Project {
     [TestClass]
@@ -110,7 +110,7 @@ namespace Oetools.Builder.Test.Project {
                                 Tasks = new List<AOeTask> {
                                     new OeTaskFileCopy()
                                 }
-                            }    
+                            }
                         }
                     },
                     new OeBuildConfiguration {
@@ -149,7 +149,7 @@ namespace Oetools.Builder.Test.Project {
                                         Tasks = new List<AOeTask> {
                                             new OeTaskFileCopy()
                                         }
-                                    }    
+                                    }
                                 }
                             }
                         }
@@ -165,7 +165,7 @@ namespace Oetools.Builder.Test.Project {
                                 Tasks = new List<AOeTask> {
                                     new OeTaskFileCopy()
                                 }
-                            }    
+                            }
                         }
                     }
                 }
@@ -184,7 +184,7 @@ namespace Oetools.Builder.Test.Project {
             queue.Enqueue(new Tuple<string, string>(project3Path, "sixth"));
 
             OeBuildConfiguration conf = OeProject.GetConfiguration(queue);
-            
+
             Assert.AreEqual(2, conf.Variables.Count);
             Assert.AreEqual("sixth", conf.Name);
             Assert.AreEqual("localdlc", conf.Properties.DlcDirectoryPath);
@@ -194,12 +194,12 @@ namespace Oetools.Builder.Test.Project {
             Assert.AreEqual("include", conf.Properties.BuildOptions.SourceToBuildFilter.Include);
             Assert.AreEqual("inc", conf.Properties.PropathSourceDirectoriesFilter.Include);
             Assert.AreEqual(true, conf.Properties.BuildOptions.IncrementalBuildOptions.EnabledIncrementalBuild);
-        
+
             Assert.AreEqual(3, conf.BuildSteps.Count);
 
             Assert.AreEqual("globaldlc", project1.BuildConfigurations[0].Properties.DlcDirectoryPath, "This should not modified the global properties.");
             Assert.AreEqual(null, project1.BuildConfigurations[1].Properties?.BuildOptions?.IncrementalBuildOptions, "This should also not modified the properties of the original build configurations.");
-            
+
         }
 
         [TestMethod]
@@ -233,7 +233,7 @@ namespace Oetools.Builder.Test.Project {
                                 Tasks = new List<AOeTask> {
                                     new OeTaskFileCopy()
                                 }
-                            }    
+                            }
                         },
                         BuildConfigurations = new List<OeBuildConfiguration> {
                             new OeBuildConfiguration {
@@ -265,7 +265,7 @@ namespace Oetools.Builder.Test.Project {
                                                 Tasks = new List<AOeTask> {
                                                     new OeTaskFileDelete()
                                                 }
-                                            }    
+                                            }
                                         }
                                     }
                                 }
@@ -289,7 +289,7 @@ namespace Oetools.Builder.Test.Project {
                 }
 
                 Assert.IsNotNull(conf, i == 0 ? "Can find a configuration from name." : "Can find a configuration from id.");
-                
+
                 Assert.AreEqual(2, conf.Variables.Count);
                 Assert.AreEqual("fourth", conf.Name);
                 Assert.AreEqual("localdlc", conf.Properties.DlcDirectoryPath);
@@ -299,7 +299,7 @@ namespace Oetools.Builder.Test.Project {
                 Assert.AreEqual("include", conf.Properties.BuildOptions.SourceToBuildFilter.Include);
                 Assert.AreEqual("inc", conf.Properties.PropathSourceDirectoriesFilter.Include);
                 Assert.AreEqual(true, conf.Properties.BuildOptions.IncrementalBuildOptions.EnabledIncrementalBuild);
-            
+
                 Assert.AreEqual(2, conf.BuildSteps.Count);
 
                 Assert.AreEqual("globaldlc", project.BuildConfigurations[0].Properties.DlcDirectoryPath, "This should not modified the global properties.");
@@ -334,7 +334,7 @@ namespace Oetools.Builder.Test.Project {
                                 OutputDirectoryPath = "D:\\output",
                                 ReportHtmlFilePath = Path.Combine("{{PROJECT_DIRECTORY}}", "build", "latest.html"),
                                 SourceToBuildFilter = new OeSourceFilterOptions {
-                                    Exclude = "**/derp", 
+                                    Exclude = "**/derp",
                                     ExcludeRegex = "\\\\[D][d]"
                                 },
                                 SourceToBuildGitFilter = new OeGitFilterOptions {
@@ -381,8 +381,8 @@ namespace Oetools.Builder.Test.Project {
                                 }
                             },
                             PropathEntries = new List<OePropathEntry> {
-                                new OePropathEntry {Path = "entry1"}, 
-                                new OePropathEntry {Path = "fezef/zef/zefzef"}, 
+                                new OePropathEntry {Path = "entry1"},
+                                new OePropathEntry {Path = "fezef/zef/zefzef"},
                                 new OePropathEntry {Path = "C:\\zefzefzef\\"}
                             },
                             PropathSourceDirectoriesFilter = new OePropathFilterOptions() {

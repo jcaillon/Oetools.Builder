@@ -19,12 +19,12 @@
 #endregion
 
 using System.IO;
+using DotUtilities;
+using DotUtilities.Extensions;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Utilities;
-using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
 
@@ -89,6 +89,8 @@ namespace Oetools.Builder.Project.Task {
                 var regexCorrespondingToPath = GetIncludeRegex()[i];
                 foreach (var file in new PathLister(validDir, CancelToken) { FilterOptions = filter, Log = Log } .GetFileList()) {
                     if (useCurrentDirectory) {
+                        // if we specified a pattern from the current directory, we need to return relative path otherwise
+                        // we wouldn't be able to match the file paths with the pattern turned into a regex
                         file.Path = file.Path.ToRelativePath(validDir);
                     }
                     if (regexCorrespondingToPath.IsMatch(file.Path)) {

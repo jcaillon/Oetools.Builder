@@ -22,15 +22,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using DotUtilities;
+using DotUtilities.Extensions;
+using DotUtilities.Process;
 using Oetools.Builder.History;
 using Oetools.Builder.Project;
 using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Report.Html;
 using Oetools.Builder.Utilities;
-using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
-using Oetools.Utilities.Openedge.Database;
-using Oetools.Utilities.Openedge.Execution;
 
 namespace Oetools.Builder {
 

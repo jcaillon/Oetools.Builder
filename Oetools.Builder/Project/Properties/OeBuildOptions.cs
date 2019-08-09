@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeIncrementalBuildOptions.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -22,19 +22,19 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Xml.Serialization;
+using DotUtilities;
+using DotUtilities.Attributes;
+using DotUtilities.Extensions;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.Utilities;
 using Oetools.Builder.Utilities.Attributes;
-using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Attributes;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Properties {
-    
+
     /// <inheritdoc cref="OeProperties.BuildOptions"/>
     [Serializable]
     public class OeBuildOptions {
-        
+
         private string _sourceDirectoryPath;
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Oetools.Builder.Project.Properties {
         }
         [Description("$PWD (current directory)")]
         public static string GetDefaultSourceDirectoryPath() => Directory.GetCurrentDirectory().ToCleanPath();
-        
+
         /// <summary>
         /// The output directory for the build.
         /// </summary>
@@ -63,7 +63,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultOutputDirectoryPath))]
         public string OutputDirectoryPath { get; set; }
         public static string GetDefaultOutputDirectoryPath() => OeBuilderConstants.GetDefaultOutputDirectory();
-        
+
         /// <summary>
         /// The filtering options for the source files of your application that need to be built.
         /// </summary>
@@ -74,7 +74,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultSourceToBuildFilter))]
         public OeSourceFilterOptions SourceToBuildFilter { get; set; }
         public static OeSourceFilterOptions GetDefaultSourceToBuildFilter() => new OeSourceFilterOptions();
-        
+
         /// <summary>
         /// Sets whether or not the incremental build should be used.
         /// An incremental build improves the build process by only compiling and building source files that were modified or added since the last build. It is the opposite of a full rebuild.
@@ -90,7 +90,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultIncrementalBuildOptions))]
         public OeIncrementalBuildOptions IncrementalBuildOptions { get; set; }
         public static OeIncrementalBuildOptions GetDefaultIncrementalBuildOptions() => new OeIncrementalBuildOptions();
-                
+
         /// <summary>
         /// Instead of a full rebuild or an incremental rebuild, use GIT to identify which files will be built.
         /// </summary>
@@ -100,9 +100,9 @@ namespace Oetools.Builder.Project.Properties {
         /// </remarks>
         [XmlElement(ElementName = "SourceToBuildGitFilter")]
         [DefaultValueMethod(nameof(GetDefaultSourceToBuildGitFilter))]
-        public OeGitFilterOptions SourceToBuildGitFilter { get; set; }    
+        public OeGitFilterOptions SourceToBuildGitFilter { get; set; }
         public static OeGitFilterOptions GetDefaultSourceToBuildGitFilter() => new OeGitFilterOptions();
-        
+
         /// <summary>
         /// Build all the source files, ignoring the incremental build options and the GIT filter options.
         /// </summary>
@@ -110,7 +110,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultFullRebuild))]
         public bool? FullRebuild { get; set; }
         public static bool GetDefaultFullRebuild() => false;
-        
+
         /// <summary>
         /// The path to an html report file that will contain human-readable information about this build.
         /// </summary>
@@ -118,7 +118,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultReportHtmlFilePath))]
         public string ReportHtmlFilePath { get; set; }
         public static string GetDefaultReportHtmlFilePath() => OeBuilderConstants.GetDefaultReportHtmlFilePath();
-        
+
         /// <summary>
         /// The path to an xml file that will contain the exported build configuration for this build.
         /// </summary>
@@ -142,7 +142,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultStopBuildOnTaskWarning))]
         public bool? StopBuildOnTaskWarning { get; set; }
         public static bool GetDefaultStopBuildOnTaskWarning() => false;
-        
+
         /// <summary>
         /// Sets whether or not the build must be stopped if a file fails to compile.
         /// </summary>
@@ -150,7 +150,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultStopBuildOnCompilationError))]
         public bool? StopBuildOnCompilationError { get; set; }
         public static bool GetDefaultStopBuildOnCompilationError() => true;
-        
+
         /// <summary>
         /// Sets whether or not the build must be stopped if a file compiles with warnings.
         /// </summary>
@@ -158,7 +158,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultStopBuildOnCompilationWarning))]
         public bool? StopBuildOnCompilationWarning { get; set; }
         public static bool GetDefaultStopBuildOnCompilationWarning() => false;
-        
+
         /// <summary>
         /// Sets whether or not the tool should shutdown the temporary databases created and started for the compilation (if any).
         /// </summary>
@@ -169,7 +169,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultShutdownCompilationDatabasesAfterBuild))]
         public bool? ShutdownCompilationDatabasesAfterBuild { get; set; }
         public static bool GetDefaultShutdownCompilationDatabasesAfterBuild() => true;
-        
+
         /// <summary>
         /// Sets whether or not the tool is allowed to shutdown temporary databases by killing the _mprosrv.
         /// </summary>
@@ -180,7 +180,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultAllowDatabaseShutdownByProcessKill))]
         public bool? AllowDatabaseShutdownByProcessKill { get; set; }
         public static bool GetDefaultAllowDatabaseShutdownByProcessKill() => true;
-        
+
         /// <summary>
         /// Sets whether or not to run the build in "test mode". In test mode, the tasks are not actually executed. It should be used as a preview of the actual build process.
         /// </summary>
@@ -188,7 +188,7 @@ namespace Oetools.Builder.Project.Properties {
         [DefaultValueMethod(nameof(GetDefaultTestMode))]
         public bool? TestMode { get; set; }
         public static bool GetDefaultTestMode() => false;
-        
+
         /// <summary>
         /// Validate that is object is correct.
         /// </summary>

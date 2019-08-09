@@ -20,9 +20,10 @@
 
 using System;
 using System.Xml.Serialization;
+using DotUtilities;
+using DotUtilities.Extensions;
+using DotUtilities.Process;
 using Oetools.Builder.Exceptions;
-using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
 

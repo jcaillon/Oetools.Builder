@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeTaskFilter.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -24,14 +24,14 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
+using DotUtilities;
+using DotUtilities.Extensions;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities;
-using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
- 
+
     /// <summary>
     /// A task that is used to filter paths to include/exclude.
     /// </summary>
@@ -49,9 +49,9 @@ namespace Oetools.Builder.Project.Task {
         /// Several pattern can be used, separate them with a semi-colon (i.e. ;).
         /// Internally, each pattern is turned into a valid regular expression.
         /// If a file is matched by several patterns, only the first one will be used.
-        ///  
+        ///
         /// The following symbols can be used in patterns:
-        /// 
+        ///
         /// - ** will match any char any number of time (corresponds to a regex greedy match)
         /// - * will match only non path separators any time (can be used to match any file name)
         /// - ? matches non path separators exactly 1 time
@@ -70,7 +70,7 @@ namespace Oetools.Builder.Project.Task {
         public virtual string Include {
             get => _include;
             set {
-                _includeRegexes = null; 
+                _includeRegexes = null;
                 _include = value;
             }
         }
@@ -82,11 +82,11 @@ namespace Oetools.Builder.Project.Task {
         public virtual string IncludeRegex {
             get => _includeRegex;
             set {
-                _includeRegexes = null; 
+                _includeRegexes = null;
                 _includeRegex = value;
             }
         }
-        
+
         /// <summary>
         /// A path pattern that describes paths that should be excluded from being processed by this task.
         /// </summary>
@@ -95,7 +95,7 @@ namespace Oetools.Builder.Project.Task {
         public virtual string Exclude {
             get => _exclude;
             set {
-                _excludeRegexes = null; 
+                _excludeRegexes = null;
                 _exclude = value;
             }
         }
@@ -107,7 +107,7 @@ namespace Oetools.Builder.Project.Task {
         public virtual string ExcludeRegex {
             get => _excludeRegex;
             set {
-                _excludeRegexes = null; 
+                _excludeRegexes = null;
                 _excludeRegex = value;
             }
         }
@@ -119,7 +119,7 @@ namespace Oetools.Builder.Project.Task {
         private string _includeRegex;
         private string _excludeRegex;
         private string _fileExtensionsFilter;
-        
+
         public List<string> GetRegexIncludeStrings() => (Include?.Split(';').Select(s => s.PathWildCardToRegex())).UnionHandleNull(IncludeRegex?.Split(';'));
         public List<string> GetRegexExcludeStrings() => (Exclude?.Split(';').Select(s => s.PathWildCardToRegex())).UnionHandleNull(ExcludeRegex?.Split(';'));
 
@@ -142,12 +142,12 @@ namespace Oetools.Builder.Project.Task {
         public PathList<IOeDirectory> FilterDirectories(PathList<IOeDirectory> originalListOfPaths) {
             return originalListOfPaths?.CopyWhere(f => IsPathPassingFilter(f.Path));
         }
-        
+
         /// <inheritdoc cref="IOeTaskFilter.IsPathPassingFilter"/>
         public bool IsPathPassingFilter(string path) {
             return IsPathIncluded(path) && !IsPathExcluded(path);
         }
-        
+
         /// <inheritdoc cref="IOeTaskFilter.IsPathIncluded"/>
         public bool IsPathIncluded(string path) {
             if (!string.IsNullOrEmpty(_fileExtensionsFilter)) {
@@ -157,7 +157,7 @@ namespace Oetools.Builder.Project.Task {
             }
             return GetIncludeRegex().Any(regex => regex.IsMatch(path));
         }
-        
+
         /// <inheritdoc cref="IOeTaskFilter.IsPathExcluded"/>
         public bool IsPathExcluded(string path) {
             return GetExcludeRegex().Any(regex => regex.IsMatch(path));
@@ -169,21 +169,21 @@ namespace Oetools.Builder.Project.Task {
                 _fileExtensionsFilter = fileExtensionFiler;
             }
         }
-        
+
         protected List<Regex> GetExcludeRegex() {
             if (_excludeRegexes == null) {
                 InitRegex();
             }
             return _excludeRegexes;
         }
-        
+
         protected List<Regex> GetIncludeRegex() {
             if (_includeRegexes == null) {
                 InitRegex();
             }
             return _includeRegexes;
         }
-        
+
         /// <summary>
         /// Converts the regex strings to regex(es).
         /// </summary>
@@ -263,41 +263,41 @@ namespace Oetools.Builder.Project.Task {
         protected List<AOeTarget> GetTargets(string filePath, string baseTargetDirectory, string targetArchive, string relativeTargetFilePath, string relativeTargetDirectory, Func<AOeTarget> getNewTarget) {
             var output = new List<AOeTarget>();
             foreach (var regex in GetIncludeRegex()) {
-                
+
                 // find the regexes that included this file
                 var match = regex.Match(filePath);
                 if (!match.Success) {
                     continue;
                 }
-                
+
                 foreach (var archivePath in targetArchive?.Split(';') ?? new string[] { null }) {
 
                     bool hasArchivePath = !string.IsNullOrEmpty(archivePath);
                     string targetArchiveFilePath = hasArchivePath ? GetSingleTargetPath(archivePath, false, match, filePath, baseTargetDirectory, false) : null;
-                    
+
                     foreach (var fileTarget in (relativeTargetFilePath?.Split(';')).ToNonNullEnumerable()) {
                         var target = getNewTarget();
                         target.ArchiveFilePath = targetArchiveFilePath;
                         target.FilePathInArchive = GetSingleTargetPath(fileTarget, false, match, filePath, hasArchivePath ? null : baseTargetDirectory, hasArchivePath);
                         output.Add(target);
                     }
-                    
+
                     foreach (var directoryTarget in (relativeTargetDirectory?.Split(';')).ToNonNullEnumerable()) {
                         var target = getNewTarget();
                         target.ArchiveFilePath = targetArchiveFilePath;
                         target.FilePathInArchive = GetSingleTargetPath(directoryTarget, true, match, filePath, hasArchivePath ? null : baseTargetDirectory, hasArchivePath);
                         output.Add(target);
                     }
-                    
+
                 }
-                
+
                 // stop after the first include match, if a file was included with several path pattern, we only take the first one
                 break;
             }
 
             return output;
         }
-        
+
         /// <summary>
         /// Computes a single target file for the given <paramref name="sourcePath"/>.
         /// </summary>
@@ -331,7 +331,7 @@ namespace Oetools.Builder.Project.Task {
             target = target.ToCleanPath();
 
             bool isPathRooted = Utils.IsPathRooted(target);
-            
+
             // take care of relative target path
             if (!isPathRooted) {
                 if (!string.IsNullOrEmpty(baseTargetDirectory)) {
@@ -343,7 +343,7 @@ namespace Oetools.Builder.Project.Task {
             } else if (mustBeRelativePath) {
                 throw new TaskExecutionException(this, $"The following path should resolve to a relative path: {targetPathWithPlaceholders.PrettyQuote()}.");
             }
-            
+
             // get the real full path name of the target
             if (isPathRooted) {
                 try {

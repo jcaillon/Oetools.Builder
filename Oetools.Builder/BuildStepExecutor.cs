@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (BuildStepExecutor.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -21,17 +21,17 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using DotUtilities;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
 using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
 using Oetools.Builder.Utilities;
-using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder {
-    
+
     public class BuildStepExecutor {
- 
+
         internal string Name { get; set; }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Oetools.Builder {
         /// Cancel token.
         /// </summary>
         internal CancellationToken? CancelToken { get; set; }
-        
+
         /// <summary>
         /// Total number of tasks already executed.
         /// </summary>
@@ -73,9 +73,9 @@ namespace Oetools.Builder {
         /// The list of task exceptions for this step.
         /// </summary>
         internal List<TaskExecutionException> TaskExecutionExceptions;
-        
+
         protected bool StopBuildOnTaskWarning => Properties?.BuildOptions?.StopBuildOnTaskWarning ?? OeBuildOptions.GetDefaultStopBuildOnTaskWarning();
-        
+
         protected bool StopBuildOnTaskError => Properties?.BuildOptions?.StopBuildOnTaskError ?? OeBuildOptions.GetDefaultStopBuildOnTaskError();
 
         protected bool TestMode => Properties?.BuildOptions?.TestMode ?? OeBuildOptions.GetDefaultTestMode();
@@ -184,7 +184,7 @@ namespace Oetools.Builder {
         protected virtual PathList<IOeDirectory> GetDirectoriesToBuildForSingleTask(IOeTaskDirectory task) {
             return task.GetDirectoriesToProcessFromIncludes();
         }
-        
+
         private void TaskOnPublishException(object sender, TaskWarningEventArgs e) {
             if (StopBuildOnTaskWarning) {
                 throw e.Exception;

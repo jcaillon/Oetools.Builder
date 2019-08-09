@@ -23,14 +23,14 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using DotUtilities;
+using DotUtilities.Extensions;
 using Oetools.Builder.Exceptions;
 using Oetools.Builder.History;
-using Oetools.Builder.Project.Properties;
 using Oetools.Builder.Project.Task;
-using Oetools.Utilities.Lib;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Utilities {
+
     /// <summary>
     /// Allows to list either files or directories within a base directory. Has tons of options for listing.
     /// </summary>

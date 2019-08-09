@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeTaskFileTargetArchiveCab.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -20,35 +20,36 @@
 
 using System;
 using System.Xml.Serialization;
+using DotUtilities.Archive;
+using DotUtilities.Extensions;
 using Oetools.Builder.History;
 using Oetools.Builder.Utilities.Attributes;
 using Oetools.Utilities.Archive;
-using Oetools.Utilities.Lib.Extension;
 
 namespace Oetools.Builder.Project.Task {
-    
+
     /// <summary>
     /// This task adds files into cabinet files.
     /// </summary>
     [Serializable]
     [XmlRoot("Cab")]
-    public class OeTaskFileArchiverArchiveCab : AOeTaskFileArchiverArchive, IOeTaskWithBuiltFiles { 
-        
+    public class OeTaskFileArchiverArchiveCab : AOeTaskFileArchiverArchive, IOeTaskWithBuiltFiles {
+
         /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetArchivePath"/>
         [XmlAttribute("TargetCabFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public override string TargetArchivePath { get; set; } 
-               
+        public override string TargetArchivePath { get; set; }
+
         /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetFilePath"/>
         [XmlAttribute("RelativeTargetFilePath")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
         public override string TargetFilePath { get; set; }
-        
+
         /// <inheritdoc cref="AOeTaskFileArchiverArchive.TargetDirectory"/>
         [XmlAttribute("RelativeTargetDirectory")]
         [ReplaceVariables(LeaveUnknownUntouched = true)]
-        public override string TargetDirectory { get; set; }      
-        
+        public override string TargetDirectory { get; set; }
+
         /// <summary>
         /// The compression level to use for the cabinet file.
         /// </summary>
@@ -64,14 +65,14 @@ namespace Oetools.Builder.Project.Task {
         }
 
         protected override IArchiver GetArchiver() {
-            var archiver = Archiver.NewCabArchiver();
+            var archiver = UoeArchiver.NewCabArchiver();
             var compressionLevel = GetEnumCompressionLevel();
             if (compressionLevel != null) {
                 archiver.SetCompressionLevel((ArchiveCompressionLevel) compressionLevel);
             }
             return archiver;
         }
-        
+
         protected override AOeTarget GetNewTarget() => new OeTargetCab();
     }
 }

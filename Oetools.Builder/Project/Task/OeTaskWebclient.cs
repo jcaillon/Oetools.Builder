@@ -2,17 +2,17 @@
 // ========================================================================
 // Copyright (c) 2018 - Julien Caillon (julien.caillon@gmail.com)
 // This file (OeTaskWebclient.cs) is part of Oetools.Builder.
-// 
+//
 // Oetools.Builder is a free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Oetools.Builder is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Oetools.Builder. If not, see <http://www.gnu.org/licenses/>.
 // ========================================================================
@@ -21,14 +21,14 @@
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
+using DotUtilities;
 using Oetools.Builder.History;
-using Oetools.Utilities.Lib;
 
 namespace Oetools.Builder.Project.Task {
-    
+
     [Serializable]
     internal class OeTaskWebclient : AOeTask {
-        
+
         [XmlElement(ElementName = "VendorName")]
         public string VendorName { get; set; }
 
@@ -73,7 +73,7 @@ namespace Oetools.Builder.Project.Task {
         /// </summary>
         [XmlElement(ElementName = "ProwcappTemplateFilePath")]
         public string ProwcappTemplateFilePath { get; set; }
-            
+
         /// <summary>
         /// If null, all the files in the root path will be added to a default component named as <see cref="ApplicationVersion"/>
         /// </summary>
@@ -86,7 +86,7 @@ namespace Oetools.Builder.Project.Task {
         protected override void ExecuteTestModeInternal() => throw new NotImplementedException();
 
         public OeWebclientPackage GetWebclientPackageResult() => throw new NotImplementedException();
-            
+
         internal class DiffCab {
             /// <summary>
             ///     1
@@ -120,29 +120,29 @@ namespace Oetools.Builder.Project.Task {
 
         }
     }
-    
+
     [Serializable]
     internal class OeWebclientComponent {
-                
+
         [XmlAttribute(AttributeName = "DownloadMode")]
         public OeWebclientComponentDownloadMode DownloadMode { get; set; }
-                            
+
         [XmlArray("IncludedFiles")]
         [XmlArrayItem("IncludePathPattern", typeof(string))]
         public List<string> IncludedFiles { get; set; }
-                
+
         [Serializable]
         public enum OeWebclientComponentDownloadMode {
             /// <summary>
             /// The component is downloaded at the application startup.
             /// </summary>
-            [XmlEnum("Eager")] 
+            [XmlEnum("Eager")]
             Eager,
-            
+
             /// <summary>
             /// The component is downloaded "as needed" during the application runtime.
             /// </summary>
-            [XmlEnum("Lazy")] 
+            [XmlEnum("Lazy")]
             Lazy
         }
     }

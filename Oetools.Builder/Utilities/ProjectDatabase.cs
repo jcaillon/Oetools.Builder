@@ -18,11 +18,9 @@
 // ========================================================================
 #endregion
 
-using System;
-using System.Globalization;
 using System.IO;
+using DotUtilities;
 using Oetools.Builder.Project.Properties;
-using Oetools.Utilities.Lib;
 using Oetools.Utilities.Openedge.Database;
 using Oetools.Utilities.Openedge.Database.Exceptions;
 
