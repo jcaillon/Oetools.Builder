@@ -548,9 +548,9 @@ From this file, the tool is able to generate a temporary database used to compil
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
- <br>
+            <br>
 The following symbols can be used in patterns:<br>
-<br>
+            <br>
 - ** will match any char any number of time (corresponds to a regex greedy match)<br>
 - * will match only non path separators any time (can be used to match any file name)<br>
 - ? matches non path separators exactly 1 time<br>
@@ -575,9 +575,9 @@ The following symbols can be used in patterns:<br>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
- <br>
+            <br>
 The following symbols can be used in patterns:<br>
-<br>
+            <br>
 - ** will match any char any number of time (corresponds to a regex greedy match)<br>
 - * will match only non path separators any time (can be used to match any file name)<br>
 - ? matches non path separators exactly 1 time<br>
@@ -718,9 +718,9 @@ Defaults to 0 which does not limit the time.]]></xs:documentation>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
- <br>
+            <br>
 The following symbols can be used in patterns:<br>
-<br>
+            <br>
 - ** will match any char any number of time (corresponds to a regex greedy match)<br>
 - * will match only non path separators any time (can be used to match any file name)<br>
 - ? matches non path separators exactly 1 time<br>
@@ -745,9 +745,9 @@ The following symbols can be used in patterns:<br>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
- <br>
+            <br>
 The following symbols can be used in patterns:<br>
-<br>
+            <br>
 - ** will match any char any number of time (corresponds to a regex greedy match)<br>
 - * will match only non path separators any time (can be used to match any file name)<br>
 - ? matches non path separators exactly 1 time<br>
@@ -984,9 +984,9 @@ Each target path can use special placeholders:<br>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
- <br>
+            <br>
 The following symbols can be used in patterns:<br>
-<br>
+            <br>
 - ** will match any char any number of time (corresponds to a regex greedy match)<br>
 - * will match only non path separators any time (can be used to match any file name)<br>
 - ? matches non path separators exactly 1 time<br>
@@ -1011,9 +1011,9 @@ The following symbols can be used in patterns:<br>
 Several pattern can be used, separate them with a semi-colon (i.e. ;).<br>
 Internally, each pattern is turned into a valid regular expression.<br>
 If a file is matched by several patterns, only the first one will be used.<br>
- <br>
+            <br>
 The following symbols can be used in patterns:<br>
-<br>
+            <br>
 - ** will match any char any number of time (corresponds to a regex greedy match)<br>
 - * will match only non path separators any time (can be used to match any file name)<br>
 - ? matches non path separators exactly 1 time<br>
@@ -1056,7 +1056,7 @@ The pattern are relative to the source directory.<br>
           </xs:element>
           <xs:element minOccurs="0" maxOccurs="1" name="SourceOverrideFileList" type="xs:string">
             <xs:annotation>
-              <xs:documentation><![CDATA[A direct list of files to use as sources. <br>
+              <xs:documentation><![CDATA[A direct list of files to use as sources.<br>
 <br>
 Several paths can be given by separating them with a semi-colon (i.e. ;).<br>
 This option overrides every other options in this filter, the paths listed here are directly used as results of this filter.<br>
@@ -1103,11 +1103,11 @@ This option cannot be used simultaneously with the XREF option.<br>
           <xs:documentation><![CDATA[Use the LISTING option in the COMPILE statement.<br>
 <br>
 If true, the compilation process will produce a file (.lis) including:<br>
-- The name of the file containing the procedure or class you compile <br>
-- The date and time at the start of the compilation <br>
-- The number of each line in the procedure or class file <br>
-- The block number where each statement belongs <br>
-- The complete text of all include files (except encrypted include files) and the names of any sub-procedures and user-defined functions <br>
+- The name of the file containing the procedure or class you compile<br>
+- The date and time at the start of the compilation<br>
+- The number of each line in the procedure or class file<br>
+- The block number where each statement belongs<br>
+- The complete text of all include files (except encrypted include files) and the names of any sub-procedures and user-defined functions<br>
 <br>
 <b>Defaults to:</b> False.]]></xs:documentation>
         </xs:annotation>
@@ -1170,7 +1170,7 @@ By default, all rcode generated are saved in the temporary directory and then mo
         <xs:annotation>
           <xs:documentation><![CDATA[A comma-separated list of file extension patterns that represent ABL compilable files.<br>
 <br>
-This is a default filter that is used for each "compile" task and which allows to process only certain types of files. <br>
+This is a default filter that is used for each "compile" task and which allows to process only certain types of files.<br>
 <br>
 <b>Defaults to:</b> *.p;*.w;*.t;*.cls.]]></xs:documentation>
         </xs:annotation>
@@ -1591,7 +1591,7 @@ There are 3 kinds of steps:<br>
       </xs:element>
       <xs:element minOccurs="0" maxOccurs="1" name="ReflectDeletedTargets" nillable="true" type="OeTaskReflectDeletedTargets">
         <xs:annotation>
-          <xs:documentation><![CDATA[This task that deletes previous target files which have been removed since the last build. <br>
+          <xs:documentation><![CDATA[This task that deletes previous target files which have been removed since the last build.<br>
 <br>
 This task is only useful in incremental mode, where the history of files built is kept.<br>
 <br>
